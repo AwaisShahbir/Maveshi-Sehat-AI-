@@ -15,13 +15,27 @@ export default function RegisterScreen() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
 
   const handleRegister = async () => {
-    if (!fullName || !phoneNumber || !email || !password) {
-      return Alert.alert('Error', 'Please fill in all required fields');
+    setErrorMsg(''); // Reset error
+
+    if (!fullName.trim() || !phoneNumber.trim() || !email.trim() || !password.trim()) {
+      return setErrorMsg('Please fill in all required fields');
+    }
+    
+    // Basic validations
+    if (phoneNumber.length < 10) {
+      return setErrorMsg('Please enter a valid phone number');
+    }
+    if (!email.includes('@')) {
+      return setErrorMsg('Please enter a valid email address');
+    }
+    if (password.length < 6) {
+      return setErrorMsg('Password must be at least 6 characters long');
     }
     if (password !== confirmPassword) {
-      return Alert.alert('Error', 'Passwords do not match!');
+      return setErrorMsg('Passwords do not match!');
     }
 
     setLoading(true);
@@ -38,9 +52,9 @@ export default function RegisterScreen() {
         throw new Error(data.error || 'Registration failed');
       }
 
-      router.push(`/verify?email=${data.email}`);
+      router.push(`/verify?email=${data.email}&role=${role}&userName=${fullName}`);
     } catch (error) {
-      Alert.alert('Registration Error', error.message);
+      setErrorMsg(error.message);
     } finally {
       setLoading(false);
     }
@@ -113,7 +127,7 @@ export default function RegisterScreen() {
             <Text style={styles.label}>District / ضلع</Text>
             <TouchableOpacity style={styles.inputContainer} activeOpacity={0.8} onPress={() => setDistrictModalVisible(true)}>
               <Feather name="map-pin" size={20} color="#4CB85C" style={styles.inputIcon} />
-              <Text style={[styles.input, { color: district ? '#333' : '#999', paddingTop: Platform.OS === 'web' ? 2 : 0 }]}>
+              <Text style={[styles.input, { height: 'auto', paddingTop: 0, color: district ? '#333' : '#999' }]}>
                 {district || 'Select District'}
               </Text>
               <Feather name="chevron-down" size={20} color="#999" />
@@ -165,6 +179,14 @@ export default function RegisterScreen() {
                 onChangeText={setConfirmPassword}
               />
             </View>
+
+            {/* Error Message */}
+            {errorMsg ? (
+              <View style={styles.errorContainer}>
+                <Feather name="alert-circle" size={16} color="#FF3B30" />
+                <Text style={styles.errorText}>{errorMsg}</Text>
+              </View>
+            ) : null}
 
             {/* Register Button */}
             <TouchableOpacity 
@@ -284,14 +306,18 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     paddingHorizontal: 16,
     height: 60,
+    borderWidth: 1,
+    borderColor: '#D1D5D3', // Adds a visible outline to the container
   },
   inputIcon: {
     marginRight: 12,
   },
   input: {
     flex: 1,
+    height: '100%', // Makes input take full height
     fontSize: 15,
     color: '#333',
+    outlineStyle: 'none', // Removes default small black web focus outline
   },
   roleContainer: {
     flexDirection: 'row',
@@ -330,7 +356,22 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 4,
     marginBottom: 24,
-    marginTop: 32, // More margin since no forgot password
+    marginTop: 16, // Reduced from 32 to give space for error message
+  },
+  errorContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFEBEA',
+    padding: 12,
+    borderRadius: 8,
+    marginTop: 16,
+  },
+  errorText: {
+    color: '#FF3B30',
+    fontSize: 13,
+    fontWeight: '600',
+    marginLeft: 8,
+    flex: 1,
   },
   registerBtnText: {
     color: '#FFFFFF',

@@ -5,7 +5,7 @@ import { Feather } from '@expo/vector-icons';
 
 export default function VerifyScreen() {
   const router = useRouter();
-  const { email } = useLocalSearchParams(); // Get email passed from Register
+  const { email, role, userName } = useLocalSearchParams(); // Get params passed from Register
   const [code, setCode] = useState(['', '', '', '']);
   const [loading, setLoading] = useState(false);
   const inputRefs = [useRef(null), useRef(null), useRef(null), useRef(null)];
@@ -49,7 +49,11 @@ export default function VerifyScreen() {
         Alert.alert('Success', 'Account Verified Successfully! Welcome to Maveshi Sehat.');
       }
       
-      router.push('/dashboard');
+      if (role === 'vet') {
+        router.push({ pathname: '/vet-dashboard', params: { userName } });
+      } else {
+        router.push({ pathname: '/dashboard', params: { userName } });
+      }
     } catch (error) {
       if (Platform.OS === 'web') {
         alert('Verification Error: ' + error.message);

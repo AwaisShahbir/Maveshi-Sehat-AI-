@@ -8,8 +8,8 @@ const nodemailer = require('nodemailer');
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
-    user: 'your_email@gmail.com', // TODO: Update this
-    pass: 'your_app_password'
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS
   }
 });
 
@@ -69,7 +69,7 @@ app.post('/register', async (req, res) => {
     // 5. Send Email
     try {
       await transporter.sendMail({
-        from: '"Maveshi Sehat AI" <your_email@gmail.com>',
+        from: `"Maveshi Sehat AI" <${process.env.EMAIL_USER}>`,
         to: email,
         subject: 'Your OTP Code - Maveshi Sehat AI',
         text: `Welcome to Maveshi Sehat AI! Your verification code is: ${otp}`
@@ -106,6 +106,44 @@ app.post('/verify-otp', async (req, res) => {
     res.status(200).json({ message: 'OTP verified successfully!' });
   } catch (err) {
     res.status(500).json({ error: 'Server error during verification.' });
+  }
+});
+
+// --- LOGIN API ---
+app.post('/login', async (req, res) => {
+  try {
+    const { phoneNumber, password, role } = req.body;
+
+    // 1. Check if user exists
+    const userResult = await pool.query('SELECT * FROM users WHERE phone_number = $1 AND role = $2', [phoneNumber, role]);
+    
+    if (userResult.rows.length === 0) {
+      return res.status(400).json({ error: 'Invalid phone number or role.' });
+    }
+
+    const user = userResult.rows[0];
+
+    // 2. Compare passwords
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ error: 'Invalid password.' });
+    }
+
+    // 3. Login successful
+    res.status(200).json({ 
+      message: 'Login successful!',
+      user: {
+        id: user.id,
+        fullName: user.full_name,
+        email: user.email,
+        phoneNumber: user.phone_number,
+        role: user.role
+      }
+    });
+
+  } catch (err) {
+    console.error('Login Error:', err.message);
+    res.status(500).json({ error: 'Server error during login.' });
   }
 });
 

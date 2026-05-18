@@ -1,12 +1,56 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, SafeAreaView, StatusBar, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, SafeAreaView, StatusBar, KeyboardAvoidingView, Platform, ScrollView, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 
 export default function LoginScreen() {
   const router = useRouter();
   const [role, setRole] = useState('owner'); // 'owner' or 'vet'
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [password, setPassword] = useState('');
   const [passwordVisible, setPasswordVisible] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
+
+  const handleLogin = async () => {
+    setErrorMsg(''); // Reset error message
+
+    if (!phoneNumber.trim() || !password.trim()) {
+      return setErrorMsg('Please enter your phone number and password');
+    }
+
+    if (phoneNumber.length < 10) {
+      return setErrorMsg('Please enter a valid phone number');
+    }
+
+    setLoading(true);
+    try {
+      // Use 'farmer' for owner to match register.jsx if needed, but keeping role as mapped
+      const mappedRole = role === 'owner' ? 'farmer' : 'vet';
+      
+      const response = await fetch('http://localhost:5000/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phoneNumber, password, role: mappedRole })
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Login failed');
+      }
+      
+      if (data.user.role === 'vet') {
+        router.replace({ pathname: '/vet-dashboard', params: { userName: data.user.fullName } });
+      } else {
+        router.replace({ pathname: '/dashboard', params: { userName: data.user.fullName } });
+      }
+    } catch (error) {
+      setErrorMsg(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -57,6 +101,8 @@ export default function LoginScreen() {
                 placeholder="+92 300 1234567"
                 placeholderTextColor="#999"
                 keyboardType="phone-pad"
+                value={phoneNumber}
+                onChangeText={setPhoneNumber}
               />
             </View>
 
@@ -69,6 +115,8 @@ export default function LoginScreen() {
                 placeholder="Enter password"
                 placeholderTextColor="#999"
                 secureTextEntry={!passwordVisible}
+                value={password}
+                onChangeText={setPassword}
               />
               <TouchableOpacity onPress={() => setPasswordVisible(!passwordVisible)} style={styles.eyeIcon}>
                 <Feather name={passwordVisible ? "eye-off" : "eye"} size={20} color="#888" />
@@ -80,9 +128,24 @@ export default function LoginScreen() {
               <Text style={styles.forgotPassword}>پاس ورڈ بھول گئے؟ / Forgot Password?</Text>
             </TouchableOpacity>
 
+            {/* Error Message */}
+            {errorMsg ? (
+              <View style={styles.errorContainer}>
+                <Feather name="alert-circle" size={16} color="#FF3B30" />
+                <Text style={styles.errorText}>{errorMsg}</Text>
+              </View>
+            ) : null}
+
             {/* Login Button */}
-            <TouchableOpacity style={styles.loginButton} activeOpacity={0.9}>
-              <Text style={styles.loginButtonText}>لاگ ان / Login</Text>
+            <TouchableOpacity 
+              style={[styles.loginButton, loading && { opacity: 0.7 }]} 
+              activeOpacity={0.9}
+              onPress={handleLogin}
+              disabled={loading}
+            >
+              <Text style={styles.loginButtonText}>
+                {loading ? 'Logging in...' : 'لاگ ان / Login'}
+              </Text>
             </TouchableOpacity>
 
             {/* Register Link */}
@@ -192,14 +255,18 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     paddingHorizontal: 16,
     height: 60,
+    borderWidth: 1,
+    borderColor: '#D1D5D3', // Adds a visible outline to the container
   },
   inputIcon: {
     marginRight: 12,
   },
   input: {
     flex: 1,
+    height: '100%', // Makes input take full height
     fontSize: 15,
     color: '#333',
+    outlineStyle: 'none', // Removes default small black web focus outline
   },
   eyeIcon: {
     padding: 8,
@@ -222,6 +289,21 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 4,
     marginBottom: 24,
+  },
+  errorContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFEBEA',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 16,
+  },
+  errorText: {
+    color: '#FF3B30',
+    fontSize: 13,
+    fontWeight: '600',
+    marginLeft: 8,
+    flex: 1,
   },
   loginButtonText: {
     color: '#FFFFFF',
