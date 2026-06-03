@@ -4,6 +4,9 @@ import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
+import UserManagement from './pages/UserManagement';
+import VetVerification from './pages/VetVerification';
+import PharmacyApproval from './pages/PharmacyApproval';
 
 // Simple placeholder page for sections currently under development
 function PlaceholderPage({ name, urdu }) {
@@ -76,9 +79,9 @@ export default function App() {
               <Route path="/reports" element={<PlaceholderPage name="Reports Center" urdu="رپورٹس سینٹر" />} />
               
               {/* User Control Group */}
-              <Route path="/users" element={<PlaceholderPage name="User Management" urdu="صارفین کا انتظام" />} />
-              <Route path="/vets" element={<PlaceholderPage name="Vet Verification" urdu="ڈاکٹر کی تصدیق" />} />
-              <Route path="/pharmacy-approval" element={<PlaceholderPage name="Pharmacy Approval" urdu="فارمیسی کی منظوری" />} />
+              <Route path="/users" element={<UserManagement />} />
+              <Route path="/vets" element={<VetVerification />} />
+              <Route path="/pharmacy-approval" element={<PharmacyApproval />} />
               
               {/* Management Group */}
               <Route path="/health-records" element={<PlaceholderPage name="Health Records" urdu="صحت کے ریکارڈ" />} />

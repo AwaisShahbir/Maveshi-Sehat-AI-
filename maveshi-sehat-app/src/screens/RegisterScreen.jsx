@@ -17,6 +17,69 @@ export default function RegisterScreen() {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
+  // Vet-specific fields
+  const [pvmcNumber, setPvmcNumber] = useState('');
+  const [specialization, setSpecialization] = useState('');
+  const [experienceYears, setExperienceYears] = useState('');
+  const [licenseDocumentUrl, setLicenseDocumentUrl] = useState('');
+  const [licenseFileName, setLicenseFileName] = useState('');
+  const [uploading, setUploading] = useState(false);
+  const [isUploadModalVisible, setUploadModalVisible] = useState(false);
+
+  const handleFileUploadWeb = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setUploading(true);
+    setErrorMsg('');
+    try {
+      const formData = new FormData();
+      formData.append('license', file);
+      
+      const response = await fetch('http://localhost:5000/upload', {
+        method: 'POST',
+        body: formData
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Upload failed');
+      
+      setLicenseDocumentUrl(data.fileUrl);
+      setLicenseFileName(file.name);
+    } catch (err) {
+      setErrorMsg('File upload error: ' + err.message);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleMockUploadMobile = async (choice) => {
+    setUploadModalVisible(false);
+    setUploading(true);
+    setErrorMsg('');
+    try {
+      const formData = new FormData();
+      const mockFile = {
+        uri: 'data:text/plain;base64,Vk1DLUxJQ0VOU0UtRE9DVU1FTlQtQ09OVEVOVA==', // base64 mock
+        name: choice === 'pdf' ? 'pvmc_license_document.pdf' : 'pvmc_license_photo.jpg',
+        type: choice === 'pdf' ? 'application/pdf' : 'image/jpeg'
+      };
+      formData.append('license', mockFile);
+
+      const response = await fetch('http://10.0.2.2:5000/upload', {
+        method: 'POST',
+        body: formData
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Upload failed');
+
+      setLicenseDocumentUrl(data.fileUrl);
+      setLicenseFileName(mockFile.name);
+    } catch (err) {
+      setErrorMsg('File upload error: ' + err.message);
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const handleRegister = async () => {
     setErrorMsg(''); // Reset error
 
@@ -38,12 +101,43 @@ export default function RegisterScreen() {
       return setErrorMsg('Passwords do not match!');
     }
 
+    // Vet-specific validations
+    if (role === 'vet') {
+      if (!pvmcNumber.trim()) {
+        return setErrorMsg('Please enter your PVMC License Number');
+      }
+      const pvmcRegex = /^pvmc-\d{4,}$/i;
+      if (!pvmcRegex.test(pvmcNumber)) {
+        return setErrorMsg('License number must start with PVMC- followed by at least 4 digits (e.g. PVMC-1234)');
+      }
+      if (!specialization.trim()) {
+        return setErrorMsg('Please enter your Specialization');
+      }
+      if (!experienceYears.trim() || isNaN(experienceYears)) {
+        return setErrorMsg('Please enter a valid number of years of experience');
+      }
+      if (!licenseDocumentUrl.trim()) {
+        return setErrorMsg('Please upload your License Document');
+      }
+    }
+
     setLoading(true);
     try {
       const response = await fetch('http://10.0.2.2:5000/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fullName, phoneNumber, email, district, role, password })
+        body: JSON.stringify({ 
+          fullName, 
+          phoneNumber, 
+          email, 
+          district, 
+          role, 
+          password,
+          pvmcNumber: role === 'vet' ? pvmcNumber : null,
+          specialization: role === 'vet' ? specialization : null,
+          experienceYears: role === 'vet' ? parseInt(experienceYears) : null,
+          licenseDocumentUrl: role === 'vet' ? licenseDocumentUrl : null
+        })
       });
       
       const data = await response.json();
@@ -52,7 +146,20 @@ export default function RegisterScreen() {
         throw new Error(data.error || 'Registration failed');
       }
 
-      navigation.navigate('Verify', { email: data.email, role: role, userName: fullName });
+      if (role === 'vet') {
+        if (Platform.OS === 'web') {
+          alert('Registration successful! Pending Admin Approval. You can login once your credentials are verified.');
+          navigation.navigate('Login');
+        } else {
+          Alert.alert(
+            'Registration Pending',
+            'Your Vet registration is pending Admin Approval. You can login once your credentials are verified.',
+            [{ text: 'OK', onPress: () => navigation.navigate('Login') }]
+          );
+        }
+      } else {
+        navigation.navigate('Verify', { email: data.email, role: role, userName: fullName });
+      }
     } catch (error) {
       setErrorMsg(error.message);
     } finally {
@@ -152,6 +259,79 @@ export default function RegisterScreen() {
               </TouchableOpacity>
             </View>
 
+            {role === 'vet' && (
+              <>
+                {/* License Number */}
+                <Text style={styles.label}>License Number (PVMC) / لائسنس نمبر</Text>
+                <View style={styles.inputContainer}>
+                  <Feather name="file-text" size={20} color="#4CB85C" style={styles.inputIcon} />
+                  <TextInput 
+                    style={styles.input}
+                    placeholder="Enter PVMC License Number"
+                    placeholderTextColor="#999"
+                    value={pvmcNumber}
+                    onChangeText={setPvmcNumber}
+                  />
+                </View>
+
+                {/* Specialization */}
+                <Text style={styles.label}>Specialization / مہارت</Text>
+                <View style={styles.inputContainer}>
+                  <Feather name="award" size={20} color="#4CB85C" style={styles.inputIcon} />
+                  <TextInput 
+                    style={styles.input}
+                    placeholder="e.g. Livestock Generalist, Dairy Cattle"
+                    placeholderTextColor="#999"
+                    value={specialization}
+                    onChangeText={setSpecialization}
+                  />
+                </View>
+
+                {/* Experience Years */}
+                <Text style={styles.label}>Years of Experience / تجربہ (سال)</Text>
+                <View style={styles.inputContainer}>
+                  <Feather name="clock" size={20} color="#4CB85C" style={styles.inputIcon} />
+                  <TextInput 
+                    style={styles.input}
+                    placeholder="e.g. 5"
+                    placeholderTextColor="#999"
+                    keyboardType="numeric"
+                    value={experienceYears}
+                    onChangeText={setExperienceYears}
+                  />
+                </View>
+
+                {/* License Document Upload */}
+                <Text style={styles.label}>License Document (Image/PDF) / لائسنس کی دستاویز</Text>
+                <TouchableOpacity 
+                  style={[styles.inputContainer, { justifyContent: 'center', backgroundColor: '#E8F8EA', borderColor: '#4CB85C', borderStyle: 'dashed' }]}
+                  activeOpacity={0.8}
+                  onPress={() => {
+                    if (Platform.OS === 'web') {
+                      document.getElementById('web-license-file-input').click();
+                    } else {
+                      setUploadModalVisible(true);
+                    }
+                  }}
+                  disabled={uploading}
+                >
+                  <Feather name={uploading ? "loader" : "upload-cloud"} size={22} color="#4CB85C" style={{ marginRight: 8 }} />
+                  <Text style={{ color: '#4CB85C', fontWeight: 'bold', fontSize: 14 }}>
+                    {uploading ? 'Uploading / اپ لوڈ ہو رہا ہے...' : (licenseFileName ? `Selected: ${licenseFileName}` : 'Upload Document / دستاویز اپ لوڈ کریں')}
+                  </Text>
+                  {Platform.OS === 'web' && (
+                    <input 
+                      id="web-license-file-input"
+                      type="file"
+                      accept="image/*,application/pdf"
+                      style={{ display: 'none' }}
+                      onChange={handleFileUploadWeb}
+                    />
+                  )}
+                </TouchableOpacity>
+              </>
+            )}
+
             {/* Password */}
             <Text style={styles.label}>Password / پاس ورڈ</Text>
             <View style={styles.inputContainer}>
@@ -232,6 +412,43 @@ export default function RegisterScreen() {
             />
             <TouchableOpacity style={styles.modalCloseBtn} onPress={() => setDistrictModalVisible(false)}>
               <Text style={styles.modalCloseText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Upload Choice Modal for Mobile */}
+      <Modal visible={isUploadModalVisible} transparent={true} animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Upload License / لائسنس اپ لوڈ کریں</Text>
+            
+            <TouchableOpacity 
+              style={styles.modalUploadItem}
+              onPress={() => handleMockUploadMobile('camera')}
+            >
+              <Feather name="camera" size={20} color="#4CB85C" style={{ marginRight: 12 }} />
+              <Text style={[styles.modalItemText, { textAlign: 'left' }]}>Scan Card (Camera) / کیمرہ</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={styles.modalUploadItem}
+              onPress={() => handleMockUploadMobile('gallery')}
+            >
+              <Feather name="image" size={20} color="#4CB85C" style={{ marginRight: 12 }} />
+              <Text style={[styles.modalItemText, { textAlign: 'left' }]}>Choose from Gallery / گیلری</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={styles.modalUploadItem}
+              onPress={() => handleMockUploadMobile('pdf')}
+            >
+              <Feather name="file-text" size={20} color="#4CB85C" style={{ marginRight: 12 }} />
+              <Text style={[styles.modalItemText, { textAlign: 'left' }]}>Select PDF File / پی ڈی ایف دستاویز</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.modalCloseBtn} onPress={() => setUploadModalVisible(false)}>
+              <Text style={styles.modalCloseText}>Cancel / منسوخ کریں۔</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -424,6 +641,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#333',
     textAlign: 'center',
+  },
+  modalUploadItem: {
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: '#EEE',
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
   },
   modalCloseBtn: {
     marginTop: 16,

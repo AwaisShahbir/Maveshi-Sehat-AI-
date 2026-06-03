@@ -4,6 +4,8 @@ const cors = require('cors');
 const { Pool } = require('pg');
 const bcrypt = require('bcryptjs');
 const nodemailer = require('nodemailer');
+const multer = require('multer');
+const path = require('path');
 
 const transporter = nodemailer.createTransport({
   service: 'gmail',
@@ -16,6 +18,33 @@ const transporter = nodemailer.createTransport({
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+// Serve static upload files
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// Configure Multer storage
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'uploads/');
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const upload = multer({ 
+  storage: storage,
+  fileFilter: (req, file, cb) => {
+    const filetypes = /jpeg|jpg|png|pdf/;
+    const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = filetypes.test(file.mimetype);
+    if (mimetype && extname) {
+      return cb(null, true);
+    }
+    cb(new Error('Only JPEG, JPG, PNG, and PDF files are allowed!'));
+  }
+});
 
 // PostgreSQL Connection Pool
 const pool = new Pool({
@@ -39,6 +68,23 @@ pool.connect((err, client, release) => {
 // Basic Route
 app.get('/', (req, res) => {
   res.send('Maveshi Sehat AI API is running!');
+});
+
+// --- FILE UPLOAD API ---
+app.post('/upload', upload.single('license'), (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'Please select a file to upload.' });
+    }
+    const fileUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
+    res.status(200).json({ 
+      message: 'File uploaded successfully!', 
+      fileUrl: fileUrl,
+      filename: req.file.filename
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message || 'File upload failed.' });
+  }
 });
 
 // --- REGISTRATION API ---
@@ -74,38 +120,58 @@ app.post('/register', async (req, res) => {
       ]
     );
 
-    // 4. Generate 4-digit OTP
-    const otp = Math.floor(1000 + Math.random() * 9000).toString();
-    await pool.query('INSERT INTO otps (email, otp) VALUES ($1, $2)', [email, otp]);
-
-    // 5. Send Admin Notification if a new Vet signs up
+    // 4. Handle notification/OTP based on role
     if (role === 'vet') {
+      // Send Admin Notification if a new Vet signs up
       await pool.query(
         `INSERT INTO admin_notifications (type, message_en, message_ur) 
          VALUES ('vet_application', $1, $2)`,
         [`New vet application submitted - ${fullName}`, `${fullName} نے تصدیق جمع کرائی — ${district}`]
       );
-    }
 
-    // 6. Send Email
-    try {
-      await transporter.sendMail({
-        from: `"Maveshi Sehat AI" <${process.env.EMAIL_USER}>`,
-        to: email,
-        subject: 'Your OTP Code - Maveshi Sehat AI',
-        text: `Welcome to Maveshi Sehat AI! Your verification code is: ${otp}`
+      // Send Email to Vet about registration pending admin review
+      try {
+        await transporter.sendMail({
+          from: `"Maveshi Sehat AI" <${process.env.EMAIL_USER}>`,
+          to: email,
+          subject: 'Vet Application Received - Maveshi Sehat AI',
+          text: `Welcome to Maveshi Sehat AI, Dr. ${fullName}! We have received your vet application and license details. Our admin team will review it shortly. Once approved, you will be able to log in.`
+        });
+        console.log(`Vet pending review email sent to ${email}`);
+      } catch (mailErr) {
+        console.error('Email failed to send. Check your Gmail credentials.');
+      }
+
+      return res.status(201).json({ 
+        message: 'Registration successful! Pending admin approval.', 
+        email: newUser.rows[0].email,
+        role: 'vet'
       });
-      console.log(`OTP ${otp} sent to ${email}`);
-    } catch (mailErr) {
-      console.error('Email failed to send. Check your Gmail credentials.');
-      console.log(`[DEV MODE] Your OTP for ${email} is: ${otp}`); // Fallback for dev
+    } else {
+      // 5. Generate 4-digit OTP for Farmers
+      const otp = Math.floor(1000 + Math.random() * 9000).toString();
+      await pool.query('INSERT INTO otps (email, otp) VALUES ($1, $2)', [email, otp]);
+
+      // 6. Send OTP Email to Farmer
+      try {
+        await transporter.sendMail({
+          from: `"Maveshi Sehat AI" <${process.env.EMAIL_USER}>`,
+          to: email,
+          subject: 'Your OTP Code - Maveshi Sehat AI',
+          text: `Welcome to Maveshi Sehat AI! Your verification code is: ${otp}`
+        });
+        console.log(`OTP ${otp} sent to ${email}`);
+      } catch (mailErr) {
+        console.error('Email failed to send. Check your Gmail credentials.');
+        console.log(`[DEV MODE] Your OTP for ${email} is: ${otp}`); // Fallback for dev
+      }
+
+      return res.status(201).json({ 
+        message: 'User registered successfully! OTP sent.', 
+        email: newUser.rows[0].email,
+        role: 'farmer'
+      });
     }
-
-    res.status(201).json({ 
-      message: 'User registered successfully! OTP sent.', 
-      email: newUser.rows[0].email 
-    });
-
   } catch (err) {
     console.error('Registration Error:', err.message);
     res.status(500).json({ error: 'Server error during registration.' });
@@ -158,6 +224,9 @@ app.post('/login', async (req, res) => {
     }
     if (user.status === 'blocked') {
       return res.status(403).json({ error: 'Your account has been blocked by the administrator.' });
+    }
+    if (user.status === 'info_requested') {
+      return res.status(403).json({ error: 'Additional information is requested by the administrator. Please check your email for details.' });
     }
 
     // 2. Compare passwords
@@ -240,7 +309,7 @@ app.get('/api/admin/dashboard-stats', async (req, res) => {
 // --- 2. USERS MANAGEMENT ---
 app.get('/api/admin/users', async (req, res) => {
   try {
-    const result = await pool.query("SELECT id, full_name, email, phone_number, district, role, status, created_at FROM users WHERE role != 'admin' ORDER BY id ASC");
+    const result = await pool.query("SELECT id, full_name, email, phone_number, district, role, status, pvmc_number, specialization, experience_years, license_document_url, created_at FROM users WHERE role != 'admin' ORDER BY id ASC");
     res.status(200).json(result.rows);
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch users' });
@@ -249,14 +318,35 @@ app.get('/api/admin/users', async (req, res) => {
 
 app.post('/api/admin/users/action', async (req, res) => {
   try {
-    const { userId, action } = req.body; // action: 'approve', 'reject', 'block', 'unblock'
+    const { userId, action, message } = req.body; // action: 'approve', 'reject', 'block', 'unblock', 'request_info'
     let newStatus = 'approved';
     if (action === 'approve') newStatus = 'verified';
     else if (action === 'reject') newStatus = 'rejected';
     else if (action === 'block') newStatus = 'blocked';
     else if (action === 'unblock') newStatus = 'active';
+    else if (action === 'request_info') newStatus = 'info_requested';
 
     await pool.query("UPDATE users SET status = $1 WHERE id = $2", [newStatus, userId]);
+
+    // Send email to Vet if requesting more info
+    if (action === 'request_info') {
+      const userRes = await pool.query("SELECT full_name, email FROM users WHERE id = $1", [userId]);
+      if (userRes.rows.length > 0) {
+        const user = userRes.rows[0];
+        try {
+          await transporter.sendMail({
+            from: `"Maveshi Sehat AI" <${process.env.EMAIL_USER}>`,
+            to: user.email,
+            subject: 'Additional Information Requested - Maveshi Sehat AI',
+            text: `Dear Dr. ${user.full_name},\n\nThe administrator reviewed your registration application and has requested additional information:\n\n"${message}"\n\nPlease check your profile or contact support to update your information.\n\nBest regards,\nMaveshi Sehat AI Team`
+          });
+          console.log(`Info Request Email sent to ${user.email}`);
+        } catch (mailErr) {
+          console.error('Failed to send info request email:', mailErr.message);
+        }
+      }
+    }
+
     res.status(200).json({ message: `User status updated to ${newStatus} successfully.` });
   } catch (err) {
     res.status(500).json({ error: 'Failed to update user status' });
