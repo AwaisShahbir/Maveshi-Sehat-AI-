@@ -1,0 +1,6 @@
+.idea/
+.vscode/
+maveshi-sehat-app/android/app/.cxx/
+maveshi-sehat-admin/dist/
+maveshi-sehat-admin/node_modules/
+maveshi-sehat-backend/node_modules/
