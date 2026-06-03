@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, StatusBar, Alert } from 'react-native';
-import { useRouter, useLocalSearchParams } from 'expo-router';
-import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import Feather from 'react-native-vector-icons/Feather';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 export default function DashboardScreen() {
-  const router = useRouter();
-  const params = useLocalSearchParams();
+  const navigation = useNavigation();
+  const route = useRoute();
+  const params = route.params || {};
 
   // Dynamic States
   const [userName, setUserName] = useState(params.userName || 'Muhammad Ahmed');
@@ -95,7 +97,7 @@ export default function DashboardScreen() {
               <Text style={styles.actionUrdu}>ڈاکٹر</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.actionItem} onPress={() => router.push('/heat-alert')}>
+            <TouchableOpacity style={styles.actionItem} onPress={() => navigation.navigate('HeatAlert')}>
               <View style={[styles.iconBox, { backgroundColor: '#FFF5E5' }]}>
                 <MaterialCommunityIcons name="thermometer" size={28} color="#FFB020" />
               </View>
@@ -166,7 +168,7 @@ export default function DashboardScreen() {
             "Do you want to logout?",
             [
               { text: "Cancel", style: "cancel" },
-              { text: "Logout", style: "destructive", onPress: () => router.replace('/') }
+              { text: "Logout", style: "destructive", onPress: () => navigation.replace('Welcome') }
             ]
           )
         }}>

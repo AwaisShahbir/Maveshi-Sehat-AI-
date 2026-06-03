@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, StatusBar, ActivityIndicator, Platform } from 'react-native';
-import { useRouter } from 'expo-router';
-import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+import Feather from 'react-native-vector-icons/Feather';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 // Function to calculate THI (Temperature Humidity Index) for cattle
 const calculateTHI = (t, rh) => {
@@ -19,7 +20,7 @@ const getStressLevel = (thi) => {
 };
 
 export default function HeatAlertScreen() {
-  const router = useRouter();
+  const navigation = useNavigation();
   
   const [loading, setLoading] = useState(true);
   const [currentWeather, setCurrentWeather] = useState(null);
@@ -95,7 +96,7 @@ export default function HeatAlertScreen() {
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Orange Header Section */}
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
             <Feather name="arrow-left" size={24} color="#FFF" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Heat Stress Alert</Text>
@@ -174,7 +175,7 @@ export default function HeatAlertScreen() {
       {/* Bottom Navigation */}
       <View style={styles.bottomNavContainer}>
         <View style={styles.bottomNav}>
-          <TouchableOpacity style={styles.navItem} onPress={() => router.push('/dashboard')}>
+          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Dashboard')}>
             <Feather name="home" size={24} color="#A3A3A3" />
             <Text style={styles.navText}>Home</Text>
           </TouchableOpacity>

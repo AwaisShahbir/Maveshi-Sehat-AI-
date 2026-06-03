@@ -1,13 +1,13 @@
 import React from 'react';
 import { View, StyleSheet, SafeAreaView, StatusBar } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useNavigation } from '@react-navigation/native';
 
 // Components
 import WelcomeHeader from '../components/WelcomeHeader';
 import Button from '../components/Button';
 
 export default function WelcomeScreen() {
-  const router = useRouter();
+  const navigation = useNavigation();
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -22,12 +22,12 @@ export default function WelcomeScreen() {
           <Button 
             title="لاگ ان / Login" 
             variant="white" 
-            onPress={() => router.push('/login')} 
+            onPress={() => navigation.navigate('Login')} 
           />
           <Button 
             title="رجسٹر کریں / Register" 
             variant="yellow" 
-            onPress={() => router.push('/register')} 
+            onPress={() => navigation.navigate('Register')} 
           />
         </View>
       </View>

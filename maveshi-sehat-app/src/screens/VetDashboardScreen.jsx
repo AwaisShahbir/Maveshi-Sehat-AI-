@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, StatusBar, Alert, Switch } from 'react-native';
-import { useRouter, useLocalSearchParams } from 'expo-router';
-import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import Feather from 'react-native-vector-icons/Feather';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 export default function VetDashboardScreen() {
-  const router = useRouter();
-  const params = useLocalSearchParams();
+  const navigation = useNavigation();
+  const route = useRoute();
+  const params = route.params || {};
 
   // Dynamic States
   const [userName, setUserName] = useState(params.userName || 'Dr. Rahim');
@@ -215,7 +217,7 @@ export default function VetDashboardScreen() {
               "Do you want to logout?",
               [
                 { text: "Cancel", style: "cancel" },
-                { text: "Logout", style: "destructive", onPress: () => router.replace('/') }
+                { text: "Logout", style: "destructive", onPress: () => navigation.replace('Welcome') }
               ]
             )
           }}>

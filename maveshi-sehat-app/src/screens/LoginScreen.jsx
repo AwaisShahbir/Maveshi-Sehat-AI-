@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, SafeAreaView, StatusBar, KeyboardAvoidingView, Platform, ScrollView, Alert } from 'react-native';
-import { useRouter } from 'expo-router';
-import { Feather } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+import Feather from 'react-native-vector-icons/Feather';
 
 export default function LoginScreen() {
-  const router = useRouter();
+  const navigation = useNavigation();
   const [role, setRole] = useState('owner'); // 'owner' or 'vet'
   const [phoneNumber, setPhoneNumber] = useState('');
   const [password, setPassword] = useState('');
@@ -41,9 +41,9 @@ export default function LoginScreen() {
       }
       
       if (data.user.role === 'vet') {
-        router.replace({ pathname: '/vet-dashboard', params: { userName: data.user.fullName } });
+        navigation.replace('VetDashboard', { userName: data.user.fullName });
       } else {
-        router.replace({ pathname: '/dashboard', params: { userName: data.user.fullName } });
+        navigation.replace('Dashboard', { userName: data.user.fullName });
       }
     } catch (error) {
       setErrorMsg(error.message);
@@ -62,7 +62,7 @@ export default function LoginScreen() {
         <ScrollView contentContainerStyle={styles.scrollContent} bounces={false}>
           {/* Top Green Section */}
           <View style={styles.topSection}>
-            <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
               <Feather name="chevron-left" size={24} color="#FFFFFF" />
               <Text style={styles.backText}>Back</Text>
             </TouchableOpacity>
@@ -151,7 +151,7 @@ export default function LoginScreen() {
             {/* Register Link */}
             <View style={styles.registerContainer}>
               <Text style={styles.registerText}>Don't have an account? </Text>
-              <TouchableOpacity onPress={() => router.push('/register')}>
+              <TouchableOpacity onPress={() => navigation.navigate('Register')}>
                 <Text style={styles.registerLink}>Register / رجسٹر</Text>
               </TouchableOpacity>
             </View>

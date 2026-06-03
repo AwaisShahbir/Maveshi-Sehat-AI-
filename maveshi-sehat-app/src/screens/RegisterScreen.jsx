@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, SafeAreaView, StatusBar, KeyboardAvoidingView, Platform, ScrollView, Alert, Modal, FlatList } from 'react-native';
-import { useRouter } from 'expo-router';
-import { Feather } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+import Feather from 'react-native-vector-icons/Feather';
 
 export default function RegisterScreen() {
-  const router = useRouter();
+  const navigation = useNavigation();
   const [role, setRole] = useState('farmer'); // 'farmer' or 'vet'
   const [fullName, setFullName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -52,7 +52,7 @@ export default function RegisterScreen() {
         throw new Error(data.error || 'Registration failed');
       }
 
-      router.push(`/verify?email=${data.email}&role=${role}&userName=${fullName}`);
+      navigation.navigate('Verify', { email: data.email, role: role, userName: fullName });
     } catch (error) {
       setErrorMsg(error.message);
     } finally {
@@ -70,7 +70,7 @@ export default function RegisterScreen() {
         <ScrollView contentContainerStyle={styles.scrollContent} bounces={false}>
           {/* Top Green Section */}
           <View style={styles.topSection}>
-            <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
               <Feather name="chevron-left" size={24} color="#FFFFFF" />
               <Text style={styles.backText}>Back</Text>
             </TouchableOpacity>
@@ -201,7 +201,7 @@ export default function RegisterScreen() {
             {/* Login Link */}
             <View style={styles.loginContainer}>
               <Text style={styles.loginText}>Already have an account? </Text>
-              <TouchableOpacity onPress={() => router.push('/login')}>
+              <TouchableOpacity onPress={() => navigation.navigate('Login')}>
                 <Text style={styles.loginLink}>Login / لاگ ان</Text>
               </TouchableOpacity>
             </View>

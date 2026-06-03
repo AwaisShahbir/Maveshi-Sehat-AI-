@@ -1,11 +1,12 @@
 import React, { useState, useRef } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, SafeAreaView, StatusBar, KeyboardAvoidingView, Platform, ScrollView, Alert } from 'react-native';
-import { useRouter, useLocalSearchParams } from 'expo-router';
-import { Feather } from '@expo/vector-icons';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import Feather from 'react-native-vector-icons/Feather';
 
 export default function VerifyScreen() {
-  const router = useRouter();
-  const { email, role, userName } = useLocalSearchParams(); // Get params passed from Register
+  const navigation = useNavigation();
+  const route = useRoute();
+  const { email, role, userName } = route.params || {}; // Get params passed from Register
   const [code, setCode] = useState(['', '', '', '']);
   const [loading, setLoading] = useState(false);
   const inputRefs = [useRef(null), useRef(null), useRef(null), useRef(null)];
@@ -50,9 +51,9 @@ export default function VerifyScreen() {
       }
       
       if (role === 'vet') {
-        router.push({ pathname: '/vet-dashboard', params: { userName } });
+        navigation.navigate('VetDashboard', { userName });
       } else {
-        router.push({ pathname: '/dashboard', params: { userName } });
+        navigation.navigate('Dashboard', { userName });
       }
     } catch (error) {
       if (Platform.OS === 'web') {
@@ -75,7 +76,7 @@ export default function VerifyScreen() {
         <ScrollView contentContainerStyle={styles.scrollContent} bounces={false}>
           {/* Top Green Section */}
           <View style={styles.topSection}>
-            <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
               <Feather name="chevron-left" size={24} color="#FFFFFF" />
               <Text style={styles.backText}>Back</Text>
             </TouchableOpacity>
