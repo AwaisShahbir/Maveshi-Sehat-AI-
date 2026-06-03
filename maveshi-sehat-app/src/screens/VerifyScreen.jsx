@@ -35,7 +35,7 @@ export default function VerifyScreen() {
 
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:5000/verify-otp', {
+      const response = await fetch('http://10.0.2.2:5000/verify-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, otp: otpValue })
