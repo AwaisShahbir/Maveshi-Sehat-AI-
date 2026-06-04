@@ -206,9 +206,9 @@ export default function DashboardScreen() {
           <Feather name="file-text" size={24} color="#A3E6B2" />
           <Text style={[styles.navText, { color: '#A3E6B2' }]}>Records (Soon)</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem} onPress={handleComingSoon}>
+        <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('CommunityForum', { userName })}>
           <Feather name="message-square" size={24} color="#A3E6B2" />
-          <Text style={[styles.navText, { color: '#A3E6B2' }]}>Forum (Soon)</Text>
+          <Text style={[styles.navText, { color: '#A3E6B2' }]}>Forum</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.navItem} onPress={() => {
           Alert.alert(

@@ -725,6 +725,131 @@ app.put('/api/chat/conversation/resolve', async (req, res) => {
   }
 });
 
+// --- COMMUNITY FORUM REST API ENDPOINTS ---
+
+// 1. Fetch all forum posts (optionally filtered by category)
+app.get('/api/forum/posts', async (req, res) => {
+  try {
+    const { category } = req.query;
+    let query = `
+      SELECT fp.*, u.full_name as author_name, u.role as author_role,
+             (SELECT COUNT(*) FROM forum_comments fc WHERE fc.post_id = fp.id) as comments_count
+      FROM forum_posts fp
+      JOIN users u ON fp.user_id = u.id
+    `;
+    const params = [];
+    if (category && category !== 'All' && category !== 'All Posts') {
+      if (category === 'Trending') {
+        query += ` WHERE fp.category = $1 OR fp.likes_count >= 20`;
+      } else {
+        query += ` WHERE fp.category = $1`;
+      }
+      params.push(category);
+    }
+    query += ` ORDER BY fp.created_at DESC`;
+    const result = await pool.query(query, params);
+    res.status(200).json(result.rows);
+  } catch (err) {
+    console.error('Error fetching forum posts:', err.message);
+    res.status(500).json({ error: 'Server error fetching forum posts' });
+  }
+});
+
+// 2. Create a new forum post
+app.post('/api/forum/posts', async (req, res) => {
+  try {
+    const { userName, title, description, category } = req.body;
+    if (!userName || !title || !description || !category) {
+      return res.status(400).json({ error: 'All fields are required' });
+    }
+    const userRes = await pool.query('SELECT id FROM users WHERE full_name ILIKE $1 LIMIT 1', [userName.trim()]);
+    if (userRes.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    const userId = userRes.rows[0].id;
+    const result = await pool.query(
+      'INSERT INTO forum_posts (user_id, title, description, category) VALUES ($1, $2, $3, $4) RETURNING *',
+      [userId, title, description, category]
+    );
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    console.error('Error creating forum post:', err.message);
+    res.status(500).json({ error: 'Server error creating forum post' });
+  }
+});
+
+// 3. Fetch single post details with its replies/comments
+app.get('/api/forum/posts/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const postRes = await pool.query(`
+      SELECT fp.*, u.full_name as author_name, u.role as author_role
+      FROM forum_posts fp
+      JOIN users u ON fp.user_id = u.id
+      WHERE fp.id = $1
+    `, [id]);
+    if (postRes.rows.length === 0) {
+      return res.status(404).json({ error: 'Post not found' });
+    }
+    const commentsRes = await pool.query(`
+      SELECT fc.*, u.full_name as author_name, u.role as author_role
+      FROM forum_comments fc
+      JOIN users u ON fc.user_id = u.id
+      WHERE fc.post_id = $1
+      ORDER BY fc.created_at ASC
+    `, [id]);
+    res.status(200).json({
+      post: postRes.rows[0],
+      comments: commentsRes.rows
+    });
+  } catch (err) {
+    console.error('Error fetching forum post details:', err.message);
+    res.status(500).json({ error: 'Server error fetching post details' });
+  }
+});
+
+// 4. Add a comment/reply to a discussion post
+app.post('/api/forum/posts/:id/comments', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { userName, comment } = req.body;
+    if (!userName || !comment) {
+      return res.status(400).json({ error: 'Comment and userName are required' });
+    }
+    const userRes = await pool.query('SELECT id FROM users WHERE full_name ILIKE $1 LIMIT 1', [userName.trim()]);
+    if (userRes.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    const userId = userRes.rows[0].id;
+    const result = await pool.query(
+      'INSERT INTO forum_comments (post_id, user_id, comment) VALUES ($1, $2, $3) RETURNING *',
+      [id, userId, comment]
+    );
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    console.error('Error posting comment:', err.message);
+    res.status(500).json({ error: 'Server error posting comment' });
+  }
+});
+
+// 5. Like/Upvote a forum post
+app.post('/api/forum/posts/:id/like', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await pool.query(
+      'UPDATE forum_posts SET likes_count = likes_count + 1 WHERE id = $1 RETURNING likes_count',
+      [id]
+    );
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Post not found' });
+    }
+    res.status(200).json({ likesCount: result.rows[0].likes_count });
+  } catch (err) {
+    console.error('Error liking post:', err.message);
+    res.status(500).json({ error: 'Server error liking post' });
+  }
+});
+
 // --- Socket.io Real-time Chat Handler ---
 io.on('connection', (socket) => {
   console.log('🔌 User connected to WebSocket:', socket.id);

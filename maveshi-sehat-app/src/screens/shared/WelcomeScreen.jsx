@@ -3,8 +3,8 @@ import { View, StyleSheet, SafeAreaView, StatusBar } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
 // Components
-import WelcomeHeader from '../components/WelcomeHeader';
-import Button from '../components/Button';
+import WelcomeHeader from '../../components/WelcomeHeader';
+import Button from '../../components/Button';
 
 export default function WelcomeScreen() {
   const navigation = useNavigation();

@@ -3,16 +3,18 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 // Screens
-import WelcomeScreen from './src/screens/WelcomeScreen';
-import LoginScreen from './src/screens/LoginScreen';
-import RegisterScreen from './src/screens/RegisterScreen';
-import VerifyScreen from './src/screens/VerifyScreen';
-import DashboardScreen from './src/screens/DashboardScreen';
-import VetDashboardScreen from './src/screens/VetDashboardScreen';
-import HeatAlertScreen from './src/screens/HeatAlertScreen';
-import VeterinariansListScreen from './src/screens/VeterinariansListScreen';
-import VetConsultationsScreen from './src/screens/VetConsultationsScreen';
-import ChatScreen from './src/screens/ChatScreen';
+import WelcomeScreen from './src/screens/shared/WelcomeScreen';
+import LoginScreen from './src/screens/shared/LoginScreen';
+import RegisterScreen from './src/screens/shared/RegisterScreen';
+import VerifyScreen from './src/screens/shared/VerifyScreen';
+import DashboardScreen from './src/screens/user/DashboardScreen';
+import VetDashboardScreen from './src/screens/vet/VetDashboardScreen';
+import HeatAlertScreen from './src/screens/user/HeatAlertScreen';
+import VeterinariansListScreen from './src/screens/user/VeterinariansListScreen';
+import VetConsultationsScreen from './src/screens/vet/VetConsultationsScreen';
+import ChatScreen from './src/screens/shared/ChatScreen';
+import CommunityForumScreen from './src/screens/user/CommunityForumScreen';
+import ForumPostDetailScreen from './src/screens/user/ForumPostDetailScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -30,6 +32,8 @@ export default function App() {
         <Stack.Screen name="VeterinariansList" component={VeterinariansListScreen} />
         <Stack.Screen name="VetConsultations" component={VetConsultationsScreen} />
         <Stack.Screen name="Chat" component={ChatScreen} />
+        <Stack.Screen name="CommunityForum" component={CommunityForumScreen} />
+        <Stack.Screen name="ForumPostDetail" component={ForumPostDetailScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
