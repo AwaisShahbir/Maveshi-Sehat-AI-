@@ -253,6 +253,115 @@ app.post('/login', async (req, res) => {
   }
 });
 
+// --- USER DASHBOARD STATS & RECENT SCANS API ---
+function getTimeAgo(date) {
+  const seconds = Math.floor((new Date() - new Date(date)) / 1000);
+  let interval = Math.floor(seconds / 31536000);
+
+  if (interval >= 1) return interval === 1 ? '1 year ago' : `${interval} years ago`;
+  interval = Math.floor(seconds / 2592000);
+  if (interval >= 1) return interval === 1 ? '1 month ago' : `${interval} months ago`;
+  interval = Math.floor(seconds / 604800);
+  if (interval >= 1) return interval === 1 ? '1 week ago' : `${interval} weeks ago`;
+  interval = Math.floor(seconds / 86400);
+  if (interval >= 1) return interval === 1 ? '1 day ago' : `${interval} days ago`;
+  interval = Math.floor(seconds / 3600);
+  if (interval >= 1) return interval === 1 ? '1 hour ago' : `${interval} hours ago`;
+  interval = Math.floor(seconds / 60);
+  if (interval >= 1) return interval === 1 ? '1 minute ago' : `${interval} minutes ago`;
+  return 'just now';
+}
+
+app.get('/api/dashboard-stats', async (req, res) => {
+  try {
+    const { ownerName } = req.query;
+    if (!ownerName) {
+      return res.status(400).json({ error: 'ownerName parameter is required' });
+    }
+
+    // 1. Fetch total scans for this owner
+    const totalScansRes = await pool.query(
+      'SELECT COUNT(*) FROM detections WHERE owner_name ILIKE $1',
+      [ownerName]
+    );
+    const aiScans = parseInt(totalScansRes.rows[0].count) || 0;
+
+    // 2. Fetch healthy scans (disease is 'Healthy' or 'BCS Normal')
+    const healthyScansRes = await pool.query(
+      "SELECT COUNT(*) FROM detections WHERE owner_name ILIKE $1 AND disease IN ('Healthy', 'BCS Normal')",
+      [ownerName]
+    );
+    const healthyCount = parseInt(healthyScansRes.rows[0].count) || 0;
+
+    // Calculate percentage of healthy scans. If no scans, default to 0%
+    const healthyPercentage = aiScans > 0 ? Math.round((healthyCount / aiScans) * 100) : 0;
+
+    // 3. For livestock, count unique animal_type scanned by this owner.
+    const distinctAnimalsRes = await pool.query(
+      'SELECT COUNT(DISTINCT animal_type) FROM detections WHERE owner_name ILIKE $1',
+      [ownerName]
+    );
+    const livestock = parseInt(distinctAnimalsRes.rows[0].count) || 0;
+
+    // 4. Fetch recent scans for this owner
+    const recentScansRes = await pool.query(
+      'SELECT * FROM detections WHERE owner_name ILIKE $1 ORDER BY created_at DESC LIMIT 5',
+      [ownerName]
+    );
+
+    // Format the recent scans to match the frontend expectations
+    const recentScans = recentScansRes.rows.map((row) => {
+      let severity = 'Low';
+      let icon = 'check-circle';
+      let color = '#4CB85C';
+      let bg = '#E8F8EA';
+
+      if (row.risk_level === 'High') {
+        severity = 'High';
+        icon = 'alert-circle';
+        color = '#FF4D4D';
+        bg = '#FFEBEB';
+      } else if (row.risk_level === 'Medium') {
+        severity = 'Medium';
+        icon = 'alert-triangle';
+        color = '#FFB020';
+        bg = '#FFF5E5';
+      }
+
+      // Map disease names to a display title
+      let displayTitle = row.disease;
+      if (row.disease === 'LSD') displayTitle = 'Lumpy Skin Disease';
+      else if (row.disease === 'FMD') displayTitle = 'Foot & Mouth Disease';
+      else if (row.disease === 'BCS Normal') displayTitle = 'Healthy (BCS Normal)';
+
+      const timeDiff = getTimeAgo(row.created_at);
+
+      return {
+        id: row.id,
+        title: displayTitle,
+        time: timeDiff,
+        percentage: Math.round(row.confidence),
+        severity,
+        icon,
+        color,
+        bg
+      };
+    });
+
+    res.status(200).json({
+      stats: {
+        livestock,
+        aiScans,
+        healthy: healthyPercentage
+      },
+      recentScans
+    });
+  } catch (err) {
+    console.error('Error fetching dashboard stats:', err.message);
+    res.status(500).json({ error: 'Server error fetching dashboard stats' });
+  }
+});
+
 // ==========================================
 // --- WEB ADMIN API ENDPOINTS ---
 // ==========================================

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, StatusBar, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, StatusBar, Alert, Platform, ActivityIndicator, RefreshControl } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -12,16 +12,44 @@ export default function DashboardScreen() {
   // Dynamic States
   const [userName, setUserName] = useState(params.userName || 'Muhammad Ahmed');
   const [stats, setStats] = useState({
-    livestock: 24,
-    aiScans: 156,
-    healthy: 98
+    livestock: 0,
+    aiScans: 0,
+    healthy: 100
   });
 
-  const [recentScans, setRecentScans] = useState([
-    { id: 1, title: 'Foot & Mouth Disease', time: '2 days ago', percentage: 94, severity: 'High', icon: 'alert-circle', color: '#FF4D4D', bg: '#FFEBEB' },
-    { id: 2, title: 'Healthy', time: '5 days ago', percentage: 98, severity: 'Low', icon: 'check-circle', color: '#4CB85C', bg: '#E8F8EA' },
-    { id: 3, title: 'Mastitis', time: '1 week ago', percentage: 87, severity: 'Medium', icon: 'alert-triangle', color: '#FFB020', bg: '#FFF5E5' },
-  ]);
+  const [recentScans, setRecentScans] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [notificationsCount, setNotificationsCount] = useState(0);
+
+  const fetchDashboardData = async (isRefreshing = false) => {
+    if (isRefreshing) {
+      setRefreshing(true);
+    } else {
+      setLoading(true);
+    }
+    try {
+      const baseUrl = Platform.OS === 'android' ? 'http://10.0.2.2:5000' : 'http://localhost:5000';
+      const response = await fetch(`${baseUrl}/api/dashboard-stats?ownerName=${encodeURIComponent(userName)}`);
+      if (!response.ok) throw new Error('Failed to fetch dashboard data');
+      const data = await response.json();
+      if (data.stats) setStats(data.stats);
+      if (data.recentScans) setRecentScans(data.recentScans);
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, [userName]);
+
+  const onRefresh = () => {
+    fetchDashboardData(true);
+  };
 
   const handleComingSoon = () => {
     Alert.alert('Coming Soon', 'Stay tuned for it!');
@@ -31,7 +59,13 @@ export default function DashboardScreen() {
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="light-content" backgroundColor="#58D66D" />
       
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        contentContainerStyle={styles.scrollContent} 
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#58D66D']} />
+        }
+      >
         {/* Top Green Header Section */}
         <View style={styles.header}>
           <View style={styles.headerTop}>
@@ -41,9 +75,11 @@ export default function DashboardScreen() {
             </View>
             <TouchableOpacity style={styles.notificationBtn} onPress={handleComingSoon}>
               <Feather name="bell" size={24} color="#FFF" />
-              <View style={styles.badge}>
-                <Text style={styles.badgeText}>3</Text>
-              </View>
+              {notificationsCount > 0 && (
+                <View style={styles.badge}>
+                  <Text style={styles.badgeText}>{notificationsCount}</Text>
+                </View>
+              )}
             </TouchableOpacity>
           </View>
 
@@ -124,23 +160,35 @@ export default function DashboardScreen() {
             </TouchableOpacity>
           </View>
 
-          {recentScans.map((scan) => (
-            <TouchableOpacity key={scan.id} style={styles.scanItem} onPress={handleComingSoon}>
-              <View style={[styles.scanIconBox, { backgroundColor: scan.bg }]}>
-                <Feather name={scan.icon} size={20} color={scan.color} />
-              </View>
-              <View style={styles.scanDetails}>
-                <Text style={styles.scanTitle}>{scan.title}</Text>
-                <Text style={styles.scanTime}>{scan.time}</Text>
-              </View>
-              <View style={styles.scanStatus}>
-                <Text style={styles.scanPercentage}>{scan.percentage}%</Text>
-                <View style={[styles.severityBadge, { backgroundColor: scan.bg }]}>
-                  <Text style={[styles.severityText, { color: scan.color }]}>{scan.severity}</Text>
+          {loading && !refreshing ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="small" color="#4CB85C" />
+            </View>
+          ) : recentScans.length > 0 ? (
+            recentScans.map((scan) => (
+              <TouchableOpacity key={scan.id} style={styles.scanItem} onPress={handleComingSoon}>
+                <View style={[styles.scanIconBox, { backgroundColor: scan.bg }]}>
+                  <Feather name={scan.icon} size={20} color={scan.color} />
                 </View>
-              </View>
-            </TouchableOpacity>
-          ))}
+                <View style={styles.scanDetails}>
+                  <Text style={styles.scanTitle}>{scan.title}</Text>
+                  <Text style={styles.scanTime}>{scan.time}</Text>
+                </View>
+                <View style={styles.scanStatus}>
+                  <Text style={styles.scanPercentage}>{scan.percentage}%</Text>
+                  <View style={[styles.severityBadge, { backgroundColor: scan.bg }]}>
+                    <Text style={[styles.severityText, { color: scan.color }]}>{scan.severity}</Text>
+                  </View>
+                </View>
+              </TouchableOpacity>
+            ))
+          ) : (
+            <View style={styles.emptyContainer}>
+              <Feather name="info" size={24} color="#ccc" style={{ marginBottom: 8 }} />
+              <Text style={styles.emptyText}>No recent scans found</Text>
+              <Text style={styles.emptyUrduText}>کوئی حالیہ اسکین نہیں ملا</Text>
+            </View>
+          )}
         </View>
       </ScrollView>
 
@@ -303,6 +351,27 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   severityText: { fontSize: 10, fontWeight: 'bold' },
+
+  loadingContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 30,
+  },
+  emptyContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 30,
+  },
+  emptyText: {
+    fontSize: 14,
+    color: '#888',
+    fontWeight: '600',
+  },
+  emptyUrduText: {
+    fontSize: 12,
+    color: '#aaa',
+    marginTop: 2,
+  },
 
   bottomNav: {
     position: 'absolute',
