@@ -287,14 +287,14 @@ export default function ChatScreen() {
           styles.bubble, 
           isMe ? styles.bubbleMe : styles.bubblePartner
         ]}>
-          {item.image_url && (
+          {!!item.image_url && (
             <Image 
               source={{ uri: item.image_url }} 
               style={styles.bubbleImage} 
               resizeMode="cover"
             />
           )}
-          {item.message && (
+          {!!item.message && (
             <Text style={[styles.messageText, isMe ? styles.messageTextMe : styles.messageTextPartner]}>
               {item.message}
             </Text>
