@@ -16,6 +16,7 @@ import {
   Platform 
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Feather from 'react-native-vector-icons/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import io from 'socket.io-client';
@@ -31,6 +32,7 @@ export default function ChatScreen() {
   const navigation = useNavigation();
   const route = useRoute();
   const params = route.params || {};
+  const insets = useSafeAreaInsets();
 
   const { conversationId, partnerName, partnerRole, userName, userRole, vetId } = params;
 
@@ -355,14 +357,14 @@ export default function ChatScreen() {
 
           {/* Input Area / Resolved Block */}
           {conversationStatus === 'resolved' ? (
-            <View style={styles.resolvedBanner}>
+            <View style={[styles.resolvedBanner, { paddingBottom: Math.max(insets.bottom, 14) }]}>
               <MaterialCommunityIcons name="lock" size={18} color="#666" style={{ marginRight: 6 }} />
               <Text style={styles.resolvedBannerText}>
                 This consultation is resolved. / یہ گفتگو مکمل ہو چکی ہے۔
               </Text>
             </View>
           ) : (
-            <View style={styles.inputContainer}>
+            <View style={[styles.inputContainer, { paddingBottom: Math.max(insets.bottom, 10) }]}>
               <TouchableOpacity 
                 style={styles.iconButton} 
                 onPress={() => setImageModalVisible(true)}
