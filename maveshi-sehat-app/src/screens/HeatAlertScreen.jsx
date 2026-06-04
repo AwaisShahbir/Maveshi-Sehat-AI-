@@ -208,7 +208,7 @@ const styles = StyleSheet.create({
   header: {
     backgroundColor: '#F5A623',
     paddingHorizontal: 24,
-    paddingTop: 16,
+    paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 0) + 16 : 16,
     paddingBottom: 60, // Extra padding because card overlaps
     borderBottomLeftRadius: 30,
     borderBottomRightRadius: 30,

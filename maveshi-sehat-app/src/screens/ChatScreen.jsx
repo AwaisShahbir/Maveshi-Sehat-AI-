@@ -548,16 +548,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 0) + 12 : 12,
+    paddingBottom: 12,
     borderBottomLeftRadius: 16,
     borderBottomRightRadius: 16,
   },
   backButton: {
-    padding: 4,
-    marginRight: 8,
+    padding: 8,
   },
   headerInfo: {
     flex: 1,
+    marginLeft: 10,
   },
   headerName: {
     color: '#FFF',
