@@ -6,6 +6,8 @@ const bcrypt = require('bcryptjs');
 const nodemailer = require('nodemailer');
 const multer = require('multer');
 const path = require('path');
+const http = require('http');
+const { Server } = require('socket.io');
 
 const transporter = nodemailer.createTransport({
   service: 'gmail',
@@ -18,6 +20,14 @@ const transporter = nodemailer.createTransport({
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: '*',
+    methods: ['GET', 'POST']
+  }
+});
 
 // Serve static upload files
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
@@ -375,6 +385,10 @@ app.get('/api/admin/dashboard-stats', async (req, res) => {
     const pendingVetsRes = await pool.query("SELECT COUNT(*) FROM users WHERE role = 'vet' AND status = 'pending'");
     const scansRes = await pool.query("SELECT COUNT(*) FROM detections");
     const activeOrdersRes = await pool.query("SELECT COUNT(*) FROM orders WHERE status NOT IN ('delivered', 'cancelled')");
+    
+    // Fetch unread notifications count
+    const unreadNotifsRes = await pool.query("SELECT COUNT(*) FROM admin_notifications WHERE read = FALSE");
+    const unreadNotificationsCount = parseInt(unreadNotifsRes.rows[0].count) || 0;
 
     // B. Fetch Recent Detections
     const recentDetectionsRes = await pool.query(`
@@ -397,11 +411,12 @@ app.get('/api/admin/dashboard-stats', async (req, res) => {
     ];
 
     res.status(200).json({
-      totalUsers: parseInt(totalUsersRes.rows[0].count) || 248,
-      activeVets: parseInt(activeVetsRes.rows[0].count) || 34,
-      pendingVetsCount: parseInt(pendingVetsRes.rows[0].count) || 6,
-      scansCount: parseInt(scansRes.rows[0].count) || 127,
-      activeOrders: parseInt(activeOrdersRes.rows[0].count) || 12,
+      totalUsers: parseInt(totalUsersRes.rows[0].count) || 0,
+      activeVets: parseInt(activeVetsRes.rows[0].count) || 0,
+      pendingVetsCount: parseInt(pendingVetsRes.rows[0].count) || 0,
+      scansCount: parseInt(scansRes.rows[0].count) || 0,
+      activeOrders: parseInt(activeOrdersRes.rows[0].count) || 0,
+      unreadNotificationsCount,
       recentDetections: recentDetectionsRes.rows,
       pendingActions: {
         vets: pendingVetsList.rows,
@@ -569,8 +584,184 @@ app.post('/api/admin/announcements', async (req, res) => {
     res.status(500).json({ error: 'Failed to post announcement' });
   }
 });
+// --- VET CHAT & CONSULTATION REST API ENDPOINTS ---
+
+// 1. Fetch verified veterinarians (optionally filtered by district)
+app.get('/api/vets', async (req, res) => {
+  try {
+    const { district, ownerName } = req.query;
+    let query = "SELECT id, full_name, district, specialization, experience_years, status FROM users WHERE role = 'vet' AND status = 'verified'";
+    const params = [];
+    
+    if (district) {
+      query += " AND district ILIKE $1";
+      params.push(district);
+    } else if (ownerName) {
+      // Find owner's district dynamically
+      const ownerRes = await pool.query("SELECT district FROM users WHERE full_name ILIKE $1 AND role = 'farmer'", [ownerName]);
+      if (ownerRes.rows.length > 0 && ownerRes.rows[0].district) {
+        query += " AND district ILIKE $1";
+        params.push(ownerRes.rows[0].district);
+      }
+    }
+    
+    const result = await pool.query(query, params);
+    res.status(200).json(result.rows);
+  } catch (err) {
+    console.error('Error fetching vets:', err.message);
+    res.status(500).json({ error: 'Failed to fetch veterinarians' });
+  }
+});
+
+// 2. Find or create a conversation between farmer and vet
+app.post('/api/chat/conversation', async (req, res) => {
+  try {
+    const { farmerId, farmerName, vetId } = req.body;
+    if ((!farmerId && !farmerName) || !vetId) {
+      return res.status(400).json({ error: 'farmerId/farmerName and vetId are required' });
+    }
+    
+    let fId = farmerId;
+    if (!fId) {
+      const farmerRes = await pool.query('SELECT id FROM users WHERE full_name ILIKE $1 AND role = \'farmer\'', [farmerName]);
+      if (farmerRes.rows.length === 0) {
+        return res.status(404).json({ error: 'Farmer user not found' });
+      }
+      fId = farmerRes.rows[0].id;
+    }
+    
+    // Try to find existing conversation
+    let convRes = await pool.query(
+      'SELECT * FROM conversations WHERE farmer_id = $1 AND vet_id = $2',
+      [fId, vetId]
+    );
+    
+    if (convRes.rows.length === 0) {
+      // Create a new one
+      convRes = await pool.query(
+        'INSERT INTO conversations (farmer_id, vet_id, status) VALUES ($1, $2, \'active\') RETURNING *',
+        [fId, vetId]
+      );
+    }
+    
+    res.status(200).json(convRes.rows[0]);
+  } catch (err) {
+    console.error('Error creating conversation:', err.message);
+    res.status(500).json({ error: 'Server error handling conversation' });
+  }
+});
+
+// 3. Fetch all messages in a conversation
+app.get('/api/chat/messages', async (req, res) => {
+  try {
+    const { conversationId } = req.query;
+    if (!conversationId) {
+      return res.status(400).json({ error: 'conversationId is required' });
+    }
+    const messagesRes = await pool.query(
+      'SELECT * FROM messages WHERE conversation_id = $1 ORDER BY created_at ASC',
+      [conversationId]
+    );
+    res.status(200).json(messagesRes.rows);
+  } catch (err) {
+    console.error('Error fetching messages:', err.message);
+    res.status(500).json({ error: 'Server error fetching messages' });
+  }
+});
+
+// 4. Retrieve all conversations for a specific vet, including farmer profile info
+app.get('/api/chat/conversations/vet', async (req, res) => {
+  try {
+    const { vetId, vetName } = req.query;
+    if (!vetId && !vetName) {
+      return res.status(400).json({ error: 'vetId or vetName is required' });
+    }
+    
+    let query = `
+      SELECT c.*, u.full_name as farmer_name, u.district as farmer_district, u.phone_number as farmer_phone
+      FROM conversations c
+      JOIN users u ON c.farmer_id = u.id
+    `;
+    const params = [];
+    
+    if (vetId) {
+      query += ` WHERE c.vet_id = $1`;
+      params.push(vetId);
+    } else {
+      // Find vet ID first by name
+      const vetRes = await pool.query('SELECT id FROM users WHERE full_name ILIKE $1 AND role = \'vet\'', [vetName]);
+      if (vetRes.rows.length === 0) {
+        return res.status(200).json([]);
+      }
+      query += ` WHERE c.vet_id = $1`;
+      params.push(vetRes.rows[0].id);
+    }
+    
+    query += ` ORDER BY c.created_at DESC`;
+    
+    const result = await pool.query(query, params);
+    res.status(200).json(result.rows);
+  } catch (err) {
+    console.error('Error fetching vet conversations:', err.message);
+    res.status(500).json({ error: 'Server error fetching conversations' });
+  }
+});
+
+// 5. Mark a conversation as resolved
+app.put('/api/chat/conversation/resolve', async (req, res) => {
+  try {
+    const { conversationId } = req.body;
+    if (!conversationId) {
+      return res.status(400).json({ error: 'conversationId is required' });
+    }
+    await pool.query(
+      'UPDATE conversations SET status = \'resolved\' WHERE id = $1',
+      [conversationId]
+    );
+    res.status(200).json({ message: 'Conversation marked as resolved' });
+  } catch (err) {
+    console.error('Error resolving conversation:', err.message);
+    res.status(500).json({ error: 'Server error resolving conversation' });
+  }
+});
+
+// --- Socket.io Real-time Chat Handler ---
+io.on('connection', (socket) => {
+  console.log('🔌 User connected to WebSocket:', socket.id);
+
+  // Join conversation room
+  socket.on('join_room', (room) => {
+    socket.join(room);
+    console.log(`👤 Socket ${socket.id} joined room: ${room}`);
+  });
+
+  // Handle standard text / image message / prescription
+  socket.on('send_message', async (data) => {
+    try {
+      const { conversationId, senderId, message, imageUrl, isPrescription, prescriptionData } = data;
+      
+      // Save message to PostgreSQL
+      const result = await pool.query(
+        `INSERT INTO messages (conversation_id, sender_id, message, image_url, is_prescription, prescription_data)
+         VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+        [conversationId, senderId, message || null, imageUrl || null, isPrescription || false, prescriptionData ? JSON.stringify(prescriptionData) : null]
+      );
+      
+      const savedMessage = result.rows[0];
+      
+      // Broadcast message to room
+      io.to(conversationId.toString()).emit('receive_message', savedMessage);
+    } catch (err) {
+      console.error('Socket error sending message:', err.message);
+    }
+  });
+
+  socket.on('disconnect', () => {
+    console.log('❌ User disconnected:', socket.id);
+  });
+});
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });

@@ -101,7 +101,7 @@ export default function Dashboard() {
             <Users size={24} />
           </div>
           <div className="kpi-details">
-            <h2 className="kpi-value">{stats?.totalUsers || 248}</h2>
+            <h2 className="kpi-value">{stats?.totalUsers ?? 0}</h2>
             <p className="kpi-label bilingual-label">
               <span>Total Users</span>
               <span className="urdu">کل صارفین</span>
@@ -116,12 +116,12 @@ export default function Dashboard() {
             <Stethoscope size={24} />
           </div>
           <div className="kpi-details">
-            <h2 className="kpi-value">{stats?.activeVets || 34}</h2>
+            <h2 className="kpi-value">{stats?.activeVets ?? 0}</h2>
             <p className="kpi-label bilingual-label">
               <span>Active Vets</span>
               <span className="urdu">فعال ڈاکٹر</span>
             </p>
-            <span className="kpi-trend text-orange">{stats?.pendingVetsCount || 6} pending approval</span>
+            <span className="kpi-trend text-orange">{stats?.pendingVetsCount ?? 0} pending approval</span>
           </div>
         </div>
 
@@ -131,7 +131,7 @@ export default function Dashboard() {
             <Binary size={24} />
           </div>
           <div className="kpi-details">
-            <h2 className="kpi-value">{stats?.scansCount || 127}</h2>
+            <h2 className="kpi-value">{stats?.scansCount ?? 0}</h2>
             <p className="kpi-label bilingual-label">
               <span>AI Scans Today</span>
               <span className="urdu">آج کے اسکین</span>
@@ -146,7 +146,7 @@ export default function Dashboard() {
             <ShoppingBag size={24} />
           </div>
           <div className="kpi-details">
-            <h2 className="kpi-value">{stats?.activeOrders || 12}</h2>
+            <h2 className="kpi-value">{stats?.activeOrders ?? 0}</h2>
             <p className="kpi-label bilingual-label">
               <span>Active Orders</span>
               <span className="urdu">فعال آرڈر</span>

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
 import { 
   LayoutDashboard, 
@@ -16,6 +16,28 @@ import {
 } from 'lucide-react';
 
 export default function Sidebar({ onLogout }) {
+  const [stats, setStats] = useState(null);
+
+  useEffect(() => {
+    const fetchSidebarStats = async () => {
+      try {
+        const res = await fetch('http://localhost:5000/api/admin/dashboard-stats');
+        if (res.ok) {
+          const data = await res.json();
+          setStats(data);
+        }
+      } catch (err) {
+        console.error("Failed to load sidebar stats", err);
+      }
+    };
+
+    fetchSidebarStats();
+
+    // Poll every 10 seconds to keep sidebar numbers up-to-date
+    const interval = setInterval(fetchSidebarStats, 10000);
+    return () => clearInterval(interval);
+  }, []);
+
   const menuGroups = [
     {
       title: 'OVERVIEW',
@@ -45,12 +67,11 @@ export default function Sidebar({ onLogout }) {
     }
   ];
 
-  // Hardcoded badge numbers matching Figma prototype screen counts
   const badges = {
-    users: 248,
-    vets: 6,
-    pharmacies: 3,
-    notifications: 5
+    users: stats?.totalUsers ?? 0,
+    vets: stats?.pendingVetsCount ?? 0,
+    pharmacies: stats?.pendingActions?.pharmacies?.length ?? 0,
+    notifications: stats?.unreadNotificationsCount ?? 0
   };
 
   return (

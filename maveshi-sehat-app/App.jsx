@@ -10,6 +10,9 @@ import VerifyScreen from './src/screens/VerifyScreen';
 import DashboardScreen from './src/screens/DashboardScreen';
 import VetDashboardScreen from './src/screens/VetDashboardScreen';
 import HeatAlertScreen from './src/screens/HeatAlertScreen';
+import VeterinariansListScreen from './src/screens/VeterinariansListScreen';
+import VetConsultationsScreen from './src/screens/VetConsultationsScreen';
+import ChatScreen from './src/screens/ChatScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -24,6 +27,9 @@ export default function App() {
         <Stack.Screen name="Dashboard" component={DashboardScreen} />
         <Stack.Screen name="VetDashboard" component={VetDashboardScreen} />
         <Stack.Screen name="HeatAlert" component={HeatAlertScreen} />
+        <Stack.Screen name="VeterinariansList" component={VeterinariansListScreen} />
+        <Stack.Screen name="VetConsultations" component={VetConsultationsScreen} />
+        <Stack.Screen name="Chat" component={ChatScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

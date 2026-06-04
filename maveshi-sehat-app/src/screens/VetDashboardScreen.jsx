@@ -203,7 +203,7 @@ export default function VetDashboardScreen() {
             <Feather name="file-text" size={24} color="#A3A3A3" />
             <Text style={styles.navText}>Cases</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.navItem} onPress={handleComingSoon}>
+          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('VetConsultations', { userName, user: params.user })}>
             <Feather name="message-square" size={24} color="#A3A3A3" />
             <Text style={styles.navText}>Consult</Text>
           </TouchableOpacity>

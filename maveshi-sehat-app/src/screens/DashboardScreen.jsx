@@ -125,11 +125,11 @@ export default function DashboardScreen() {
               <Text style={styles.actionUrdu}>ویکسین</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.actionItem} onPress={handleComingSoon}>
+            <TouchableOpacity style={styles.actionItem} onPress={() => navigation.navigate('VeterinariansList', { userName })}>
               <View style={[styles.iconBox, { backgroundColor: '#E8F8EA' }]}>
                 <MaterialCommunityIcons name="chat-outline" size={28} color="#4CB85C" />
               </View>
-              <Text style={styles.actionText}>Vet Chat <Text style={styles.soonText}>(Soon)</Text></Text>
+              <Text style={styles.actionText}>Vet Chat</Text>
               <Text style={styles.actionUrdu}>ڈاکٹر</Text>
             </TouchableOpacity>
 
