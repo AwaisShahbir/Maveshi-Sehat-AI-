@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, StatusBar, ActivityIndicator, Platform } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
@@ -21,6 +21,10 @@ const getStressLevel = (thi) => {
 
 export default function HeatAlertScreen() {
   const navigation = useNavigation();
+  const route = useRoute();
+  const params = route.params || {};
+  const userId = params.userId || 'user_123';
+  const userName = params.userName || 'Muhammad Ahmed';
   
   const [loading, setLoading] = useState(true);
   const [currentWeather, setCurrentWeather] = useState(null);
@@ -176,24 +180,24 @@ export default function HeatAlertScreen() {
       <View style={styles.bottomNavContainer}>
         <View style={styles.bottomNav}>
           <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Dashboard')}>
-            <Feather name="home" size={24} color="#A3A3A3" />
-            <Text style={styles.navText}>Home</Text>
+            <Feather name="home" size={24} color="#A3E6B2" />
+            <Text style={[styles.navText, { color: '#A3E6B2' }]}>Home</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.navItem}>
-            <MaterialCommunityIcons name="line-scan" size={24} color="#A3A3A3" />
-            <Text style={styles.navText}>AI Scan</Text>
+          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('AiScan', { userName, userId })}>
+            <MaterialCommunityIcons name="line-scan" size={24} color="#A3E6B2" />
+            <Text style={[styles.navText, { color: '#A3E6B2' }]}>AI Scan</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.navItem}>
-            <Feather name="file-text" size={24} color="#A3A3A3" />
-            <Text style={styles.navText}>Records</Text>
+          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('HealthRecords', { userName, userId })}>
+            <Feather name="file-text" size={24} color="#A3E6B2" />
+            <Text style={[styles.navText, { color: '#A3E6B2' }]}>Records</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.navItem}>
-            <Feather name="message-square" size={24} color="#A3A3A3" />
-            <Text style={styles.navText}>Forum</Text>
+          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('CommunityForum', { userName, userId })}>
+            <Feather name="message-square" size={24} color="#A3E6B2" />
+            <Text style={[styles.navText, { color: '#A3E6B2' }]}>Forum</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.navItem}>
-            <Feather name="user" size={24} color="#A3A3A3" />
-            <Text style={styles.navText}>Profile</Text>
+          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Profile', { userId })}>
+            <Feather name="user" size={24} color="#A3E6B2" />
+            <Text style={[styles.navText, { color: '#A3E6B2' }]}>Profile</Text>
           </TouchableOpacity>
         </View>
       </View>
