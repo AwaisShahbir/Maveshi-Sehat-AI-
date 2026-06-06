@@ -1,123 +1,148 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  SafeAreaView, 
-  FlatList, 
-  TouchableOpacity, 
-  TextInput, 
-  Modal, 
-  ActivityIndicator, 
-  StatusBar, 
+import React, { useState, useEffect, useCallback } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  SafeAreaView,
+  FlatList,
+  TouchableOpacity,
+  TextInput,
+  Modal,
+  ActivityIndicator,
+  StatusBar,
   Platform,
   Alert,
-  ScrollView
+  ScrollView,
+  Share,
 } from 'react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+const BASE_URL = Platform.OS === 'android' ? 'http://10.0.2.2:5000' : 'http://localhost:5000';
 
 export default function CommunityForumScreen() {
   const navigation = useNavigation();
   const route = useRoute();
   const params = route.params || {};
-  const userName = params.userName || 'Awais shabbir ';
+  const userName = params.userName || '';
+  const userId = params.userId || null;
   const insets = useSafeAreaInsets();
 
-  // States
   const [posts, setPosts] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [activeTab, setActiveTab] = useState('All Posts'); // 'All Posts' or 'Trending'
+  const [activeTab, setActiveTab] = useState('All Posts');
   const [createModalVisible, setCreateModalVisible] = useState(false);
+  const [likedPosts, setLikedPosts] = useState(new Set());
 
-  // Form States
   const [postTitle, setPostTitle] = useState('');
   const [postCategory, setPostCategory] = useState('All Posts');
   const [postDescription, setPostDescription] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  const baseUrl = Platform.OS === 'android' ? 'http://10.0.2.2:5000' : 'http://localhost:5000';
-
-  const fetchPosts = async (isRefreshing = false) => {
+  const fetchPosts = useCallback(async (isRefreshing = false) => {
     if (isRefreshing) {
       setRefreshing(true);
     } else {
       setLoading(true);
     }
     try {
-      const categoryParam = activeTab === 'All Posts' ? 'All' : 'Trending';
-      const response = await fetch(`${baseUrl}/api/forum/posts?category=${categoryParam}`);
+      const categoryParam = activeTab === 'Trending' ? 'Trending' : 'All';
+      const response = await fetch(`${BASE_URL}/api/forum/posts?category=${categoryParam}`);
       if (!response.ok) throw new Error('Failed to fetch posts');
       const data = await response.json();
       setPosts(data);
     } catch (error) {
       console.error('Error fetching posts:', error);
+      Alert.alert('Connection Error', 'Could not load posts. Please check your internet connection.');
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
-  };
+  }, [activeTab]);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchPosts();
+    }, [fetchPosts])
+  );
 
   useEffect(() => {
     fetchPosts();
   }, [activeTab]);
 
-  const handleRefresh = () => {
-    fetchPosts(true);
-  };
-
   const handleLikePost = async (postId) => {
+    const alreadyLiked = likedPosts.has(postId);
+    if (alreadyLiked) {
+      Alert.alert('Already Liked', 'You have already liked this post.');
+      return;
+    }
+
     try {
-      const response = await fetch(`${baseUrl}/api/forum/posts/${postId}/like`, {
-        method: 'POST'
+      const response = await fetch(`${BASE_URL}/api/forum/posts/${postId}/like`, {
+        method: 'POST',
       });
       if (response.ok) {
         const data = await response.json();
-        // Update local state upvote count
-        setPosts(prevPosts => 
-          prevPosts.map(post => 
+        setLikedPosts((prev) => new Set([...prev, postId]));
+        setPosts((prevPosts) =>
+          prevPosts.map((post) =>
             post.id === postId ? { ...post, likes_count: data.likesCount } : post
           )
         );
+      } else {
+        Alert.alert('Error', 'Could not like this post. Try again.');
       }
     } catch (error) {
       console.error('Error liking post:', error);
+      Alert.alert('Network Error', 'Could not like post. Check your connection.');
     }
   };
 
   const handleCreatePost = async () => {
-    if (!postTitle.trim() || !postDescription.trim()) {
-      Alert.alert('Required Fields', 'Please enter a title and details for your post.');
+    if (!userName) {
+      Alert.alert('Not Logged In', 'Please log in to post a discussion.');
+      return;
+    }
+    if (!postTitle.trim()) {
+      Alert.alert('Required', 'Please enter a title for your post.');
+      return;
+    }
+    if (!postDescription.trim()) {
+      Alert.alert('Required', 'Please enter details for your post.');
       return;
     }
 
     setSubmitting(true);
     try {
-      const response = await fetch(`${baseUrl}/api/forum/posts`, {
+      const body = {
+        userName: userName.trim(),
+        title: postTitle.trim(),
+        description: postDescription.trim(),
+        category: postCategory,
+      };
+      if (userId) body.userId = userId;
+
+      const response = await fetch(`${BASE_URL}/api/forum/posts`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userName: userName,
-          title: postTitle.trim(),
-          description: postDescription.trim(),
-          category: postCategory
-        })
+        body: JSON.stringify(body),
       });
+
+      const data = await response.json();
 
       if (response.ok) {
         setPostTitle('');
         setPostDescription('');
         setPostCategory('All Posts');
         setCreateModalVisible(false);
-        fetchPosts();
-        Alert.alert('Success', 'Your post has been published to the forum!');
+        await fetchPosts();
+        Alert.alert('Published!', 'Your post has been shared with the community.');
       } else {
-        const data = await response.json();
-        Alert.alert('Error', data.error || 'Failed to submit post.');
+        Alert.alert('Error', data.error || 'Failed to publish post. Please try again.');
       }
     } catch (error) {
       console.error('Error submitting post:', error);
@@ -127,116 +152,158 @@ export default function CommunityForumScreen() {
     }
   };
 
-  const handleSharePost = (post) => {
-    Alert.alert('Share', `Post by ${post.author_name} link copied to clipboard!`);
+  const handleSharePost = async (post) => {
+    try {
+      await Share.share({
+        message: `Check out this discussion on Maveshi Sehat:\n\n"${post.title}"\n\nby ${post.author_name}`,
+        title: 'Share Discussion',
+      });
+    } catch (error) {
+      console.error('Share error:', error);
+    }
   };
 
   const handleSelectPost = (postId) => {
     navigation.navigate('ForumPostDetail', {
       postId,
-      userName
+      userName,
+      userId,
     });
   };
 
-  const getUrduName = (name) => {
-    if (name.toLowerCase().includes('awais')) return 'اویس شبیر';
-    if (name.toLowerCase().includes('ahmed')) return 'احمد حسین';
-    if (name.toLowerCase().includes('fatima')) return 'فاطمہ خان';
-    if (name.toLowerCase().includes('areeba')) return 'اریبہ عارف';
-    return name;
-  };
-
   const getTimeAgo = (dateStr) => {
+    if (!dateStr) return '';
     const seconds = Math.floor((new Date() - new Date(dateStr)) / 1000);
-    let interval = Math.floor(seconds / 3600);
-    if (interval >= 24) {
-      const days = Math.floor(interval / 24);
-      return days === 1 ? '1 day ago' : `${days} days ago`;
-    }
-    if (interval >= 1) return interval === 1 ? '1 hour ago' : `${interval} hours ago`;
+    const interval = Math.floor(seconds / 86400);
+    if (interval >= 1) return interval === 1 ? '1 day ago' : `${interval} days ago`;
+    const hours = Math.floor(seconds / 3600);
+    if (hours >= 1) return hours === 1 ? '1 hour ago' : `${hours} hours ago`;
     const mins = Math.floor(seconds / 60);
     if (mins >= 1) return mins === 1 ? '1 minute ago' : `${mins} minutes ago`;
     return 'just now';
   };
 
-  const filteredPosts = posts.filter(post => 
-    post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    post.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    post.author_name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const getAvatarLetter = (name) => {
+    if (!name) return 'U';
+    return name.trim().charAt(0).toUpperCase();
+  };
+
+  const filteredPosts = posts.filter((post) => {
+    if (!searchQuery.trim()) return true;
+    const q = searchQuery.toLowerCase();
+    return (
+      (post.title && post.title.toLowerCase().includes(q)) ||
+      (post.description && post.description.toLowerCase().includes(q)) ||
+      (post.author_name && post.author_name.toLowerCase().includes(q))
+    );
+  });
 
   const renderPostItem = ({ item }) => {
-    const timeAgo = getTimeAgo(item.created_at);
     const isTrending = item.category === 'Trending' || item.likes_count >= 20;
+    const isLiked = likedPosts.has(item.id);
 
     return (
-      <TouchableOpacity 
-        style={styles.card} 
+      <TouchableOpacity
+        style={styles.card}
         onPress={() => handleSelectPost(item.id)}
-        activeOpacity={0.95}
+        activeOpacity={0.92}
       >
         <View style={styles.cardHeader}>
           <View style={styles.avatar}>
-            <Text style={styles.avatarText}>
-              {item.author_name ? item.author_name.trim().charAt(0).toUpperCase() : 'U'}
-            </Text>
+            <Text style={styles.avatarText}>{getAvatarLetter(item.author_name)}</Text>
           </View>
           <View style={styles.authorInfo}>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <Text style={styles.authorName}>{item.author_name}</Text>
               {isTrending && (
-                <Feather name="trending-up" size={14} color="#FFB020" style={{ marginLeft: 6 }} />
+                <Feather name="trending-up" size={13} color="#FFB020" style={{ marginLeft: 6 }} />
+              )}
+              {item.author_role === 'vet' && (
+                <View style={styles.vetBadgeSmall}>
+                  <Text style={styles.vetBadgeSmallText}>Vet</Text>
+                </View>
               )}
             </View>
-            <Text style={styles.authorUrdu}>{getUrduName(item.author_name)}</Text>
-            <Text style={styles.timeAgo}>{timeAgo}</Text>
+            <Text style={styles.timeAgo}>{getTimeAgo(item.created_at)}</Text>
           </View>
         </View>
 
-        <View style={styles.postContent}>
-          <Text style={styles.descriptionText}>{item.description}</Text>
-        </View>
+        {item.title ? (
+          <Text style={styles.postTitle} numberOfLines={2}>{item.title}</Text>
+        ) : null}
+
+        <Text style={styles.descriptionText} numberOfLines={3}>
+          {item.description}
+        </Text>
 
         <View style={styles.cardFooter}>
           <View style={styles.footerLeft}>
-            <TouchableOpacity 
-              style={styles.actionButton} 
+            <TouchableOpacity
+              style={styles.actionButton}
               onPress={() => handleLikePost(item.id)}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
-              <Feather name="heart" size={18} color="#FF4D4D" style={{ marginRight: 6 }} />
-              <Text style={styles.actionCount}>{item.likes_count}</Text>
+              <Feather
+                name={isLiked ? 'heart' : 'heart'}
+                size={17}
+                color={isLiked ? '#FF4D4D' : '#FF7B7B'}
+                style={{ marginRight: 5 }}
+              />
+              <Text style={[styles.actionCount, isLiked && { color: '#FF4D4D' }]}>
+                {item.likes_count}
+              </Text>
             </TouchableOpacity>
 
-            <TouchableOpacity 
-              style={[styles.actionButton, { marginLeft: 20 }]}
+            <TouchableOpacity
+              style={[styles.actionButton, { marginLeft: 18 }]}
               onPress={() => handleSelectPost(item.id)}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
-              <Feather name="message-square" size={18} color="#58D66D" style={{ marginRight: 6 }} />
-              <Text style={styles.actionCount}>{item.comments_count}</Text>
+              <Feather name="message-square" size={17} color="#58D66D" style={{ marginRight: 5 }} />
+              <Text style={styles.actionCount}>{item.comments_count || 0}</Text>
             </TouchableOpacity>
           </View>
 
-          <TouchableOpacity onPress={() => handleSharePost(item)}>
-            <Feather name="share-2" size={18} color="#888" />
+          <TouchableOpacity
+            onPress={() => handleSharePost(item)}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <Feather name="share-2" size={17} color="#888" />
           </TouchableOpacity>
         </View>
       </TouchableOpacity>
     );
   };
 
+  const renderEmptyState = () => (
+    <View style={styles.emptyContainer}>
+      <MaterialCommunityIcons name="forum-outline" size={64} color="#CCC" />
+      <Text style={styles.emptyText}>
+        {searchQuery ? 'No matching discussions' : 'No discussions yet'}
+      </Text>
+      <Text style={styles.emptyUrduText}>
+        {searchQuery ? 'کوئی نتیجہ نہیں ملا' : 'ابھی کوئی گفتگو نہیں ہے'}
+      </Text>
+      {!searchQuery && (
+        <TouchableOpacity style={styles.retryButton} onPress={() => setCreateModalVisible(true)}>
+          <Text style={styles.retryButtonText}>Start a Discussion / گفتگو شروع کریں</Text>
+        </TouchableOpacity>
+      )}
+    </View>
+  );
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="light-content" backgroundColor="#58D66D" />
 
-      {/* Curved Green Header */}
       <View style={styles.headerContainer}>
         <View style={styles.headerTop}>
           <View>
             <Text style={styles.headerTitle}>Community Forum</Text>
             <Text style={styles.headerSubtitle}>کمیونٹی فورم</Text>
           </View>
-          <TouchableOpacity 
-            style={styles.addButton} 
+          <TouchableOpacity
+            style={styles.addButton}
             onPress={() => setCreateModalVisible(true)}
             activeOpacity={0.8}
           >
@@ -244,9 +311,8 @@ export default function CommunityForumScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Tab Toggle */}
         <View style={styles.tabsContainer}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={[styles.tab, activeTab === 'All Posts' && styles.activeTab]}
             onPress={() => setActiveTab('All Posts')}
           >
@@ -255,7 +321,7 @@ export default function CommunityForumScreen() {
             </Text>
           </TouchableOpacity>
 
-          <TouchableOpacity 
+          <TouchableOpacity
             style={[styles.tab, activeTab === 'Trending' && styles.activeTab]}
             onPress={() => setActiveTab('Trending')}
           >
@@ -266,7 +332,6 @@ export default function CommunityForumScreen() {
         </View>
       </View>
 
-      {/* Search Input */}
       <View style={styles.searchBarContainer}>
         <Feather name="search" size={18} color="#888" style={{ marginRight: 8 }} />
         <TextInput
@@ -275,6 +340,7 @@ export default function CommunityForumScreen() {
           placeholderTextColor="#888"
           value={searchQuery}
           onChangeText={setSearchQuery}
+          returnKeyType="search"
         />
         {searchQuery.length > 0 && (
           <TouchableOpacity onPress={() => setSearchQuery('')}>
@@ -283,44 +349,47 @@ export default function CommunityForumScreen() {
         )}
       </View>
 
-      {/* Discussions Feed */}
       {loading && !refreshing ? (
         <View style={styles.loaderContainer}>
           <ActivityIndicator size="large" color="#58D66D" />
-          <Text style={styles.loadingText}>Fetching discussions...</Text>
+          <Text style={styles.loadingText}>Loading discussions...</Text>
+          <Text style={styles.loadingUrduText}>گفتگو لوڈ ہو رہی ہے</Text>
         </View>
-      ) : filteredPosts.length > 0 ? (
+      ) : (
         <FlatList
           data={filteredPosts}
           renderItem={renderPostItem}
           keyExtractor={(item) => item.id.toString()}
-          contentContainerStyle={[styles.listContainer, { paddingBottom: 110 }]}
+          contentContainerStyle={[
+            styles.listContainer,
+            { paddingBottom: Math.max(insets.bottom, 12) + 90 },
+          ]}
           refreshing={refreshing}
-          onRefresh={handleRefresh}
+          onRefresh={() => fetchPosts(true)}
           showsVerticalScrollIndicator={false}
+          ListEmptyComponent={renderEmptyState}
         />
-      ) : (
-        <View style={styles.emptyContainer}>
-          <MaterialCommunityIcons name="forum-outline" size={64} color="#CCC" />
-          <Text style={styles.emptyText}>No discussions found</Text>
-          <Text style={styles.emptyUrduText}>کوئی گفتگو نہیں ملی</Text>
-          <TouchableOpacity style={styles.retryButton} onPress={handleRefresh}>
-            <Text style={styles.retryButtonText}>Refresh / تازہ کریں</Text>
-          </TouchableOpacity>
-        </View>
       )}
 
-      {/* Bottom Navigation */}
       <View style={[styles.bottomNav, { paddingBottom: Math.max(insets.bottom, 12) }]}>
-        <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Dashboard', { userName })}>
+        <TouchableOpacity
+          style={styles.navItem}
+          onPress={() => navigation.navigate('Dashboard', { userName, userId })}
+        >
           <Feather name="home" size={24} color="#A3E6B2" />
           <Text style={[styles.navText, { color: '#A3E6B2' }]}>Home</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem} onPress={() => Alert.alert('Coming Soon', 'Stay tuned!')}>
+        <TouchableOpacity
+          style={styles.navItem}
+          onPress={() => navigation.navigate('AiScan', { userName, userId })}
+        >
           <MaterialCommunityIcons name="line-scan" size={24} color="#A3E6B2" />
           <Text style={[styles.navText, { color: '#A3E6B2' }]}>AI Scan</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem} onPress={() => Alert.alert('Coming Soon', 'Stay tuned!')}>
+        <TouchableOpacity
+          style={styles.navItem}
+          onPress={() => navigation.navigate('HealthRecords', { userName, userId })}
+        >
           <Feather name="file-text" size={24} color="#A3E6B2" />
           <Text style={[styles.navText, { color: '#A3E6B2' }]}>Records</Text>
         </TouchableOpacity>
@@ -328,13 +397,15 @@ export default function CommunityForumScreen() {
           <Feather name="message-square" size={24} color="#FFE135" />
           <Text style={[styles.navText, { color: '#FFE135' }]}>Forum</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Welcome')}>
+        <TouchableOpacity
+          style={styles.navItem}
+          onPress={() => navigation.navigate('Profile', { userId })}
+        >
           <Feather name="user" size={24} color="#A3E6B2" />
           <Text style={[styles.navText, { color: '#A3E6B2' }]}>Profile</Text>
         </TouchableOpacity>
       </View>
 
-      {/* Create Post Modal */}
       <Modal
         visible={createModalVisible}
         transparent
@@ -343,63 +414,120 @@ export default function CommunityForumScreen() {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
+            <View style={styles.modalHandle} />
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Ask a Question / سوال پوچھیں</Text>
-              <TouchableOpacity onPress={() => setCreateModalVisible(false)}>
-                <Feather name="x" size={24} color="#333" />
+              <Text style={styles.modalTitle}>New Discussion / نئی گفتگو</Text>
+              <TouchableOpacity
+                onPress={() => {
+                  setCreateModalVisible(false);
+                  setPostTitle('');
+                  setPostDescription('');
+                  setPostCategory('All Posts');
+                }}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <Feather name="x" size={22} color="#333" />
               </TouchableOpacity>
             </View>
 
-            <ScrollView showsVerticalScrollIndicator={false}>
-              <Text style={styles.formLabel}>Title / عنوان</Text>
+            <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+              <Text style={styles.formLabel}>Title / عنوان *</Text>
               <TextInput
                 style={styles.formInput}
-                placeholder="Brief summary of your question"
+                placeholder="Brief title for your discussion"
                 placeholderTextColor="#999"
                 value={postTitle}
                 onChangeText={setPostTitle}
+                maxLength={200}
+                returnKeyType="next"
               />
 
               <Text style={styles.formLabel}>Category / زمرہ</Text>
               <View style={styles.categoryToggleRow}>
-                <TouchableOpacity 
-                  style={[styles.categoryPill, postCategory === 'All Posts' && styles.categoryPillActive]}
+                <TouchableOpacity
+                  style={[
+                    styles.categoryPill,
+                    postCategory === 'All Posts' && styles.categoryPillActive,
+                  ]}
                   onPress={() => setPostCategory('All Posts')}
                 >
-                  <Text style={[styles.categoryPillText, postCategory === 'All Posts' && styles.categoryPillTextActive]}>
-                    General / تمام پوسٹس
+                  <Feather
+                    name="list"
+                    size={13}
+                    color={postCategory === 'All Posts' ? '#58D66D' : '#888'}
+                    style={{ marginRight: 4 }}
+                  />
+                  <Text
+                    style={[
+                      styles.categoryPillText,
+                      postCategory === 'All Posts' && styles.categoryPillTextActive,
+                    ]}
+                  >
+                    General
                   </Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity 
-                  style={[styles.categoryPill, postCategory === 'Trending' && styles.categoryPillActive]}
+                <TouchableOpacity
+                  style={[
+                    styles.categoryPill,
+                    postCategory === 'Trending' && styles.categoryPillActive,
+                  ]}
                   onPress={() => setPostCategory('Trending')}
                 >
-                  <Text style={[styles.categoryPillText, postCategory === 'Trending' && styles.categoryPillTextActive]}>
-                    Trending / مقبول
+                  <Feather
+                    name="trending-up"
+                    size={13}
+                    color={postCategory === 'Trending' ? '#58D66D' : '#888'}
+                    style={{ marginRight: 4 }}
+                  />
+                  <Text
+                    style={[
+                      styles.categoryPillText,
+                      postCategory === 'Trending' && styles.categoryPillTextActive,
+                    ]}
+                  >
+                    Trending
                   </Text>
                 </TouchableOpacity>
               </View>
 
-              <Text style={styles.formLabel}>Details / تفصیل</Text>
+              <Text style={styles.formLabel}>Details / تفصیل *</Text>
               <TextInput
-                style={[styles.formInput, { height: 120, textAlignVertical: 'top' }]}
-                placeholder="Describe your issue or share advice in English/Urdu"
+                style={[styles.formInput, styles.textArea]}
+                placeholder="Describe your issue or share advice (English/Urdu)"
                 placeholderTextColor="#999"
                 value={postDescription}
                 onChangeText={setPostDescription}
                 multiline
+                textAlignVertical="top"
+                maxLength={2000}
               />
+              <Text style={styles.charCount}>{postDescription.length}/2000</Text>
 
-              <TouchableOpacity 
-                style={[styles.submitButton, submitting && { opacity: 0.7 }]} 
+              {!userName && (
+                <View style={styles.warningBox}>
+                  <Feather name="alert-circle" size={14} color="#FF4D4D" />
+                  <Text style={styles.warningText}>
+                    You must be logged in to post a discussion.
+                  </Text>
+                </View>
+              )}
+
+              <TouchableOpacity
+                style={[
+                  styles.submitButton,
+                  (submitting || !userName) && { opacity: 0.6 },
+                ]}
                 onPress={handleCreatePost}
-                disabled={submitting}
+                disabled={submitting || !userName}
               >
                 {submitting ? (
                   <ActivityIndicator size="small" color="#FFF" />
                 ) : (
-                  <Text style={styles.submitButtonText}>Publish / شائع کریں</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <Feather name="send" size={16} color="#FFF" style={{ marginRight: 8 }} />
+                    <Text style={styles.submitButtonText}>Publish / شائع کریں</Text>
+                  </View>
                 )}
               </TouchableOpacity>
             </ScrollView>
@@ -436,7 +564,7 @@ const styles = StyleSheet.create({
   },
   headerSubtitle: {
     color: '#E8F8EA',
-    fontSize: 14,
+    fontSize: 13,
     marginTop: 2,
   },
   addButton: {
@@ -446,15 +574,15 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF',
     justifyContent: 'center',
     alignItems: 'center',
-    elevation: 3,
+    elevation: 4,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.12,
     shadowRadius: 4,
   },
   tabsContainer: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(255, 255, 255, 0.25)',
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
     borderRadius: 14,
     padding: 4,
   },
@@ -470,7 +598,7 @@ const styles = StyleSheet.create({
   tabText: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#E8F8EA',
+    color: 'rgba(255,255,255,0.85)',
   },
   activeTabText: {
     color: '#58D66D',
@@ -486,8 +614,8 @@ const styles = StyleSheet.create({
     height: 48,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 5,
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
     elevation: 2,
     borderWidth: 1,
     borderColor: '#E8F2EC',
@@ -500,14 +628,15 @@ const styles = StyleSheet.create({
   },
   listContainer: {
     paddingHorizontal: 16,
+    paddingTop: 4,
   },
   card: {
     backgroundColor: '#FFF',
-    borderRadius: 20,
-    padding: 20,
-    marginBottom: 16,
+    borderRadius: 18,
+    padding: 18,
+    marginBottom: 14,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 8,
     elevation: 2,
@@ -517,12 +646,12 @@ const styles = StyleSheet.create({
   cardHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 14,
+    marginBottom: 12,
   },
   avatar: {
-    width: 46,
-    height: 46,
-    borderRadius: 23,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: '#58D66D',
     justifyContent: 'center',
     alignItems: 'center',
@@ -530,45 +659,58 @@ const styles = StyleSheet.create({
   },
   avatarText: {
     color: '#FFF',
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: 'bold',
   },
   authorInfo: {
     flex: 1,
   },
   authorName: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: 'bold',
-    color: '#333',
-  },
-  authorUrdu: {
-    fontSize: 12,
-    color: '#777',
-    marginTop: 2,
+    color: '#222',
   },
   timeAgo: {
-    fontSize: 10,
+    fontSize: 11,
     color: '#999',
     marginTop: 2,
   },
-  postContent: {
-    marginBottom: 16,
+  vetBadgeSmall: {
+    backgroundColor: '#E8F8EA',
+    borderRadius: 6,
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+    marginLeft: 6,
+  },
+  vetBadgeSmallText: {
+    color: '#4CB85C',
+    fontSize: 9,
+    fontWeight: 'bold',
+  },
+  postTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#222',
+    marginBottom: 6,
+    lineHeight: 20,
   },
   descriptionText: {
-    fontSize: 14,
-    color: '#444',
-    lineHeight: 20,
+    fontSize: 13,
+    color: '#555',
+    lineHeight: 19,
+    marginBottom: 14,
   },
   cardFooter: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     borderTopWidth: 1,
-    borderTopColor: '#F0F0F0',
-    paddingTop: 14,
+    borderTopColor: '#F0F4F0',
+    paddingTop: 12,
   },
   footerLeft: {
     flexDirection: 'row',
+    alignItems: 'center',
   },
   actionButton: {
     flexDirection: 'row',
@@ -576,7 +718,7 @@ const styles = StyleSheet.create({
   },
   actionCount: {
     fontSize: 13,
-    color: '#666',
+    color: '#777',
     fontWeight: '600',
   },
   loaderContainer: {
@@ -587,13 +729,20 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 12,
     fontSize: 14,
-    color: '#666',
+    color: '#555',
+    fontWeight: '500',
+  },
+  loadingUrduText: {
+    fontSize: 12,
+    color: '#888',
+    marginTop: 4,
   },
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 32,
+    paddingTop: 60,
   },
   emptyText: {
     fontSize: 15,
@@ -611,8 +760,8 @@ const styles = StyleSheet.create({
   retryButton: {
     marginTop: 20,
     backgroundColor: '#E8F8EA',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
+    paddingHorizontal: 22,
+    paddingVertical: 11,
     borderRadius: 20,
     borderWidth: 1,
     borderColor: '#58D66D',
@@ -633,20 +782,34 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 8,
   },
   navItem: { alignItems: 'center' },
   navText: { fontSize: 10, color: '#FFF', marginTop: 4, fontWeight: '600' },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(0,0,0,0.45)',
     justifyContent: 'flex-end',
   },
   modalContent: {
     backgroundColor: '#FFF',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
+    borderTopLeftRadius: 26,
+    borderTopRightRadius: 26,
     padding: 20,
-    maxHeight: '85%',
+    paddingTop: 12,
+    maxHeight: '90%',
+  },
+  modalHandle: {
+    width: 40,
+    height: 4,
+    backgroundColor: '#DDD',
+    borderRadius: 2,
+    alignSelf: 'center',
+    marginBottom: 16,
   },
   modalHeader: {
     flexDirection: 'row',
@@ -660,36 +823,49 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#222',
   },
   formLabel: {
     fontSize: 13,
-    fontWeight: 'bold',
-    color: '#666',
+    fontWeight: '700',
+    color: '#555',
     marginBottom: 8,
-    marginTop: 12,
+    marginTop: 10,
   },
   formInput: {
     backgroundColor: '#F8FAF9',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#E8F2EC',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    borderColor: '#E0EBE4',
+    paddingHorizontal: 14,
+    paddingVertical: 11,
     fontSize: 14,
     color: '#333',
-    marginBottom: 14,
+    marginBottom: 6,
+  },
+  textArea: {
+    height: 120,
+    textAlignVertical: 'top',
+    marginBottom: 4,
+  },
+  charCount: {
+    fontSize: 11,
+    color: '#AAA',
+    textAlign: 'right',
+    marginBottom: 10,
   },
   categoryToggleRow: {
     flexDirection: 'row',
-    marginBottom: 14,
+    marginBottom: 6,
     gap: 10,
   },
   categoryPill: {
     flex: 1,
+    flexDirection: 'row',
     paddingVertical: 10,
     borderRadius: 10,
     alignItems: 'center',
+    justifyContent: 'center',
     borderWidth: 1,
     borderColor: '#D1D5D3',
     backgroundColor: '#FFF',
@@ -700,24 +876,40 @@ const styles = StyleSheet.create({
   },
   categoryPillText: {
     color: '#666',
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '600',
   },
   categoryPillTextActive: {
     color: '#58D66D',
+  },
+  warningBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFF0F0',
+    borderRadius: 10,
+    padding: 12,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#FFCDD2',
+  },
+  warningText: {
+    fontSize: 12,
+    color: '#FF4D4D',
+    marginLeft: 8,
+    flex: 1,
   },
   submitButton: {
     backgroundColor: '#58D66D',
     borderRadius: 14,
     paddingVertical: 14,
     alignItems: 'center',
-    marginTop: 20,
-    marginBottom: 20,
+    marginTop: 10,
+    marginBottom: 24,
     shadowColor: '#58D66D',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
+    shadowOpacity: 0.25,
     shadowRadius: 6,
-    elevation: 3,
+    elevation: 4,
   },
   submitButtonText: {
     color: '#FFF',

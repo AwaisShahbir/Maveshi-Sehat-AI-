@@ -39,45 +39,7 @@ async function main() {
     `);
     console.log('✅ Created forum_comments table');
 
-    // 3. Seed some dummy posts (matching the GUI uploaded by the user)
-    const checkPosts = await pool.query('SELECT COUNT(*) FROM forum_posts');
-    if (parseInt(checkPosts.rows[0].count) === 0) {
-      // Find default farmer user (Awais shabbir) to attach posts to
-      const farmerRes = await pool.query("SELECT id FROM users WHERE role = 'farmer' LIMIT 1");
-      if (farmerRes.rows.length > 0) {
-        const farmerId = farmerRes.rows[0].id;
-        
-        // Post 1 (Ahmed Hussain mockup)
-        const post1 = await pool.query(`
-          INSERT INTO forum_posts (user_id, title, description, category, likes_count, created_at)
-          VALUES (
-            $1, 
-            'My buffalo had FMD last month. Used the AI scan and followed vet advice.',
-            'My buffalo had FMD last month. Used the AI scan and followed vet advice. She''s fully recovered now! Thanks Maveshi Sehat AI.\n\nمیری بھینس کو پچھلے مہینے ایف ایم ڈی ہوا تھا۔ اے آئی اسکین استعمال کیا اور ڈاکٹر کی ہدایات پر عمل کیا۔ اب وہ مکمل طور پر صحت یاب ہے! شکریہ مویشی صحت اے آئی۔',
-            'Trending',
-            24,
-            NOW() - INTERVAL '2 hours'
-          ) RETURNING id
-        `, [farmerId]);
-
-        // Post 2 (Fatima Khan mockup)
-        const post2 = await pool.query(`
-          INSERT INTO forum_posts (user_id, title, description, category, likes_count, created_at)
-          VALUES (
-            $1, 
-            'What''s the best vaccination schedule for newborn calves?',
-            'Question: What''s the best vaccination schedule for newborn calves? Need advice from experienced farmers.\n\nسوال: نوزائیدہ بچھڑوں کے لیے بہترین ویکسینیشن شیڈول کیا ہے؟ تجربہ کار کسانوں سے مشورہ چاہیے۔',
-            'All Posts',
-            15,
-            NOW() - INTERVAL '5 hours'
-          ) RETURNING id
-        `, [farmerId]);
-
-        console.log('🌱 Seeded default mock forum posts successfully!');
-      } else {
-        console.log('⚠️ No farmer user found to associate seeded posts with.');
-      }
-    }
+    console.log('✅ Forum tables are ready. No seed data will be inserted.');
 
   } catch (err) {
     console.error('❌ Error creating forum tables:', err.message);

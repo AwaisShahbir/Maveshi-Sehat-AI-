@@ -41,9 +41,9 @@ export default function LoginScreen() {
       }
       
       if (data.user.role === 'vet') {
-        navigation.replace('VetDashboard', { userName: data.user.fullName });
+        navigation.replace('VetDashboard', { userName: data.user.fullName, userId: data.user.id });
       } else {
-        navigation.replace('Dashboard', { userName: data.user.fullName });
+        navigation.replace('Dashboard', { userName: data.user.fullName, userId: data.user.id });
       }
     } catch (error) {
       setErrorMsg(error.message);
