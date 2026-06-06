@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, StatusBar, Alert, Platform, ActivityIndicator, RefreshControl } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, StatusBar, Alert, Platform, ActivityIndicator, RefreshControl, Image } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { getRecords, subscribe, loadRecords } from '../../utils/recordsStore';
+import { getProfile, subscribeProfile } from '../../utils/profileStore';
 
 export default function DashboardScreen() {
   const navigation = useNavigation();
@@ -11,6 +13,7 @@ export default function DashboardScreen() {
 
   // Dynamic States
   const [userName, setUserName] = useState(params.userName || 'Muhammad Ahmed');
+  const userId = params.userId || null;
   const [stats, setStats] = useState({
     livestock: 0,
     aiScans: 0,
@@ -22,33 +25,81 @@ export default function DashboardScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [notificationsCount, setNotificationsCount] = useState(0);
 
-  const fetchDashboardData = async (isRefreshing = false) => {
-    if (isRefreshing) {
-      setRefreshing(true);
-    } else {
-      setLoading(true);
-    }
-    try {
-      const baseUrl = Platform.OS === 'android' ? 'http://10.0.2.2:5000' : 'http://localhost:5000';
-      const response = await fetch(`${baseUrl}/api/dashboard-stats?ownerName=${encodeURIComponent(userName)}`);
-      if (!response.ok) throw new Error('Failed to fetch dashboard data');
-      const data = await response.json();
-      if (data.stats) setStats(data.stats);
-      if (data.recentScans) setRecentScans(data.recentScans);
-    } catch (error) {
-      console.error('Error fetching dashboard data:', error);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
+  const updateStats = (currentRecords) => {
+    const totalScans = currentRecords.length;
+    
+    // Calculate unique livestock count
+    const uniqueAnimals = new Set(currentRecords.map(r => r.animalId));
+    const livestockCount = uniqueAnimals.size;
+    
+    // Calculate healthy percentage
+    const healthyRecords = currentRecords.filter(r => r.status === 'Healthy' || r.status === 'Recovered');
+    const healthyPercentage = totalScans > 0 
+      ? Math.round((healthyRecords.length / totalScans) * 100) 
+      : 100; // default to 100% healthy if no scans
+      
+    setStats({
+      livestock: livestockCount,
+      aiScans: totalScans,
+      healthy: healthyPercentage
+    });
+
+    // Map store records to the dashboard's expected format
+    const recent = currentRecords.slice(0, 3).map(rec => ({
+      id: rec.id,
+      bg: rec.bg,
+      icon: rec.icon,
+      color: rec.color,
+      title: `${rec.animalId} - ${rec.disease}`,
+      time: rec.timeAgo,
+      percentage: rec.confidence.replace('%', ''),
+      severity: rec.status,
+      rawRecord: rec
+    }));
+    setRecentScans(recent);
+    setLoading(false);
   };
 
   useEffect(() => {
-    fetchDashboardData();
-  }, [userName]);
+    const activeUser = getProfile().userName;
+    setUserName(activeUser);
+    
+    // Load records from database for this user
+    loadRecords(activeUser).then(loadedRecords => {
+      updateStats(loadedRecords);
+    }).catch(err => {
+      console.log('Error loading initial stats:', err);
+      updateStats(getRecords());
+    });
+
+    // Subscribe to records updates
+    const unsubscribeRecords = subscribe((updatedRecords) => {
+      updateStats(updatedRecords);
+    });
+
+    // Subscribe to profile updates
+    const unsubscribeProfile = subscribeProfile((updatedProfile) => {
+      setUserName(updatedProfile.userName);
+      loadRecords(updatedProfile.userName).then(loadedRecords => {
+        updateStats(loadedRecords);
+      }).catch(err => console.log('Error loading updated profile stats:', err));
+    });
+
+    return () => {
+      unsubscribeRecords();
+      unsubscribeProfile();
+    };
+  }, []);
 
   const onRefresh = () => {
-    fetchDashboardData(true);
+    setRefreshing(true);
+    loadRecords(userName).then((loaded) => {
+      updateStats(loaded);
+      setRefreshing(false);
+    }).catch(() => {
+      updateStats(getRecords());
+      setRefreshing(false);
+    });
   };
 
   const handleComingSoon = () => {
@@ -106,14 +157,14 @@ export default function DashboardScreen() {
         </View>
 
         {/* Quick Actions Card */}
-        <View style={styles.cardContainer}>
+        <View style={[styles.cardContainer, styles.overlapCard]}>
           <Text style={styles.sectionTitle}>Quick Actions / فوری اعمال</Text>
           <View style={styles.actionGrid}>
-            <TouchableOpacity style={styles.actionItem} onPress={handleComingSoon}>
+            <TouchableOpacity style={styles.actionItem} onPress={() => navigation.navigate('AiScan', { userName, userId })}>
               <View style={[styles.iconBox, { backgroundColor: '#E8F8EA' }]}>
                 <MaterialCommunityIcons name="line-scan" size={28} color="#4CB85C" />
               </View>
-              <Text style={styles.actionText}>AI Scan <Text style={styles.soonText}>(Soon)</Text></Text>
+              <Text style={styles.actionText}>AI Scan</Text>
               <Text style={styles.actionUrdu}>اسکین</Text>
             </TouchableOpacity>
             
@@ -133,7 +184,7 @@ export default function DashboardScreen() {
               <Text style={styles.actionUrdu}>ڈاکٹر</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.actionItem} onPress={() => navigation.navigate('HeatAlert')}>
+            <TouchableOpacity style={styles.actionItem} onPress={() => navigation.navigate('HeatAlert', { userName, userId })}>
               <View style={[styles.iconBox, { backgroundColor: '#FFF5E5' }]}>
                 <MaterialCommunityIcons name="thermometer" size={28} color="#FFB020" />
               </View>
@@ -166,9 +217,13 @@ export default function DashboardScreen() {
             </View>
           ) : recentScans.length > 0 ? (
             recentScans.map((scan) => (
-              <TouchableOpacity key={scan.id} style={styles.scanItem} onPress={handleComingSoon}>
+              <TouchableOpacity key={scan.id} style={styles.scanItem} onPress={() => navigation.navigate('HealthRecords', { userName, userId })}>
                 <View style={[styles.scanIconBox, { backgroundColor: scan.bg }]}>
-                  <Feather name={scan.icon} size={20} color={scan.color} />
+                  {scan.rawRecord && scan.rawRecord.uri ? (
+                    <Image source={{ uri: scan.rawRecord.uri }} style={{ width: 40, height: 40, borderRadius: 20 }} />
+                  ) : (
+                    <Feather name={scan.icon} size={20} color={scan.color} />
+                  )}
                 </View>
                 <View style={styles.scanDetails}>
                   <Text style={styles.scanTitle}>{scan.title}</Text>
@@ -198,28 +253,19 @@ export default function DashboardScreen() {
           <Feather name="home" size={24} color="#FFF" />
           <Text style={styles.navText}>Home</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem} onPress={handleComingSoon}>
+        <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('AiScan', { userName, userId })}>
           <MaterialCommunityIcons name="line-scan" size={24} color="#A3E6B2" />
-          <Text style={[styles.navText, { color: '#A3E6B2' }]}>AI Scan (Soon)</Text>
+          <Text style={[styles.navText, { color: '#A3E6B2' }]}>AI Scan</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem} onPress={handleComingSoon}>
+        <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('HealthRecords', { userName, userId })}>
           <Feather name="file-text" size={24} color="#A3E6B2" />
-          <Text style={[styles.navText, { color: '#A3E6B2' }]}>Records (Soon)</Text>
+          <Text style={[styles.navText, { color: '#A3E6B2' }]}>Records</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('CommunityForum', { userName })}>
+        <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('CommunityForum', { userName, userId })}>
           <Feather name="message-square" size={24} color="#A3E6B2" />
           <Text style={[styles.navText, { color: '#A3E6B2' }]}>Forum</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem} onPress={() => {
-          Alert.alert(
-            "Profile Options",
-            "Do you want to logout?",
-            [
-              { text: "Cancel", style: "cancel" },
-              { text: "Logout", style: "destructive", onPress: () => navigation.replace('Welcome') }
-            ]
-          )
-        }}>
+        <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Profile', { userId })}>
           <Feather name="user" size={24} color="#A3E6B2" />
           <Text style={[styles.navText, { color: '#A3E6B2' }]}>Profile</Text>
         </TouchableOpacity>
@@ -285,13 +331,15 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
     borderRadius: 20,
     padding: 20,
-    marginTop: -20,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.05,
     shadowRadius: 10,
     elevation: 3,
     marginBottom: 20,
+  },
+  overlapCard: {
+    marginTop: -20,
   },
   sectionHeader: {
     flexDirection: 'row',

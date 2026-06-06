@@ -71,7 +71,20 @@ pool.connect((err, client, release) => {
     console.error('Error connecting to PostgreSQL:', err.message);
   } else {
     console.log('✅ Successfully connected to PostgreSQL Database!');
-    release();
+    // Perform migrations to add columns if they do not exist
+    client.query(`
+      ALTER TABLE detections ADD COLUMN IF NOT EXISTS image_url VARCHAR(255);
+      ALTER TABLE detections ADD COLUMN IF NOT EXISTS description TEXT;
+      ALTER TABLE detections ADD COLUMN IF NOT EXISTS first_aid TEXT[];
+      ALTER TABLE detections ADD COLUMN IF NOT EXISTS disease_urdu VARCHAR(100);
+    `, (migrationErr) => {
+      release();
+      if (migrationErr) {
+        console.error('❌ Error executing migrations on detections table:', migrationErr.message);
+      } else {
+        console.log('✅ PostgreSQL detections table verified and updated!');
+      }
+    });
   }
 });
 
@@ -562,6 +575,103 @@ app.get('/api/admin/health-records', async (req, res) => {
   }
 });
 
+// --- USER DETECTIONS API ---
+app.get('/api/detections', async (req, res) => {
+  try {
+    const { ownerName } = req.query;
+    if (!ownerName) {
+      return res.status(400).json({ error: 'ownerName parameter is required' });
+    }
+    const result = await pool.query(
+      'SELECT * FROM detections WHERE owner_name ILIKE $1 ORDER BY created_at DESC',
+      [ownerName]
+    );
+    
+    // Map rows to match the frontend recordsStore record structure
+    const records = result.rows.map(row => {
+      const isHealthy = row.disease === 'Healthy' || row.disease === 'BCS Normal';
+      let severityColor = '#4CB85C';
+      let severityBg = '#E8F8EA';
+      if (row.risk_level === 'High') {
+        severityColor = '#FF4D4D';
+        severityBg = '#FFEBEB';
+      } else if (row.risk_level === 'Medium') {
+        severityColor = '#FFB020';
+        severityBg = '#FFF5E5';
+      }
+
+      return {
+        id: row.id,
+        animalId: row.id,
+        animalType: row.animal_type,
+        disease: row.disease,
+        diseaseUrdu: row.disease_urdu || (isHealthy ? 'صحت مند' : row.disease),
+        confidence: row.confidence ? `${parseFloat(row.confidence).toFixed(1)}%` : '0%',
+        timeAgo: 'Just now',
+        date: new Date(row.created_at).toLocaleString(),
+        risk: row.risk_level === 'High' ? 'High Risk' : (row.risk_level === 'Medium' ? 'Medium Risk' : 'Low Risk'),
+        status: row.status || (isHealthy ? 'Healthy' : 'Active'),
+        icon: isHealthy ? 'check-circle' : (row.risk_level === 'High' ? 'alert-circle' : 'trending-up'),
+        color: severityColor,
+        bg: severityBg,
+        uri: row.image_url || 'https://images.unsplash.com/photo-1570042225831-d98fa7577f1e?q=80&w=400&auto=format&fit=crop',
+        description: row.description || '',
+        firstAid: row.first_aid || []
+      };
+    });
+
+    res.status(200).json(records);
+  } catch (err) {
+    console.error('Error fetching detections:', err.message);
+    res.status(500).json({ error: 'Server error fetching detections' });
+  }
+});
+
+app.post('/api/detections', async (req, res) => {
+  try {
+    const { 
+      id, ownerName, animalType, disease, diseaseUrdu, confidence, 
+      riskLevel, imageUrl, description, firstAid, province 
+    } = req.body;
+
+    if (!id || !ownerName || !animalType || !disease) {
+      return res.status(400).json({ error: 'Missing required parameters (id, ownerName, animalType, disease)' });
+    }
+
+    // Check if record already exists
+    const existing = await pool.query('SELECT * FROM detections WHERE id = $1', [id]);
+    if (existing.rows.length > 0) {
+      return res.status(200).json({ message: 'Record already exists', record: existing.rows[0] });
+    }
+
+    const result = await pool.query(
+      `INSERT INTO detections (
+        id, owner_name, animal_type, disease, confidence, risk_level, 
+        image_url, description, first_aid, disease_urdu, province, status
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *`,
+      [
+        id,
+        ownerName,
+        animalType,
+        disease,
+        confidence || 0,
+        riskLevel || 'Low',
+        imageUrl || null,
+        description || null,
+        firstAid || [],
+        diseaseUrdu || null,
+        province || 'Punjab',
+        disease === 'Healthy' ? 'Healthy' : 'Active'
+      ]
+    );
+
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    console.error('Error saving detection:', err.message);
+    res.status(500).json({ error: 'Server error saving detection' });
+  }
+});
+
 // --- 7. NOTIFICATIONS & ANNOUNCEMENTS ---
 app.get('/api/admin/notifications', async (req, res) => {
   try {
@@ -758,18 +868,30 @@ app.get('/api/forum/posts', async (req, res) => {
 // 2. Create a new forum post
 app.post('/api/forum/posts', async (req, res) => {
   try {
-    const { userName, title, description, category } = req.body;
-    if (!userName || !title || !description || !category) {
-      return res.status(400).json({ error: 'All fields are required' });
+    const { userName, userId: providedUserId, title, description, category } = req.body;
+    if (!title || !description || !category) {
+      return res.status(400).json({ error: 'Title, description, and category are required' });
     }
-    const userRes = await pool.query('SELECT id FROM users WHERE full_name ILIKE $1 LIMIT 1', [userName.trim()]);
-    if (userRes.rows.length === 0) {
-      return res.status(404).json({ error: 'User not found' });
+    if (!userName && !providedUserId) {
+      return res.status(400).json({ error: 'User identification is required' });
     }
-    const userId = userRes.rows[0].id;
+
+    let resolvedUserId = providedUserId ? parseInt(providedUserId) : null;
+
+    if (!resolvedUserId && userName) {
+      const userRes = await pool.query(
+        'SELECT id FROM users WHERE TRIM(LOWER(full_name)) = TRIM(LOWER($1)) LIMIT 1',
+        [userName.trim()]
+      );
+      if (userRes.rows.length === 0) {
+        return res.status(404).json({ error: 'User not found. Please make sure you are logged in.' });
+      }
+      resolvedUserId = userRes.rows[0].id;
+    }
+
     const result = await pool.query(
       'INSERT INTO forum_posts (user_id, title, description, category) VALUES ($1, $2, $3, $4) RETURNING *',
-      [userId, title, description, category]
+      [resolvedUserId, title.trim(), description.trim(), category]
     );
     res.status(201).json(result.rows[0]);
   } catch (err) {
@@ -812,23 +934,55 @@ app.get('/api/forum/posts/:id', async (req, res) => {
 app.post('/api/forum/posts/:id/comments', async (req, res) => {
   try {
     const { id } = req.params;
-    const { userName, comment } = req.body;
-    if (!userName || !comment) {
-      return res.status(400).json({ error: 'Comment and userName are required' });
+    const { userName, userId: providedUserId, comment, parentCommentId } = req.body;
+    if (!comment || !comment.trim()) {
+      return res.status(400).json({ error: 'Comment text is required' });
     }
-    const userRes = await pool.query('SELECT id FROM users WHERE full_name ILIKE $1 LIMIT 1', [userName.trim()]);
-    if (userRes.rows.length === 0) {
-      return res.status(404).json({ error: 'User not found' });
+    if (!userName && !providedUserId) {
+      return res.status(400).json({ error: 'User identification is required' });
     }
-    const userId = userRes.rows[0].id;
+
+    let resolvedUserId = providedUserId ? parseInt(providedUserId) : null;
+
+    if (!resolvedUserId && userName) {
+      const userRes = await pool.query(
+        'SELECT id FROM users WHERE TRIM(LOWER(full_name)) = TRIM(LOWER($1)) LIMIT 1',
+        [userName.trim()]
+      );
+      if (userRes.rows.length === 0) {
+        return res.status(404).json({ error: 'User not found. Please make sure you are logged in.' });
+      }
+      resolvedUserId = userRes.rows[0].id;
+    }
+
+    const parentId = parentCommentId ? parseInt(parentCommentId) : null;
+
     const result = await pool.query(
-      'INSERT INTO forum_comments (post_id, user_id, comment) VALUES ($1, $2, $3) RETURNING *',
-      [id, userId, comment]
+      'INSERT INTO forum_comments (post_id, user_id, comment, parent_comment_id) VALUES ($1, $2, $3, $4) RETURNING *',
+      [id, resolvedUserId, comment.trim(), parentId]
     );
     res.status(201).json(result.rows[0]);
   } catch (err) {
     console.error('Error posting comment:', err.message);
     res.status(500).json({ error: 'Server error posting comment' });
+  }
+});
+
+// 4b. Like a specific comment
+app.post('/api/forum/comments/:id/like', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await pool.query(
+      'UPDATE forum_comments SET likes_count = likes_count + 1 WHERE id = $1 RETURNING likes_count',
+      [id]
+    );
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Comment not found' });
+    }
+    res.status(200).json({ likesCount: result.rows[0].likes_count });
+  } catch (err) {
+    console.error('Error liking comment:', err.message);
+    res.status(500).json({ error: 'Server error liking comment' });
   }
 });
 
