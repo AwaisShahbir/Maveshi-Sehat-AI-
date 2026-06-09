@@ -45,10 +45,20 @@ CREATE TABLE otps (
 CREATE TABLE pharmacies (
   id SERIAL PRIMARY KEY,
   name VARCHAR(255) NOT NULL,
+  name_urdu VARCHAR(255),
   license_number VARCHAR(100) UNIQUE NOT NULL, -- DRAP license number
+  license_expiry VARCHAR(100),
   owner_name VARCHAR(100) NOT NULL,
-  address TEXT,
+  cnic VARCHAR(50),
   phone VARCHAR(20),
+  whatsapp VARCHAR(20),
+  email VARCHAR(255) UNIQUE NOT NULL,
+  password VARCHAR(255) NOT NULL,
+  address TEXT,
+  province VARCHAR(100),
+  city VARCHAR(100),
+  business_hours VARCHAR(100),
+  description TEXT,
   status VARCHAR(20) DEFAULT 'pending', -- 'pending', 'approved', 'rejected'
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

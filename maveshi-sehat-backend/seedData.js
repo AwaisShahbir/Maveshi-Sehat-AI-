@@ -55,21 +55,27 @@ async function seed() {
 
     // 2. Seed Pharmacies
     const pharmaciesQuery = `
-      INSERT INTO pharmacies (name, license_number, owner_name, address, phone, status) VALUES
+      INSERT INTO pharmacies (
+        name, name_urdu, license_number, license_expiry, owner_name, 
+        cnic, phone, whatsapp, email, password, address, 
+        province, city, business_hours, description, status
+      ) VALUES
+      -- Approved/Verified Pharmacy (so we can login)
+      ('Al-Shifa Medical Store', 'الشفا میڈیکل اسٹور', 'DRAP-2024-8823', '2026-12-31', 'Dr. Ahmed Ali', '12345-6789012-3', '042-3561-2233', '+92 300 1234567', 'alshifa@example.com', $1, 'Main Bazar, Faisalabad, Punjab', 'Punjab', 'Faisalabad', 'Mon-Sat: 9:00 AM - 8:00 PM', 'Premium veterinary pharmacy providing all kinds of livestock medicines and vaccines.', 'approved'),
+      
       -- Pending Pharmacies
-      ('Al-Shifa Medical Store', 'DRAP-2024-8823', 'Haji Muhammad Saleem', 'Main Bazar, Sahiwal, Punjab', '042-3561-2233', 'pending'),
-      ('Punjab Livestock Pharma', 'DRAP-2024-5512', 'Ahmed Raza Khan', 'Canal Road, Multan, Punjab', '061-4523-1122', 'pending'),
-      ('Al-Noor Medical Store', 'DRAP-2023-9934', 'Tariq Mehmood', 'GT Road, Gujranwala, Punjab', '055-3782-4455', 'pending'),
+      ('Punjab Livestock Pharma', 'پنجاب لائیو اسٹاک فارما', 'DRAP-2024-5512', '2027-06-30', 'Ahmed Raza Khan', '35202-9876543-1', '061-4523-1122', '+92 311 9876543', 'punjabpharma@example.com', $1, 'Canal Road, Multan, Punjab', 'Punjab', 'Multan', 'Mon-Sun: 8:00 AM - 10:00 PM', 'Dedicated to livestock health care and vaccinations.', 'pending'),
+      ('Al-Noor Medical Store', 'النور میڈیکل اسٹور', 'DRAP-2023-9934', '2026-03-15', 'Tariq Mehmood', '35201-1234567-9', '055-3782-4455', '+92 322 1234567', 'alnoor@example.com', $1, 'GT Road, Gujranwala, Punjab', 'Punjab', 'Gujranwala', 'Mon-Sat: 9:00 AM - 9:00 PM', 'Quality vet products and medical supplies.', 'pending'),
       
       -- Approved Pharmacies
-      ('Farooq Labs', 'DRAP-2023-1234', 'Dr. Farooq', 'Lahore, Punjab', '0321-1234567', 'approved'),
-      ('National Vet Supplies', 'DRAP-2022-5678', 'Zafar Iqbal', 'Karachi, Sindh', '0331-1234567', 'approved'),
-      ('Livestock Care Pharma', 'DRAP-2023-9012', 'Muhammad Ali', 'Faisalabad, Punjab', '0341-1234567', 'approved'),
-      ('Green Valley Medical', 'DRAP-2024-3456', 'Sajid Hussain', 'Sialkot, Punjab', '0351-1234567', 'approved'),
-      ('Pak Vet Store', 'DRAP-2023-7890', 'Jamil Khan', 'Rawalpindi, Punjab', '0361-1234567', 'approved')
+      ('Farooq Labs', 'فاروق لیبز', 'DRAP-2023-1234', '2025-12-31', 'Dr. Farooq', '35203-1122334-5', '0321-1234567', '+92 321 1234567', 'farooq@example.com', $1, 'Lahore, Punjab', 'Punjab', 'Lahore', 'Mon-Sat: 9:00 AM - 6:00 PM', 'Veterinary laboratory and supplier.', 'approved'),
+      ('National Vet Supplies', 'نیشنل ویٹ سپلائیز', 'DRAP-2022-5678', '2026-08-31', 'Zafar Iqbal', '42201-5566778-9', '0331-1234567', '+92 331 1234567', 'national@example.com', $1, 'Karachi, Sindh', 'Sindh', 'Karachi', 'Mon-Sat: 9:00 AM - 7:00 PM', 'Importer and distributor of vet medicines.', 'approved'),
+      ('Livestock Care Pharma', 'لائیو اسٹاک کیئر فارما', 'DRAP-2023-9012', '2027-01-01', 'Muhammad Ali', '35202-3344556-7', '0341-1234567', '+92 341 1234567', 'livestockcare@example.com', $1, 'Faisalabad, Punjab', 'Punjab', 'Faisalabad', 'Mon-Sat: 8:00 AM - 8:00 PM', 'All dairy feed and medicine supplies.', 'approved'),
+      ('Green Valley Medical', 'گرین ویلی میڈیکل', 'DRAP-2024-3456', '2028-04-30', 'Sajid Hussain', '34101-7788990-1', '0351-1234567', '+92 351 1234567', 'greenvalley@example.com', $1, 'Sialkot, Punjab', 'Punjab', 'Sialkot', 'Mon-Sat: 9:00 AM - 9:00 PM', 'Sialkot local vet pharmacy.', 'approved'),
+      ('Pak Vet Store', 'پاک ویٹ اسٹور', 'DRAP-2023-7890', '2026-10-31', 'Jamil Khan', '37405-2233445-5', '0361-1234567', '+92 361 1234567', 'pakvet@example.com', $1, 'Rawalpindi, Punjab', 'Punjab', 'Rawalpindi', 'Mon-Sun: 9:00 AM - 10:00 PM', 'One stop shop for all veterinary needs.', 'approved')
       RETURNING id, name;
     `;
-    const pharmResult = await pool.query(pharmaciesQuery);
+    const pharmResult = await pool.query(pharmaciesQuery, [passHash]);
     const pharmMap = {};
     pharmResult.rows.forEach(p => {
       pharmMap[p.name] = p.id;

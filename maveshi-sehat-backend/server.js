@@ -77,12 +77,23 @@ pool.connect((err, client, release) => {
       ALTER TABLE detections ADD COLUMN IF NOT EXISTS description TEXT;
       ALTER TABLE detections ADD COLUMN IF NOT EXISTS first_aid TEXT[];
       ALTER TABLE detections ADD COLUMN IF NOT EXISTS disease_urdu VARCHAR(100);
+
+      ALTER TABLE pharmacies ADD COLUMN IF NOT EXISTS name_urdu VARCHAR(255);
+      ALTER TABLE pharmacies ADD COLUMN IF NOT EXISTS license_expiry VARCHAR(100);
+      ALTER TABLE pharmacies ADD COLUMN IF NOT EXISTS cnic VARCHAR(50);
+      ALTER TABLE pharmacies ADD COLUMN IF NOT EXISTS whatsapp VARCHAR(20);
+      ALTER TABLE pharmacies ADD COLUMN IF NOT EXISTS email VARCHAR(255);
+      ALTER TABLE pharmacies ADD COLUMN IF NOT EXISTS password VARCHAR(255);
+      ALTER TABLE pharmacies ADD COLUMN IF NOT EXISTS province VARCHAR(100);
+      ALTER TABLE pharmacies ADD COLUMN IF NOT EXISTS city VARCHAR(100);
+      ALTER TABLE pharmacies ADD COLUMN IF NOT EXISTS business_hours VARCHAR(100);
+      ALTER TABLE pharmacies ADD COLUMN IF NOT EXISTS description TEXT;
     `, (migrationErr) => {
       release();
       if (migrationErr) {
-        console.error('❌ Error executing migrations on detections table:', migrationErr.message);
+        console.error('❌ Error executing migrations:', migrationErr.message);
       } else {
-        console.log('✅ PostgreSQL detections table verified and updated!');
+        console.log('✅ PostgreSQL tables verified and updated!');
       }
     });
   }
@@ -694,6 +705,308 @@ app.post('/api/admin/announcements', async (req, res) => {
     res.status(500).json({ error: 'Failed to post announcement' });
   }
 });
+
+// ==========================================
+// --- WEB PHARMACY PORTAL API ENDPOINTS ---
+// ==========================================
+
+// --- 1. PHARMACY REGISTRATION ---
+app.post('/api/pharmacy/register', async (req, res) => {
+  try {
+    const {
+      name, nameUrdu, licenseNumber, licenseExpiry, ownerName,
+      cnic, phone, whatsapp, email, password, address,
+      province, city, businessHours, description
+    } = req.body;
+
+    // Check if email or license number already registered
+    const exists = await pool.query(
+      'SELECT * FROM pharmacies WHERE email = $1 OR license_number = $2 OR phone = $3',
+      [email, licenseNumber, phone]
+    );
+    if (exists.rows.length > 0) {
+      return res.status(400).json({ error: 'Pharmacy with this email, phone, or license number already exists!' });
+    }
+
+    // Hash password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    // Insert new pharmacy
+    const result = await pool.query(
+      `INSERT INTO pharmacies (
+        name, name_urdu, license_number, license_expiry, owner_name,
+        cnic, phone, whatsapp, email, password, address,
+        province, city, business_hours, description, status
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, 'pending') RETURNING id, name, email`,
+      [
+        name, nameUrdu || null, licenseNumber, licenseExpiry || null, ownerName,
+        cnic || null, phone, whatsapp || null, email, hashedPassword, address || null,
+        province || null, city || null, businessHours || null, description || null
+      ]
+    );
+
+    // Add Admin Notification
+    await pool.query(
+      `INSERT INTO admin_notifications (type, message_en, message_ur) 
+       VALUES ('pharmacy_approval', $1, $2)`,
+      [`New pharmacy application submitted - ${name}`, `${name} نے رجسٹریشن کی درخواست جمع کرائی — ${city || ''}`]
+    );
+
+    res.status(201).json({
+      message: 'Registration successful! Pending admin approval.',
+      pharmacy: result.rows[0]
+    });
+  } catch (err) {
+    console.error('Pharmacy Registration Error:', err.message);
+    res.status(500).json({ error: 'Server error during pharmacy registration.' });
+  }
+});
+
+// --- 2. PHARMACY LOGIN ---
+app.post('/api/pharmacy/login', async (req, res) => {
+  try {
+    const { emailOrPhone, password } = req.body;
+
+    // Search by email or phone
+    const result = await pool.query(
+      'SELECT * FROM pharmacies WHERE email = $1 OR phone = $1',
+      [emailOrPhone]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(400).json({ error: 'Invalid email/phone number or pharmacy not registered.' });
+    }
+
+    const pharmacy = result.rows[0];
+
+    // Check status
+    if (pharmacy.status === 'pending') {
+      return res.status(403).json({ error: 'Your pharmacy portal account is pending admin approval.' });
+    }
+    if (pharmacy.status === 'rejected') {
+      return res.status(403).json({ error: 'Your pharmacy registration request was rejected by admin.' });
+    }
+
+    // Compare passwords
+    const isMatch = await bcrypt.compare(password, pharmacy.password);
+    if (!isMatch) {
+      return res.status(400).json({ error: 'Invalid password.' });
+    }
+
+    res.status(200).json({
+      message: 'Login successful!',
+      pharmacy: {
+        id: pharmacy.id,
+        name: pharmacy.name,
+        nameUrdu: pharmacy.name_urdu,
+        email: pharmacy.email,
+        phone: pharmacy.phone,
+        status: pharmacy.status
+      }
+    });
+  } catch (err) {
+    console.error('Pharmacy Login Error:', err.message);
+    res.status(500).json({ error: 'Server error during pharmacy login.' });
+  }
+});
+
+// --- 3. PHARMACY DASHBOARD STATS ---
+app.get('/api/pharmacy/dashboard-stats', async (req, res) => {
+  try {
+    const { pharmacyId } = req.query;
+    if (!pharmacyId) {
+      return res.status(400).json({ error: 'pharmacyId parameter is required' });
+    }
+
+    const pId = parseInt(pharmacyId);
+
+    // A. Total Revenue
+    const revRes = await pool.query(
+      "SELECT SUM(total_price) FROM orders WHERE pharmacy_id = $1 AND status IN ('delivered', 'completed')",
+      [pId]
+    );
+    const totalRevenue = parseFloat(revRes.rows[0].sum) || 0.00;
+
+    // B. Active Orders Count (pending, processing, dispatched)
+    const actRes = await pool.query(
+      "SELECT COUNT(*) FROM orders WHERE pharmacy_id = $1 AND status NOT IN ('delivered', 'completed', 'cancelled')",
+      [pId]
+    );
+    const activeOrdersCount = parseInt(actRes.rows[0].count) || 0;
+
+    // C. Medicine Listings Count
+    const medRes = await pool.query(
+      "SELECT COUNT(*) FROM medicines WHERE pharmacy_id = $1",
+      [pId]
+    );
+    const medicineListingsCount = parseInt(medRes.rows[0].count) || 0;
+
+    // D. Stock Alerts Count (stock < 15 or status = out_of_stock)
+    const alertRes = await pool.query(
+      "SELECT COUNT(*) FROM medicines WHERE pharmacy_id = $1 AND (stock < 15 OR status = 'out_of_stock')",
+      [pId]
+    );
+    const stockAlertsCount = parseInt(alertRes.rows[0].count) || 0;
+
+    // E. Recent Orders list
+    const recentOrdersRes = await pool.query(
+      "SELECT * FROM orders WHERE pharmacy_id = $1 ORDER BY created_at DESC LIMIT 5",
+      [pId]
+    );
+
+    // F. Stock Alerts list
+    const stockAlertsRes = await pool.query(
+      "SELECT * FROM medicines WHERE pharmacy_id = $1 AND stock < 15 ORDER BY stock ASC LIMIT 5",
+      [pId]
+    );
+
+    res.status(200).json({
+      stats: {
+        totalRevenue,
+        activeOrders: activeOrdersCount,
+        medicineListings: medicineListingsCount,
+        stockAlerts: stockAlertsCount
+      },
+      recentOrders: recentOrdersRes.rows,
+      stockAlertsList: stockAlertsRes.rows
+    });
+  } catch (err) {
+    console.error('Pharmacy Stats Error:', err.message);
+    res.status(500).json({ error: 'Failed to fetch pharmacy dashboard stats.' });
+  }
+});
+
+// --- 4. MEDICINES MANAGEMENT ---
+app.get('/api/pharmacy/medicines', async (req, res) => {
+  try {
+    const { pharmacyId } = req.query;
+    if (!pharmacyId) {
+      return res.status(400).json({ error: 'pharmacyId parameter is required' });
+    }
+    const result = await pool.query(
+      "SELECT * FROM medicines WHERE pharmacy_id = $1 ORDER BY id ASC",
+      [parseInt(pharmacyId)]
+    );
+    res.status(200).json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch medicines.' });
+  }
+});
+
+app.post('/api/pharmacy/medicines', async (req, res) => {
+  try {
+    const { name, category, price, stock, pharmacyId } = req.body;
+    const status = parseInt(stock) === 0 ? 'out_of_stock' : (parseInt(stock) < 15 ? 'low_stock' : 'active');
+    const result = await pool.query(
+      "INSERT INTO medicines (name, category, pharmacy_id, price, stock, status) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
+      [name, category, parseInt(pharmacyId), parseFloat(price), parseInt(stock), status]
+    );
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to add medicine.' });
+  }
+});
+
+app.put('/api/pharmacy/medicines/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, category, price, stock } = req.body;
+    const status = parseInt(stock) === 0 ? 'out_of_stock' : (parseInt(stock) < 15 ? 'low_stock' : 'active');
+    const result = await pool.query(
+      "UPDATE medicines SET name = $1, category = $2, price = $3, stock = $4, status = $5 WHERE id = $6 RETURNING *",
+      [name, category, parseFloat(price), parseInt(stock), status, parseInt(id)]
+    );
+    res.status(200).json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to update medicine.' });
+  }
+});
+
+app.delete('/api/pharmacy/medicines/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    await pool.query("DELETE FROM medicines WHERE id = $1", [parseInt(id)]);
+    res.status(200).json({ message: 'Medicine deleted successfully.' });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to delete medicine.' });
+  }
+});
+
+// --- 5. ORDERS MANAGEMENT ---
+app.get('/api/pharmacy/orders', async (req, res) => {
+  try {
+    const { pharmacyId } = req.query;
+    if (!pharmacyId) {
+      return res.status(400).json({ error: 'pharmacyId parameter is required' });
+    }
+    const result = await pool.query(
+      "SELECT * FROM orders WHERE pharmacy_id = $1 ORDER BY created_at DESC",
+      [parseInt(pharmacyId)]
+    );
+    res.status(200).json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch orders.' });
+  }
+});
+
+app.put('/api/pharmacy/orders/:id/status', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+    const result = await pool.query(
+      "UPDATE orders SET status = $1 WHERE id = $2 RETURNING *",
+      [status, id]
+    );
+    res.status(200).json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to update order status.' });
+  }
+});
+
+// --- 6. PROFILE MANAGEMENT ---
+app.get('/api/pharmacy/profile', async (req, res) => {
+  try {
+    const { pharmacyId } = req.query;
+    if (!pharmacyId) {
+      return res.status(400).json({ error: 'pharmacyId parameter is required' });
+    }
+    const result = await pool.query(
+      "SELECT id, name, name_urdu, license_number, license_expiry, owner_name, cnic, phone, whatsapp, email, address, province, city, business_hours, description, status FROM pharmacies WHERE id = $1",
+      [parseInt(pharmacyId)]
+    );
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Pharmacy profile not found.' });
+    }
+    res.status(200).json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch profile.' });
+  }
+});
+
+app.put('/api/pharmacy/profile', async (req, res) => {
+  try {
+    const {
+      pharmacyId, name, nameUrdu, ownerName, phone, whatsapp,
+      address, province, city, businessHours, description
+    } = req.body;
+
+    const result = await pool.query(
+      `UPDATE pharmacies SET 
+        name = $1, name_urdu = $2, owner_name = $3, phone = $4, whatsapp = $5,
+        address = $6, province = $7, city = $8, business_hours = $9, description = $10
+      WHERE id = $11 RETURNING id, name, name_urdu, owner_name, phone, whatsapp, address, province, city, business_hours, description, status`,
+      [
+        name, nameUrdu, ownerName, phone, whatsapp,
+        address, province, city, businessHours, description, parseInt(pharmacyId)
+      ]
+    );
+    res.status(200).json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to update profile.' });
+  }
+});
+
 // --- VET CHAT & CONSULTATION REST API ENDPOINTS ---
 
 // 1. Fetch verified veterinarians (optionally filtered by district)

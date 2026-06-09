@@ -5,6 +5,7 @@ import Feather from 'react-native-vector-icons/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { getRecords, subscribe, loadRecords } from '../../utils/recordsStore';
 import { getProfile, subscribeProfile } from '../../utils/profileStore';
+import { t } from '../../utils/translate';
 
 export default function DashboardScreen() {
   const navigation = useNavigation();
@@ -12,7 +13,8 @@ export default function DashboardScreen() {
   const params = route.params || {};
 
   // Dynamic States
-  const [userName, setUserName] = useState(params.userName || 'Muhammad Ahmed');
+  const [profile, setProfile] = useState(getProfile());
+  const userName = profile.userName || params.userName || 'Muhammad Ahmed';
   const userId = params.userId || null;
   const [stats, setStats] = useState({
     livestock: 0,
@@ -50,10 +52,10 @@ export default function DashboardScreen() {
       bg: rec.bg,
       icon: rec.icon,
       color: rec.color,
-      title: `${rec.animalId} - ${rec.disease}`,
-      time: rec.timeAgo,
+      title: `${rec.animalId} - ${t(rec.disease, rec.diseaseUrdu)}`,
+      time: rec.timeAgo === 'Just now' ? t('Just now', 'ابھی ابھی') : rec.timeAgo,
       percentage: rec.confidence.replace('%', ''),
-      severity: rec.status,
+      severity: rec.status === 'Active' ? t('Active', 'سرگرم') : (rec.status === 'Under Treatment' ? t('Under Treatment', 'زیر علاج') : t('Healthy', 'صحت مند')),
       rawRecord: rec
     }));
     setRecentScans(recent);
@@ -61,11 +63,8 @@ export default function DashboardScreen() {
   };
 
   useEffect(() => {
-    const activeUser = getProfile().userName;
-    setUserName(activeUser);
-    
     // Load records from database for this user
-    loadRecords(activeUser).then(loadedRecords => {
+    loadRecords(userName).then(loadedRecords => {
       updateStats(loadedRecords);
     }).catch(err => {
       console.log('Error loading initial stats:', err);
@@ -79,7 +78,7 @@ export default function DashboardScreen() {
 
     // Subscribe to profile updates
     const unsubscribeProfile = subscribeProfile((updatedProfile) => {
-      setUserName(updatedProfile.userName);
+      setProfile(updatedProfile);
       loadRecords(updatedProfile.userName).then(loadedRecords => {
         updateStats(loadedRecords);
       }).catch(err => console.log('Error loading updated profile stats:', err));
@@ -89,7 +88,7 @@ export default function DashboardScreen() {
       unsubscribeRecords();
       unsubscribeProfile();
     };
-  }, []);
+  }, [userName]);
 
   const onRefresh = () => {
     setRefreshing(true);
@@ -121,7 +120,7 @@ export default function DashboardScreen() {
         <View style={styles.header}>
           <View style={styles.headerTop}>
             <View>
-              <Text style={styles.greeting}>Assalam-o-Alaikum</Text>
+              <Text style={styles.greeting}>{t('Assalam-o-Alaikum', 'السلام علیکم')}</Text>
               <Text style={styles.userName}>{userName}</Text>
             </View>
             <TouchableOpacity style={styles.notificationBtn} onPress={handleComingSoon}>
@@ -138,66 +137,58 @@ export default function DashboardScreen() {
           <View style={styles.statsRow}>
             <View style={styles.statItem}>
               <Text style={styles.statValue}>{stats.livestock}</Text>
-              <Text style={styles.statLabel}>Livestock</Text>
-              <Text style={styles.statUrdu}>مویشی</Text>
+              <Text style={styles.statLabel}>{t('Livestock', 'مویشی')}</Text>
             </View>
             <View style={styles.statDivider} />
             <View style={styles.statItem}>
               <Text style={styles.statValue}>{stats.aiScans}</Text>
-              <Text style={styles.statLabel}>AI Scans</Text>
-              <Text style={styles.statUrdu}>اسکین</Text>
+              <Text style={styles.statLabel}>{t('AI Scans', 'اسکین')}</Text>
             </View>
             <View style={styles.statDivider} />
             <View style={styles.statItem}>
               <Text style={styles.statValue}>{stats.healthy}%</Text>
-              <Text style={styles.statLabel}>Healthy</Text>
-              <Text style={styles.statUrdu}>صحت مند</Text>
+              <Text style={styles.statLabel}>{t('Healthy', 'صحت مند')}</Text>
             </View>
           </View>
         </View>
 
         {/* Quick Actions Card */}
         <View style={[styles.cardContainer, styles.overlapCard]}>
-          <Text style={styles.sectionTitle}>Quick Actions / فوری اعمال</Text>
+          <Text style={styles.sectionTitle}>{t('Quick Actions', 'فوری اعمال')}</Text>
           <View style={styles.actionGrid}>
             <TouchableOpacity style={styles.actionItem} onPress={() => navigation.navigate('AiScan', { userName, userId })}>
               <View style={[styles.iconBox, { backgroundColor: '#E8F8EA' }]}>
                 <MaterialCommunityIcons name="line-scan" size={28} color="#4CB85C" />
               </View>
-              <Text style={styles.actionText}>AI Scan</Text>
-              <Text style={styles.actionUrdu}>اسکین</Text>
+              <Text style={styles.actionText}>{t('AI Scan', 'اسکین')}</Text>
             </TouchableOpacity>
             
             <TouchableOpacity style={styles.actionItem} onPress={handleComingSoon}>
               <View style={[styles.iconBox, { backgroundColor: '#FFF5E5' }]}>
                 <MaterialCommunityIcons name="syringe" size={28} color="#FFB020" />
               </View>
-              <Text style={styles.actionText}>Vaccination <Text style={styles.soonText}>(Soon)</Text></Text>
-              <Text style={styles.actionUrdu}>ویکسین</Text>
+              <Text style={styles.actionText}>{t('Vaccination (Soon)', 'ویکسین (جلد)')}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.actionItem} onPress={() => navigation.navigate('VeterinariansList', { userName })}>
               <View style={[styles.iconBox, { backgroundColor: '#E8F8EA' }]}>
                 <MaterialCommunityIcons name="chat-outline" size={28} color="#4CB85C" />
               </View>
-              <Text style={styles.actionText}>Vet Chat</Text>
-              <Text style={styles.actionUrdu}>ڈاکٹر</Text>
+              <Text style={styles.actionText}>{t('Vet Chat', 'ڈاکٹر چیٹ')}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.actionItem} onPress={() => navigation.navigate('HeatAlert', { userName, userId })}>
               <View style={[styles.iconBox, { backgroundColor: '#FFF5E5' }]}>
                 <MaterialCommunityIcons name="thermometer" size={28} color="#FFB020" />
               </View>
-              <Text style={styles.actionText}>Heat Alert</Text>
-              <Text style={styles.actionUrdu}>گرمی</Text>
+              <Text style={styles.actionText}>{t('Heat Alert', 'گرمی کی الرٹ')}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.actionItem} onPress={handleComingSoon}>
               <View style={[styles.iconBox, { backgroundColor: '#E8F8EA' }]}>
                 <MaterialCommunityIcons name="shopping-outline" size={28} color="#4CB85C" />
               </View>
-              <Text style={styles.actionText}>Marketplace <Text style={styles.soonText}>(Soon)</Text></Text>
-              <Text style={styles.actionUrdu}>مارکیٹ</Text>
+              <Text style={styles.actionText}>{t('Marketplace (Soon)', 'مارکیٹ (جلد)')}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -205,9 +196,9 @@ export default function DashboardScreen() {
         {/* Recent AI Scans Card */}
         <View style={[styles.cardContainer, { marginBottom: 100 }]}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Recent AI Scans / حالیہ اسکین</Text>
+            <Text style={styles.sectionTitle}>{t('Recent AI Scans', 'حالیہ اسکین')}</Text>
             <TouchableOpacity onPress={handleComingSoon}>
-              <Text style={styles.viewAll}>View All</Text>
+              <Text style={styles.viewAll}>{t('View All', 'سب دیکھیں')}</Text>
             </TouchableOpacity>
           </View>
 
@@ -240,8 +231,7 @@ export default function DashboardScreen() {
           ) : (
             <View style={styles.emptyContainer}>
               <Feather name="info" size={24} color="#ccc" style={{ marginBottom: 8 }} />
-              <Text style={styles.emptyText}>No recent scans found</Text>
-              <Text style={styles.emptyUrduText}>کوئی حالیہ اسکین نہیں ملا</Text>
+              <Text style={styles.emptyText}>{t('No recent scans found', 'کوئی حالیہ اسکین نہیں ملا')}</Text>
             </View>
           )}
         </View>
@@ -251,23 +241,23 @@ export default function DashboardScreen() {
       <View style={styles.bottomNav}>
         <TouchableOpacity style={styles.navItem}>
           <Feather name="home" size={24} color="#FFF" />
-          <Text style={styles.navText}>Home</Text>
+          <Text style={styles.navText}>{t('Home', 'ہوم')}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('AiScan', { userName, userId })}>
           <MaterialCommunityIcons name="line-scan" size={24} color="#A3E6B2" />
-          <Text style={[styles.navText, { color: '#A3E6B2' }]}>AI Scan</Text>
+          <Text style={[styles.navText, { color: '#A3E6B2' }]}>{t('AI Scan', 'اسکین')}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('HealthRecords', { userName, userId })}>
           <Feather name="file-text" size={24} color="#A3E6B2" />
-          <Text style={[styles.navText, { color: '#A3E6B2' }]}>Records</Text>
+          <Text style={[styles.navText, { color: '#A3E6B2' }]}>{t('Records', 'ریکاردز')}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('CommunityForum', { userName, userId })}>
           <Feather name="message-square" size={24} color="#A3E6B2" />
-          <Text style={[styles.navText, { color: '#A3E6B2' }]}>Forum</Text>
+          <Text style={[styles.navText, { color: '#A3E6B2' }]}>{t('Forum', 'فورم')}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Profile', { userId })}>
           <Feather name="user" size={24} color="#A3E6B2" />
-          <Text style={[styles.navText, { color: '#A3E6B2' }]}>Profile</Text>
+          <Text style={[styles.navText, { color: '#A3E6B2' }]}>{t('Profile', 'پروفائل')}</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>

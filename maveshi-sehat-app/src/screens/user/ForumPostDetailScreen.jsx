@@ -18,6 +18,8 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { getProfile, subscribeProfile } from '../../utils/profileStore';
+import { t } from '../../utils/translate';
 
 const BASE_URL = Platform.OS === 'android' ? 'http://10.0.2.2:5000' : 'http://localhost:5000';
 
@@ -25,8 +27,11 @@ export default function ForumPostDetailScreen() {
   const navigation = useNavigation();
   const route = useRoute();
   const params = route.params || {};
-  const { postId, userName, userId } = params;
   const insets = useSafeAreaInsets();
+
+  const [profile, setProfile] = useState(getProfile());
+  const userName = profile.userName || params.userName || '';
+  const { postId, userId } = params;
 
   const [post, setPost] = useState(null);
   const [comments, setComments] = useState([]);
@@ -42,6 +47,14 @@ export default function ForumPostDetailScreen() {
   const flatListRef = useRef(null);
   const inputRef = useRef(null);
 
+  // Subscribe to profile updates
+  useEffect(() => {
+    const unsubscribeProfile = subscribeProfile((updatedProfile) => {
+      setProfile(updatedProfile);
+    });
+    return () => unsubscribeProfile();
+  }, []);
+
   const fetchPostDetails = useCallback(async () => {
     if (!postId) return;
     try {
@@ -54,7 +67,7 @@ export default function ForumPostDetailScreen() {
       setComments(allComments);
     } catch (error) {
       console.error('Error fetching post details:', error);
-      Alert.alert('Error', 'Failed to load post details. Please try again.');
+      Alert.alert(t('Error', 'خرابی'), t('Failed to load post details. Please try again.', 'پوسٹ کی تفصیلات لوڈ کرنے میں ناکامی۔ دوبارہ کوشش کریں۔'));
     } finally {
       setLoading(false);
     }
@@ -68,7 +81,7 @@ export default function ForumPostDetailScreen() {
     const trimmed = replyText.trim();
     if (!trimmed) return;
     if (!userName) {
-      Alert.alert('Not Logged In', 'Please log in to post a reply.');
+      Alert.alert(t('Not Logged In', 'لاگ ان نہیں ہے'), t('Please log in to post a reply.', 'براہ کرم جواب پوسٹ کرنے کے لیے لاگ ان کریں۔'));
       return;
     }
 
@@ -97,11 +110,11 @@ export default function ForumPostDetailScreen() {
           flatListRef.current?.scrollToEnd({ animated: true });
         }, 350);
       } else {
-        Alert.alert('Error', data.error || 'Failed to post reply. Please try again.');
+        Alert.alert(t('Error', 'خرابی'), data.error || t('Failed to post reply. Please try again.', 'جواب پوسٹ کرنے میں ناکامی۔ دوبارہ کوشش کریں۔'));
       }
     } catch (error) {
       console.error('Error posting comment:', error);
-      Alert.alert('Network Error', 'Could not post reply. Please check your connection.');
+      Alert.alert(t('Network Error', 'نیٹ ورک کی خرابی'), t('Could not post reply. Please check your connection.', 'جواب پوسٹ نہیں کیا جا سکا۔ اپنا کنکشن چیک کریں۔'));
     } finally {
       setSubmitting(false);
     }
@@ -110,7 +123,7 @@ export default function ForumPostDetailScreen() {
   const handleLikePost = async () => {
     if (!post) return;
     if (isLiked) {
-      Alert.alert('Already Liked', 'You have already liked this post.');
+      Alert.alert(t('Already Liked', 'پہلے ہی پسند کیا گیا'), t('You have already liked this post.', 'آپ پہلے ہی اس پوسٹ کو پسند کر چکے ہیں۔'));
       return;
     }
     try {
@@ -129,7 +142,7 @@ export default function ForumPostDetailScreen() {
 
   const handleLikeComment = async (commentId) => {
     if (likedComments.has(commentId)) {
-      Alert.alert('Already Liked', 'You already liked this reply.');
+      Alert.alert(t('Already Liked', 'پہلے ہی پسند کیا گیا'), t('You already liked this reply.', 'آپ پہلے ہی اس جواب کو پسند کر چکے ہیں۔'));
       return;
     }
     try {
@@ -166,12 +179,12 @@ export default function ForumPostDetailScreen() {
     if (!dateStr) return '';
     const seconds = Math.floor((new Date() - new Date(dateStr)) / 1000);
     const days = Math.floor(seconds / 86400);
-    if (days >= 1) return days === 1 ? '1 day ago' : `${days} days ago`;
+    if (days >= 1) return days === 1 ? t('1 day ago', '1 دن پہلے') : `${days} ${t('days ago', 'دن پہلے')}`;
     const hours = Math.floor(seconds / 3600);
-    if (hours >= 1) return hours === 1 ? '1 hour ago' : `${hours} hours ago`;
+    if (hours >= 1) return hours === 1 ? t('1 hour ago', '1 گھنٹہ پہلے') : `${hours} ${t('hours ago', 'گھنٹے پہلے')}`;
     const mins = Math.floor(seconds / 60);
-    if (mins >= 1) return mins === 1 ? '1 minute ago' : `${mins} minutes ago`;
-    return 'just now';
+    if (mins >= 1) return mins === 1 ? t('1 minute ago', '1 منٹ پہلے') : `${mins} ${t('minutes ago', 'منٹ پہلے')}`;
+    return t('just now', 'ابھی ابھی');
   };
 
   const getAvatarLetter = (name) => {
@@ -204,7 +217,7 @@ export default function ForumPostDetailScreen() {
               {isVet && (
                 <View style={styles.vetBadge}>
                   <MaterialCommunityIcons name="check-decagram" size={9} color="#FFF" style={{ marginRight: 2 }} />
-                  <Text style={styles.vetBadgeText}>Vet</Text>
+                  <Text style={styles.vetBadgeText}>{t('Vet', 'ڈاکٹر')}</Text>
                 </View>
               )}
             </View>
@@ -220,7 +233,7 @@ export default function ForumPostDetailScreen() {
         >
           <Feather name="heart" size={12} color={isLiked ? '#FF4D4D' : '#CCC'} style={{ marginRight: 4 }} />
           <Text style={[styles.commentActionText, isLiked && { color: '#FF4D4D' }]}>
-            {reply.likes_count > 0 ? reply.likes_count : ''} {isLiked ? 'Liked' : 'Like'}
+            {(reply.likes_count > 0 ? `${reply.likes_count} ` : '') + (isLiked ? t('Liked', 'پسند کیا گیا') : t('Like', 'پسند کریں'))}
           </Text>
         </TouchableOpacity>
       </View>
@@ -244,7 +257,7 @@ export default function ForumPostDetailScreen() {
               {isVet && (
                 <View style={styles.vetBadge}>
                   <MaterialCommunityIcons name="check-decagram" size={10} color="#FFF" style={{ marginRight: 2 }} />
-                  <Text style={styles.vetBadgeText}>Verified Vet</Text>
+                  <Text style={styles.vetBadgeText}>{t('Verified Vet', 'تصدیق شدہ ڈاکٹر')}</Text>
                 </View>
               )}
             </View>
@@ -269,7 +282,7 @@ export default function ForumPostDetailScreen() {
               style={{ marginRight: 5 }}
             />
             <Text style={[styles.commentActionText, isCommentLiked && { color: '#FF4D4D' }]}>
-              {item.likes_count > 0 ? `${item.likes_count} ` : ''}{isCommentLiked ? 'Liked' : 'Like'}
+              {(item.likes_count > 0 ? `${item.likes_count} ` : '') + (isCommentLiked ? t('Liked', 'پسند کیا گیا') : t('Like', 'پسند کریں'))}
             </Text>
           </TouchableOpacity>
 
@@ -280,7 +293,7 @@ export default function ForumPostDetailScreen() {
           >
             <Feather name="corner-down-right" size={14} color="#58D66D" style={{ marginRight: 5 }} />
             <Text style={[styles.commentActionText, { color: '#58D66D' }]}>
-              Reply {item.replies && item.replies.length > 0 ? `(${item.replies.length})` : ''}
+              {t('Reply', 'جواب دیں') + (item.replies && item.replies.length > 0 ? ` (${item.replies.length})` : '')}
             </Text>
           </TouchableOpacity>
         </View>
@@ -301,7 +314,6 @@ export default function ForumPostDetailScreen() {
   const renderHeaderComponent = () => {
     if (!post) return null;
     const isTrending = post.category === 'Trending' || post.likes_count >= 20;
-    const threadedComments = buildThreadedComments();
 
     return (
       <View style={styles.postDetailContainer}>
@@ -320,7 +332,7 @@ export default function ForumPostDetailScreen() {
               <Text style={styles.timeAgo}>{getTimeAgo(post.created_at)}</Text>
             </View>
             <View style={styles.categoryBadge}>
-              <Text style={styles.categoryBadgeText}>{post.category}</Text>
+              <Text style={styles.categoryBadgeText}>{t(post.category, post.category === 'Trending' ? 'مقبول' : 'عام')}</Text>
             </View>
           </View>
 
@@ -336,7 +348,7 @@ export default function ForumPostDetailScreen() {
                 style={{ marginRight: 6 }}
               />
               <Text style={[styles.likesCountText, isLiked && { color: '#FF4D4D' }]}>
-                {post.likes_count} {isLiked ? 'Liked!' : 'Like'}
+                {post.likes_count} {isLiked ? t('Liked!', 'پسند کیا گیا!') : t('Like', 'پسند کریں')}
               </Text>
             </TouchableOpacity>
           </View>
@@ -345,7 +357,7 @@ export default function ForumPostDetailScreen() {
         <View style={styles.repliesTitleRow}>
           <Feather name="message-square" size={15} color="#58D66D" style={{ marginRight: 6 }} />
           <Text style={styles.repliesTitle}>
-            Replies / جوابات{' '}
+            {t('Replies', 'جوابات')}{' '}
             <Text style={styles.repliesCount}>({comments.length})</Text>
           </Text>
         </View>
@@ -353,8 +365,7 @@ export default function ForumPostDetailScreen() {
         {comments.length === 0 && (
           <View style={styles.noRepliesBox}>
             <MaterialCommunityIcons name="chat-outline" size={36} color="#CCC" />
-            <Text style={styles.noRepliesText}>No replies yet — be the first!</Text>
-            <Text style={styles.noRepliesUrdu}>ابھی کوئی جواب نہیں — پہلے جواب دیں!</Text>
+            <Text style={styles.noRepliesText}>{t('No replies yet — be the first!', 'ابھی کوئی جواب نہیں — پہلے جواب دیں!')}</Text>
           </View>
         )}
       </View>
@@ -362,6 +373,7 @@ export default function ForumPostDetailScreen() {
   };
 
   const threadedComments = buildThreadedComments();
+  const lang = profile.language || 'English';
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -376,8 +388,14 @@ export default function ForumPostDetailScreen() {
           <Feather name="chevron-left" size={26} color="#FFF" />
         </TouchableOpacity>
         <View style={styles.headerTitleContainer}>
-          <Text style={styles.headerTitle}>Discussion</Text>
-          <Text style={styles.headerSubtitle}>گفتگو کی تفصیل</Text>
+          {lang === 'English' && <Text style={styles.headerTitle}>Discussion</Text>}
+          {lang === 'Urdu' && <Text style={styles.headerTitle}>گفتگو کی تفصیل</Text>}
+          {lang === 'Both' && (
+            <>
+              <Text style={styles.headerTitle}>Discussion</Text>
+              <Text style={styles.headerSubtitle}>گفتگو کی تفصیل</Text>
+            </>
+          )}
         </View>
         <View style={{ width: 34 }} />
       </View>
@@ -385,7 +403,7 @@ export default function ForumPostDetailScreen() {
       {loading ? (
         <View style={styles.loaderContainer}>
           <ActivityIndicator size="large" color="#58D66D" />
-          <Text style={styles.loadingText}>Loading discussion...</Text>
+          <Text style={styles.loadingText}>{t('Loading discussion...', 'گفتگو لوڈ ہو رہی ہے...')}</Text>
         </View>
       ) : (
         <KeyboardAvoidingView
@@ -411,7 +429,7 @@ export default function ForumPostDetailScreen() {
             <View style={styles.replyBanner}>
               <Feather name="corner-down-right" size={14} color="#58D66D" style={{ marginRight: 6 }} />
               <Text style={styles.replyBannerText} numberOfLines={1}>
-                Replying to <Text style={{ fontWeight: 'bold' }}>{replyingTo.authorName}</Text>
+                {t('Replying to', 'جواب دے رہے ہیں')} <Text style={{ fontWeight: 'bold' }}>{replyingTo.authorName}</Text>
               </Text>
               <TouchableOpacity onPress={cancelReply} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
                 <Feather name="x" size={16} color="#888" />
@@ -430,8 +448,8 @@ export default function ForumPostDetailScreen() {
                 style={styles.textInput}
                 placeholder={
                   replyingTo
-                    ? `Reply to ${replyingTo.authorName}...`
-                    : 'Write a reply... / جواب لکھیں...'
+                    ? t(`Reply to ${replyingTo.authorName}...`, `${replyingTo.authorName} کو جواب دیں...`)
+                    : t('Write a reply...', 'جواب لکھیں...')
                 }
                 placeholderTextColor="#999"
                 value={replyText}

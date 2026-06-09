@@ -19,6 +19,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { addRecord } from '../../utils/recordsStore';
+import { t, getLocalizedDescription, getLocalizedFirstAid } from '../../utils/translate';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 
 // Mock images for simulation representing different animal health statuses
@@ -245,16 +246,16 @@ export default function AiScanScreen() {
     startScanAnimation();
 
     // Step 1: Uploading
-    setScanProgressText('Uploading Image to Maveshi AI / تصویر اپ لوڈ ہو رہی ہے...');
+    setScanProgressText(t('Uploading Image to Maveshi AI...', 'تصویر اپ لوڈ ہو رہی ہے...'));
     
     // Step 2: Running model
     setTimeout(() => {
-      setScanProgressText('Analyzing Symptoms / علامات کا تجزیہ کیا جا رہا ہے...');
+      setScanProgressText(t('Analyzing Symptoms...', 'علامات کا تجزیہ کیا جا رہا ہے...'));
     }, 1200);
 
     // Step 3: Fetching results
     setTimeout(() => {
-      setScanProgressText('Generating Health Diagnosis / تشخیص تیار کی جا رہی ہے...');
+      setScanProgressText(t('Generating Health Diagnosis...', 'تشخیص تیار کی جا رہی ہے...'));
     }, 2400);
 
     // Step 4: Finished
@@ -382,15 +383,14 @@ export default function AiScanScreen() {
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
             <Feather name="chevron-left" size={28} color="#FFF" />
-            <Text style={styles.backText}>Back</Text>
+            <Text style={styles.backText}>{t('Back', 'پیچھے')}</Text>
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>AI Disease Detection</Text>
-          <Text style={styles.headerUrdu}>بیماری کی تشخیص</Text>
+          <Text style={styles.headerTitle}>{t('AI Disease Detection', 'بیماری کی تشخیص')}</Text>
         </View>
 
         {/* Input Form Card */}
         <View style={styles.mainCard}>
-          <Text style={styles.fieldLabel}>Select Animal Type / جانور کی قسم</Text>
+          <Text style={styles.fieldLabel}>{t('Select Animal Type', 'جانور کی قسم منتخب کریں')}</Text>
           
           {/* Dropdown Selector */}
           <TouchableOpacity 
@@ -398,7 +398,7 @@ export default function AiScanScreen() {
             onPress={() => setShowDropdown(!showDropdown)}
           >
             <Text style={[styles.dropdownText, !animalType && styles.dropdownPlaceholder]}>
-              {animalType ? `${animalType} / ${animalType === 'Cow' ? 'گائے' : 'بھینس'}` : 'Select / منتخب کریں'}
+              {animalType ? t(animalType, animalType === 'Cow' ? 'گائے' : 'بھینس') : t('Select', 'منتخب کریں')}
             </Text>
             <Feather name={showDropdown ? 'chevron-up' : 'chevron-down'} size={20} color="#666" />
           </TouchableOpacity>
@@ -428,16 +428,14 @@ export default function AiScanScreen() {
                 <View style={[styles.uploadIconBg, { backgroundColor: '#E8F8EA' }]}>
                   <Feather name="camera" size={32} color="#4CB85C" />
                 </View>
-                <Text style={styles.uploadTitle}>Take Photo</Text>
-                <Text style={styles.uploadUrdu}>تصویر لیں</Text>
+                <Text style={styles.uploadTitle}>{t('Take Photo', 'تصویر لیں')}</Text>
               </TouchableOpacity>
 
               <TouchableOpacity style={styles.uploadCard} onPress={handleChooseFromGallery}>
                 <View style={[styles.uploadIconBg, { backgroundColor: '#FFF5E5' }]}>
                   <Feather name="image" size={32} color="#FFB020" />
                 </View>
-                <Text style={styles.uploadTitle}>From Gallery</Text>
-                <Text style={styles.uploadUrdu}>گیلری سے</Text>
+                <Text style={styles.uploadTitle}>{t('From Gallery', 'گیلری سے')}</Text>
               </TouchableOpacity>
             </View>
           ) : (
@@ -461,12 +459,12 @@ export default function AiScanScreen() {
               {!isScanning && !showReport && (
                 <View style={styles.previewActionRow}>
                   <TouchableOpacity style={styles.changeBtn} onPress={handleReset}>
-                    <Text style={styles.changeBtnText}>Change Photo / تصویر بدلیں</Text>
+                    <Text style={styles.changeBtnText}>{t('Change Photo', 'تصویر بدلیں')}</Text>
                   </TouchableOpacity>
                   
                   <TouchableOpacity style={styles.analyzeBtn} onPress={handleAnalyze}>
                     <MaterialCommunityIcons name="line-scan" size={20} color="#FFF" style={{ marginRight: 6 }} />
-                    <Text style={styles.analyzeBtnText}>Analyze Image / تجزیہ کریں</Text>
+                    <Text style={styles.analyzeBtnText}>{t('Analyze Image', 'تجزیہ کریں')}</Text>
                   </TouchableOpacity>
                 </View>
               )}
@@ -478,41 +476,35 @@ export default function AiScanScreen() {
         {showReport && scanResult && (
           <View style={styles.reportCard}>
             <View style={styles.reportHeader}>
-              <Text style={styles.reportTitle}>Health Status Report / صحت کی رپورٹ</Text>
+              <Text style={styles.reportTitle}>{t('Health Status Report', 'صحت کی رپورٹ')}</Text>
               <View style={[styles.severityBadge, { backgroundColor: scanResult.severityBg }]}>
                 <Text style={[styles.severityText, { color: scanResult.severityColor }]}>
-                  {scanResult.severity}
+                  {scanResult.severity === 'High Severity' ? t('High Severity', 'شدید بیماری') : (scanResult.severity === 'Severe Stress' ? t('Severe Stress', 'سخت دباؤ') : (scanResult.severity === 'Medium Risk' ? t('Medium Risk', 'درمیانہ خطرہ') : t('No Stress', 'کوئی خطرہ نہیں')))}
                 </Text>
               </View>
             </View>
 
             <View style={styles.resultDetails}>
               <View style={styles.resultRow}>
-                <Text style={styles.resultLabel}>Animal ID / شناختی نمبر:</Text>
+                <Text style={styles.resultLabel}>{t('Animal ID:', 'شناختی نمبر:')}</Text>
                 <Text style={[styles.resultVal, { color: '#FFB020', fontWeight: 'bold' }]}>
                   {scanResult.generatedAnimalId}
                 </Text>
               </View>
               <View style={styles.resultRow}>
-                <Text style={styles.resultLabel}>Diagnosis:</Text>
-                <Text style={styles.resultVal}>{scanResult.status}</Text>
+                <Text style={styles.resultLabel}>{t('Diagnosis:', 'تشخیص:')}</Text>
+                <Text style={styles.resultVal}>{t(scanResult.status, scanResult.statusUrdu)}</Text>
               </View>
               <View style={styles.resultRow}>
-                <Text style={styles.resultLabel}>تشخیص (Urdu):</Text>
-                <Text style={[styles.resultVal, { fontWeight: 'bold', color: '#4CB85C' }]}>
-                  {scanResult.statusUrdu}
-                </Text>
-              </View>
-              <View style={styles.resultRow}>
-                <Text style={styles.resultLabel}>Confidence Score:</Text>
+                <Text style={styles.resultLabel}>{t('Confidence Score:', 'اعتماد کا اسکور:')}</Text>
                 <Text style={[styles.resultVal, { color: '#333' }]}>{scanResult.confidence}</Text>
               </View>
               
-              <Text style={styles.descTitle}>Clinical Description / طبی تفصیل:</Text>
-              <Text style={styles.descText}>{scanResult.description}</Text>
+              <Text style={styles.descTitle}>{t('Clinical Description:', 'طبی تفصیل:')}</Text>
+              <Text style={styles.descText}>{getLocalizedDescription(scanResult.status, scanResult.description)}</Text>
               
-              <Text style={styles.aidTitle}>Recommended First Aid / ابتدائی طبی امداد:</Text>
-              {scanResult.firstAid.map((tip, idx) => (
+              <Text style={styles.aidTitle}>{t('Recommended First Aid:', 'ابتدائی طبی امداد:')}</Text>
+              {getLocalizedFirstAid(scanResult.status, scanResult.firstAid).map((tip, idx) => (
                 <View key={idx} style={styles.bulletRow}>
                   <Text style={styles.bulletDot}>•</Text>
                   <Text style={styles.bulletText}>{tip}</Text>
@@ -523,7 +515,7 @@ export default function AiScanScreen() {
             <View style={styles.reportActions}>
               <TouchableOpacity style={styles.resetBtn} onPress={handleReset}>
                 <Feather name="refresh-cw" size={16} color="#666" style={{ marginRight: 6 }} />
-                <Text style={styles.resetBtnText}>Scan Again</Text>
+                <Text style={styles.resetBtnText}>{t('Scan Again', 'دوبارہ اسکین')}</Text>
               </TouchableOpacity>
 
               <TouchableOpacity 
@@ -531,7 +523,7 @@ export default function AiScanScreen() {
                 onPress={() => navigation.navigate('VeterinariansList', { userName })}
               >
                 <Feather name="message-circle" size={16} color="#FFF" style={{ marginRight: 6 }} />
-                <Text style={styles.consultBtnText}>Consult Vet / ڈاکٹر سے رابطہ</Text>
+                <Text style={styles.consultBtnText}>{t('Consult Vet', 'ڈاکٹر سے رابطہ')}</Text>
               </TouchableOpacity>
             </View>
           </View>

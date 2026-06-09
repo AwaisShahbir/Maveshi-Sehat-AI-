@@ -18,6 +18,7 @@ import Feather from 'react-native-vector-icons/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { getProfile, updateProfile, subscribeProfile } from '../../utils/profileStore';
 import { getRecords, subscribe, loadRecords } from '../../utils/recordsStore';
+import { t } from '../../utils/translate';
 
 export default function ProfileScreen() {
   const navigation = useNavigation();
@@ -31,6 +32,7 @@ export default function ProfileScreen() {
 
   // Edit Modal States
   const [editModalVisible, setEditModalVisible] = useState(false);
+  const [langModalVisible, setLangModalVisible] = useState(false);
   const [editName, setEditName] = useState(profile.userName);
   const [editNameUrdu, setEditNameUrdu] = useState(profile.userNameUrdu);
   const [editPhone, setEditPhone] = useState(profile.phone);
@@ -104,10 +106,8 @@ export default function ProfileScreen() {
     updateProfile({ notificationsEnabled: val });
   };
 
-  const toggleLanguage = () => {
-    const nextLang = profile.language === 'English' ? 'Urdu' : 'English';
-    updateProfile({ language: nextLang });
-    Alert.alert('Language / زبان', `App language set to ${nextLang === 'English' ? 'English' : 'Urdu (اردو)'}`);
+  const openLanguageSelector = () => {
+    setLangModalVisible(true);
   };
 
   return (
@@ -117,8 +117,7 @@ export default function ProfileScreen() {
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Header Section */}
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Profile & Settings</Text>
-          <Text style={styles.headerUrdu}>پروفائل اور ترتیبات</Text>
+          <Text style={styles.headerTitle}>{t('Profile & Settings', 'پروفائل اور ترتیبات')}</Text>
         </View>
 
         {/* Profile Card */}
@@ -136,7 +135,7 @@ export default function ProfileScreen() {
               
               <View style={styles.roleBadge}>
                 <Feather name="user" size={12} color="#58D66D" style={{ marginRight: 4 }} />
-                <Text style={styles.roleText}>Farmer / کسان</Text>
+                <Text style={styles.roleText}>{t('Farmer', 'کسان')}</Text>
               </View>
             </View>
 
@@ -151,35 +150,31 @@ export default function ProfileScreen() {
           <View style={styles.statsRow}>
             <View style={styles.statItem}>
               <Text style={styles.statValue}>{uniqueAnimals}</Text>
-              <Text style={styles.statLabel}>Livestock</Text>
-              <Text style={styles.statUrdu}>مویشی</Text>
+              <Text style={styles.statLabel}>{t('Livestock', 'مویشی')}</Text>
             </View>
             <View style={styles.statColumnDivider} />
             <View style={styles.statItem}>
               <Text style={styles.statValue}>{totalScans}</Text>
-              <Text style={styles.statLabel}>AI Scans</Text>
-              <Text style={styles.statUrdu}>اسکین</Text>
+              <Text style={styles.statLabel}>{t('AI Scans', 'اسکین')}</Text>
             </View>
             <View style={styles.statColumnDivider} />
             <View style={styles.statItem}>
               <Text style={styles.statValue}>{profile.consultationsCount}</Text>
-              <Text style={styles.statLabel}>Consultations</Text>
-              <Text style={styles.statUrdu}>مشاورت</Text>
+              <Text style={styles.statLabel}>{t('Consultations', 'مشاورت')}</Text>
             </View>
           </View>
         </View>
 
         {/* Settings Groups */}
         <View style={styles.settingsGroup}>
-          <Text style={styles.groupTitle}>Account</Text>
+          <Text style={styles.groupTitle}>{t('Account', 'کھاتہ / اکاؤنٹ')}</Text>
           
           <TouchableOpacity style={styles.settingsItem} onPress={() => setEditModalVisible(true)}>
             <View style={[styles.itemIconBg, { backgroundColor: '#E8F8EA' }]}>
               <Feather name="user" size={18} color="#58D66D" />
             </View>
             <View style={styles.itemDetails}>
-              <Text style={styles.itemTitle}>Edit Profile</Text>
-              <Text style={styles.itemSubtitle}>پروفائل ایڈٹ کریں</Text>
+              <Text style={styles.itemTitle}>{t('Edit Profile', 'پروفائل تبدیل کریں')}</Text>
             </View>
             <Feather name="chevron-right" size={18} color="#ccc" />
           </TouchableOpacity>
@@ -189,8 +184,7 @@ export default function ProfileScreen() {
               <Feather name="phone" size={18} color="#58D66D" />
             </View>
             <View style={styles.itemDetails}>
-              <Text style={styles.itemTitle}>Phone Number</Text>
-              <Text style={styles.itemSubtitle}>فون نمبر</Text>
+              <Text style={styles.itemTitle}>{t('Phone Number', 'فون نمبر')}</Text>
               <Text style={styles.itemVal}>{profile.phone}</Text>
             </View>
             <Feather name="chevron-right" size={18} color="#ccc" />
@@ -201,8 +195,7 @@ export default function ProfileScreen() {
               <Feather name="map-pin" size={18} color="#58D66D" />
             </View>
             <View style={styles.itemDetails}>
-              <Text style={styles.itemTitle}>Location</Text>
-              <Text style={styles.itemSubtitle}>مقام</Text>
+              <Text style={styles.itemTitle}>{t('Location', 'مقام / پتہ')}</Text>
               <Text style={styles.itemVal}>{profile.location}</Text>
             </View>
             <Feather name="chevron-right" size={18} color="#ccc" />
@@ -210,16 +203,20 @@ export default function ProfileScreen() {
         </View>
 
         <View style={[styles.settingsGroup, { marginBottom: 100 }]}>
-          <Text style={styles.groupTitle}>Preferences</Text>
+          <Text style={styles.groupTitle}>{t('Preferences', 'ترجیحات')}</Text>
 
-          <TouchableOpacity style={styles.settingsItem} onPress={toggleLanguage}>
+          <TouchableOpacity style={styles.settingsItem} onPress={openLanguageSelector}>
             <View style={[styles.itemIconBg, { backgroundColor: '#E8F8EA' }]}>
               <Feather name="globe" size={18} color="#58D66D" />
             </View>
             <View style={styles.itemDetails}>
-              <Text style={styles.itemTitle}>Language</Text>
-              <Text style={styles.itemSubtitle}>زبان</Text>
-              <Text style={styles.itemVal}>{profile.language === 'English' ? 'English / اردو' : 'اردو / English'}</Text>
+              <Text style={styles.itemTitle}>{t('Language', 'زبان')}</Text>
+              <Text style={styles.itemSubtitle}>{t('Preferred App Language', 'ترجیحی زبان')}</Text>
+              <Text style={styles.itemVal}>
+                {profile.language === 'English' 
+                  ? '🇬🇧 English' 
+                  : (profile.language === 'Urdu' ? '🇵🇰 اردو (Urdu)' : '🔄 English / اردو (Both)')}
+              </Text>
             </View>
             <Feather name="chevron-right" size={18} color="#ccc" />
           </TouchableOpacity>
@@ -229,8 +226,7 @@ export default function ProfileScreen() {
               <Feather name="bell" size={18} color="#58D66D" />
             </View>
             <View style={styles.itemDetails}>
-              <Text style={styles.itemTitle}>Notifications</Text>
-              <Text style={styles.itemSubtitle}>اطلاعات</Text>
+              <Text style={styles.itemTitle}>{t('Notifications', 'اطلاعات / نوٹیفکیشن')}</Text>
             </View>
             <Switch
               value={profile.notificationsEnabled}
@@ -252,53 +248,111 @@ export default function ProfileScreen() {
         <View style={styles.modalBg}>
           <View style={styles.modalContainer}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Edit Profile Info</Text>
+              <Text style={styles.modalTitle}>{t('Edit Profile Info', 'پروفائل تبدیل کریں')}</Text>
               <TouchableOpacity onPress={() => setEditModalVisible(false)}>
                 <Feather name="x" size={24} color="#333" />
               </TouchableOpacity>
             </View>
 
             <ScrollView showsVerticalScrollIndicator={false} style={{ marginBottom: 16 }}>
-              <Text style={styles.inputLabel}>Full Name (English)</Text>
+              <Text style={styles.inputLabel}>{t('Full Name (English)', 'پورا نام (انگریزی)')}</Text>
               <TextInput
                 style={styles.textInput}
                 value={editName}
                 onChangeText={setEditName}
-                placeholder="Enter Full Name"
+                placeholder={t('Enter Full Name', 'پورا نام انگریزی میں درج کریں')}
                 placeholderTextColor="#999"
               />
 
-              <Text style={styles.inputLabel}>نام (Urdu Name)</Text>
+              <Text style={styles.inputLabel}>{t('Full Name (Urdu)', 'پورا نام (اردو)')}</Text>
               <TextInput
                 style={styles.textInput}
                 value={editNameUrdu}
                 onChangeText={setEditNameUrdu}
-                placeholder="اپنا نام درج کریں"
+                placeholder={t('Enter Urdu Name', 'اپنا نام اردو میں درج کریں')}
                 placeholderTextColor="#999"
               />
 
-              <Text style={styles.inputLabel}>Phone Number</Text>
+              <Text style={styles.inputLabel}>{t('Phone Number', 'فون نمبر')}</Text>
               <TextInput
                 style={styles.textInput}
                 value={editPhone}
                 onChangeText={setEditPhone}
-                placeholder="Enter Phone Number"
+                placeholder={t('Enter Phone Number', 'فون نمبر درج کریں')}
                 placeholderTextColor="#999"
                 keyboardType="phone-pad"
               />
 
-              <Text style={styles.inputLabel}>Location</Text>
+              <Text style={styles.inputLabel}>{t('Location', 'مقام / پتہ')}</Text>
               <TextInput
                 style={styles.textInput}
                 value={editLocation}
                 onChangeText={setEditLocation}
-                placeholder="Enter Location (City, Province)"
+                placeholder={t('Enter Location (City, Province)', 'مقام درج کریں (شہر، صوبہ)')}
                 placeholderTextColor="#999"
               />
             </ScrollView>
 
             <TouchableOpacity style={styles.saveBtn} onPress={handleSaveProfile}>
-              <Text style={styles.saveBtnText}>Save Changes / محفوظ کریں</Text>
+              <Text style={styles.saveBtnText}>{t('Save Changes', 'محفوظ کریں')}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Language Selection Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={langModalVisible}
+        onRequestClose={() => setLangModalVisible(false)}
+      >
+        <View style={styles.modalBg}>
+          <View style={styles.modalContainer}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>{t('Select Language', 'زبان کا انتخاب کریں')}</Text>
+              <TouchableOpacity onPress={() => setLangModalVisible(false)}>
+                <Feather name="x" size={24} color="#333" />
+              </TouchableOpacity>
+            </View>
+            
+            <TouchableOpacity 
+              style={[styles.langOption, profile.language === 'English' && styles.langOptionSelected]}
+              onPress={() => {
+                updateProfile({ language: 'English' });
+                setLangModalVisible(false);
+              }}
+            >
+              <Text style={[styles.langOptionText, profile.language === 'English' && styles.langOptionTextSelected]}>
+                🇬🇧 English
+              </Text>
+              {profile.language === 'English' && <Feather name="check" size={18} color="#58D66D" />}
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={[styles.langOption, profile.language === 'Urdu' && styles.langOptionSelected]}
+              onPress={() => {
+                updateProfile({ language: 'Urdu' });
+                setLangModalVisible(false);
+              }}
+            >
+              <Text style={[styles.langOptionText, profile.language === 'Urdu' && styles.langOptionTextSelected]}>
+                🇵🇰 Urdu (اردو)
+              </Text>
+              {profile.language === 'Urdu' && <Feather name="check" size={18} color="#58D66D" />}
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={[styles.langOption, profile.language === 'Both' && styles.langOptionSelected]}
+              onPress={() => {
+                updateProfile({ language: 'Both' });
+                setLangModalVisible(false);
+              }}
+            >
+              <Text style={[styles.langOptionText, profile.language === 'Both' && styles.langOptionTextSelected]}>
+                🔄 Both (English / اردو)
+              </Text>
+              {profile.language === 'Both' && <Feather name="check" size={18} color="#58D66D" />}
             </TouchableOpacity>
           </View>
         </View>
@@ -309,23 +363,23 @@ export default function ProfileScreen() {
         <View style={styles.bottomNav}>
           <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Dashboard')}>
             <Feather name="home" size={24} color="#A3E6B2" />
-            <Text style={[styles.navText, { color: '#A3E6B2' }]}>Home</Text>
+            <Text style={[styles.navText, { color: '#A3E6B2' }]}>{t('Home', 'ہوم')}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('AiScan', { userName: profile.userName, userId })}>
             <MaterialCommunityIcons name="line-scan" size={24} color="#A3E6B2" />
-            <Text style={[styles.navText, { color: '#A3E6B2' }]}>AI Scan</Text>
+            <Text style={[styles.navText, { color: '#A3E6B2' }]}>{t('AI Scan', 'اسکین')}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('HealthRecords', { userName: profile.userName, userId })}>
             <Feather name="file-text" size={24} color="#A3E6B2" />
-            <Text style={[styles.navText, { color: '#A3E6B2' }]}>Records</Text>
+            <Text style={[styles.navText, { color: '#A3E6B2' }]}>{t('Records', 'ریکارڈز')}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('CommunityForum', { userName: profile.userName, userId })}>
             <Feather name="message-square" size={24} color="#A3E6B2" />
-            <Text style={[styles.navText, { color: '#A3E6B2' }]}>Forum</Text>
+            <Text style={[styles.navText, { color: '#A3E6B2' }]}>{t('Forum', 'فورم')}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.navItem}>
             <Feather name="user" size={24} color="#FFF" />
-            <Text style={[styles.navText, { color: '#FFF' }]}>Profile</Text>
+            <Text style={[styles.navText, { color: '#FFF' }]}>{t('Profile', 'پروفائل')}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -523,5 +577,31 @@ const styles = StyleSheet.create({
     paddingBottom: Platform.OS === 'ios' ? 24 : 16,
   },
   navItem: { alignItems: 'center' },
-  navText: { fontSize: 10, color: '#FFF', marginTop: 4, fontWeight: '600' }
+  navText: { fontSize: 10, color: '#FFF', marginTop: 4, fontWeight: '600' },
+
+  langOption: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E2E6E4',
+    marginBottom: 12,
+    backgroundColor: '#F7F9F8'
+  },
+  langOptionSelected: {
+    borderColor: '#58D66D',
+    backgroundColor: '#E8F8EA'
+  },
+  langOptionText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#333'
+  },
+  langOptionTextSelected: {
+    color: '#58D66D',
+    fontWeight: 'bold'
+  }
 });

@@ -3,17 +3,29 @@ import { View, Text, StyleSheet, SafeAreaView, FlatList, TextInput, TouchableOpa
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { getProfile, subscribeProfile } from '../../utils/profileStore';
+import { t } from '../../utils/translate';
 
 export default function VeterinariansListScreen() {
   const navigation = useNavigation();
   const route = useRoute();
   const params = route.params || {};
-  const userName = params.userName || 'Awais shabbir ';
+
+  const [profile, setProfile] = useState(getProfile());
+  const userName = profile.userName || params.userName || 'Awais shabbir ';
 
   const [vets, setVets] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+
+  // Subscribe to profile updates
+  useEffect(() => {
+    const unsubscribeProfile = subscribeProfile((updatedProfile) => {
+      setProfile(updatedProfile);
+    });
+    return () => unsubscribeProfile();
+  }, []);
 
   const fetchVets = async () => {
     try {
@@ -70,7 +82,7 @@ export default function VeterinariansListScreen() {
       });
     } catch (error) {
       console.error('Error starting conversation:', error);
-      alert('Could not start consultation. Please try again.');
+      Alert.alert(t('Error', 'خرابی'), t('Could not start consultation. Please try again.', 'مشاورت شروع نہیں کی جا سکی۔ براہ کرم دوبارہ کوشش کریں۔'));
     } finally {
       setLoading(false);
     }
@@ -83,8 +95,8 @@ export default function VeterinariansListScreen() {
 
   const renderVetCard = ({ item }) => {
     const experienceText = item.experience_years 
-      ? `${item.experience_years} Years Experience / ${item.experience_years} سال کا تجربہ`
-      : 'Experienced Vet / تجربہ کار ڈاکٹر';
+      ? t(`${item.experience_years} Years Experience`, `${item.experience_years} سال کا تجربہ`)
+      : t('Experienced Vet', 'تجربہ کار ڈاکٹر');
 
     return (
       <View style={styles.card}>
@@ -96,7 +108,7 @@ export default function VeterinariansListScreen() {
           <View style={styles.vetInfo}>
             <Text style={styles.vetName}>{item.full_name}</Text>
             <Text style={styles.vetSpecialization}>
-              {item.specialization || 'General Veterinarian / عام جانوروں کا ڈاکٹر'}
+              {item.specialization || t('General Veterinarian', 'عام جانوروں کا ڈاکٹر')}
             </Text>
             <View style={styles.locationContainer}>
               <Feather name="map-pin" size={12} color="#666" />
@@ -110,7 +122,7 @@ export default function VeterinariansListScreen() {
         <View style={styles.cardFooter}>
           <View style={styles.ratingContainer}>
             <Feather name="star" size={14} color="#FFB020" style={{ marginRight: 4 }} />
-            <Text style={styles.ratingText}>4.9 (Verified / تصدیق شدہ)</Text>
+            <Text style={styles.ratingText}>{t('4.9 (Verified)', '4.9 (تصدیق شدہ)')}</Text>
           </View>
           <TouchableOpacity 
             style={styles.chatButton} 
@@ -118,12 +130,14 @@ export default function VeterinariansListScreen() {
             activeOpacity={0.8}
           >
             <Feather name="message-square" size={16} color="#FFF" style={{ marginRight: 6 }} />
-            <Text style={styles.chatButtonText}>Chat Now / مشورہ کریں</Text>
+            <Text style={styles.chatButtonText}>{t('Chat Now', 'مشورہ کریں')}</Text>
           </TouchableOpacity>
         </View>
       </View>
     );
   };
+
+  const lang = profile.language || 'English';
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -135,8 +149,14 @@ export default function VeterinariansListScreen() {
           <Feather name="chevron-left" size={24} color="#FFF" />
         </TouchableOpacity>
         <View style={styles.headerTitleContainer}>
-          <Text style={styles.headerTitle}>Find Veterinarians</Text>
-          <Text style={styles.headerSubtitle}>جانوروں کے ڈاکٹر تلاش کریں</Text>
+          {lang === 'English' && <Text style={styles.headerTitle}>Find Veterinarians</Text>}
+          {lang === 'Urdu' && <Text style={styles.headerTitle}>جانوروں کے ڈاکٹر تلاش کریں</Text>}
+          {lang === 'Both' && (
+            <>
+              <Text style={styles.headerTitle}>Find Veterinarians</Text>
+              <Text style={styles.headerSubtitle}>جانوروں کے ڈاکٹر تلاش کریں</Text>
+            </>
+          )}
         </View>
         <View style={{ width: 24 }} /> {/* Balance back button spacing */}
       </View>
@@ -146,7 +166,7 @@ export default function VeterinariansListScreen() {
         <Feather name="search" size={20} color="#888" style={styles.searchIcon} />
         <TextInput
           style={styles.searchInput}
-          placeholder="Search by name, specialty... / تلاش کریں"
+          placeholder={t('Search by name, specialty...', 'تلاش کریں...')}
           placeholderTextColor="#888"
           value={searchQuery}
           onChangeText={setSearchQuery}
@@ -162,7 +182,7 @@ export default function VeterinariansListScreen() {
       {loading && !refreshing ? (
         <View style={styles.loaderContainer}>
           <ActivityIndicator size="large" color="#58D66D" />
-          <Text style={styles.loadingText}>Fetching vets in your area...</Text>
+          <Text style={styles.loadingText}>{t('Fetching vets in your area...', 'آپ کے علاقے میں ڈاکٹر تلاش کیے جا رہے ہیں...')}</Text>
         </View>
       ) : filteredVets.length > 0 ? (
         <FlatList
@@ -177,10 +197,9 @@ export default function VeterinariansListScreen() {
       ) : (
         <View style={styles.emptyContainer}>
           <MaterialCommunityIcons name="doctor" size={64} color="#CCC" />
-          <Text style={styles.emptyText}>No veterinarians found in your area</Text>
-          <Text style={styles.emptyUrduText}>آپ کے علاقے میں کوئی ڈاکٹر نہیں ملا</Text>
+          <Text style={styles.emptyText}>{t('No veterinarians found in your area', 'آپ کے علاقے میں کوئی ڈاکٹر نہیں ملا')}</Text>
           <TouchableOpacity style={styles.retryButton} onPress={handleRefresh}>
-            <Text style={styles.retryButtonText}>Refresh / تازہ کریں</Text>
+            <Text style={styles.retryButtonText}>{t('Refresh', 'تازہ کریں')}</Text>
           </TouchableOpacity>
         </View>
       )}
