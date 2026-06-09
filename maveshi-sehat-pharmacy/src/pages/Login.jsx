@@ -7,18 +7,12 @@ export default function Login({ onLoginSuccess, onViewChange }) {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [demoPending, setDemoPending] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
-    if (demoPending) {
-      setError('Your pharmacy portal account is pending admin approval.');
-      setLoading(false);
-      return;
-    }
 
     try {
       const response = await fetch('http://localhost:5000/api/pharmacy/login', {
@@ -179,10 +173,10 @@ export default function Login({ onLoginSuccess, onViewChange }) {
 
           <button
             type="button"
-            onClick={() => setDemoPending(!demoPending)}
-            style={demoPending ? styles.demoPendingActive : styles.demoPendingBtn}
+            onClick={() => onViewChange('register')}
+            style={styles.registerBtn}
           >
-            {demoPending ? 'Demo: Pending Approval (Active)' : 'Show pending approval demo'}
+            Register New Pharmacy / فارمیسی رجسٹر کریں
           </button>
 
           <div style={styles.supportFooter}>
@@ -438,28 +432,19 @@ const styles = {
     fontSize: '12px',
     fontWeight: '700',
   },
-  demoPendingBtn: {
+  registerBtn: {
     width: '100%',
-    height: '40px',
+    height: '48px',
     backgroundColor: 'transparent',
-    color: '#94a3b8',
-    border: '1px dashed #475569',
-    borderRadius: '10px',
-    fontSize: '13px',
-    fontWeight: '600',
+    color: '#10b981',
+    border: '1px solid #10b981',
+    borderRadius: '12px',
+    fontSize: '14px',
+    fontWeight: '700',
     cursor: 'pointer',
-    transition: 'all 0.2s ease',
-  },
-  demoPendingActive: {
-    width: '100%',
-    height: '40px',
-    backgroundColor: 'rgba(245, 158, 11, 0.1)',
-    color: '#f59e0b',
-    border: '1px solid #f59e0b',
-    borderRadius: '10px',
-    fontSize: '13px',
-    fontWeight: '600',
-    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
     transition: 'all 0.2s ease',
   },
   supportFooter: {
