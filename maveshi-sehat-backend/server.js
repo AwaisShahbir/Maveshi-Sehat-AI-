@@ -504,7 +504,13 @@ app.post('/api/admin/users/action', async (req, res) => {
 // --- 3. PHARMACIES ---
 app.get('/api/admin/pharmacies', async (req, res) => {
   try {
-    const result = await pool.query("SELECT * FROM pharmacies ORDER BY created_at DESC");
+    const result = await pool.query(`
+      SELECT p.*, 
+        (SELECT COUNT(*)::int FROM medicines WHERE pharmacy_id = p.id) AS medicines_count,
+        (SELECT COUNT(*)::int FROM orders WHERE pharmacy_id = p.id) AS orders_count
+      FROM pharmacies p 
+      ORDER BY p.created_at DESC
+    `);
     res.status(200).json(result.rows);
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch pharmacies' });

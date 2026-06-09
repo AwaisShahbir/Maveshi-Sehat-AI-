@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
@@ -44,17 +44,85 @@ function PlaceholderPage({ name, urdu }) {
 
 export default function App() {
   const [adminUser, setAdminUser] = useState(() => {
-    const saved = localStorage.getItem('adminUser');
-    return saved ? JSON.parse(saved) : null;
+    const saved = sessionStorage.getItem('adminUser');
+    if (!saved) return null;
+    try {
+      const parsed = JSON.parse(saved);
+      const expiryTime = 15 * 60 * 1000; // 15 minutes session expiry
+      if (Date.now() - parsed.timestamp > expiryTime) {
+        sessionStorage.removeItem('adminUser');
+        return null;
+      }
+      return parsed.user;
+    } catch (err) {
+      sessionStorage.removeItem('adminUser');
+      return null;
+    }
   });
 
   const handleLogout = () => {
-    localStorage.removeItem('adminUser');
+    sessionStorage.removeItem('adminUser');
     setAdminUser(null);
   };
 
+  const handleLoginSuccess = (user) => {
+    const sessionData = {
+      user: user,
+      timestamp: Date.now()
+    };
+    sessionStorage.setItem('adminUser', JSON.stringify(sessionData));
+    setAdminUser(user);
+  };
+
+  useEffect(() => {
+    if (!adminUser) return;
+
+    const updateActivity = () => {
+      const saved = sessionStorage.getItem('adminUser');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          parsed.timestamp = Date.now();
+          sessionStorage.setItem('adminUser', JSON.stringify(parsed));
+        } catch (err) {
+          // Ignore
+        }
+      }
+    };
+
+    // Update session timestamp on mouse activity, keypresses, or clicks
+    window.addEventListener('mousemove', updateActivity);
+    window.addEventListener('keydown', updateActivity);
+    window.addEventListener('click', updateActivity);
+
+    const interval = setInterval(() => {
+      const saved = sessionStorage.getItem('adminUser');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          const expiryTime = 15 * 60 * 1000; // 15 minutes
+          if (Date.now() - parsed.timestamp > expiryTime) {
+            handleLogout();
+            alert('Your session has expired due to inactivity. Please log in again. / آپ کا سیشن ختم ہو گیا ہے۔ براہ کرم دوبارہ لاگ ان کریں۔');
+          }
+        } catch (err) {
+          handleLogout();
+        }
+      } else {
+        handleLogout();
+      }
+    }, 10000); // Check every 10 seconds
+
+    return () => {
+      window.removeEventListener('mousemove', updateActivity);
+      window.removeEventListener('keydown', updateActivity);
+      window.removeEventListener('click', updateActivity);
+      clearInterval(interval);
+    };
+  }, [adminUser]);
+
   if (!adminUser) {
-    return <Login onLoginSuccess={(user) => setAdminUser(user)} />;
+    return <Login onLoginSuccess={handleLoginSuccess} />;
   }
 
   return (

@@ -29,9 +29,6 @@ export default function Login({ onLoginSuccess }) {
         throw new Error(data.error || 'Login failed. Please try again.');
       }
       
-      // Save admin authentication details to local storage
-      localStorage.setItem('adminUser', JSON.stringify(data.user));
-      
       // Call parent success trigger
       onLoginSuccess(data.user);
     } catch (err) {
