@@ -178,18 +178,7 @@ export default function Dashboard({ pharmacy, onLogout }) {
                   </div>
                 </button>
               </li>
-              <li>
-                <button 
-                  onClick={() => setCurrentView('listings')}
-                  style={styles.menuItem}
-                >
-                  <Tags size={18} />
-                  <div style={styles.menuLabelBlock}>
-                    <span style={styles.menuLabelEn}>Categories</span>
-                    <span style={styles.menuLabelUr}>زمرہ جات</span>
-                  </div>
-                </button>
-              </li>
+
               <li>
                 <button 
                   onClick={() => setCurrentView('stock-alerts')}
