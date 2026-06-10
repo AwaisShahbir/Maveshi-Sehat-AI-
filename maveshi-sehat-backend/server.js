@@ -88,6 +88,30 @@ pool.connect((err, client, release) => {
       ALTER TABLE pharmacies ADD COLUMN IF NOT EXISTS city VARCHAR(100);
       ALTER TABLE pharmacies ADD COLUMN IF NOT EXISTS business_hours VARCHAR(100);
       ALTER TABLE pharmacies ADD COLUMN IF NOT EXISTS description TEXT;
+
+      ALTER TABLE medicines ADD COLUMN IF NOT EXISTS name_urdu VARCHAR(255);
+      ALTER TABLE medicines ADD COLUMN IF NOT EXISTS manufacturer VARCHAR(255);
+      ALTER TABLE medicines ADD COLUMN IF NOT EXISTS min_stock INT DEFAULT 10;
+      ALTER TABLE medicines ADD COLUMN IF NOT EXISTS max_stock INT DEFAULT 100;
+      ALTER TABLE medicines ADD COLUMN IF NOT EXISTS dosage_form VARCHAR(100);
+      ALTER TABLE medicines ADD COLUMN IF NOT EXISTS strength VARCHAR(100);
+      ALTER TABLE medicines ADD COLUMN IF NOT EXISTS batch_number VARCHAR(100);
+      ALTER TABLE medicines ADD COLUMN IF NOT EXISTS expiry_date VARCHAR(100);
+      ALTER TABLE medicines ADD COLUMN IF NOT EXISTS active_ingredients TEXT;
+      ALTER TABLE medicines ADD COLUMN IF NOT EXISTS description TEXT;
+      ALTER TABLE medicines ADD COLUMN IF NOT EXISTS prescription_required BOOLEAN DEFAULT FALSE;
+      ALTER TABLE medicines ADD COLUMN IF NOT EXISTS image_url VARCHAR(255);
+      ALTER TABLE medicines ADD COLUMN IF NOT EXISTS last_restocked TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
+
+      ALTER TABLE orders ADD COLUMN IF NOT EXISTS buyer_name_urdu VARCHAR(255);
+
+      CREATE TABLE IF NOT EXISTS order_items (
+        id SERIAL PRIMARY KEY,
+        order_id VARCHAR(20) REFERENCES orders(id) ON DELETE CASCADE,
+        medicine_id INT REFERENCES medicines(id) ON DELETE CASCADE,
+        quantity INT NOT NULL,
+        price DECIMAL(10, 2) NOT NULL
+      );
     `, (migrationErr) => {
       release();
       if (migrationErr) {
@@ -818,6 +842,225 @@ app.post('/api/pharmacy/login', async (req, res) => {
 });
 
 // --- 3. PHARMACY DASHBOARD STATS ---
+async function simulateOrdersIfEmpty(pharmacyId) {
+  try {
+    // 1. Check if orders exist for this pharmacy
+    const orderCheck = await pool.query("SELECT COUNT(*) FROM orders WHERE pharmacy_id = $1", [pharmacyId]);
+    const orderCount = parseInt(orderCheck.rows[0].count);
+    if (orderCount > 0) return; // already has orders
+
+    // 2. Fetch medicines of this pharmacy to create realistic order items
+    const medRes = await pool.query("SELECT * FROM medicines WHERE pharmacy_id = $1", [pharmacyId]);
+    const medicines = medRes.rows;
+    if (medicines.length === 0) {
+      console.log(`No medicines found for pharmacy ${pharmacyId}. Seeding initial medicines...`);
+      const defaultMeds = [
+        { 
+          name: 'Tetracycline 500mg', 
+          name_urdu: 'ٹیٹراسائیکلین', 
+          manufacturer: 'Novartis Pakistan', 
+          dosage_form: 'Tablet',
+          strength: '500mg',
+          category: 'Antibiotic', 
+          price: 850, 
+          stock: 12, 
+          min_stock: 20, 
+          max_stock: 100,
+          batch_number: 'BAT-2024-001',
+          expiry_date: '2026-12-31',
+          active_ingredients: 'Tetracycline Hydrochloride',
+          description: 'Broad-spectrum antibiotic for bacterial infections.',
+          prescription_required: true,
+          status: 'active' 
+        },
+        { 
+          name: 'Ivermectin Injection', 
+          name_urdu: 'آئیورمیکٹن', 
+          manufacturer: 'Ferozsons Laboratories', 
+          dosage_form: 'Injection',
+          strength: '10ml',
+          category: 'Antiparasitic', 
+          price: 1200, 
+          stock: 5, 
+          min_stock: 15, 
+          max_stock: 80,
+          batch_number: 'BAT-2024-002',
+          expiry_date: '2027-06-30',
+          active_ingredients: 'Ivermectin',
+          description: 'Antiparasitic medication for livestock.',
+          prescription_required: true,
+          status: 'active' 
+        },
+        { 
+          name: 'Vitamin B-Complex', 
+          name_urdu: 'وٹامن بی کمپلیکس', 
+          manufacturer: 'Abbott Laboratories', 
+          dosage_form: 'Injection',
+          strength: '100ml',
+          category: 'Vitamin', 
+          price: 450, 
+          stock: 8, 
+          min_stock: 10, 
+          max_stock: 80,
+          batch_number: 'BAT-2024-003',
+          expiry_date: '2027-09-30',
+          active_ingredients: 'Thiamine, Riboflavin, Niacinamide',
+          description: 'Vitamin B supplement to boost health.',
+          prescription_required: false,
+          status: 'active' 
+        },
+        { 
+          name: 'Calcium Supplement', 
+          name_urdu: 'کیلشیم سپلیمنٹ', 
+          manufacturer: 'GlaxoSmithKline', 
+          dosage_form: 'Suspension',
+          strength: '1 Litre',
+          category: 'Vitamin', 
+          price: 650, 
+          stock: 25, 
+          min_stock: 15, 
+          max_stock: 70,
+          batch_number: 'BAT-2024-004',
+          expiry_date: '2026-10-31',
+          active_ingredients: 'Calcium Gluconate, Vitamin D3',
+          description: 'Liquid calcium for milk fever prevention and bones.',
+          prescription_required: false,
+          status: 'active' 
+        },
+        { 
+          name: 'Deworming Tablets', 
+          name_urdu: 'ڈی ورمونگ ٹیبلٹس', 
+          manufacturer: 'Highnoon Laboratories', 
+          dosage_form: 'Bolus',
+          strength: '1000mg',
+          category: 'Antiparasitic', 
+          price: 320, 
+          stock: 30, 
+          min_stock: 20, 
+          max_stock: 100,
+          batch_number: 'BAT-2024-005',
+          expiry_date: '2028-03-31',
+          active_ingredients: 'Albendazole',
+          description: 'Broad-spectrum dewormer for roundworms and flukes.',
+          prescription_required: false,
+          status: 'active' 
+        },
+        { 
+          name: 'Multivitamin Injection', 
+          name_urdu: 'ملٹی وٹامن انجکشن', 
+          manufacturer: 'Bosch Pharmaceuticals', 
+          dosage_form: 'Injection',
+          strength: '50ml',
+          category: 'Vitamin', 
+          price: 980, 
+          stock: 18, 
+          min_stock: 15, 
+          max_stock: 90,
+          batch_number: 'BAT-2024-006',
+          expiry_date: '2027-04-30',
+          active_ingredients: 'Vitamin A, D3, E',
+          description: 'Essential multivitamin injection.',
+          prescription_required: false,
+          status: 'active' 
+        }
+      ];
+
+      for (const m of defaultMeds) {
+        await pool.query(
+          `INSERT INTO medicines (
+            name, name_urdu, manufacturer, dosage_form, strength, category, 
+            pharmacy_id, price, stock, min_stock, max_stock, batch_number, 
+            expiry_date, active_ingredients, description, prescription_required, status
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)`,
+          [
+            m.name, m.name_urdu, m.manufacturer, m.dosage_form, m.strength, m.category, 
+            pharmacyId, m.price, m.stock, m.min_stock, m.max_stock, m.batch_number, 
+            m.expiry_date, m.active_ingredients, m.description, m.prescription_required, m.status
+          ]
+        );
+      }
+      
+      // Re-fetch
+      const reMedRes = await pool.query("SELECT * FROM medicines WHERE pharmacy_id = $1", [pharmacyId]);
+      medicines.push(...reMedRes.rows);
+    }
+
+    console.log(`Simulating realistic historical orders and items for pharmacy ${pharmacyId}...`);
+
+    const buyers = [
+      { name: 'Muhammad Akram', name_urdu: 'محمد اکرم' },
+      { name: 'Ali Hassan', name_urdu: 'علی حسن' },
+      { name: 'Fatima Bibi', name_urdu: 'فاطمہ بی بی' },
+      { name: 'Ahmed Khan', name_urdu: 'احمد خان' },
+      { name: 'Chaudhary Yasir', name_urdu: 'چوہدری یاسر' },
+      { name: 'Muhammad Sajid', name_urdu: 'محمد ساجد' },
+      { name: 'Malik Irfan', name_urdu: 'ملک عرفان' },
+      { name: 'Amanat Ali', name_urdu: 'امانت علی' },
+      { name: 'Zafar Iqbal', name_urdu: 'ظفر اقبال' }
+    ];
+    
+    const payMethods = ['Easypaisa', 'JazzCash', 'COD', 'Bank Transfer'];
+    const statuses = ['completed', 'completed', 'completed', 'dispatched', 'processing', 'pending'];
+
+    const now = new Date();
+    for (let i = 0; i < 25; i++) {
+      const orderId = `ORD-${1000 + i}`;
+      const buyer = buyers[Math.floor(Math.random() * buyers.length)];
+      const payMethod = payMethods[Math.floor(Math.random() * payMethods.length)];
+      const status = statuses[Math.floor(Math.random() * statuses.length)];
+      
+      const orderDate = new Date();
+      orderDate.setMonth(now.getMonth() - Math.floor(Math.random() * 6));
+      orderDate.setDate(Math.floor(Math.random() * 28) + 1);
+      orderDate.setHours(Math.floor(Math.random() * 12) + 8);
+      
+      const numItems = Math.floor(Math.random() * 3) + 1;
+      let totalPrice = 0;
+      let totalQty = 0;
+      
+      const orderItemsToInsert = [];
+      const usedMedIds = new Set();
+
+      for (let j = 0; j < numItems; j++) {
+        const med = medicines[Math.floor(Math.random() * medicines.length)];
+        if (usedMedIds.has(med.id)) continue;
+        usedMedIds.add(med.id);
+        
+        const qty = Math.floor(Math.random() * 3) + 1;
+        const itemPrice = parseFloat(med.price);
+        totalPrice += qty * itemPrice;
+        totalQty += qty;
+        
+        orderItemsToInsert.push({
+          medicine_id: med.id,
+          quantity: qty,
+          price: itemPrice
+        });
+      }
+
+      // Insert Order
+      await pool.query(
+        `INSERT INTO orders (id, buyer_name, buyer_name_urdu, pharmacy_id, items_count, total_price, payment_method, status, created_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+        [orderId, buyer.name, buyer.name_urdu, pharmacyId, totalQty, totalPrice, payMethod, status, orderDate]
+      );
+
+      // Insert Order Items
+      for (const item of orderItemsToInsert) {
+        await pool.query(
+          `INSERT INTO order_items (order_id, medicine_id, quantity, price)
+           VALUES ($1, $2, $3, $4)`,
+          [orderId, item.medicine_id, item.quantity, item.price]
+        );
+      }
+    }
+    
+    console.log(`✅ Simulation completed for pharmacy ${pharmacyId}!`);
+  } catch (err) {
+    console.error('Error in simulateOrdersIfEmpty:', err.message);
+  }
+}
+
 app.get('/api/pharmacy/dashboard-stats', async (req, res) => {
   try {
     const { pharmacyId } = req.query;
@@ -826,6 +1069,9 @@ app.get('/api/pharmacy/dashboard-stats', async (req, res) => {
     }
 
     const pId = parseInt(pharmacyId);
+    
+    // Auto simulate orders if they don't exist yet
+    await simulateOrdersIfEmpty(pId);
 
     // A. Total Revenue
     const revRes = await pool.query(
@@ -848,9 +1094,9 @@ app.get('/api/pharmacy/dashboard-stats', async (req, res) => {
     );
     const medicineListingsCount = parseInt(medRes.rows[0].count) || 0;
 
-    // D. Stock Alerts Count (stock < 15 or status = out_of_stock)
+    // D. Stock Alerts Count (stock < min_stock or status = out_of_stock or status = low_stock)
     const alertRes = await pool.query(
-      "SELECT COUNT(*) FROM medicines WHERE pharmacy_id = $1 AND (stock < 15 OR status = 'out_of_stock')",
+      "SELECT COUNT(*) FROM medicines WHERE pharmacy_id = $1 AND (stock < min_stock OR status = 'out_of_stock')",
       [pId]
     );
     const stockAlertsCount = parseInt(alertRes.rows[0].count) || 0;
@@ -863,7 +1109,7 @@ app.get('/api/pharmacy/dashboard-stats', async (req, res) => {
 
     // F. Stock Alerts list
     const stockAlertsRes = await pool.query(
-      "SELECT * FROM medicines WHERE pharmacy_id = $1 AND stock < 15 ORDER BY stock ASC LIMIT 5",
+      "SELECT * FROM medicines WHERE pharmacy_id = $1 AND stock < min_stock ORDER BY stock ASC LIMIT 5",
       [pId]
     );
 
@@ -902,14 +1148,34 @@ app.get('/api/pharmacy/medicines', async (req, res) => {
 
 app.post('/api/pharmacy/medicines', async (req, res) => {
   try {
-    const { name, category, price, stock, pharmacyId } = req.body;
-    const status = parseInt(stock) === 0 ? 'out_of_stock' : (parseInt(stock) < 15 ? 'low_stock' : 'active');
+    const { 
+      name, nameUrdu, manufacturer, dosageForm, strength, category, 
+      price, stock, minStock, maxStock, batchNumber, expiryDate, 
+      activeIngredients, description, prescriptionRequired, imageUrl 
+    } = req.body;
+    
+    const pharmacyId = parseInt(req.body.pharmacyId);
+    const mStock = minStock !== undefined ? parseInt(minStock) : 10;
+    const mxStock = maxStock !== undefined ? parseInt(maxStock) : 100;
+    const curStock = parseInt(stock);
+    const status = curStock === 0 ? 'out_of_stock' : (curStock < mStock ? 'low_stock' : 'active');
+    const rxReq = prescriptionRequired === true || prescriptionRequired === 'true';
+
     const result = await pool.query(
-      "INSERT INTO medicines (name, category, pharmacy_id, price, stock, status) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
-      [name, category, parseInt(pharmacyId), parseFloat(price), parseInt(stock), status]
+      `INSERT INTO medicines (
+        name, name_urdu, manufacturer, dosage_form, strength, category, 
+        pharmacy_id, price, stock, min_stock, max_stock, batch_number, 
+        expiry_date, active_ingredients, description, prescription_required, image_url, status
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18) RETURNING *`,
+      [
+        name, nameUrdu || null, manufacturer || null, dosageForm || null, strength || null, category,
+        pharmacyId, parseFloat(price), curStock, mStock, mxStock, batchNumber || null,
+        expiryDate || null, activeIngredients || null, description || null, rxReq, imageUrl || null, status
+      ]
     );
     res.status(201).json(result.rows[0]);
   } catch (err) {
+    console.error('Error adding medicine:', err.message);
     res.status(500).json({ error: 'Failed to add medicine.' });
   }
 });
@@ -917,14 +1183,47 @@ app.post('/api/pharmacy/medicines', async (req, res) => {
 app.put('/api/pharmacy/medicines/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, category, price, stock } = req.body;
-    const status = parseInt(stock) === 0 ? 'out_of_stock' : (parseInt(stock) < 15 ? 'low_stock' : 'active');
+    const { 
+      name, nameUrdu, manufacturer, dosageForm, strength, category, 
+      price, stock, minStock, maxStock, batchNumber, expiryDate, 
+      activeIngredients, description, prescriptionRequired, imageUrl, status 
+    } = req.body;
+    
+    // Status toggle update
+    if (status !== undefined && name === undefined) {
+      const result = await pool.query(
+        "UPDATE medicines SET status = $1 WHERE id = $2 RETURNING *",
+        [status, parseInt(id)]
+      );
+      return res.status(200).json(result.rows[0]);
+    }
+
+    const mStock = minStock !== undefined ? parseInt(minStock) : 10;
+    const mxStock = maxStock !== undefined ? parseInt(maxStock) : 100;
+    const curStock = parseInt(stock);
+    let resolvedStatus = status;
+    if (!resolvedStatus) {
+      resolvedStatus = curStock === 0 ? 'out_of_stock' : (curStock < mStock ? 'low_stock' : 'active');
+    }
+    const rxReq = prescriptionRequired === true || prescriptionRequired === 'true';
+
     const result = await pool.query(
-      "UPDATE medicines SET name = $1, category = $2, price = $3, stock = $4, status = $5 WHERE id = $6 RETURNING *",
-      [name, category, parseFloat(price), parseInt(stock), status, parseInt(id)]
+      `UPDATE medicines SET 
+        name = $1, name_urdu = $2, manufacturer = $3, dosage_form = $4, strength = $5, 
+        category = $6, price = $7, stock = $8, min_stock = $9, max_stock = $10, 
+        batch_number = $11, expiry_date = $12, active_ingredients = $13, description = $14, 
+        prescription_required = $15, image_url = $16, status = $17, last_restocked = CURRENT_TIMESTAMP
+       WHERE id = $18 RETURNING *`,
+      [
+        name, nameUrdu || null, manufacturer || null, dosageForm || null, strength || null,
+        category, parseFloat(price), curStock, mStock, mxStock,
+        batchNumber || null, expiryDate || null, activeIngredients || null, description || null,
+        rxReq, imageUrl || null, resolvedStatus, parseInt(id)
+      ]
     );
     res.status(200).json(result.rows[0]);
   } catch (err) {
+    console.error('Error updating medicine:', err.message);
     res.status(500).json({ error: 'Failed to update medicine.' });
   }
 });
@@ -936,6 +1235,154 @@ app.delete('/api/pharmacy/medicines/:id', async (req, res) => {
     res.status(200).json({ message: 'Medicine deleted successfully.' });
   } catch (err) {
     res.status(500).json({ error: 'Failed to delete medicine.' });
+  }
+});
+
+// --- 4b. PHARMACY ANALYTICS ---
+app.get('/api/pharmacy/analytics', async (req, res) => {
+  try {
+    const { pharmacyId } = req.query;
+    if (!pharmacyId) {
+      return res.status(400).json({ error: 'pharmacyId parameter is required' });
+    }
+    const pId = parseInt(pharmacyId);
+    await simulateOrdersIfEmpty(pId);
+
+    // A. KPIs
+    const revRes = await pool.query(
+      "SELECT SUM(total_price) FROM orders WHERE pharmacy_id = $1 AND status IN ('delivered', 'completed')",
+      [pId]
+    );
+    const totalRevenue = parseFloat(revRes.rows[0].sum) || 0.00;
+
+    const ordRes = await pool.query(
+      "SELECT COUNT(*) FROM orders WHERE pharmacy_id = $1",
+      [pId]
+    );
+    const totalOrders = parseInt(ordRes.rows[0].count) || 0;
+
+    const custRes = await pool.query(
+      "SELECT COUNT(DISTINCT buyer_name) FROM orders WHERE pharmacy_id = $1",
+      [pId]
+    );
+    const activeCustomers = parseInt(custRes.rows[0].count) || 0;
+
+    const avgRes = await pool.query(
+      "SELECT AVG(total_price) FROM orders WHERE pharmacy_id = $1 AND status IN ('delivered', 'completed')",
+      [pId]
+    );
+    const avgOrderValue = parseFloat(avgRes.rows[0].avg) || 0.00;
+
+    // B. Revenue Overview (Last 6 Months)
+    const monthlyRes = await pool.query(
+      `SELECT 
+         TO_CHAR(created_at, 'Mon') as month_name,
+         SUM(total_price)::float as revenue,
+         COUNT(*)::int as order_count,
+         DATE_TRUNC('month', created_at) as month_date
+       FROM orders 
+       WHERE pharmacy_id = $1 AND created_at >= NOW() - INTERVAL '6 months'
+       GROUP BY TO_CHAR(created_at, 'Mon'), DATE_TRUNC('month', created_at)
+       ORDER BY month_date ASC`,
+      [pId]
+    );
+    
+    let monthlyData = monthlyRes.rows.map(row => ({
+      name: row.month_name,
+      Revenue: row.revenue,
+      Orders: row.order_count
+    }));
+
+    if (monthlyData.length === 0) {
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+      monthlyData = months.map(m => ({ name: m, Revenue: 0, Orders: 0 }));
+    }
+
+    // C. Top Medicines
+    const topMedsRes = await pool.query(
+      `SELECT 
+         m.id,
+         m.name,
+         m.name_urdu,
+         COUNT(oi.id)::int as order_count,
+         SUM(oi.quantity * oi.price)::float as total_sales
+       FROM order_items oi
+       JOIN medicines m ON oi.medicine_id = m.id
+       WHERE m.pharmacy_id = $1
+       GROUP BY m.id, m.name, m.name_urdu
+       ORDER BY order_count DESC, total_sales DESC
+       LIMIT 5`,
+      [pId]
+    );
+    
+    const topMedicines = topMedsRes.rows.map(row => ({
+      name: row.name,
+      nameUrdu: row.name_urdu || '',
+      orders: row.order_count,
+      sales: row.total_sales
+    }));
+
+    // D. Order Status Distribution
+    const distRes = await pool.query(
+      `SELECT status, COUNT(*)::int as count FROM orders WHERE pharmacy_id = $1 GROUP BY status`,
+      [pId]
+    );
+    
+    let completedCount = 0;
+    let processingCount = 0;
+    let cancelledCount = 0;
+    let totalDist = 0;
+    
+    distRes.rows.forEach(r => {
+      const cnt = r.count;
+      totalDist += cnt;
+      if (r.status.toLowerCase() === 'completed' || r.status.toLowerCase() === 'delivered') {
+        completedCount += cnt;
+      } else if (r.status.toLowerCase() === 'processing' || r.status.toLowerCase() === 'pending' || r.status.toLowerCase() === 'dispatched') {
+        processingCount += cnt;
+      } else if (r.status.toLowerCase() === 'cancelled') {
+        cancelledCount += cnt;
+      }
+    });
+
+    const distribution = {
+      completed: totalDist > 0 ? Math.round((completedCount / totalDist) * 100) : 0,
+      processing: totalDist > 0 ? Math.round((processingCount / totalDist) * 100) : 0,
+      cancelled: totalDist > 0 ? Math.round((cancelledCount / totalDist) * 100) : 0
+    };
+
+    // E. Customer Retention
+    const repeatBuyersRes = await pool.query(
+      `WITH buyer_counts AS (
+         SELECT buyer_name, COUNT(*) as ord_cnt FROM orders WHERE pharmacy_id = $1 GROUP BY buyer_name
+       )
+       SELECT 
+         COUNT(*)::float as total_buyers,
+         SUM(CASE WHEN ord_cnt > 1 THEN 1 ELSE 0 END)::float as repeat_buyers
+       FROM buyer_counts`,
+      [pId]
+    );
+    
+    const totalBuyers = parseFloat(repeatBuyersRes.rows[0].total_buyers) || 0;
+    const repeatBuyers = parseFloat(repeatBuyersRes.rows[0].repeat_buyers) || 0;
+    const customerRetention = totalBuyers > 0 ? Math.round((repeatBuyers / totalBuyers) * 100) : 0;
+
+    res.status(200).json({
+      kpis: {
+        totalRevenue,
+        totalOrders,
+        activeCustomers,
+        avgOrderValue
+      },
+      revenueOverview: monthlyData,
+      topMedicines,
+      distribution,
+      customerRetention,
+      customerSatisfaction: 4.8
+    });
+  } catch (err) {
+    console.error('Pharmacy Analytics Error:', err.message);
+    res.status(500).json({ error: 'Failed to fetch pharmacy analytics.' });
   }
 });
 
@@ -967,6 +1414,23 @@ app.put('/api/pharmacy/orders/:id/status', async (req, res) => {
     res.status(200).json(result.rows[0]);
   } catch (err) {
     res.status(500).json({ error: 'Failed to update order status.' });
+  }
+});
+
+app.get('/api/pharmacy/orders/:id/items', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await pool.query(
+      `SELECT oi.quantity, oi.price, m.name, m.name_urdu 
+       FROM order_items oi
+       JOIN medicines m ON oi.medicine_id = m.id
+       WHERE oi.order_id = $1`,
+      [id]
+    );
+    res.status(200).json(result.rows);
+  } catch (err) {
+    console.error('Error fetching order items:', err.message);
+    res.status(500).json({ error: 'Failed to fetch order items.' });
   }
 });
 

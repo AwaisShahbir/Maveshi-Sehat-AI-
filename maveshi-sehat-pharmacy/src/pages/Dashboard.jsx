@@ -6,9 +6,13 @@ import {
 import Medicines from './Medicines';
 import Orders from './Orders';
 import Profile from './Profile';
+import Analytics from './Analytics';
+import AddMedicine from './AddMedicine';
+import StockAlerts from './StockAlerts';
 
 export default function Dashboard({ pharmacy, onLogout }) {
-  const [currentView, setCurrentView] = useState('dashboard'); // 'dashboard', 'listings', 'orders', 'profile'
+  const [currentView, setCurrentView] = useState('dashboard'); // 'dashboard', 'analytics', 'listings', 'orders', 'profile', 'add-medicine', 'stock-alerts'
+  const [editMedId, setEditMedId] = useState(null);
   const [stats, setStats] = useState({
     totalRevenue: 0,
     activeOrders: 0,
@@ -131,6 +135,18 @@ export default function Dashboard({ pharmacy, onLogout }) {
                   </div>
                 </button>
               </li>
+              <li>
+                <button 
+                  onClick={() => setCurrentView('analytics')}
+                  style={currentView === 'analytics' ? styles.menuItemActive : styles.menuItem}
+                >
+                  <BarChart3 size={18} />
+                  <div style={styles.menuLabelBlock}>
+                    <span style={styles.menuLabelEn}>Analytics</span>
+                    <span style={styles.menuLabelUr}>تجزیہ</span>
+                  </div>
+                </button>
+              </li>
             </ul>
           </div>
 
@@ -152,8 +168,8 @@ export default function Dashboard({ pharmacy, onLogout }) {
               </li>
               <li>
                 <button 
-                  onClick={() => { setCurrentView('listings'); setShowAddMedModal(true); }}
-                  style={styles.menuItem}
+                  onClick={() => setCurrentView('add-medicine')}
+                  style={currentView === 'add-medicine' ? styles.menuItemActive : styles.menuItem}
                 >
                   <PlusCircle size={18} />
                   <div style={styles.menuLabelBlock}>
@@ -176,8 +192,8 @@ export default function Dashboard({ pharmacy, onLogout }) {
               </li>
               <li>
                 <button 
-                  onClick={() => setCurrentView('listings')}
-                  style={styles.menuItem}
+                  onClick={() => setCurrentView('stock-alerts')}
+                  style={currentView === 'stock-alerts' ? styles.menuItemActive : styles.menuItem}
                 >
                   <AlertTriangle size={18} />
                   <div style={styles.menuLabelBlock}>
@@ -260,27 +276,25 @@ export default function Dashboard({ pharmacy, onLogout }) {
           <div style={styles.headerTitleContainer}>
             <h2 style={styles.headerTitleEn}>
               {currentView === 'dashboard' && 'Dashboard'}
+              {currentView === 'analytics' && 'Analytics'}
               {currentView === 'listings' && 'Medicine Listings'}
               {currentView === 'orders' && 'Orders Management'}
               {currentView === 'profile' && 'Pharmacy Profile'}
+              {currentView === 'add-medicine' && 'Add Medicine'}
+              {currentView === 'stock-alerts' && 'Stock Alerts'}
             </h2>
             <span style={styles.headerTitleUr} className="urdu">
               {currentView === 'dashboard' && 'ڈیش بورڈ'}
-              {currentView === 'listings' && 'میری فرست'}
+              {currentView === 'analytics' && 'تجزیہ'}
+              {currentView === 'listings' && 'میری فہرست'}
               {currentView === 'orders' && 'آرڈر مینجمنٹ'}
               {currentView === 'profile' && 'فارمیسی پروفائل'}
+              {currentView === 'add-medicine' && 'دوا شامل کریں'}
+              {currentView === 'stock-alerts' && 'اسٹاک الرٹ'}
             </span>
           </div>
 
           <div style={styles.headerActions}>
-            <button 
-              style={styles.headerAddBtn}
-              onClick={() => { setCurrentView('listings'); setShowAddMedModal(true); }}
-            >
-              <PlusCircle size={16} />
-              <span>Add Medicine / شامل کریں</span>
-            </button>
-
             {/* Notification Bell */}
             <div style={styles.notifWrapper}>
               <button style={styles.headerNotifBtn} onClick={() => setShowNotifications(!showNotifications)}>
@@ -454,7 +468,7 @@ export default function Dashboard({ pharmacy, onLogout }) {
                         <p className="card-subtitle">Items low or out of stock</p>
                         <p style={styles.cardHeaderUrdu} className="urdu">اسٹاک الرٹ</p>
                       </div>
-                      <button style={styles.cardHeaderLink} onClick={() => setCurrentView('listings')}>
+                      <button style={styles.cardHeaderLink} onClick={() => setCurrentView('stock-alerts')}>
                         <span>View All</span>
                         <ArrowUpRight size={14} />
                       </button>
@@ -501,7 +515,7 @@ export default function Dashboard({ pharmacy, onLogout }) {
                       <button 
                         className="btn btn-primary"
                         style={styles.quickActionBtn}
-                        onClick={() => { setCurrentView('listings'); setShowAddMedModal(true); }}
+                        onClick={() => setCurrentView('add-medicine')}
                       >
                         <PlusCircle size={16} />
                         <span>Add New Medicine</span>
@@ -519,7 +533,7 @@ export default function Dashboard({ pharmacy, onLogout }) {
                       <button 
                         className="btn btn-secondary"
                         style={styles.quickActionBtn}
-                        onClick={() => setCurrentView('listings')}
+                        onClick={() => setCurrentView('stock-alerts')}
                       >
                         <Pill size={16} />
                         <span>Manage Stock</span>
@@ -531,11 +545,39 @@ export default function Dashboard({ pharmacy, onLogout }) {
             </>
           )}
 
+          {currentView === 'analytics' && (
+            <Analytics pharmacy={pharmacy} formatPrice={formatPrice} />
+          )}
+
           {currentView === 'listings' && (
             <Medicines 
               pharmacy={pharmacy} 
               showAddModal={showAddMedModal} 
               onCloseAddModal={() => setShowAddMedModal(false)} 
+              editMedicineId={editMedId}
+              onCloseEditModal={() => setEditMedId(null)}
+            />
+          )}
+
+          {currentView === 'add-medicine' && (
+            <AddMedicine 
+              pharmacy={pharmacy} 
+              onSaveSuccess={() => {
+                setCurrentView('listings');
+                fetchDashboardData();
+              }}
+              onCancel={() => setCurrentView('listings')} 
+            />
+          )}
+
+          {currentView === 'stock-alerts' && (
+            <StockAlerts 
+              pharmacy={pharmacy} 
+              onAddMedicine={() => setCurrentView('add-medicine')}
+              onEditMedicine={(med) => {
+                setEditMedId(med.id);
+                setCurrentView('listings');
+              }}
             />
           )}
 
