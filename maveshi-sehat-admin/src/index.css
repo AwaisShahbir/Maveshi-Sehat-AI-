@@ -2,36 +2,36 @@
 
 
 :root {
-  --sidebar-bg: #111a24;
-  --sidebar-hover: #1b2633;
-  --sidebar-active: #00c853;
-  --sidebar-text: #b0c4de;
+  --sidebar-bg: #135431;
+  --sidebar-hover: rgba(255, 255, 255, 0.08);
+  --sidebar-active: #3da860;
+  --sidebar-text: #c5dbd0;
   --sidebar-text-active: #ffffff;
   
-  --bg-page: #f8faf9;
+  --bg-page: #eff7f2;
   --bg-card: #ffffff;
   
   --text-main: #1f2937;
-  --text-muted: #6b7280;
+  --text-muted: #4b5563;
   --text-light: #9ca3af;
   
-  --border-light: #e5e7eb;
+  --border-light: #e2e8f0;
   
-  --color-green: #00c853;
-  --color-green-light: #e8f8ea;
-  --color-red: #ff3b30;
-  --color-red-light: #ffebea;
-  --color-orange: #ff9500;
-  --color-orange-light: #fff4e5;
+  --color-green: #3da860;
+  --color-green-light: #eff7f2;
+  --color-red: #d32f2f;
+  --color-red-light: #ffebee;
+  --color-orange: #ff9800;
+  --color-orange-light: #fff3e0;
   --color-blue: #007aff;
   --color-blue-light: #e6f0ff;
   
   --font-main: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-heading: 'Outfit', sans-serif;
   
-  --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.03);
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.02), 0 1px 2px rgba(0,0,0,0.03);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.03), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.04), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
   
   --radius-sm: 8px;
   --radius-md: 12px;
@@ -379,7 +379,7 @@
 .profile-avatar {
   width: 44px;
   height: 44px;
-  background-color: #3b82f6;
+  background-color: var(--sidebar-active);
   color: white;
   border-radius: 50%;
   display: flex;
@@ -395,9 +395,14 @@
   color: #ffffff;
 }
 .profile-role {
-  font-size: 11px;
-  color: #58d66d;
-  display: block;
+  font-size: 10px;
+  font-weight: 600;
+  color: #eff7f2;
+  background-color: rgba(255, 255, 255, 0.12);
+  padding: 3px 10px;
+  border-radius: 20px;
+  display: inline-block;
+  margin-top: 4px;
 }
 
 
@@ -427,7 +432,9 @@
   display: flex;
   align-items: center;
   gap: 14px;
-  padding: 10px 24px;
+  padding: 12px 20px;
+  margin: 4px 16px;
+  border-radius: 12px;
   color: var(--sidebar-text);
   font-size: 14px;
   font-weight: 500;
@@ -440,23 +447,14 @@
 }
 .menu-item.active {
   color: var(--sidebar-text-active);
-  background-color: rgba(0, 200, 83, 0.1);
-}
-.menu-item.active::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 4px;
   background-color: var(--sidebar-active);
 }
 .menu-icon {
   color: inherit;
-  opacity: 0.8;
+  opacity: 0.9;
 }
 .menu-item.active .menu-icon {
-  color: var(--sidebar-active);
+  color: #ffffff;
   opacity: 1;
 }
 .menu-labels {
@@ -493,20 +491,21 @@
   display: flex;
   align-items: center;
   gap: 14px;
-  width: 100%;
+  width: calc(100% - 32px);
+  margin: 0 16px;
   background: transparent;
-  border: 1px solid rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.25);
   color: var(--sidebar-text);
   padding: 12px 16px;
-  border-radius: var(--radius-md);
+  border-radius: 12px;
   cursor: pointer;
   transition: all 0.2s ease;
   text-align: left;
 }
 .logout-btn:hover {
-  background-color: #7f1d1d;
+  background-color: rgba(255,255,255,0.1);
   color: #ffffff;
-  border-color: transparent;
+  border-color: #ffffff;
 }
 
 

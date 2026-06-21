@@ -7,13 +7,13 @@ import {
   Users, 
   UserCheck, 
   Store, 
-  Pill, 
-  ShoppingBag, 
   ClipboardList, 
   Bell, 
   Settings, 
-  LogOut 
+  LogOut,
+  Activity
 } from 'lucide-react';
+import logoImg from '../assets/logo.png';
 
 export default function Sidebar({ onLogout }) {
   const [stats, setStats] = useState(null);
@@ -33,7 +33,6 @@ export default function Sidebar({ onLogout }) {
 
     fetchSidebarStats();
 
-    
     const interval = setInterval(fetchSidebarStats, 10000);
     return () => clearInterval(interval);
   }, []);
@@ -56,11 +55,15 @@ export default function Sidebar({ onLogout }) {
       ]
     },
     {
-      title: 'MANAGEMENT',
+      title: 'HEALTH DATA',
       items: [
-        { path: '/health-records', label: 'Health Records', urdu: 'صحت کے ریکارڈ', icon: ClipboardList },
-        { path: '/medicines', label: 'Medicine Catalogue', urdu: 'دوائی فہرست', icon: Pill },
-        { path: '/orders', label: 'Order Management', urdu: 'آرڈر انتظام', icon: ShoppingBag },
+        { path: '/health-records', label: 'Health Records', urdu: 'صحت ریکارڈز', icon: ClipboardList },
+        { path: '/disease-analytics', label: 'Disease Analytics', urdu: 'بیماری تجزیہ', icon: Activity }
+      ]
+    },
+    {
+      title: 'SYSTEM',
+      items: [
         { path: '/notifications', label: 'Notifications', urdu: 'اطلاعات', icon: Bell, badgeKey: 'notifications' },
         { path: '/settings', label: 'Settings', urdu: 'ترتیبات', icon: Settings }
       ]
@@ -78,7 +81,11 @@ export default function Sidebar({ onLogout }) {
     <div className="sidebar">
       
       <div className="sidebar-brand">
-        <div className="brand-logo">M</div>
+        <img 
+          src={logoImg} 
+          alt="Maveshi Sehat AI Logo" 
+          style={{ width: '38px', height: '38px', borderRadius: '50%', objectFit: 'cover', border: '2px solid rgba(255,255,255,0.2)' }} 
+        />
         <div className="brand-info">
           <h2 className="brand-name">Maveshi Sehat AI</h2>
           <span className="brand-tag">Admin Panel</span>

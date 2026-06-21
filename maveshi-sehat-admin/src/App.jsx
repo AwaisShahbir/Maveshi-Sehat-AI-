@@ -7,6 +7,12 @@ import Login from './pages/Login';
 import UserManagement from './pages/UserManagement';
 import VetVerification from './pages/VetVerification';
 import PharmacyApproval from './pages/PharmacyApproval';
+import Analytics from './pages/Analytics';
+import Reports from './pages/Reports';
+import HealthRecords from './pages/HealthRecords';
+import DiseaseAnalytics from './pages/DiseaseAnalytics';
+import Notifications from './pages/Notifications';
+import Settings from './pages/Settings';
 
 
 function PlaceholderPage({ name, urdu }) {
@@ -143,8 +149,9 @@ export default function App() {
               <Route path="/" element={<Dashboard />} />
               
               
-              <Route path="/analytics" element={<PlaceholderPage name="Platform & Disease Analytics" urdu="پلیٹ فارم اور بیماری کے تجزیات" />} />
-              <Route path="/reports" element={<PlaceholderPage name="Reports Center" urdu="رپورٹس سینٹر" />} />
+              <Route path="/analytics" element={<Analytics />} />
+              <Route path="/reports" element={<Reports />} />
+              <Route path="/disease-analytics" element={<DiseaseAnalytics />} />
               
               
               <Route path="/users" element={<UserManagement />} />
@@ -152,11 +159,11 @@ export default function App() {
               <Route path="/pharmacy-approval" element={<PharmacyApproval />} />
               
               
-              <Route path="/health-records" element={<PlaceholderPage name="Health Records" urdu="صحت کے ریکارڈ" />} />
-              <Route path="/medicines" element={<PlaceholderPage name="Medicine Catalogue" urdu="دوائیوں کی فہرست" />} />
-              <Route path="/orders" element={<PlaceholderPage name="Order Management" urdu="آرڈرز کا انتظام" />} />
-              <Route path="/notifications" element={<PlaceholderPage name="Notifications & Broadcasts" urdu="اطلاعات اور اعلانات" />} />
-              <Route path="/settings" element={<PlaceholderPage name="Settings & Configurations" urdu="ترتیبات اور ترامیم" />} />
+              <Route path="/health-records" element={<HealthRecords />} />
+              <Route path="/medicines" element={<PlaceholderPage name="Medicine Catalogue" urdu="دوائی فہرست" />} />
+              <Route path="/orders" element={<PlaceholderPage name="Order Management" urdu="آرڈر انتظام" />} />
+              <Route path="/notifications" element={<Notifications />} />
+              <Route path="/settings" element={<Settings />} />
               
               
               <Route path="*" element={<PlaceholderPage name="Page Not Found" urdu="صفحہ نہیں ملا" />} />
