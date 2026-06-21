@@ -21,7 +21,7 @@ import Feather from 'react-native-vector-icons/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import io from 'socket.io-client';
 
-// Public demo images for animal symptom attachments
+
 const MOCK_SYMPTOM_IMAGES = [
   { id: '1', title: 'Cow Close-up', url: 'https://images.unsplash.com/photo-1570042225831-d98fa7577f1e?w=600' },
   { id: '2', title: 'Goat Symptom', url: 'https://images.unsplash.com/photo-1484557985045-edf25e08da73?w=600' },
@@ -36,16 +36,16 @@ export default function ChatScreen() {
 
   const { conversationId, partnerName, partnerRole, userName, userRole, vetId } = params;
 
-  // States
+  
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState('');
-  const [conversationStatus, setConversationStatus] = useState('active'); // active or resolved
+  const [conversationStatus, setConversationStatus] = useState('active'); 
   const [loading, setLoading] = useState(true);
   const [ourUserId, setOurUserId] = useState(null);
   const [imageModalVisible, setImageModalVisible] = useState(false);
   const [prescriptionModalVisible, setPrescriptionModalVisible] = useState(false);
 
-  // Prescription Form States
+  
   const [diagnosis, setDiagnosis] = useState('');
   const [prescriptionMedicines, setPrescriptionMedicines] = useState([{ name: '', dosage: '', duration: '' }]);
   const [instructions, setInstructions] = useState('');
@@ -55,10 +55,10 @@ export default function ChatScreen() {
   const baseUrl = Platform.OS === 'android' ? 'http://10.0.2.2:5000' : 'http://localhost:5000';
 
   useEffect(() => {
-    // 1. Fetch conversation details to know farmer_id/vet_id and status
+    
     const initChat = async () => {
       try {
-        // Fetch or create conversation to get the farmer_id and vet_id
+        
         const convResponse = await fetch(`${baseUrl}/api/chat/conversation`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -74,7 +74,7 @@ export default function ChatScreen() {
           setOurUserId(userRole === 'farmer' ? convData.farmer_id : convData.vet_id);
         }
 
-        // Fetch message logs
+        
         const msgResponse = await fetch(`${baseUrl}/api/chat/messages?conversationId=${conversationId}`);
         const msgData = await msgResponse.json();
         if (msgResponse.ok) {
@@ -89,18 +89,18 @@ export default function ChatScreen() {
 
     initChat();
 
-    // 2. Establish Socket.io connection
+    
     socketRef.current = io(baseUrl);
 
     socketRef.current.emit('join_room', conversationId.toString());
 
     socketRef.current.on('receive_message', (message) => {
       setMessages((prev) => {
-        // Avoid duplicates if any
+        
         if (prev.some((m) => m.id === message.id)) return prev;
         return [...prev, message];
       });
-      // Scroll to end
+      
       setTimeout(() => {
         flatListRef.current?.scrollToEnd({ animated: true });
       }, 100);
@@ -113,7 +113,7 @@ export default function ChatScreen() {
     };
   }, [conversationId]);
 
-  // Scroll to bottom when messages load
+  
   useEffect(() => {
     if (messages.length > 0) {
       setTimeout(() => {
@@ -148,7 +148,7 @@ export default function ChatScreen() {
     handleSendMessage('', imageUrl);
   };
 
-  // Prescription Form Actions
+  
   const handleAddMedicineRow = () => {
     setPrescriptionMedicines([...prescriptionMedicines, { name: '', dosage: '', duration: '' }]);
   };
@@ -183,7 +183,7 @@ export default function ChatScreen() {
 
     handleSendMessage('', null, true, prescriptionData);
     
-    // Reset and Close
+    
     setDiagnosis('');
     setPrescriptionMedicines([{ name: '', dosage: '', duration: '' }]);
     setInstructions('');
@@ -201,7 +201,7 @@ export default function ChatScreen() {
 
       if (response.ok) {
         setConversationStatus('resolved');
-        // Broadcast standard message about resolution
+        
         handleSendMessage('📢 This consultation has been marked as RESOLVED. / یہ مشورہ مکمل نشان زد کر دیا گیا ہے۔');
       } else {
         const data = await response.json();
@@ -309,7 +309,7 @@ export default function ChatScreen() {
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="light-content" backgroundColor="#58D66D" />
 
-      {/* Header */}
+      
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
           <Feather name="chevron-left" size={24} color="#FFF" />
@@ -333,7 +333,7 @@ export default function ChatScreen() {
         </View>
       </View>
 
-      {/* Main Chat Area */}
+      
       {loading ? (
         <View style={styles.loaderContainer}>
           <ActivityIndicator size="large" color="#58D66D" />
@@ -355,7 +355,7 @@ export default function ChatScreen() {
             onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
           />
 
-          {/* Input Area / Resolved Block */}
+          
           {conversationStatus === 'resolved' ? (
             <View style={[styles.resolvedBanner, { paddingBottom: Math.max(insets.bottom, 14) }]}>
               <MaterialCommunityIcons name="lock" size={18} color="#666" style={{ marginRight: 6 }} />
@@ -402,7 +402,7 @@ export default function ChatScreen() {
         </KeyboardAvoidingView>
       )}
 
-      {/* Image Selection Modal */}
+      
       <Modal
         visible={imageModalVisible}
         transparent
@@ -435,7 +435,7 @@ export default function ChatScreen() {
         </View>
       </Modal>
 
-      {/* Prescription Builder Modal */}
+      
       <Modal
         visible={prescriptionModalVisible}
         transparent
@@ -459,7 +459,7 @@ export default function ChatScreen() {
               </View>
 
               <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 24 }}>
-                {/* Diagnosis */}
+                
                 <Text style={styles.formLabel}>Diagnosis / بیماری کی تشخیص</Text>
                 <TextInput
                   style={styles.formInput}
@@ -469,7 +469,7 @@ export default function ChatScreen() {
                   onChangeText={setDiagnosis}
                 />
 
-                {/* Medicines List */}
+                
                 <View style={styles.formHeaderRow}>
                   <Text style={styles.formLabel}>Medicines / ادویات</Text>
                   <TouchableOpacity style={styles.addButton} onPress={handleAddMedicineRow}>
@@ -512,7 +512,7 @@ export default function ChatScreen() {
                   </View>
                 ))}
 
-                {/* Instructions */}
+                
                 <Text style={[styles.formLabel, { marginTop: 14 }]}>Special Instructions / خصوصی ہدایات</Text>
                 <TextInput
                   style={[styles.formInput, { height: 80, textAlignVertical: 'top' }]}
@@ -523,7 +523,7 @@ export default function ChatScreen() {
                   multiline
                 />
 
-                {/* Send Button */}
+                
                 <TouchableOpacity 
                   style={styles.submitPrescriptionButton} 
                   onPress={handleSendPrescription}

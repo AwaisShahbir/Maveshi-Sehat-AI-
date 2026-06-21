@@ -14,14 +14,15 @@ async function seed() {
   try {
     console.log('Seeding database with Super Admin only...');
     
-    // Hash admin password
+    
     const salt = await bcrypt.genSalt(10);
     const adminPassHash = await bcrypt.hash('awais0810', salt);
 
-    // 1. Seed Super Admin User
+    
     const usersQuery = `
       INSERT INTO users (full_name, phone_number, email, district, role, password, status, specialization, experience_years, pvmc_number) VALUES
-      ('Super Admin', '+92 300 1234567', 'maveshisehatai@gmail.com', 'Lahore', 'admin', $1, 'approved', NULL, NULL, NULL);
+      ('Super Admin', '+92 300 1234567', 'maveshisehatai@gmail.com', 'Lahore', 'admin', $1, 'approved', NULL, NULL, NULL)
+      ON CONFLICT (email) DO NOTHING;
     `;
     await pool.query(usersQuery, [adminPassHash]);
     console.log('✅ Seeded super admin');

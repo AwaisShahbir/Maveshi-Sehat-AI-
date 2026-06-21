@@ -21,7 +21,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingTop: 40, // Move down slightly
+    paddingTop: 40, 
   },
   iconPlaceholder: {
     width: 88,
@@ -43,8 +43,8 @@ const styles = StyleSheet.create({
     fontSize: 24,
   },
   mainTitle: {
-    fontSize: 36, // Larger font size
-    fontWeight: '800', // Bolder
+    fontSize: 36, 
+    fontWeight: '800', 
     color: '#FFFFFF',
     marginBottom: 12,
   },

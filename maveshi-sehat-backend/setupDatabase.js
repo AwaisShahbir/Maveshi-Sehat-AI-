@@ -9,17 +9,25 @@ const pool = new Pool({
   port: process.env.DB_PORT,
 });
 
-const createTableQuery = `
-DROP TABLE IF EXISTS admin_notifications CASCADE;
-DROP TABLE IF EXISTS announcements CASCADE;
-DROP TABLE IF EXISTS detections CASCADE;
-DROP TABLE IF EXISTS orders CASCADE;
-DROP TABLE IF EXISTS medicines CASCADE;
-DROP TABLE IF EXISTS pharmacies CASCADE;
-DROP TABLE IF EXISTS otps CASCADE;
-DROP TABLE IF EXISTS users CASCADE;
 
-CREATE TABLE users (
+const shouldReset = process.argv.includes('--reset') || process.argv.includes('--force');
+
+const dropTablesQuery = `
+  DROP TABLE IF EXISTS order_items CASCADE;
+  DROP TABLE IF EXISTS messages CASCADE;
+  DROP TABLE IF EXISTS conversations CASCADE;
+  DROP TABLE IF EXISTS admin_notifications CASCADE;
+  DROP TABLE IF EXISTS announcements CASCADE;
+  DROP TABLE IF EXISTS detections CASCADE;
+  DROP TABLE IF EXISTS orders CASCADE;
+  DROP TABLE IF EXISTS medicines CASCADE;
+  DROP TABLE IF EXISTS pharmacies CASCADE;
+  DROP TABLE IF EXISTS otps CASCADE;
+  DROP TABLE IF EXISTS users CASCADE;
+`;
+
+const createTablesQuery = `
+CREATE TABLE IF NOT EXISTS users (
   id SERIAL PRIMARY KEY,
   full_name VARCHAR(100) NOT NULL,
   phone_number VARCHAR(20) UNIQUE NOT NULL,
@@ -35,14 +43,14 @@ CREATE TABLE users (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE otps (
+CREATE TABLE IF NOT EXISTS otps (
   id SERIAL PRIMARY KEY,
   email VARCHAR(255) NOT NULL,
   otp VARCHAR(10) NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE pharmacies (
+CREATE TABLE IF NOT EXISTS pharmacies (
   id SERIAL PRIMARY KEY,
   name VARCHAR(255) NOT NULL,
   name_urdu VARCHAR(255),
@@ -63,20 +71,34 @@ CREATE TABLE pharmacies (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE medicines (
+CREATE TABLE IF NOT EXISTS medicines (
   id SERIAL PRIMARY KEY,
   name VARCHAR(255) NOT NULL,
+  name_urdu VARCHAR(255),
+  manufacturer VARCHAR(255),
+  dosage_form VARCHAR(100),
+  strength VARCHAR(100),
   category VARCHAR(100) NOT NULL, -- 'Vaccine', 'Antibiotic', 'Vitamin', etc.
   pharmacy_id INT REFERENCES pharmacies(id) ON DELETE CASCADE,
   price DECIMAL(10, 2) NOT NULL,
   stock INT DEFAULT 0,
-  status VARCHAR(20) DEFAULT 'active', -- 'active', 'out_of_stock', 'low_stock'
+  min_stock INT DEFAULT 10,
+  max_stock INT DEFAULT 100,
+  batch_number VARCHAR(100),
+  expiry_date VARCHAR(100),
+  active_ingredients TEXT,
+  description TEXT,
+  prescription_required BOOLEAN DEFAULT FALSE,
+  image_url VARCHAR(255),
+  last_restocked TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  status VARCHAR(20) DEFAULT 'active', -- 'active', 'out_of_stock', 'low_stock', 'inactive'
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE orders (
+CREATE TABLE IF NOT EXISTS orders (
   id VARCHAR(20) PRIMARY KEY, -- e.g. 'ORD-1047'
   buyer_name VARCHAR(255) NOT NULL,
+  buyer_name_urdu VARCHAR(255),
   pharmacy_id INT REFERENCES pharmacies(id) ON DELETE SET NULL,
   items_count INT DEFAULT 1,
   total_price DECIMAL(10, 2) NOT NULL,
@@ -85,7 +107,15 @@ CREATE TABLE orders (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE detections (
+CREATE TABLE IF NOT EXISTS order_items (
+  id SERIAL PRIMARY KEY,
+  order_id VARCHAR(20) REFERENCES orders(id) ON DELETE CASCADE,
+  medicine_id INT REFERENCES medicines(id) ON DELETE CASCADE,
+  quantity INT NOT NULL,
+  price DECIMAL(10, 2) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS detections (
   id VARCHAR(20) PRIMARY KEY, -- e.g. 'HR-1847'
   owner_name VARCHAR(255) NOT NULL,
   animal_type VARCHAR(50) NOT NULL, -- 'Cow', 'Buffalo', 'Goat', etc.
@@ -95,10 +125,14 @@ CREATE TABLE detections (
   vet_id INT REFERENCES users(id) ON DELETE SET NULL,
   status VARCHAR(20) DEFAULT 'pending_vet', -- 'Reviewed', 'Pending Vet', 'Auto-resolved'
   province VARCHAR(50) NOT NULL,
+  image_url VARCHAR(255),
+  description TEXT,
+  first_aid TEXT[],
+  disease_urdu VARCHAR(100),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE announcements (
+CREATE TABLE IF NOT EXISTS announcements (
   id SERIAL PRIMARY KEY,
   target_audience VARCHAR(50) NOT NULL, -- 'all', 'owners', 'vets'
   type VARCHAR(50) NOT NULL, -- 'alert', 'outbreak', 'maintenance', 'vaccination'
@@ -108,7 +142,7 @@ CREATE TABLE announcements (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE admin_notifications (
+CREATE TABLE IF NOT EXISTS admin_notifications (
   id SERIAL PRIMARY KEY,
   type VARCHAR(50) NOT NULL, -- 'vet_application', 'high_risk_case', 'pharmacy_approval', etc.
   message_en TEXT NOT NULL,
@@ -116,15 +150,44 @@ CREATE TABLE admin_notifications (
   read BOOLEAN DEFAULT FALSE,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE IF NOT EXISTS conversations (
+  id SERIAL PRIMARY KEY,
+  farmer_id INT REFERENCES users(id) ON DELETE CASCADE,
+  vet_id INT REFERENCES users(id) ON DELETE CASCADE,
+  status VARCHAR(20) DEFAULT 'active', -- 'active', 'resolved'
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS messages (
+  id SERIAL PRIMARY KEY,
+  conversation_id INT REFERENCES conversations(id) ON DELETE CASCADE,
+  sender_id INT REFERENCES users(id) ON DELETE SET NULL,
+  message TEXT,
+  image_url VARCHAR(255),
+  is_prescription BOOLEAN DEFAULT FALSE,
+  prescription_data TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 `;
 
 async function setup() {
   try {
     console.log('Connecting to database...');
-    await pool.query(createTableQuery);
-    console.log('✅ Users table created successfully!');
+    
+    if (shouldReset) {
+      console.log('⚠️ --reset or --force flag detected! Dropping existing tables...');
+      await pool.query(dropTablesQuery);
+      console.log('✅ Tables dropped successfully.');
+    } else {
+      console.log('ℹ️ Running in safe mode. Existing tables and data will be preserved.');
+    }
+
+    console.log('Creating database tables if they do not exist...');
+    await pool.query(createTablesQuery);
+    console.log('✅ Database setup completed successfully!');
   } catch (err) {
-    console.error('❌ Error creating table:', err);
+    console.error('❌ Error setting up database:', err.message);
   } finally {
     pool.end();
   }

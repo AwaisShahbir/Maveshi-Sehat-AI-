@@ -1,4 +1,4 @@
-// Global store for user profile data supporting dynamic edits and synchronization
+
 let profile = {
   userName: 'Muhammad Ahmed',
   userNameUrdu: 'محمد احمد',

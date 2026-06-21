@@ -8,7 +8,7 @@ export default function Profile({ pharmacy, onProfileUpdate }) {
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
 
-  // Editable Form state
+  
   const [form, setForm] = useState({
     name: '',
     nameUrdu: '',
@@ -84,43 +84,43 @@ export default function Profile({ pharmacy, onProfileUpdate }) {
     }
   };
 
-  if (loading) return <div style={styles.loading}>Loading profile details...</div>;
+  if (loading) return <div className="text-center text-slate-500 py-10 text-sm font-medium">Loading profile details... / لوڈ ہو رہا ہے...</div>;
 
   return (
-    <div style={styles.container}>
-      {successMsg && <div style={styles.successAlert}>{successMsg}</div>}
-      {error && <div style={styles.errorAlert}>{error}</div>}
+    <div className="flex flex-col gap-6">
+      {successMsg && <div className="bg-emerald-50 text-emerald-600 p-4 rounded-xl border border-emerald-100 font-semibold text-sm">{successMsg}</div>}
+      {error && <div className="bg-red-50 text-red-600 p-4 rounded-xl border border-red-100 font-semibold text-sm">{error}</div>}
 
-      <div style={styles.layout}>
-        {/* Left Side: Summary Card */}
-        <div style={styles.leftCol}>
-          <div className="card" style={styles.summaryCard}>
-            <div style={styles.avatar}>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+        
+        <div className="lg:col-span-1">
+          <div className="card flex flex-col items-center text-center p-8 bg-white border border-slate-100 rounded-2xl shadow-sm">
+            <div className="w-[72px] h-[72px] rounded-full bg-emerald-500/10 text-emerald-500 flex items-center justify-center border-2 border-emerald-500 mb-4">
               <Store size={36} />
             </div>
-            <h3 style={styles.summaryName}>{profile.name}</h3>
-            <p style={styles.summaryUrdu} className="urdu">{profile.name_urdu}</p>
-            <div style={styles.statusBadgeBlock}>
+            <h3 className="text-lg font-bold text-slate-800">{profile.name}</h3>
+            <p className="text-xs text-emerald-600 font-semibold mt-1 urdu">{profile.name_urdu}</p>
+            <div className="mt-3 mb-6">
               <span className="badge badge-green">
                 <ShieldCheck size={14} /> Approved Portal
               </span>
             </div>
             
-            <div style={styles.quickContactBlock}>
-              <div style={styles.quickContactItem}>
-                <Mail size={16} />
-                <span>{profile.email}</span>
+            <div className="flex flex-col gap-3 w-full border-t border-slate-100 pt-5">
+              <div className="flex items-center gap-3 text-slate-600 text-xs">
+                <Mail size={16} className="text-slate-400" />
+                <span className="truncate">{profile.email}</span>
               </div>
-              <div style={styles.quickContactItem}>
-                <Phone size={16} />
+              <div className="flex items-center gap-3 text-slate-600 text-xs">
+                <Phone size={16} className="text-slate-400" />
                 <span>{profile.phone}</span>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Right Side: Detailed Profile Information */}
-        <div style={styles.rightCol}>
+        
+        <div className="lg:col-span-2">
           <div className="card">
             <div className="card-header-flex">
               <h3 className="card-title">Pharmacy Details / معلومات</h3>
@@ -136,78 +136,78 @@ export default function Profile({ pharmacy, onProfileUpdate }) {
             </div>
 
             {!isEditing ? (
-              <div style={styles.detailsGrid}>
-                {/* 1. Basic */}
-                <div style={styles.detailBlock}>
-                  <span style={styles.detailLabel}>Pharmacy Name (English)</span>
-                  <span style={styles.detailValue}>{profile.name}</span>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-5">
+                
+                <div className="flex flex-col">
+                  <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold mb-1">Pharmacy Name (English)</span>
+                  <span className="text-sm font-semibold text-slate-800">{profile.name}</span>
                 </div>
-                <div style={styles.detailBlock}>
-                  <span style={styles.detailLabel}>Pharmacy Name (Urdu)</span>
-                  <span style={styles.detailValue} className="urdu">{profile.name_urdu || 'N/A'}</span>
+                <div className="flex flex-col">
+                  <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold mb-1">Pharmacy Name (Urdu)</span>
+                  <span className="text-sm font-semibold text-slate-800 urdu">{profile.name_urdu || 'N/A'}</span>
                 </div>
-                <div style={styles.detailBlock}>
-                  <span style={styles.detailLabel}>Owner Name</span>
-                  <span style={styles.detailValue}>{profile.owner_name}</span>
+                <div className="flex flex-col">
+                  <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold mb-1">Owner Name</span>
+                  <span className="text-sm font-semibold text-slate-800">{profile.owner_name}</span>
                 </div>
-                <div style={styles.detailBlock}>
-                  <span style={styles.detailLabel}>CNIC</span>
-                  <span style={styles.detailValue}>{profile.cnic || 'N/A'}</span>
-                </div>
-
-                {/* 2. Contact */}
-                <div style={styles.detailBlock}>
-                  <span style={styles.detailLabel}>Phone Number</span>
-                  <span style={styles.detailValue}>{profile.phone || 'N/A'}</span>
-                </div>
-                <div style={styles.detailBlock}>
-                  <span style={styles.detailLabel}>WhatsApp Number</span>
-                  <span style={styles.detailValue}>{profile.whatsapp || 'N/A'}</span>
-                </div>
-                <div style={styles.detailBlock}>
-                  <span style={styles.detailLabel}>Email Address</span>
-                  <span style={styles.detailValue}>{profile.email}</span>
-                </div>
-                <div style={styles.detailBlock}>
-                  <span style={styles.detailLabel}>Business Hours</span>
-                  <span style={styles.detailValue}>{profile.business_hours || 'N/A'}</span>
+                <div className="flex flex-col">
+                  <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold mb-1">CNIC</span>
+                  <span className="text-sm font-semibold text-slate-800">{profile.cnic || 'N/A'}</span>
                 </div>
 
-                {/* 3. Location */}
-                <div style={styles.detailBlock}>
-                  <span style={styles.detailLabel}>Province</span>
-                  <span style={styles.detailValue}>{profile.province || 'N/A'}</span>
+                
+                <div className="flex flex-col">
+                  <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold mb-1">Phone Number</span>
+                  <span className="text-sm font-semibold text-slate-800">{profile.phone || 'N/A'}</span>
                 </div>
-                <div style={styles.detailBlock}>
-                  <span style={styles.detailLabel}>City</span>
-                  <span style={styles.detailValue}>{profile.city || 'N/A'}</span>
+                <div className="flex flex-col">
+                  <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold mb-1">WhatsApp Number</span>
+                  <span className="text-sm font-semibold text-slate-800">{profile.whatsapp || 'N/A'}</span>
                 </div>
-                <div style={styles.detailBlockFull}>
-                  <span style={styles.detailLabel}>Full Address</span>
-                  <span style={styles.detailValue}>{profile.address || 'N/A'}</span>
+                <div className="flex flex-col">
+                  <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold mb-1">Email Address</span>
+                  <span className="text-sm font-semibold text-slate-800">{profile.email}</span>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold mb-1">Business Hours</span>
+                  <span className="text-sm font-semibold text-slate-800">{profile.business_hours || 'N/A'}</span>
                 </div>
 
-                {/* 4. License */}
-                <div style={styles.detailBlock}>
-                  <span style={styles.detailLabel}>DRAP License Number</span>
-                  <span style={{ ...styles.detailValue, color: '#10b981', fontWeight: '700' }}>
+                
+                <div className="flex flex-col">
+                  <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold mb-1">Province</span>
+                  <span className="text-sm font-semibold text-slate-800">{profile.province || 'N/A'}</span>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold mb-1">City</span>
+                  <span className="text-sm font-semibold text-slate-800">{profile.city || 'N/A'}</span>
+                </div>
+                <div className="flex flex-col md:col-span-2">
+                  <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold mb-1">Full Address</span>
+                  <span className="text-sm font-semibold text-slate-800">{profile.address || 'N/A'}</span>
+                </div>
+
+                
+                <div className="flex flex-col">
+                  <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold mb-1">DRAP License Number</span>
+                  <span className="text-sm font-bold text-emerald-500">
                     {profile.license_number}
                   </span>
                 </div>
-                <div style={styles.detailBlock}>
-                  <span style={styles.detailLabel}>License Expiry Date</span>
-                  <span style={styles.detailValue}>{profile.license_expiry || 'N/A'}</span>
+                <div className="flex flex-col">
+                  <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold mb-1">License Expiry Date</span>
+                  <span className="text-sm font-semibold text-slate-800">{profile.license_expiry || 'N/A'}</span>
                 </div>
 
-                {/* 5. Business */}
-                <div style={styles.detailBlockFull}>
-                  <span style={styles.detailLabel}>Description</span>
-                  <span style={styles.detailValue}>{profile.description || 'N/A'}</span>
+                
+                <div className="flex flex-col md:col-span-2">
+                  <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold mb-1">Description</span>
+                  <span className="text-sm font-semibold text-slate-800">{profile.description || 'N/A'}</span>
                 </div>
               </div>
             ) : (
-              <form onSubmit={handleSubmit} style={styles.editForm}>
-                <div style={styles.formGrid}>
+              <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="form-group">
                     <label className="form-label">Pharmacy Name (English)</label>
                     <input 
@@ -224,10 +224,9 @@ export default function Profile({ pharmacy, onProfileUpdate }) {
                     <input 
                       type="text" 
                       name="nameUrdu" 
-                      className="form-control" 
+                      className="form-control text-right" 
                       value={form.nameUrdu} 
                       onChange={handleChange}
-                      style={{ textAlign: 'right' }}
                     />
                   </div>
                   <div className="form-group">
@@ -318,7 +317,7 @@ export default function Profile({ pharmacy, onProfileUpdate }) {
                   />
                 </div>
 
-                <button type="submit" className="btn btn-primary" style={{ marginTop: '12px' }}>
+                <button type="submit" className="btn btn-primary mt-3 flex items-center gap-2 justify-center w-fit">
                   <Check size={16} />
                   <span>Save Changes / محفوظ کریں</span>
                 </button>
@@ -331,128 +330,3 @@ export default function Profile({ pharmacy, onProfileUpdate }) {
   );
 }
 
-const styles = {
-  container: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '24px',
-  },
-  layout: {
-    display: 'flex',
-    gap: '24px',
-    alignItems: 'flex-start',
-  },
-  leftCol: {
-    flex: '0.8',
-  },
-  rightCol: {
-    flex: '2.2',
-  },
-  summaryCard: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    textAlign: 'center',
-    padding: '32px 24px',
-  },
-  avatar: {
-    width: '72px',
-    height: '72px',
-    borderRadius: '50%',
-    backgroundColor: 'rgba(16, 185, 129, 0.1)',
-    color: '#10b981',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    border: '2px solid #10b981',
-    marginBottom: '16px',
-  },
-  summaryName: {
-    fontSize: '18px',
-    fontWeight: '700',
-    color: '#ffffff',
-  },
-  summaryUrdu: {
-    fontSize: '13px',
-    color: '#10b981',
-    marginTop: '4px',
-  },
-  statusBadgeBlock: {
-    marginTop: '12px',
-    marginBottom: '24px',
-  },
-  quickContactBlock: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '12px',
-    width: '100%',
-    borderTop: '1px solid #334155',
-    paddingTop: '20px',
-  },
-  quickContactItem: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '10px',
-    color: '#94a3b8',
-    fontSize: '13px',
-  },
-  detailsGrid: {
-    display: 'grid',
-    gridTemplateColumns: '1fr 1fr',
-    gap: '24px 20px',
-  },
-  detailBlock: {
-    display: 'flex',
-    flexDirection: 'column',
-  },
-  detailBlockFull: {
-    display: 'flex',
-    flexDirection: 'column',
-    gridColumn: '1 / span 2',
-  },
-  detailLabel: {
-    fontSize: '12px',
-    color: '#64748b',
-    fontWeight: '700',
-    textTransform: 'uppercase',
-    letterSpacing: '0.5px',
-    marginBottom: '4px',
-  },
-  detailValue: {
-    fontSize: '15px',
-    color: '#ffffff',
-    fontWeight: '500',
-  },
-  editForm: {
-    display: 'flex',
-    flexDirection: 'column',
-  },
-  formGrid: {
-    display: 'grid',
-    gridTemplateColumns: '1fr 1fr',
-    gap: '16px',
-  },
-  loading: {
-    textAlign: 'center',
-    color: '#94a3b8',
-    padding: '40px 0',
-  },
-  successAlert: {
-    backgroundColor: 'rgba(16, 185, 129, 0.15)',
-    color: '#10b981',
-    padding: '14px 18px',
-    borderRadius: '12px',
-    border: '1px solid rgba(16, 185, 129, 0.25)',
-    fontWeight: '600',
-    fontSize: '14px',
-  },
-  errorAlert: {
-    backgroundColor: 'rgba(239, 68, 68, 0.15)',
-    color: '#ef4444',
-    padding: '14px 18px',
-    borderRadius: '12px',
-    border: '1px solid rgba(239, 68, 68, 0.25)',
-    fontWeight: '600',
-    fontSize: '14px',
-  },
-};

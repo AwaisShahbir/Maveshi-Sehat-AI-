@@ -5,7 +5,7 @@ import Feather from 'react-native-vector-icons/Feather';
 
 export default function LoginScreen() {
   const navigation = useNavigation();
-  const [role, setRole] = useState('owner'); // 'owner' or 'vet'
+  const [role, setRole] = useState('owner'); 
   const [phoneNumber, setPhoneNumber] = useState('');
   const [password, setPassword] = useState('');
   const [passwordVisible, setPasswordVisible] = useState(false);
@@ -13,7 +13,7 @@ export default function LoginScreen() {
   const [errorMsg, setErrorMsg] = useState('');
 
   const handleLogin = async () => {
-    setErrorMsg(''); // Reset error message
+    setErrorMsg(''); 
 
     if (!phoneNumber.trim() || !password.trim()) {
       return setErrorMsg('Please enter your phone number and password');
@@ -25,7 +25,7 @@ export default function LoginScreen() {
 
     setLoading(true);
     try {
-      // Use 'farmer' for owner to match register.jsx if needed, but keeping role as mapped
+      
       const mappedRole = role === 'owner' ? 'farmer' : 'vet';
       
       const response = await fetch('http://10.0.2.2:5000/login', {
@@ -60,7 +60,7 @@ export default function LoginScreen() {
         style={styles.container}
       >
         <ScrollView contentContainerStyle={styles.scrollContent} bounces={false}>
-          {/* Top Green Section */}
+          
           <View style={styles.topSection}>
             <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
               <Feather name="chevron-left" size={24} color="#FFFFFF" />
@@ -70,10 +70,10 @@ export default function LoginScreen() {
             <Text style={styles.urduTitle}>خوش آمدید</Text>
           </View>
 
-          {/* White Card */}
+          
           <View style={styles.cardContainer}>
             
-            {/* Role Selection */}
+            
             <Text style={styles.label}>لاگ ان بطور / Login As</Text>
             <View style={styles.roleContainer}>
               <TouchableOpacity 
@@ -92,7 +92,7 @@ export default function LoginScreen() {
               </TouchableOpacity>
             </View>
 
-            {/* Phone Number */}
+            
             <Text style={styles.label}>فون نمبر / Phone Number</Text>
             <View style={styles.inputContainer}>
               <Feather name="phone" size={20} color="#4CB85C" style={styles.inputIcon} />
@@ -106,7 +106,7 @@ export default function LoginScreen() {
               />
             </View>
 
-            {/* Password */}
+            
             <Text style={styles.label}>پاس ورڈ / Password</Text>
             <View style={styles.inputContainer}>
               <Feather name="lock" size={20} color="#4CB85C" style={styles.inputIcon} />
@@ -123,12 +123,12 @@ export default function LoginScreen() {
               </TouchableOpacity>
             </View>
 
-            {/* Forgot Password */}
+            
             <TouchableOpacity>
               <Text style={styles.forgotPassword}>پاس ورڈ بھول گئے؟ / Forgot Password?</Text>
             </TouchableOpacity>
 
-            {/* Error Message */}
+            
             {errorMsg ? (
               <View style={styles.errorContainer}>
                 <Feather name="alert-circle" size={16} color="#FF3B30" />
@@ -136,7 +136,7 @@ export default function LoginScreen() {
               </View>
             ) : null}
 
-            {/* Login Button */}
+            
             <TouchableOpacity 
               style={[styles.loginButton, loading && { opacity: 0.7 }]} 
               activeOpacity={0.9}
@@ -148,7 +148,7 @@ export default function LoginScreen() {
               </Text>
             </TouchableOpacity>
 
-            {/* Register Link */}
+            
             <View style={styles.registerContainer}>
               <Text style={styles.registerText}>Don't have an account? </Text>
               <TouchableOpacity onPress={() => navigation.navigate('Register')}>

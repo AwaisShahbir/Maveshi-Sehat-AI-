@@ -19,7 +19,7 @@ export default function VeterinariansListScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  // Subscribe to profile updates
+  
   useEffect(() => {
     const unsubscribeProfile = subscribeProfile((updatedProfile) => {
       setProfile(updatedProfile);
@@ -143,7 +143,7 @@ export default function VeterinariansListScreen() {
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="light-content" backgroundColor="#58D66D" />
       
-      {/* Header */}
+      
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
           <Feather name="chevron-left" size={24} color="#FFF" />
@@ -158,10 +158,10 @@ export default function VeterinariansListScreen() {
             </>
           )}
         </View>
-        <View style={{ width: 24 }} /> {/* Balance back button spacing */}
+        <View style={{ width: 24 }} /> 
       </View>
 
-      {/* Search Bar */}
+      
       <View style={styles.searchContainer}>
         <Feather name="search" size={20} color="#888" style={styles.searchIcon} />
         <TextInput
@@ -178,7 +178,7 @@ export default function VeterinariansListScreen() {
         )}
       </View>
 
-      {/* Veterinarian List */}
+      
       {loading && !refreshing ? (
         <View style={styles.loaderContainer}>
           <ActivityIndicator size="large" color="#58D66D" />

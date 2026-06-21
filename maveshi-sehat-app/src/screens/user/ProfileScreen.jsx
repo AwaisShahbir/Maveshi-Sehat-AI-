@@ -26,11 +26,11 @@ export default function ProfileScreen() {
   const params = route.params || {};
   const userId = params.userId || 'user_123';
 
-  // Store States
+  
   const [profile, setProfile] = useState(getProfile());
   const [records, setRecords] = useState(getRecords());
 
-  // Edit Modal States
+  
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [langModalVisible, setLangModalVisible] = useState(false);
   const [editName, setEditName] = useState(profile.userName);
@@ -38,23 +38,23 @@ export default function ProfileScreen() {
   const [editPhone, setEditPhone] = useState(profile.phone);
   const [editLocation, setEditLocation] = useState(profile.location);
 
-  // Subscriptions
+  
   useEffect(() => {
-    // Initial fetch of records from DB for the user
+    
     loadRecords(profile.userName).then(loadedRecords => {
       setRecords(loadedRecords);
     }).catch(err => console.log('Error loading records for profile:', err));
 
-    // Subscribe to profile modifications
+    
     const unsubscribeProfile = subscribeProfile((updatedProfile) => {
       setProfile(updatedProfile);
-      // Re-load records when user profile name changes
+      
       loadRecords(updatedProfile.userName).then(loadedRecords => {
         setRecords(loadedRecords);
       }).catch(err => console.log('Error reloading records for profile:', err));
     });
 
-    // Subscribe to records modifications
+    
     const unsubscribeRecords = subscribe((updatedRecords) => {
       setRecords(updatedRecords);
     });
@@ -65,7 +65,7 @@ export default function ProfileScreen() {
     };
   }, []);
 
-  // Sync edit modal fields when profile state changes
+  
   useEffect(() => {
     setEditName(profile.userName);
     setEditNameUrdu(profile.userNameUrdu);
@@ -73,11 +73,11 @@ export default function ProfileScreen() {
     setEditLocation(profile.location);
   }, [profile]);
 
-  // Calculate dynamic stats
+  
   const totalScans = records.length;
   const uniqueAnimals = new Set(records.map(r => r.animalId)).size;
 
-  // Derive Initials (e.g. "Muhammad Ahmed" -> "MA")
+  
   const getInitials = (name) => {
     if (!name) return 'MA';
     const parts = name.split(' ');
@@ -115,20 +115,20 @@ export default function ProfileScreen() {
       <StatusBar barStyle="light-content" backgroundColor="#58D66D" />
       
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        {/* Header Section */}
+        
         <View style={styles.header}>
           <Text style={styles.headerTitle}>{t('Profile & Settings', 'پروفائل اور ترتیبات')}</Text>
         </View>
 
-        {/* Profile Card */}
+        
         <View style={styles.profileCard}>
           <View style={styles.cardTopRow}>
-            {/* Initials Avatar */}
+            
             <View style={styles.avatar}>
               <Text style={styles.avatarText}>{getInitials(profile.userName)}</Text>
             </View>
 
-            {/* User Info */}
+            
             <View style={styles.userInfo}>
               <Text style={styles.userName}>{profile.userName}</Text>
               <Text style={styles.userNameUrdu}>{profile.userNameUrdu}</Text>
@@ -139,13 +139,13 @@ export default function ProfileScreen() {
               </View>
             </View>
 
-            {/* Edit Icon */}
+            
             <TouchableOpacity style={styles.editIconBtn} onPress={() => setEditModalVisible(true)}>
               <Feather name="edit-2" size={20} color="#58D66D" />
             </TouchableOpacity>
           </View>
 
-          {/* Stats Row */}
+          
           <View style={styles.statsDivider} />
           <View style={styles.statsRow}>
             <View style={styles.statItem}>
@@ -165,7 +165,7 @@ export default function ProfileScreen() {
           </View>
         </View>
 
-        {/* Settings Groups */}
+        
         <View style={styles.settingsGroup}>
           <Text style={styles.groupTitle}>{t('Account', 'کھاتہ / اکاؤنٹ')}</Text>
           
@@ -238,7 +238,7 @@ export default function ProfileScreen() {
         </View>
       </ScrollView>
 
-      {/* Edit Profile Modal */}
+      
       <Modal
         animationType="slide"
         transparent={true}
@@ -300,7 +300,7 @@ export default function ProfileScreen() {
         </View>
       </Modal>
 
-      {/* Language Selection Modal */}
+      
       <Modal
         animationType="slide"
         transparent={true}
@@ -358,7 +358,7 @@ export default function ProfileScreen() {
         </View>
       </Modal>
 
-      {/* Bottom Navigation */}
+      
       <View style={styles.bottomNavContainer}>
         <View style={styles.bottomNav}>
           <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Dashboard')}>

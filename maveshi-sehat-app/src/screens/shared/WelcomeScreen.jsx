@@ -2,7 +2,7 @@ import React from 'react';
 import { View, StyleSheet, SafeAreaView, StatusBar } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
-// Components
+
 import WelcomeHeader from '../../components/WelcomeHeader';
 import Button from '../../components/Button';
 
@@ -14,10 +14,10 @@ export default function WelcomeScreen() {
       <StatusBar barStyle="light-content" backgroundColor="#58D66D" />
       
       <View style={styles.container}>
-        {/* Extracted Header Component */}
+        
         <WelcomeHeader />
 
-        {/* Extracted Button Components */}
+        
         <View style={styles.bottomContainer}>
           <Button 
             title="لاگ ان / Login" 
@@ -38,12 +38,12 @@ export default function WelcomeScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#58D66D', // Modern Neon Green
+    backgroundColor: '#58D66D', 
   },
   container: {
     flex: 1,
     justifyContent: 'space-between',
-    paddingHorizontal: 24, // Explicit left and right margin
+    paddingHorizontal: 24, 
   },
   bottomContainer: {
     paddingBottom: 32,

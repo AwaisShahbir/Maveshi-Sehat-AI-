@@ -6,14 +6,14 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import { getProfile, subscribeProfile } from '../../utils/profileStore';
 import { t } from '../../utils/translate';
 
-// Function to calculate THI (Temperature Humidity Index) for cattle
+
 const calculateTHI = (t, rh) => {
-  // Formula: THI = (1.8 * T + 32) - ((0.55 - 0.0055 * RH) * (1.8 * T - 26))
+  
   const thi = (1.8 * t + 32) - ((0.55 - 0.0055 * rh) * (1.8 * t - 26));
   return Math.round(thi);
 };
 
-// Function to determine stress level based on THI
+
 const getStressLevel = (thi) => {
   if (thi < 72) return { level: 'none', color: '#4CB85C', bg: '#E8F8EA' };
   if (thi >= 72 && thi < 79) return { level: 'moderate', color: '#F5A623', bg: '#FFF5E5' };
@@ -33,7 +33,7 @@ export default function HeatAlertScreen() {
   const [currentWeather, setCurrentWeather] = useState(null);
   const [forecast, setForecast] = useState([]);
 
-  // Subscribe to profile modifications
+  
   useEffect(() => {
     const unsubscribeProfile = subscribeProfile((updatedProfile) => {
       setProfile(updatedProfile);
@@ -47,7 +47,7 @@ export default function HeatAlertScreen() {
 
   const fetchWeatherData = async () => {
     try {
-      // Defaulting to Lahore coordinates. You can replace with expo-location later.
+      
       const lat = 31.5497;
       const lng = 74.3436;
       
@@ -67,7 +67,7 @@ export default function HeatAlertScreen() {
         status: getStressLevel(thi)
       });
 
-      // Parse 7-day forecast
+      
       const daily = data.daily;
       const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
       
@@ -131,7 +131,7 @@ export default function HeatAlertScreen() {
       <StatusBar barStyle="light-content" backgroundColor="#F5A623" />
       
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        {/* Orange Header Section */}
+        
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
             <Feather name="arrow-left" size={24} color="#FFF" />
@@ -146,7 +146,7 @@ export default function HeatAlertScreen() {
           )}
         </View>
 
-        {/* Current THI Card */}
+        
         <View style={styles.mainCard}>
           <View style={styles.cardHeader}>
             <Text style={styles.cardTitle}>{t('Current THI Index', 'موجودہ THI انڈیکس')}</Text>
@@ -155,7 +155,7 @@ export default function HeatAlertScreen() {
             </View>
           </View>
 
-          {/* Circular Gauge UI */}
+          
           <View style={styles.gaugeContainer}>
             <View style={[styles.gaugeCircle, { borderColor: currentWeather.status.color }]}>
               <Text style={[styles.gaugeValue, { color: currentWeather.status.color }]}>{currentWeather.thi}</Text>
@@ -170,7 +170,7 @@ export default function HeatAlertScreen() {
             )}
           </Text>
 
-          {/* Weather Metrics */}
+          
           <View style={styles.metricsRow}>
             <View style={styles.metricBox}>
               <View style={[styles.metricIconBg, { backgroundColor: '#FFEBEB' }]}>
@@ -196,7 +196,7 @@ export default function HeatAlertScreen() {
           </View>
         </View>
 
-        {/* 7-Day Forecast Card */}
+        
         <View style={[styles.mainCard, { marginBottom: 100 }]}>
           <Text style={styles.forecastTitle}>{t('7-Day Forecast', '7 روزہ پیشن گوئی')}</Text>
           
@@ -218,7 +218,7 @@ export default function HeatAlertScreen() {
         </View>
       </ScrollView>
 
-      {/* Bottom Navigation */}
+      
       <View style={styles.bottomNavContainer}>
         <View style={styles.bottomNav}>
           <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Dashboard')}>
@@ -255,7 +255,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F5A623',
     paddingHorizontal: 24,
     paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 0) + 16 : 16,
-    paddingBottom: 60, // Extra padding because card overlaps
+    paddingBottom: 60, 
     borderBottomLeftRadius: 30,
     borderBottomRightRadius: 30,
   },
@@ -271,7 +271,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
     borderRadius: 20,
     padding: 24,
-    marginTop: -40, // Overlap the orange header
+    marginTop: -40, 
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.05,

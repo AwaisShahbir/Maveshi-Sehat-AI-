@@ -1,35 +1,37 @@
-/* Design Tokens & Variables */
+@import "tailwindcss";
+
+
 :root {
-  --sidebar-bg: #111a24;
-  --sidebar-hover: #1b2633;
-  --sidebar-active: #00c853;
-  --sidebar-text: #b0c4de;
+  --sidebar-bg: #135431;
+  --sidebar-hover: rgba(255, 255, 255, 0.08);
+  --sidebar-active: #3da860;
+  --sidebar-text: #c5dbd0;
   --sidebar-text-active: #ffffff;
   
-  --bg-page: #f8faf9;
+  --bg-page: #eff7f2;
   --bg-card: #ffffff;
   
   --text-main: #1f2937;
-  --text-muted: #6b7280;
+  --text-muted: #4b5563;
   --text-light: #9ca3af;
   
-  --border-light: #e5e7eb;
+  --border-light: #e2e8f0;
   
-  --color-green: #00c853;
-  --color-green-light: #e8f8ea;
-  --color-red: #ff3b30;
-  --color-red-light: #ffebea;
-  --color-orange: #ff9500;
-  --color-orange-light: #fff4e5;
+  --color-green: #3da860;
+  --color-green-light: #eff7f2;
+  --color-red: #d32f2f;
+  --color-red-light: #ffebee;
+  --color-orange: #ff9800;
+  --color-orange-light: #fff3e0;
   --color-blue: #007aff;
   --color-blue-light: #e6f0ff;
   
   --font-main: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-heading: 'Outfit', sans-serif;
   
-  --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.03);
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.02), 0 1px 2px rgba(0,0,0,0.03);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.03), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.04), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
   
   --radius-sm: 8px;
   --radius-md: 12px;
@@ -37,35 +39,37 @@
   --radius-xl: 24px;
 }
 
-/* Base Resets */
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+@layer base {
+  
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    font-family: var(--font-main);
+    background-color: var(--bg-page);
+    color: var(--text-main);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  button, input, select, textarea {
+    font-family: inherit;
+    font-size: inherit;
+    color: inherit;
+    outline: none;
+  }
 }
 
-body {
-  font-family: var(--font-main);
-  background-color: var(--bg-page);
-  color: var(--text-main);
-  line-height: 1.5;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
 
-a {
-  color: inherit;
-  text-decoration: none;
-}
-
-button, input, select, textarea {
-  font-family: inherit;
-  font-size: inherit;
-  color: inherit;
-  outline: none;
-}
-
-/* App Container Layout */
 .app-container {
   display: flex;
   min-height: 100vh;
@@ -73,7 +77,7 @@ button, input, select, textarea {
   overflow-x: hidden;
 }
 
-/* Main Content Area */
+
 .main-content {
   flex: 1;
   display: flex;
@@ -83,7 +87,7 @@ button, input, select, textarea {
   background-color: var(--bg-page);
 }
 
-/* Scrollbar styles */
+
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -99,7 +103,7 @@ button, input, select, textarea {
   background: #94a3b8;
 }
 
-/* Grid Layouts */
+
 .grid-4 {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -127,7 +131,7 @@ button, input, select, textarea {
   }
 }
 
-/* Card Component */
+
 .card {
   background-color: var(--bg-card);
   border-radius: var(--radius-lg);
@@ -157,7 +161,7 @@ button, input, select, textarea {
   margin-top: 2px;
 }
 
-/* Badges */
+
 .badge {
   display: inline-flex;
   align-items: center;
@@ -188,7 +192,7 @@ button, input, select, textarea {
   color: var(--color-blue);
 }
 
-/* Tables */
+
 .table-responsive {
   width: 100%;
   overflow-x: auto;
@@ -225,7 +229,7 @@ button, input, select, textarea {
   background-color: #fcfdfd;
 }
 
-/* Buttons */
+
 .btn {
   display: inline-flex;
   align-items: center;
@@ -278,7 +282,7 @@ button, input, select, textarea {
   color: var(--text-main);
 }
 
-/* Tabs UI */
+
 .tabs-container {
   display: flex;
   gap: 16px;
@@ -302,7 +306,7 @@ button, input, select, textarea {
   border-bottom-color: var(--color-green);
 }
 
-/* Forms & Inputs */
+
 .form-group {
   margin-bottom: 16px;
 }
@@ -316,11 +320,9 @@ button, input, select, textarea {
 }
 
 
-/* ==========================================
-   LAYOUT, SIDEBAR, AND HEADER STYLING
-   ========================================== */
 
-/* Sidebar Container */
+
+
 .sidebar {
   width: 280px;
   min-width: 280px;
@@ -332,7 +334,7 @@ button, input, select, textarea {
   border-right: 1px solid rgba(255,255,255,0.05);
 }
 
-/* Sidebar Brand */
+
 .sidebar-brand {
   display: flex;
   align-items: center;
@@ -365,7 +367,7 @@ button, input, select, textarea {
   display: block;
 }
 
-/* Sidebar Profile */
+
 .sidebar-profile {
   display: flex;
   align-items: center;
@@ -377,7 +379,7 @@ button, input, select, textarea {
 .profile-avatar {
   width: 44px;
   height: 44px;
-  background-color: #3b82f6;
+  background-color: var(--sidebar-active);
   color: white;
   border-radius: 50%;
   display: flex;
@@ -393,12 +395,17 @@ button, input, select, textarea {
   color: #ffffff;
 }
 .profile-role {
-  font-size: 11px;
-  color: #58d66d;
-  display: block;
+  font-size: 10px;
+  font-weight: 600;
+  color: #eff7f2;
+  background-color: rgba(255, 255, 255, 0.12);
+  padding: 3px 10px;
+  border-radius: 20px;
+  display: inline-block;
+  margin-top: 4px;
 }
 
-/* Sidebar Menu */
+
 .sidebar-menu {
   flex: 1;
   overflow-y: auto;
@@ -420,12 +427,14 @@ button, input, select, textarea {
   list-style: none;
 }
 
-/* Menu Item */
+
 .menu-item {
   display: flex;
   align-items: center;
   gap: 14px;
-  padding: 10px 24px;
+  padding: 12px 20px;
+  margin: 4px 16px;
+  border-radius: 12px;
   color: var(--sidebar-text);
   font-size: 14px;
   font-weight: 500;
@@ -438,23 +447,14 @@ button, input, select, textarea {
 }
 .menu-item.active {
   color: var(--sidebar-text-active);
-  background-color: rgba(0, 200, 83, 0.1);
-}
-.menu-item.active::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 4px;
   background-color: var(--sidebar-active);
 }
 .menu-icon {
   color: inherit;
-  opacity: 0.8;
+  opacity: 0.9;
 }
 .menu-item.active .menu-icon {
-  color: var(--sidebar-active);
+  color: #ffffff;
   opacity: 1;
 }
 .menu-labels {
@@ -482,7 +482,7 @@ button, input, select, textarea {
   color: #fca5a5;
 }
 
-/* Sidebar Footer */
+
 .sidebar-footer {
   padding: 16px 24px;
   border-top: 1px solid rgba(255,255,255,0.05);
@@ -491,23 +491,24 @@ button, input, select, textarea {
   display: flex;
   align-items: center;
   gap: 14px;
-  width: 100%;
+  width: calc(100% - 32px);
+  margin: 0 16px;
   background: transparent;
-  border: 1px solid rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.25);
   color: var(--sidebar-text);
   padding: 12px 16px;
-  border-radius: var(--radius-md);
+  border-radius: 12px;
   cursor: pointer;
   transition: all 0.2s ease;
   text-align: left;
 }
 .logout-btn:hover {
-  background-color: #7f1d1d;
+  background-color: rgba(255,255,255,0.1);
   color: #ffffff;
-  border-color: transparent;
+  border-color: #ffffff;
 }
 
-/* Header Container */
+
 .main-header {
   height: 80px;
   background-color: #ffffff;
@@ -533,14 +534,14 @@ button, input, select, textarea {
   color: var(--text-muted);
 }
 
-/* Header Actions */
+
 .header-actions {
   display: flex;
   align-items: center;
   gap: 20px;
 }
 
-/* Search Box */
+
 .header-search-container {
   display: flex;
   align-items: center;
@@ -567,7 +568,7 @@ button, input, select, textarea {
   width: 100%;
 }
 
-/* Notification Bell */
+
 .header-notification-btn {
   position: relative;
   width: 40px;
@@ -599,7 +600,7 @@ button, input, select, textarea {
   justify-content: center;
 }
 
-/* Admin Quick Profile Avatar */
+
 .header-avatar-btn {
   position: relative;
   cursor: pointer;
@@ -628,7 +629,7 @@ button, input, select, textarea {
   border-radius: 50%;
 }
 
-/* Main Content Page Container */
+
 .page-container {
   padding: 32px;
   flex: 1;
@@ -656,7 +657,7 @@ textarea.form-control {
   resize: vertical;
 }
 
-/* Bilingual Label Support */
+
 .bilingual-header {
   font-family: var(--font-heading);
 }
@@ -668,9 +669,7 @@ textarea.form-control {
   margin-top: 2px;
 }
 
-/* ==========================================
-   LOGIN PAGE STYLING
-   ========================================== */
+
 
 .login-page-container {
   display: flex;
@@ -781,11 +780,9 @@ textarea.form-control {
 }
 
 
-/* ==========================================
-   DASHBOARD STATS & WIDGETS STYLING
-   ========================================== */
 
-/* KPI Cards */
+
+
 .kpi-card {
   display: flex;
   align-items: center;
@@ -846,7 +843,7 @@ textarea.form-control {
 .text-orange { color: var(--color-orange); }
 .text-red { color: var(--color-red); }
 
-/* Pending Actions */
+
 .pending-section {
   border-bottom: 1px solid var(--border-light);
   padding-bottom: 16px;
@@ -948,7 +945,7 @@ textarea.form-control {
   padding: 10px 0;
 }
 
-/* System Status */
+
 .status-list {
   display: flex;
   flex-direction: column;
@@ -997,11 +994,9 @@ textarea.form-control {
   border-radius: 20px;
 }
 
-/* ==========================================
-   VET VERIFICATION & PHARMACY CARDS STYLING
-   ========================================== */
 
-/* Vet Verification Grid */
+
+
 .vet-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -1053,7 +1048,7 @@ textarea.form-control {
   margin-top: 2px;
 }
 
-/* Vet Details List */
+
 .vet-details-list {
   display: flex;
   flex-direction: column;
@@ -1101,7 +1096,7 @@ textarea.form-control {
   color: var(--text-main);
 }
 
-/* License Document Box */
+
 .license-doc-box {
   display: flex;
   align-items: center;
@@ -1134,7 +1129,7 @@ textarea.form-control {
   font-weight: 500;
 }
 
-/* Experience Box */
+
 .experience-box {
   display: flex;
   align-items: flex-start;
@@ -1151,7 +1146,7 @@ textarea.form-control {
   line-height: 1.5;
 }
 
-/* Vet Card Actions */
+
 .vet-card-actions {
   display: flex;
   flex-direction: column;
@@ -1165,7 +1160,7 @@ textarea.form-control {
   border-radius: var(--radius-md);
 }
 
-/* Pharmacy Approval Components */
+
 .p-avatar-box {
   width: 48px;
   height: 48px;
@@ -1177,7 +1172,7 @@ textarea.form-control {
   min-width: 48px;
 }
 
-/* Empty State Widget */
+
 .empty-state {
   display: flex;
   flex-direction: column;

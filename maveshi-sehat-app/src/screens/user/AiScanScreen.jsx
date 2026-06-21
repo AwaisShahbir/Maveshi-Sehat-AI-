@@ -22,7 +22,7 @@ import { addRecord } from '../../utils/recordsStore';
 import { t, getLocalizedDescription, getLocalizedFirstAid } from '../../utils/translate';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 
-// Mock images for simulation representing different animal health statuses
+
 const MOCK_IMAGES = [
   {
     id: '1',
@@ -40,8 +40,8 @@ const MOCK_IMAGES = [
       'Control flies, mosquitoes, and ticks in the stable to stop the spread.',
       'Provide soft feed and clean, fresh drinking water.'
     ],
-    // Stylized local illustration placeholder (using React Native system icons or elegant visual representation)
-    uri: 'https://images.unsplash.com/photo-1570042225831-d98fa7577f1e?q=80&w=400&auto=format&fit=crop', // Beautiful Cow
+    
+    uri: 'https://images.unsplash.com/photo-1570042225831-d98fa7577f1e?q=80&w=400&auto=format&fit=crop', 
   },
   {
     id: '2',
@@ -58,7 +58,7 @@ const MOCK_IMAGES = [
       'Keep the housing dry, well-ventilated, and clean.',
       'Perform regular health check-ups.'
     ],
-    uri: 'https://images.unsplash.com/photo-1596733430284-f7437764b1a9?q=80&w=400&auto=format&fit=crop', // Grazing Cow
+    uri: 'https://images.unsplash.com/photo-1596733430284-f7437764b1a9?q=80&w=400&auto=format&fit=crop', 
   },
   {
     id: '3',
@@ -76,7 +76,7 @@ const MOCK_IMAGES = [
       'Keep the animal in dry and mud-free environment to avoid hoof infection.',
       'Feed soft mashes or gruel to ease chewing.'
     ],
-    uri: 'https://images.unsplash.com/photo-1627998774704-512b9ad71f54?q=80&w=400&auto=format&fit=crop', // Buffalo in field
+    uri: 'https://images.unsplash.com/photo-1627998774704-512b9ad71f54?q=80&w=400&auto=format&fit=crop', 
   },
   {
     id: '4',
@@ -93,7 +93,7 @@ const MOCK_IMAGES = [
       'Provide mineral mixture with daily fodder.',
       'Isolate new livestock for 14 days before introducing to the herd.'
     ],
-    uri: 'https://images.unsplash.com/photo-1558024920-b41e1887dc32?q=80&w=400&auto=format&fit=crop', // Buffalo close-up
+    uri: 'https://images.unsplash.com/photo-1558024920-b41e1887dc32?q=80&w=400&auto=format&fit=crop', 
   }
 ];
 
@@ -104,22 +104,22 @@ export default function AiScanScreen() {
   const userName = params.userName || 'Muhammad Ahmed';
   const userId = params.userId || null;
 
-  // UI States
+  
   const [animalType, setAnimalType] = useState('');
   const [showDropdown, setShowDropdown] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
   const [pickerModalVisible, setPickerModalVisible] = useState(false);
   
-  // Scanning States
+  
   const [isScanning, setIsScanning] = useState(false);
   const [scanProgressText, setScanProgressText] = useState('Uploading Image...');
   const [showReport, setShowReport] = useState(false);
   const [scanResult, setScanResult] = useState(null);
 
-  // Animated values
+  
   const scanLineAnim = useRef(new Animated.Value(0)).current;
 
-  // Run scanning animation loop
+  
   const startScanAnimation = () => {
     scanLineAnim.setValue(0);
     Animated.loop(
@@ -245,20 +245,20 @@ export default function AiScanScreen() {
     setShowReport(false);
     startScanAnimation();
 
-    // Step 1: Uploading
+    
     setScanProgressText(t('Uploading Image to Maveshi AI...', 'تصویر اپ لوڈ ہو رہی ہے...'));
     
-    // Step 2: Running model
+    
     setTimeout(() => {
       setScanProgressText(t('Analyzing Symptoms...', 'علامات کا تجزیہ کیا جا رہا ہے...'));
     }, 1200);
 
-    // Step 3: Fetching results
+    
     setTimeout(() => {
       setScanProgressText(t('Generating Health Diagnosis...', 'تشخیص تیار کی جا رہی ہے...'));
     }, 2400);
 
-    // Step 4: Finished
+    
     setTimeout(() => {
       setIsScanning(false);
       stopScanAnimation();
@@ -352,7 +352,7 @@ export default function AiScanScreen() {
 
       addRecord(newRecord, userName);
       
-      // Update screen state with generated ID info so it's shown in the report
+      
       setScanResult({
         ...randomOutcome,
         generatedAnimalId,
@@ -368,10 +368,10 @@ export default function AiScanScreen() {
     setScanResult(null);
   };
 
-  // Interpolate scanning line position
+  
   const translateY = scanLineAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [0, 195], // height of container is 200, line is 5
+    outputRange: [0, 195], 
   });
 
   return (
@@ -379,7 +379,7 @@ export default function AiScanScreen() {
       <StatusBar barStyle="light-content" backgroundColor="#58D66D" />
       
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        {/* Header Section */}
+        
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
             <Feather name="chevron-left" size={28} color="#FFF" />
@@ -388,11 +388,11 @@ export default function AiScanScreen() {
           <Text style={styles.headerTitle}>{t('AI Disease Detection', 'بیماری کی تشخیص')}</Text>
         </View>
 
-        {/* Input Form Card */}
+        
         <View style={styles.mainCard}>
           <Text style={styles.fieldLabel}>{t('Select Animal Type', 'جانور کی قسم منتخب کریں')}</Text>
           
-          {/* Dropdown Selector */}
+          
           <TouchableOpacity 
             style={styles.dropdownBtn} 
             onPress={() => setShowDropdown(!showDropdown)}
@@ -403,7 +403,7 @@ export default function AiScanScreen() {
             <Feather name={showDropdown ? 'chevron-up' : 'chevron-down'} size={20} color="#666" />
           </TouchableOpacity>
 
-          {/* Dropdown Content */}
+          
           {showDropdown && (
             <View style={styles.dropdownList}>
               <TouchableOpacity 
@@ -421,7 +421,7 @@ export default function AiScanScreen() {
             </View>
           )}
 
-          {/* Action Grid (Take Photo / Gallery) */}
+          
           {!selectedImage ? (
             <View style={styles.uploadRow}>
               <TouchableOpacity style={styles.uploadCard} onPress={handleTakePhoto}>
@@ -439,12 +439,12 @@ export default function AiScanScreen() {
               </TouchableOpacity>
             </View>
           ) : (
-            /* Selected Image Preview & Action */
+            
             <View style={styles.previewContainer}>
               <View style={styles.imageWrapper}>
                 <Image source={{ uri: selectedImage.uri }} style={styles.previewImage} />
                 
-                {/* Scanning overlay bar */}
+                
                 {isScanning && (
                   <View style={StyleSheet.absoluteFill}>
                     <Animated.View style={[styles.scanLine, { transform: [{ translateY }] }]} />
@@ -472,7 +472,7 @@ export default function AiScanScreen() {
           )}
         </View>
 
-        {/* Diagnosis Report Card */}
+        
         {showReport && scanResult && (
           <View style={styles.reportCard}>
             <View style={styles.reportHeader}>
@@ -529,7 +529,7 @@ export default function AiScanScreen() {
           </View>
         )}
 
-        {/* Tips Box */}
+        
         <View style={styles.tipsCard}>
           <View style={styles.tipsHeader}>
             <Feather name="info" size={20} color="#1A73E8" style={{ marginRight: 8 }} />
@@ -543,11 +543,11 @@ export default function AiScanScreen() {
           </View>
         </View>
 
-        {/* Dummy space for scrolling */}
+        
         <View style={{ height: 100 }} />
       </ScrollView>
 
-      {/* Mock Image Selection Modal */}
+      
       <Modal
         animationType="slide"
         transparent={true}
@@ -592,7 +592,7 @@ export default function AiScanScreen() {
         </View>
       </Modal>
 
-      {/* Bottom Navigation */}
+      
       <View style={styles.bottomNavContainer}>
         <View style={styles.bottomNav}>
           <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Dashboard')}>

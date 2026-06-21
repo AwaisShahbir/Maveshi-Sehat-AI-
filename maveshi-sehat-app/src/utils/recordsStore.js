@@ -13,7 +13,7 @@ export const loadRecords = async (ownerName) => {
     if (response.ok) {
       const data = await response.json();
       records = data;
-      // Notify listeners
+      
       listeners.forEach(listener => {
         try {
           listener(records);
@@ -30,7 +30,7 @@ export const loadRecords = async (ownerName) => {
 };
 
 export const addRecord = async (record, ownerName) => {
-  // 1. Add locally first for instant UI response
+  
   records = [record, ...records];
   listeners.forEach(listener => {
     try {
@@ -41,7 +41,7 @@ export const addRecord = async (record, ownerName) => {
   });
 
   try {
-    // 2. If the image is a local URI and not a web URL, we should upload it first to the backend
+    
     let uploadedImageUrl = record.uri;
     if (record.uri && !record.uri.startsWith('http')) {
       const formData = new FormData();
@@ -63,7 +63,7 @@ export const addRecord = async (record, ownerName) => {
       }
     }
 
-    // 3. Post record to backend
+    
     const postRes = await fetch(`${BASE_URL}/api/detections`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

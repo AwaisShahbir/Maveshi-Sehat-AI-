@@ -29,10 +29,10 @@ const io = new Server(server, {
   }
 });
 
-// Serve static upload files
+
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Configure Multer storage
+
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, 'uploads/');
@@ -56,7 +56,7 @@ const upload = multer({
   }
 });
 
-// PostgreSQL Connection Pool
+
 const pool = new Pool({
   user: process.env.DB_USER,
   host: process.env.DB_HOST,
@@ -65,13 +65,13 @@ const pool = new Pool({
   port: process.env.DB_PORT,
 });
 
-// Test DB connection
+
 pool.connect((err, client, release) => {
   if (err) {
     console.error('Error connecting to PostgreSQL:', err.message);
   } else {
     console.log('✅ Successfully connected to PostgreSQL Database!');
-    // Perform migrations to add columns if they do not exist
+    
     client.query(`
       ALTER TABLE detections ADD COLUMN IF NOT EXISTS image_url VARCHAR(255);
       ALTER TABLE detections ADD COLUMN IF NOT EXISTS description TEXT;
@@ -88,6 +88,30 @@ pool.connect((err, client, release) => {
       ALTER TABLE pharmacies ADD COLUMN IF NOT EXISTS city VARCHAR(100);
       ALTER TABLE pharmacies ADD COLUMN IF NOT EXISTS business_hours VARCHAR(100);
       ALTER TABLE pharmacies ADD COLUMN IF NOT EXISTS description TEXT;
+
+      ALTER TABLE medicines ADD COLUMN IF NOT EXISTS name_urdu VARCHAR(255);
+      ALTER TABLE medicines ADD COLUMN IF NOT EXISTS manufacturer VARCHAR(255);
+      ALTER TABLE medicines ADD COLUMN IF NOT EXISTS min_stock INT DEFAULT 10;
+      ALTER TABLE medicines ADD COLUMN IF NOT EXISTS max_stock INT DEFAULT 100;
+      ALTER TABLE medicines ADD COLUMN IF NOT EXISTS dosage_form VARCHAR(100);
+      ALTER TABLE medicines ADD COLUMN IF NOT EXISTS strength VARCHAR(100);
+      ALTER TABLE medicines ADD COLUMN IF NOT EXISTS batch_number VARCHAR(100);
+      ALTER TABLE medicines ADD COLUMN IF NOT EXISTS expiry_date VARCHAR(100);
+      ALTER TABLE medicines ADD COLUMN IF NOT EXISTS active_ingredients TEXT;
+      ALTER TABLE medicines ADD COLUMN IF NOT EXISTS description TEXT;
+      ALTER TABLE medicines ADD COLUMN IF NOT EXISTS prescription_required BOOLEAN DEFAULT FALSE;
+      ALTER TABLE medicines ADD COLUMN IF NOT EXISTS image_url VARCHAR(255);
+      ALTER TABLE medicines ADD COLUMN IF NOT EXISTS last_restocked TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
+
+      ALTER TABLE orders ADD COLUMN IF NOT EXISTS buyer_name_urdu VARCHAR(255);
+
+      CREATE TABLE IF NOT EXISTS order_items (
+        id SERIAL PRIMARY KEY,
+        order_id VARCHAR(20) REFERENCES orders(id) ON DELETE CASCADE,
+        medicine_id INT REFERENCES medicines(id) ON DELETE CASCADE,
+        quantity INT NOT NULL,
+        price DECIMAL(10, 2) NOT NULL
+      );
     `, (migrationErr) => {
       release();
       if (migrationErr) {
@@ -99,12 +123,12 @@ pool.connect((err, client, release) => {
   }
 });
 
-// Basic Route
+
 app.get('/', (req, res) => {
   res.send('Maveshi Sehat AI API is running!');
 });
 
-// --- FILE UPLOAD API ---
+
 app.post('/upload', upload.single('license'), (req, res) => {
   try {
     if (!req.file) {
@@ -121,7 +145,7 @@ app.post('/upload', upload.single('license'), (req, res) => {
   }
 });
 
-// --- REGISTRATION API ---
+
 app.post('/register', async (req, res) => {
   try {
     const { 
@@ -129,20 +153,20 @@ app.post('/register', async (req, res) => {
       pvmcNumber, specialization, experienceYears, licenseDocumentUrl 
     } = req.body;
 
-    // 1. Check if user already exists (by phone or email)
+    
     const userExists = await pool.query('SELECT * FROM users WHERE phone_number = $1 OR email = $2', [phoneNumber, email]);
     if (userExists.rows.length > 0) {
       return res.status(400).json({ error: 'User with this phone or email already exists!' });
     }
 
-    // 2. Hash the password securely
+    
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Set initial status: Vets are pending; farmers/admins are approved by default
+    
     const status = role === 'vet' ? 'pending' : 'approved';
 
-    // 3. Insert into PostgreSQL
+    
     const newUser = await pool.query(
       `INSERT INTO users (
         full_name, phone_number, email, district, role, password, status, 
@@ -154,16 +178,16 @@ app.post('/register', async (req, res) => {
       ]
     );
 
-    // 4. Handle notification/OTP based on role
+    
     if (role === 'vet') {
-      // Send Admin Notification if a new Vet signs up
+      
       await pool.query(
         `INSERT INTO admin_notifications (type, message_en, message_ur) 
          VALUES ('vet_application', $1, $2)`,
         [`New vet application submitted - ${fullName}`, `${fullName} نے تصدیق جمع کرائی — ${district}`]
       );
 
-      // Send Email to Vet about registration pending admin review
+      
       try {
         await transporter.sendMail({
           from: `"Maveshi Sehat AI" <${process.env.EMAIL_USER}>`,
@@ -182,11 +206,11 @@ app.post('/register', async (req, res) => {
         role: 'vet'
       });
     } else {
-      // 5. Generate 4-digit OTP for Farmers
+      
       const otp = Math.floor(1000 + Math.random() * 9000).toString();
       await pool.query('INSERT INTO otps (email, otp) VALUES ($1, $2)', [email, otp]);
 
-      // 6. Send OTP Email to Farmer
+      
       try {
         await transporter.sendMail({
           from: `"Maveshi Sehat AI" <${process.env.EMAIL_USER}>`,
@@ -197,7 +221,7 @@ app.post('/register', async (req, res) => {
         console.log(`OTP ${otp} sent to ${email}`);
       } catch (mailErr) {
         console.error('Email failed to send. Check your Gmail credentials.');
-        console.log(`[DEV MODE] Your OTP for ${email} is: ${otp}`); // Fallback for dev
+        console.log(`[DEV MODE] Your OTP for ${email} is: ${otp}`); 
       }
 
       return res.status(201).json({ 
@@ -212,7 +236,7 @@ app.post('/register', async (req, res) => {
   }
 });
 
-// --- OTP VERIFICATION API ---
+
 app.post('/verify-otp', async (req, res) => {
   try {
     const { email, otp } = req.body;
@@ -221,7 +245,7 @@ app.post('/verify-otp', async (req, res) => {
     if (record.rows.length === 0) return res.status(400).json({ error: 'No OTP found for this email.' });
     if (record.rows[0].otp !== otp) return res.status(400).json({ error: 'Invalid OTP!' });
 
-    // Delete OTP after success
+    
     await pool.query('DELETE FROM otps WHERE email = $1', [email]);
 
     res.status(200).json({ message: 'OTP verified successfully!' });
@@ -230,12 +254,12 @@ app.post('/verify-otp', async (req, res) => {
   }
 });
 
-// --- LOGIN API ---
+
 app.post('/login', async (req, res) => {
   try {
     const { phoneNumber, email, password, role } = req.body;
 
-    // 1. Check if user exists (by email if provided, otherwise by phone number)
+    
     let userResult;
     if (email) {
       userResult = await pool.query('SELECT * FROM users WHERE email = $1 AND role = $2', [email, role]);
@@ -249,7 +273,7 @@ app.post('/login', async (req, res) => {
 
     const user = userResult.rows[0];
 
-    // Check account approval status
+    
     if (user.status === 'pending') {
       return res.status(403).json({ error: 'Your vet account is pending admin approval.' });
     }
@@ -263,13 +287,13 @@ app.post('/login', async (req, res) => {
       return res.status(403).json({ error: 'Additional information is requested by the administrator. Please check your email for details.' });
     }
 
-    // 2. Compare passwords
+    
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(400).json({ error: 'Invalid password.' });
     }
 
-    // 3. Login successful
+    
     res.status(200).json({ 
       message: 'Login successful!',
       user: {
@@ -287,7 +311,7 @@ app.post('/login', async (req, res) => {
   }
 });
 
-// --- USER DASHBOARD STATS & RECENT SCANS API ---
+
 function getTimeAgo(date) {
   const seconds = Math.floor((new Date() - new Date(date)) / 1000);
   let interval = Math.floor(seconds / 31536000);
@@ -313,37 +337,37 @@ app.get('/api/dashboard-stats', async (req, res) => {
       return res.status(400).json({ error: 'ownerName parameter is required' });
     }
 
-    // 1. Fetch total scans for this owner
+    
     const totalScansRes = await pool.query(
       'SELECT COUNT(*) FROM detections WHERE owner_name ILIKE $1',
       [ownerName]
     );
     const aiScans = parseInt(totalScansRes.rows[0].count) || 0;
 
-    // 2. Fetch healthy scans (disease is 'Healthy' or 'BCS Normal')
+    
     const healthyScansRes = await pool.query(
       "SELECT COUNT(*) FROM detections WHERE owner_name ILIKE $1 AND disease IN ('Healthy', 'BCS Normal')",
       [ownerName]
     );
     const healthyCount = parseInt(healthyScansRes.rows[0].count) || 0;
 
-    // Calculate percentage of healthy scans. If no scans, default to 0%
+    
     const healthyPercentage = aiScans > 0 ? Math.round((healthyCount / aiScans) * 100) : 0;
 
-    // 3. For livestock, count unique animal_type scanned by this owner.
+    
     const distinctAnimalsRes = await pool.query(
       'SELECT COUNT(DISTINCT animal_type) FROM detections WHERE owner_name ILIKE $1',
       [ownerName]
     );
     const livestock = parseInt(distinctAnimalsRes.rows[0].count) || 0;
 
-    // 4. Fetch recent scans for this owner
+    
     const recentScansRes = await pool.query(
       'SELECT * FROM detections WHERE owner_name ILIKE $1 ORDER BY created_at DESC LIMIT 5',
       [ownerName]
     );
 
-    // Format the recent scans to match the frontend expectations
+    
     const recentScans = recentScansRes.rows.map((row) => {
       let severity = 'Low';
       let icon = 'check-circle';
@@ -362,7 +386,7 @@ app.get('/api/dashboard-stats', async (req, res) => {
         bg = '#FFF5E5';
       }
 
-      // Map disease names to a display title
+      
       let displayTitle = row.disease;
       if (row.disease === 'LSD') displayTitle = 'Lumpy Skin Disease';
       else if (row.disease === 'FMD') displayTitle = 'Foot & Mouth Disease';
@@ -396,25 +420,25 @@ app.get('/api/dashboard-stats', async (req, res) => {
   }
 });
 
-// ==========================================
-// --- WEB ADMIN API ENDPOINTS ---
-// ==========================================
 
-// --- 1. DASHBOARD STATS ---
+
+
+
+
 app.get('/api/admin/dashboard-stats', async (req, res) => {
   try {
-    // A. Fetch Counts
+    
     const totalUsersRes = await pool.query("SELECT COUNT(*) FROM users WHERE role != 'admin'");
     const activeVetsRes = await pool.query("SELECT COUNT(*) FROM users WHERE role = 'vet' AND status = 'verified'");
     const pendingVetsRes = await pool.query("SELECT COUNT(*) FROM users WHERE role = 'vet' AND status = 'pending'");
     const scansRes = await pool.query("SELECT COUNT(*) FROM detections");
     const activeOrdersRes = await pool.query("SELECT COUNT(*) FROM orders WHERE status NOT IN ('delivered', 'cancelled')");
     
-    // Fetch unread notifications count
+    
     const unreadNotifsRes = await pool.query("SELECT COUNT(*) FROM admin_notifications WHERE read = FALSE");
     const unreadNotificationsCount = parseInt(unreadNotifsRes.rows[0].count) || 0;
 
-    // B. Fetch Recent Detections
+    
     const recentDetectionsRes = await pool.query(`
       SELECT d.*, u.full_name as vet_name 
       FROM detections d 
@@ -422,11 +446,11 @@ app.get('/api/admin/dashboard-stats', async (req, res) => {
       ORDER BY d.created_at DESC LIMIT 5
     `);
 
-    // C. Fetch Pending Actions (vets and pharmacies)
+    
     const pendingVetsList = await pool.query("SELECT id, full_name, pvmc_number, status, role FROM users WHERE role = 'vet' AND status = 'pending' LIMIT 3");
     const pendingPharmaciesList = await pool.query("SELECT id, name, license_number, status FROM pharmacies WHERE status = 'pending' LIMIT 3");
 
-    // D. Fetch System Health (mocked status)
+    
     const systemStatus = [
       { name: 'Backend API', status: 'Operational', uptime: '99.8%' },
       { name: 'AI Server', status: 'Operational', uptime: '99.7%' },
@@ -454,7 +478,7 @@ app.get('/api/admin/dashboard-stats', async (req, res) => {
   }
 });
 
-// --- 2. USERS MANAGEMENT ---
+
 app.get('/api/admin/users', async (req, res) => {
   try {
     const result = await pool.query("SELECT id, full_name, email, phone_number, district, role, status, pvmc_number, specialization, experience_years, license_document_url, created_at FROM users WHERE role != 'admin' ORDER BY id ASC");
@@ -466,7 +490,7 @@ app.get('/api/admin/users', async (req, res) => {
 
 app.post('/api/admin/users/action', async (req, res) => {
   try {
-    const { userId, action, message } = req.body; // action: 'approve', 'reject', 'block', 'unblock', 'request_info'
+    const { userId, action, message } = req.body; 
     let newStatus = 'approved';
     if (action === 'approve') newStatus = 'verified';
     else if (action === 'reject') newStatus = 'rejected';
@@ -476,7 +500,7 @@ app.post('/api/admin/users/action', async (req, res) => {
 
     await pool.query("UPDATE users SET status = $1 WHERE id = $2", [newStatus, userId]);
 
-    // Send email to Vet if requesting more info
+    
     if (action === 'request_info') {
       const userRes = await pool.query("SELECT full_name, email FROM users WHERE id = $1", [userId]);
       if (userRes.rows.length > 0) {
@@ -501,7 +525,7 @@ app.post('/api/admin/users/action', async (req, res) => {
   }
 });
 
-// --- 3. PHARMACIES ---
+
 app.get('/api/admin/pharmacies', async (req, res) => {
   try {
     const result = await pool.query(`
@@ -519,7 +543,7 @@ app.get('/api/admin/pharmacies', async (req, res) => {
 
 app.post('/api/admin/pharmacies/approve', async (req, res) => {
   try {
-    const { pharmacyId, action } = req.body; // action: 'approve', 'reject'
+    const { pharmacyId, action } = req.body; 
     const status = action === 'approve' ? 'approved' : 'rejected';
     await pool.query("UPDATE pharmacies SET status = $1 WHERE id = $2", [status, pharmacyId]);
     res.status(200).json({ message: `Pharmacy ${status} successfully.` });
@@ -528,7 +552,7 @@ app.post('/api/admin/pharmacies/approve', async (req, res) => {
   }
 });
 
-// --- 4. MEDICINES ---
+
 app.get('/api/admin/medicines', async (req, res) => {
   try {
     const result = await pool.query(`
@@ -567,7 +591,7 @@ app.delete('/api/admin/medicines/:id', async (req, res) => {
   }
 });
 
-// --- 5. ORDERS ---
+
 app.get('/api/admin/orders', async (req, res) => {
   try {
     const result = await pool.query("SELECT * FROM orders ORDER BY created_at DESC");
@@ -577,7 +601,7 @@ app.get('/api/admin/orders', async (req, res) => {
   }
 });
 
-// --- 6. HEALTH RECORDS / DETECTIONS ---
+
 app.get('/api/admin/health-records', async (req, res) => {
   try {
     const result = await pool.query(`
@@ -592,7 +616,7 @@ app.get('/api/admin/health-records', async (req, res) => {
   }
 });
 
-// --- USER DETECTIONS API ---
+
 app.get('/api/detections', async (req, res) => {
   try {
     const { ownerName } = req.query;
@@ -604,7 +628,7 @@ app.get('/api/detections', async (req, res) => {
       [ownerName]
     );
     
-    // Map rows to match the frontend recordsStore record structure
+    
     const records = result.rows.map(row => {
       const isHealthy = row.disease === 'Healthy' || row.disease === 'BCS Normal';
       let severityColor = '#4CB85C';
@@ -655,7 +679,7 @@ app.post('/api/detections', async (req, res) => {
       return res.status(400).json({ error: 'Missing required parameters (id, ownerName, animalType, disease)' });
     }
 
-    // Check if record already exists
+    
     const existing = await pool.query('SELECT * FROM detections WHERE id = $1', [id]);
     if (existing.rows.length > 0) {
       return res.status(200).json({ message: 'Record already exists', record: existing.rows[0] });
@@ -689,7 +713,7 @@ app.post('/api/detections', async (req, res) => {
   }
 });
 
-// --- 7. NOTIFICATIONS & ANNOUNCEMENTS ---
+
 app.get('/api/admin/notifications', async (req, res) => {
   try {
     const result = await pool.query("SELECT * FROM admin_notifications ORDER BY created_at DESC");
@@ -712,11 +736,11 @@ app.post('/api/admin/announcements', async (req, res) => {
   }
 });
 
-// ==========================================
-// --- WEB PHARMACY PORTAL API ENDPOINTS ---
-// ==========================================
 
-// --- 1. PHARMACY REGISTRATION ---
+
+
+
+
 app.post('/api/pharmacy/register', async (req, res) => {
   try {
     const {
@@ -725,7 +749,7 @@ app.post('/api/pharmacy/register', async (req, res) => {
       province, city, businessHours, description
     } = req.body;
 
-    // Check if email or license number already registered
+    
     const exists = await pool.query(
       'SELECT * FROM pharmacies WHERE email = $1 OR license_number = $2 OR phone = $3',
       [email, licenseNumber, phone]
@@ -734,11 +758,11 @@ app.post('/api/pharmacy/register', async (req, res) => {
       return res.status(400).json({ error: 'Pharmacy with this email, phone, or license number already exists!' });
     }
 
-    // Hash password
+    
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Insert new pharmacy
+    
     const result = await pool.query(
       `INSERT INTO pharmacies (
         name, name_urdu, license_number, license_expiry, owner_name,
@@ -752,7 +776,7 @@ app.post('/api/pharmacy/register', async (req, res) => {
       ]
     );
 
-    // Add Admin Notification
+    
     await pool.query(
       `INSERT INTO admin_notifications (type, message_en, message_ur) 
        VALUES ('pharmacy_approval', $1, $2)`,
@@ -769,12 +793,12 @@ app.post('/api/pharmacy/register', async (req, res) => {
   }
 });
 
-// --- 2. PHARMACY LOGIN ---
+
 app.post('/api/pharmacy/login', async (req, res) => {
   try {
     const { emailOrPhone, password } = req.body;
 
-    // Search by email or phone
+    
     const result = await pool.query(
       'SELECT * FROM pharmacies WHERE email = $1 OR phone = $1',
       [emailOrPhone]
@@ -786,7 +810,7 @@ app.post('/api/pharmacy/login', async (req, res) => {
 
     const pharmacy = result.rows[0];
 
-    // Check status
+    
     if (pharmacy.status === 'pending') {
       return res.status(403).json({ error: 'Your pharmacy portal account is pending admin approval.' });
     }
@@ -794,7 +818,7 @@ app.post('/api/pharmacy/login', async (req, res) => {
       return res.status(403).json({ error: 'Your pharmacy registration request was rejected by admin.' });
     }
 
-    // Compare passwords
+    
     const isMatch = await bcrypt.compare(password, pharmacy.password);
     if (!isMatch) {
       return res.status(400).json({ error: 'Invalid password.' });
@@ -817,7 +841,226 @@ app.post('/api/pharmacy/login', async (req, res) => {
   }
 });
 
-// --- 3. PHARMACY DASHBOARD STATS ---
+
+async function simulateOrdersIfEmpty(pharmacyId) {
+  try {
+    
+    const orderCheck = await pool.query("SELECT COUNT(*) FROM orders WHERE pharmacy_id = $1", [pharmacyId]);
+    const orderCount = parseInt(orderCheck.rows[0].count);
+    if (orderCount > 0) return; 
+
+    
+    const medRes = await pool.query("SELECT * FROM medicines WHERE pharmacy_id = $1", [pharmacyId]);
+    const medicines = medRes.rows;
+    if (medicines.length === 0) {
+      console.log(`No medicines found for pharmacy ${pharmacyId}. Seeding initial medicines...`);
+      const defaultMeds = [
+        { 
+          name: 'Tetracycline 500mg', 
+          name_urdu: 'ٹیٹراسائیکلین', 
+          manufacturer: 'Novartis Pakistan', 
+          dosage_form: 'Tablet',
+          strength: '500mg',
+          category: 'Antibiotic', 
+          price: 850, 
+          stock: 12, 
+          min_stock: 20, 
+          max_stock: 100,
+          batch_number: 'BAT-2024-001',
+          expiry_date: '2026-12-31',
+          active_ingredients: 'Tetracycline Hydrochloride',
+          description: 'Broad-spectrum antibiotic for bacterial infections.',
+          prescription_required: true,
+          status: 'active' 
+        },
+        { 
+          name: 'Ivermectin Injection', 
+          name_urdu: 'آئیورمیکٹن', 
+          manufacturer: 'Ferozsons Laboratories', 
+          dosage_form: 'Injection',
+          strength: '10ml',
+          category: 'Antiparasitic', 
+          price: 1200, 
+          stock: 5, 
+          min_stock: 15, 
+          max_stock: 80,
+          batch_number: 'BAT-2024-002',
+          expiry_date: '2027-06-30',
+          active_ingredients: 'Ivermectin',
+          description: 'Antiparasitic medication for livestock.',
+          prescription_required: true,
+          status: 'active' 
+        },
+        { 
+          name: 'Vitamin B-Complex', 
+          name_urdu: 'وٹامن بی کمپلیکس', 
+          manufacturer: 'Abbott Laboratories', 
+          dosage_form: 'Injection',
+          strength: '100ml',
+          category: 'Vitamin', 
+          price: 450, 
+          stock: 8, 
+          min_stock: 10, 
+          max_stock: 80,
+          batch_number: 'BAT-2024-003',
+          expiry_date: '2027-09-30',
+          active_ingredients: 'Thiamine, Riboflavin, Niacinamide',
+          description: 'Vitamin B supplement to boost health.',
+          prescription_required: false,
+          status: 'active' 
+        },
+        { 
+          name: 'Calcium Supplement', 
+          name_urdu: 'کیلشیم سپلیمنٹ', 
+          manufacturer: 'GlaxoSmithKline', 
+          dosage_form: 'Suspension',
+          strength: '1 Litre',
+          category: 'Vitamin', 
+          price: 650, 
+          stock: 25, 
+          min_stock: 15, 
+          max_stock: 70,
+          batch_number: 'BAT-2024-004',
+          expiry_date: '2026-10-31',
+          active_ingredients: 'Calcium Gluconate, Vitamin D3',
+          description: 'Liquid calcium for milk fever prevention and bones.',
+          prescription_required: false,
+          status: 'active' 
+        },
+        { 
+          name: 'Deworming Tablets', 
+          name_urdu: 'ڈی ورمونگ ٹیبلٹس', 
+          manufacturer: 'Highnoon Laboratories', 
+          dosage_form: 'Bolus',
+          strength: '1000mg',
+          category: 'Antiparasitic', 
+          price: 320, 
+          stock: 30, 
+          min_stock: 20, 
+          max_stock: 100,
+          batch_number: 'BAT-2024-005',
+          expiry_date: '2028-03-31',
+          active_ingredients: 'Albendazole',
+          description: 'Broad-spectrum dewormer for roundworms and flukes.',
+          prescription_required: false,
+          status: 'active' 
+        },
+        { 
+          name: 'Multivitamin Injection', 
+          name_urdu: 'ملٹی وٹامن انجکشن', 
+          manufacturer: 'Bosch Pharmaceuticals', 
+          dosage_form: 'Injection',
+          strength: '50ml',
+          category: 'Vitamin', 
+          price: 980, 
+          stock: 18, 
+          min_stock: 15, 
+          max_stock: 90,
+          batch_number: 'BAT-2024-006',
+          expiry_date: '2027-04-30',
+          active_ingredients: 'Vitamin A, D3, E',
+          description: 'Essential multivitamin injection.',
+          prescription_required: false,
+          status: 'active' 
+        }
+      ];
+
+      for (const m of defaultMeds) {
+        await pool.query(
+          `INSERT INTO medicines (
+            name, name_urdu, manufacturer, dosage_form, strength, category, 
+            pharmacy_id, price, stock, min_stock, max_stock, batch_number, 
+            expiry_date, active_ingredients, description, prescription_required, status
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)`,
+          [
+            m.name, m.name_urdu, m.manufacturer, m.dosage_form, m.strength, m.category, 
+            pharmacyId, m.price, m.stock, m.min_stock, m.max_stock, m.batch_number, 
+            m.expiry_date, m.active_ingredients, m.description, m.prescription_required, m.status
+          ]
+        );
+      }
+      
+      
+      const reMedRes = await pool.query("SELECT * FROM medicines WHERE pharmacy_id = $1", [pharmacyId]);
+      medicines.push(...reMedRes.rows);
+    }
+
+    console.log(`Simulating realistic historical orders and items for pharmacy ${pharmacyId}...`);
+
+    const buyers = [
+      { name: 'Muhammad Akram', name_urdu: 'محمد اکرم' },
+      { name: 'Ali Hassan', name_urdu: 'علی حسن' },
+      { name: 'Fatima Bibi', name_urdu: 'فاطمہ بی بی' },
+      { name: 'Ahmed Khan', name_urdu: 'احمد خان' },
+      { name: 'Chaudhary Yasir', name_urdu: 'چوہدری یاسر' },
+      { name: 'Muhammad Sajid', name_urdu: 'محمد ساجد' },
+      { name: 'Malik Irfan', name_urdu: 'ملک عرفان' },
+      { name: 'Amanat Ali', name_urdu: 'امانت علی' },
+      { name: 'Zafar Iqbal', name_urdu: 'ظفر اقبال' }
+    ];
+    
+    const payMethods = ['Easypaisa', 'JazzCash', 'COD', 'Bank Transfer'];
+    const statuses = ['completed', 'completed', 'completed', 'dispatched', 'processing', 'pending'];
+
+    const now = new Date();
+    for (let i = 0; i < 25; i++) {
+      const orderId = `ORD-${1000 + i}`;
+      const buyer = buyers[Math.floor(Math.random() * buyers.length)];
+      const payMethod = payMethods[Math.floor(Math.random() * payMethods.length)];
+      const status = statuses[Math.floor(Math.random() * statuses.length)];
+      
+      const orderDate = new Date();
+      orderDate.setMonth(now.getMonth() - Math.floor(Math.random() * 6));
+      orderDate.setDate(Math.floor(Math.random() * 28) + 1);
+      orderDate.setHours(Math.floor(Math.random() * 12) + 8);
+      
+      const numItems = Math.floor(Math.random() * 3) + 1;
+      let totalPrice = 0;
+      let totalQty = 0;
+      
+      const orderItemsToInsert = [];
+      const usedMedIds = new Set();
+
+      for (let j = 0; j < numItems; j++) {
+        const med = medicines[Math.floor(Math.random() * medicines.length)];
+        if (usedMedIds.has(med.id)) continue;
+        usedMedIds.add(med.id);
+        
+        const qty = Math.floor(Math.random() * 3) + 1;
+        const itemPrice = parseFloat(med.price);
+        totalPrice += qty * itemPrice;
+        totalQty += qty;
+        
+        orderItemsToInsert.push({
+          medicine_id: med.id,
+          quantity: qty,
+          price: itemPrice
+        });
+      }
+
+      
+      await pool.query(
+        `INSERT INTO orders (id, buyer_name, buyer_name_urdu, pharmacy_id, items_count, total_price, payment_method, status, created_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+        [orderId, buyer.name, buyer.name_urdu, pharmacyId, totalQty, totalPrice, payMethod, status, orderDate]
+      );
+
+      
+      for (const item of orderItemsToInsert) {
+        await pool.query(
+          `INSERT INTO order_items (order_id, medicine_id, quantity, price)
+           VALUES ($1, $2, $3, $4)`,
+          [orderId, item.medicine_id, item.quantity, item.price]
+        );
+      }
+    }
+    
+    console.log(`✅ Simulation completed for pharmacy ${pharmacyId}!`);
+  } catch (err) {
+    console.error('Error in simulateOrdersIfEmpty:', err.message);
+  }
+}
+
 app.get('/api/pharmacy/dashboard-stats', async (req, res) => {
   try {
     const { pharmacyId } = req.query;
@@ -826,44 +1069,47 @@ app.get('/api/pharmacy/dashboard-stats', async (req, res) => {
     }
 
     const pId = parseInt(pharmacyId);
+    
+    
+    await simulateOrdersIfEmpty(pId);
 
-    // A. Total Revenue
+    
     const revRes = await pool.query(
       "SELECT SUM(total_price) FROM orders WHERE pharmacy_id = $1 AND status IN ('delivered', 'completed')",
       [pId]
     );
     const totalRevenue = parseFloat(revRes.rows[0].sum) || 0.00;
 
-    // B. Active Orders Count (pending, processing, dispatched)
+    
     const actRes = await pool.query(
       "SELECT COUNT(*) FROM orders WHERE pharmacy_id = $1 AND status NOT IN ('delivered', 'completed', 'cancelled')",
       [pId]
     );
     const activeOrdersCount = parseInt(actRes.rows[0].count) || 0;
 
-    // C. Medicine Listings Count
+    
     const medRes = await pool.query(
       "SELECT COUNT(*) FROM medicines WHERE pharmacy_id = $1",
       [pId]
     );
     const medicineListingsCount = parseInt(medRes.rows[0].count) || 0;
 
-    // D. Stock Alerts Count (stock < 15 or status = out_of_stock)
+    
     const alertRes = await pool.query(
-      "SELECT COUNT(*) FROM medicines WHERE pharmacy_id = $1 AND (stock < 15 OR status = 'out_of_stock')",
+      "SELECT COUNT(*) FROM medicines WHERE pharmacy_id = $1 AND (stock < min_stock OR status = 'out_of_stock')",
       [pId]
     );
     const stockAlertsCount = parseInt(alertRes.rows[0].count) || 0;
 
-    // E. Recent Orders list
+    
     const recentOrdersRes = await pool.query(
       "SELECT * FROM orders WHERE pharmacy_id = $1 ORDER BY created_at DESC LIMIT 5",
       [pId]
     );
 
-    // F. Stock Alerts list
+    
     const stockAlertsRes = await pool.query(
-      "SELECT * FROM medicines WHERE pharmacy_id = $1 AND stock < 15 ORDER BY stock ASC LIMIT 5",
+      "SELECT * FROM medicines WHERE pharmacy_id = $1 AND stock < min_stock ORDER BY stock ASC LIMIT 5",
       [pId]
     );
 
@@ -883,7 +1129,7 @@ app.get('/api/pharmacy/dashboard-stats', async (req, res) => {
   }
 });
 
-// --- 4. MEDICINES MANAGEMENT ---
+
 app.get('/api/pharmacy/medicines', async (req, res) => {
   try {
     const { pharmacyId } = req.query;
@@ -902,14 +1148,34 @@ app.get('/api/pharmacy/medicines', async (req, res) => {
 
 app.post('/api/pharmacy/medicines', async (req, res) => {
   try {
-    const { name, category, price, stock, pharmacyId } = req.body;
-    const status = parseInt(stock) === 0 ? 'out_of_stock' : (parseInt(stock) < 15 ? 'low_stock' : 'active');
+    const { 
+      name, nameUrdu, manufacturer, dosageForm, strength, category, 
+      price, stock, minStock, maxStock, batchNumber, expiryDate, 
+      activeIngredients, description, prescriptionRequired, imageUrl 
+    } = req.body;
+    
+    const pharmacyId = parseInt(req.body.pharmacyId);
+    const mStock = minStock !== undefined ? parseInt(minStock) : 10;
+    const mxStock = maxStock !== undefined ? parseInt(maxStock) : 100;
+    const curStock = parseInt(stock);
+    const status = curStock === 0 ? 'out_of_stock' : (curStock < mStock ? 'low_stock' : 'active');
+    const rxReq = prescriptionRequired === true || prescriptionRequired === 'true';
+
     const result = await pool.query(
-      "INSERT INTO medicines (name, category, pharmacy_id, price, stock, status) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
-      [name, category, parseInt(pharmacyId), parseFloat(price), parseInt(stock), status]
+      `INSERT INTO medicines (
+        name, name_urdu, manufacturer, dosage_form, strength, category, 
+        pharmacy_id, price, stock, min_stock, max_stock, batch_number, 
+        expiry_date, active_ingredients, description, prescription_required, image_url, status
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18) RETURNING *`,
+      [
+        name, nameUrdu || null, manufacturer || null, dosageForm || null, strength || null, category,
+        pharmacyId, parseFloat(price), curStock, mStock, mxStock, batchNumber || null,
+        expiryDate || null, activeIngredients || null, description || null, rxReq, imageUrl || null, status
+      ]
     );
     res.status(201).json(result.rows[0]);
   } catch (err) {
+    console.error('Error adding medicine:', err.message);
     res.status(500).json({ error: 'Failed to add medicine.' });
   }
 });
@@ -917,14 +1183,47 @@ app.post('/api/pharmacy/medicines', async (req, res) => {
 app.put('/api/pharmacy/medicines/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, category, price, stock } = req.body;
-    const status = parseInt(stock) === 0 ? 'out_of_stock' : (parseInt(stock) < 15 ? 'low_stock' : 'active');
+    const { 
+      name, nameUrdu, manufacturer, dosageForm, strength, category, 
+      price, stock, minStock, maxStock, batchNumber, expiryDate, 
+      activeIngredients, description, prescriptionRequired, imageUrl, status 
+    } = req.body;
+    
+    
+    if (status !== undefined && name === undefined) {
+      const result = await pool.query(
+        "UPDATE medicines SET status = $1 WHERE id = $2 RETURNING *",
+        [status, parseInt(id)]
+      );
+      return res.status(200).json(result.rows[0]);
+    }
+
+    const mStock = minStock !== undefined ? parseInt(minStock) : 10;
+    const mxStock = maxStock !== undefined ? parseInt(maxStock) : 100;
+    const curStock = parseInt(stock);
+    let resolvedStatus = status;
+    if (!resolvedStatus) {
+      resolvedStatus = curStock === 0 ? 'out_of_stock' : (curStock < mStock ? 'low_stock' : 'active');
+    }
+    const rxReq = prescriptionRequired === true || prescriptionRequired === 'true';
+
     const result = await pool.query(
-      "UPDATE medicines SET name = $1, category = $2, price = $3, stock = $4, status = $5 WHERE id = $6 RETURNING *",
-      [name, category, parseFloat(price), parseInt(stock), status, parseInt(id)]
+      `UPDATE medicines SET 
+        name = $1, name_urdu = $2, manufacturer = $3, dosage_form = $4, strength = $5, 
+        category = $6, price = $7, stock = $8, min_stock = $9, max_stock = $10, 
+        batch_number = $11, expiry_date = $12, active_ingredients = $13, description = $14, 
+        prescription_required = $15, image_url = $16, status = $17, last_restocked = CURRENT_TIMESTAMP
+       WHERE id = $18 RETURNING *`,
+      [
+        name, nameUrdu || null, manufacturer || null, dosageForm || null, strength || null,
+        category, parseFloat(price), curStock, mStock, mxStock,
+        batchNumber || null, expiryDate || null, activeIngredients || null, description || null,
+        rxReq, imageUrl || null, resolvedStatus, parseInt(id)
+      ]
     );
     res.status(200).json(result.rows[0]);
   } catch (err) {
+    console.error('Error updating medicine:', err.message);
     res.status(500).json({ error: 'Failed to update medicine.' });
   }
 });
@@ -939,7 +1238,155 @@ app.delete('/api/pharmacy/medicines/:id', async (req, res) => {
   }
 });
 
-// --- 5. ORDERS MANAGEMENT ---
+
+app.get('/api/pharmacy/analytics', async (req, res) => {
+  try {
+    const { pharmacyId } = req.query;
+    if (!pharmacyId) {
+      return res.status(400).json({ error: 'pharmacyId parameter is required' });
+    }
+    const pId = parseInt(pharmacyId);
+    await simulateOrdersIfEmpty(pId);
+
+    
+    const revRes = await pool.query(
+      "SELECT SUM(total_price) FROM orders WHERE pharmacy_id = $1 AND status IN ('delivered', 'completed')",
+      [pId]
+    );
+    const totalRevenue = parseFloat(revRes.rows[0].sum) || 0.00;
+
+    const ordRes = await pool.query(
+      "SELECT COUNT(*) FROM orders WHERE pharmacy_id = $1",
+      [pId]
+    );
+    const totalOrders = parseInt(ordRes.rows[0].count) || 0;
+
+    const custRes = await pool.query(
+      "SELECT COUNT(DISTINCT buyer_name) FROM orders WHERE pharmacy_id = $1",
+      [pId]
+    );
+    const activeCustomers = parseInt(custRes.rows[0].count) || 0;
+
+    const avgRes = await pool.query(
+      "SELECT AVG(total_price) FROM orders WHERE pharmacy_id = $1 AND status IN ('delivered', 'completed')",
+      [pId]
+    );
+    const avgOrderValue = parseFloat(avgRes.rows[0].avg) || 0.00;
+
+    
+    const monthlyRes = await pool.query(
+      `SELECT 
+         TO_CHAR(created_at, 'Mon') as month_name,
+         SUM(total_price)::float as revenue,
+         COUNT(*)::int as order_count,
+         DATE_TRUNC('month', created_at) as month_date
+       FROM orders 
+       WHERE pharmacy_id = $1 AND created_at >= NOW() - INTERVAL '6 months'
+       GROUP BY TO_CHAR(created_at, 'Mon'), DATE_TRUNC('month', created_at)
+       ORDER BY month_date ASC`,
+      [pId]
+    );
+    
+    let monthlyData = monthlyRes.rows.map(row => ({
+      name: row.month_name,
+      Revenue: row.revenue,
+      Orders: row.order_count
+    }));
+
+    if (monthlyData.length === 0) {
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+      monthlyData = months.map(m => ({ name: m, Revenue: 0, Orders: 0 }));
+    }
+
+    
+    const topMedsRes = await pool.query(
+      `SELECT 
+         m.id,
+         m.name,
+         m.name_urdu,
+         COUNT(oi.id)::int as order_count,
+         SUM(oi.quantity * oi.price)::float as total_sales
+       FROM order_items oi
+       JOIN medicines m ON oi.medicine_id = m.id
+       WHERE m.pharmacy_id = $1
+       GROUP BY m.id, m.name, m.name_urdu
+       ORDER BY order_count DESC, total_sales DESC
+       LIMIT 5`,
+      [pId]
+    );
+    
+    const topMedicines = topMedsRes.rows.map(row => ({
+      name: row.name,
+      nameUrdu: row.name_urdu || '',
+      orders: row.order_count,
+      sales: row.total_sales
+    }));
+
+    
+    const distRes = await pool.query(
+      `SELECT status, COUNT(*)::int as count FROM orders WHERE pharmacy_id = $1 GROUP BY status`,
+      [pId]
+    );
+    
+    let completedCount = 0;
+    let processingCount = 0;
+    let cancelledCount = 0;
+    let totalDist = 0;
+    
+    distRes.rows.forEach(r => {
+      const cnt = r.count;
+      totalDist += cnt;
+      if (r.status.toLowerCase() === 'completed' || r.status.toLowerCase() === 'delivered') {
+        completedCount += cnt;
+      } else if (r.status.toLowerCase() === 'processing' || r.status.toLowerCase() === 'pending' || r.status.toLowerCase() === 'dispatched') {
+        processingCount += cnt;
+      } else if (r.status.toLowerCase() === 'cancelled') {
+        cancelledCount += cnt;
+      }
+    });
+
+    const distribution = {
+      completed: totalDist > 0 ? Math.round((completedCount / totalDist) * 100) : 0,
+      processing: totalDist > 0 ? Math.round((processingCount / totalDist) * 100) : 0,
+      cancelled: totalDist > 0 ? Math.round((cancelledCount / totalDist) * 100) : 0
+    };
+
+    
+    const repeatBuyersRes = await pool.query(
+      `WITH buyer_counts AS (
+         SELECT buyer_name, COUNT(*) as ord_cnt FROM orders WHERE pharmacy_id = $1 GROUP BY buyer_name
+       )
+       SELECT 
+         COUNT(*)::float as total_buyers,
+         SUM(CASE WHEN ord_cnt > 1 THEN 1 ELSE 0 END)::float as repeat_buyers
+       FROM buyer_counts`,
+      [pId]
+    );
+    
+    const totalBuyers = parseFloat(repeatBuyersRes.rows[0].total_buyers) || 0;
+    const repeatBuyers = parseFloat(repeatBuyersRes.rows[0].repeat_buyers) || 0;
+    const customerRetention = totalBuyers > 0 ? Math.round((repeatBuyers / totalBuyers) * 100) : 0;
+
+    res.status(200).json({
+      kpis: {
+        totalRevenue,
+        totalOrders,
+        activeCustomers,
+        avgOrderValue
+      },
+      revenueOverview: monthlyData,
+      topMedicines,
+      distribution,
+      customerRetention,
+      customerSatisfaction: 4.8
+    });
+  } catch (err) {
+    console.error('Pharmacy Analytics Error:', err.message);
+    res.status(500).json({ error: 'Failed to fetch pharmacy analytics.' });
+  }
+});
+
+
 app.get('/api/pharmacy/orders', async (req, res) => {
   try {
     const { pharmacyId } = req.query;
@@ -970,7 +1417,79 @@ app.put('/api/pharmacy/orders/:id/status', async (req, res) => {
   }
 });
 
-// --- 6. PROFILE MANAGEMENT ---
+app.get('/api/pharmacy/orders/:id/items', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await pool.query(
+      `SELECT oi.quantity, oi.price, m.name, m.name_urdu 
+       FROM order_items oi
+       JOIN medicines m ON oi.medicine_id = m.id
+       WHERE oi.order_id = $1`,
+      [id]
+    );
+    res.status(200).json(result.rows);
+  } catch (err) {
+    console.error('Error fetching order items:', err.message);
+    res.status(500).json({ error: 'Failed to fetch order items.' });
+  }
+});
+
+app.post('/api/pharmacy/orders', async (req, res) => {
+  try {
+    const { buyerName, buyerNameUrdu, pharmacyId, totalPrice, paymentMethod, items } = req.body;
+    if (!buyerName || !pharmacyId || !totalPrice || !paymentMethod || !items || !Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({ error: 'Missing required parameters or empty items list.' });
+    }
+
+    const pId = parseInt(pharmacyId);
+    
+    
+    const countRes = await pool.query("SELECT COUNT(*) FROM orders");
+    const count = parseInt(countRes.rows[0].count) || 0;
+    const orderId = `ORD-${1000 + count + Math.floor(Math.random() * 100)}`;
+
+    let totalQty = 0;
+    items.forEach(item => {
+      totalQty += parseInt(item.quantity);
+    });
+
+    
+    const orderResult = await pool.query(
+      `INSERT INTO orders (id, buyer_name, buyer_name_urdu, pharmacy_id, items_count, total_price, payment_method, status, created_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, 'pending', CURRENT_TIMESTAMP) RETURNING *`,
+      [orderId, buyerName, buyerNameUrdu || null, pId, totalQty, parseFloat(totalPrice), paymentMethod]
+    );
+
+    
+    for (const item of items) {
+      await pool.query(
+        `INSERT INTO order_items (order_id, medicine_id, quantity, price)
+         VALUES ($1, $2, $3, $4)`,
+        [orderId, parseInt(item.medicineId), parseInt(item.quantity), parseFloat(item.price)]
+      );
+
+      
+      await pool.query(
+        `UPDATE medicines SET 
+           stock = GREATEST(0, stock - $1),
+           status = CASE 
+             WHEN GREATEST(0, stock - $1) = 0 THEN 'out_of_stock' 
+             WHEN GREATEST(0, stock - $1) < min_stock THEN 'low_stock' 
+             ELSE status 
+           END
+         WHERE id = $2`,
+        [parseInt(item.quantity), parseInt(item.medicineId)]
+      );
+    }
+
+    res.status(201).json(orderResult.rows[0]);
+  } catch (err) {
+    console.error('Error creating order:', err.message);
+    res.status(500).json({ error: 'Failed to create order.' });
+  }
+});
+
+
 app.get('/api/pharmacy/profile', async (req, res) => {
   try {
     const { pharmacyId } = req.query;
@@ -1013,9 +1532,9 @@ app.put('/api/pharmacy/profile', async (req, res) => {
   }
 });
 
-// --- VET CHAT & CONSULTATION REST API ENDPOINTS ---
 
-// 1. Fetch verified veterinarians (optionally filtered by district)
+
+
 app.get('/api/vets', async (req, res) => {
   try {
     const { district, ownerName } = req.query;
@@ -1026,7 +1545,7 @@ app.get('/api/vets', async (req, res) => {
       query += " AND district ILIKE $1";
       params.push(district);
     } else if (ownerName) {
-      // Find owner's district dynamically
+      
       const ownerRes = await pool.query("SELECT district FROM users WHERE full_name ILIKE $1 AND role = 'farmer'", [ownerName]);
       if (ownerRes.rows.length > 0 && ownerRes.rows[0].district) {
         query += " AND district ILIKE $1";
@@ -1042,7 +1561,7 @@ app.get('/api/vets', async (req, res) => {
   }
 });
 
-// 2. Find or create a conversation between farmer and vet
+
 app.post('/api/chat/conversation', async (req, res) => {
   try {
     const { farmerId, farmerName, vetId } = req.body;
@@ -1059,14 +1578,14 @@ app.post('/api/chat/conversation', async (req, res) => {
       fId = farmerRes.rows[0].id;
     }
     
-    // Try to find existing conversation
+    
     let convRes = await pool.query(
       'SELECT * FROM conversations WHERE farmer_id = $1 AND vet_id = $2',
       [fId, vetId]
     );
     
     if (convRes.rows.length === 0) {
-      // Create a new one
+      
       convRes = await pool.query(
         'INSERT INTO conversations (farmer_id, vet_id, status) VALUES ($1, $2, \'active\') RETURNING *',
         [fId, vetId]
@@ -1080,7 +1599,7 @@ app.post('/api/chat/conversation', async (req, res) => {
   }
 });
 
-// 3. Fetch all messages in a conversation
+
 app.get('/api/chat/messages', async (req, res) => {
   try {
     const { conversationId } = req.query;
@@ -1098,7 +1617,7 @@ app.get('/api/chat/messages', async (req, res) => {
   }
 });
 
-// 4. Retrieve all conversations for a specific vet, including farmer profile info
+
 app.get('/api/chat/conversations/vet', async (req, res) => {
   try {
     const { vetId, vetName } = req.query;
@@ -1117,7 +1636,7 @@ app.get('/api/chat/conversations/vet', async (req, res) => {
       query += ` WHERE c.vet_id = $1`;
       params.push(vetId);
     } else {
-      // Find vet ID first by name
+      
       const vetRes = await pool.query('SELECT id FROM users WHERE full_name ILIKE $1 AND role = \'vet\'', [vetName]);
       if (vetRes.rows.length === 0) {
         return res.status(200).json([]);
@@ -1136,7 +1655,7 @@ app.get('/api/chat/conversations/vet', async (req, res) => {
   }
 });
 
-// 5. Mark a conversation as resolved
+
 app.put('/api/chat/conversation/resolve', async (req, res) => {
   try {
     const { conversationId } = req.body;
@@ -1154,9 +1673,9 @@ app.put('/api/chat/conversation/resolve', async (req, res) => {
   }
 });
 
-// --- COMMUNITY FORUM REST API ENDPOINTS ---
 
-// 1. Fetch all forum posts (optionally filtered by category)
+
+
 app.get('/api/forum/posts', async (req, res) => {
   try {
     const { category } = req.query;
@@ -1184,7 +1703,7 @@ app.get('/api/forum/posts', async (req, res) => {
   }
 });
 
-// 2. Create a new forum post
+
 app.post('/api/forum/posts', async (req, res) => {
   try {
     const { userName, userId: providedUserId, title, description, category } = req.body;
@@ -1219,7 +1738,7 @@ app.post('/api/forum/posts', async (req, res) => {
   }
 });
 
-// 3. Fetch single post details with its replies/comments
+
 app.get('/api/forum/posts/:id', async (req, res) => {
   try {
     const { id } = req.params;
@@ -1249,7 +1768,7 @@ app.get('/api/forum/posts/:id', async (req, res) => {
   }
 });
 
-// 4. Add a comment/reply to a discussion post
+
 app.post('/api/forum/posts/:id/comments', async (req, res) => {
   try {
     const { id } = req.params;
@@ -1287,7 +1806,7 @@ app.post('/api/forum/posts/:id/comments', async (req, res) => {
   }
 });
 
-// 4b. Like a specific comment
+
 app.post('/api/forum/comments/:id/like', async (req, res) => {
   try {
     const { id } = req.params;
@@ -1305,7 +1824,7 @@ app.post('/api/forum/comments/:id/like', async (req, res) => {
   }
 });
 
-// 5. Like/Upvote a forum post
+
 app.post('/api/forum/posts/:id/like', async (req, res) => {
   try {
     const { id } = req.params;
@@ -1323,22 +1842,22 @@ app.post('/api/forum/posts/:id/like', async (req, res) => {
   }
 });
 
-// --- Socket.io Real-time Chat Handler ---
+
 io.on('connection', (socket) => {
   console.log('🔌 User connected to WebSocket:', socket.id);
 
-  // Join conversation room
+  
   socket.on('join_room', (room) => {
     socket.join(room);
     console.log(`👤 Socket ${socket.id} joined room: ${room}`);
   });
 
-  // Handle standard text / image message / prescription
+  
   socket.on('send_message', async (data) => {
     try {
       const { conversationId, senderId, message, imageUrl, isPrescription, prescriptionData } = data;
       
-      // Save message to PostgreSQL
+      
       const result = await pool.query(
         `INSERT INTO messages (conversation_id, sender_id, message, image_url, is_prescription, prescription_data)
          VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
@@ -1347,7 +1866,7 @@ io.on('connection', (socket) => {
       
       const savedMessage = result.rows[0];
       
-      // Broadcast message to room
+      
       io.to(conversationId.toString()).emit('receive_message', savedMessage);
     } catch (err) {
       console.error('Socket error sending message:', err.message);

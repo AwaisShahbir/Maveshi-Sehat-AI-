@@ -5,7 +5,7 @@ import { Search, Bell } from 'lucide-react';
 export default function Header() {
   const location = useLocation();
 
-  // Page title mappings based on current route path
+  
   const routeTitles = {
     '/': { en: 'Dashboard', ur: 'ڈیش بورڈ' },
     '/analytics': { en: 'Platform Analytics', ur: 'پلیٹ فارم تجزیات' },
@@ -24,15 +24,15 @@ export default function Header() {
 
   return (
     <header className="main-header">
-      {/* Dynamic Bilingual Titles */}
+      
       <div className="header-title-container">
         <h1 className="header-title-en">{currentTitle.en}</h1>
         <span className="header-title-ur">{currentTitle.ur}</span>
       </div>
 
-      {/* Right Side Actions */}
+      
       <div className="header-actions">
-        {/* Bilingual Search Box */}
+        
         <div className="header-search-container">
           <Search className="search-icon" size={18} />
           <input 
@@ -42,13 +42,13 @@ export default function Header() {
           />
         </div>
 
-        {/* Notifications Shortcut */}
+        
         <Link to="/notifications" className="header-notification-btn">
           <Bell size={20} />
           <span className="notification-badge">5</span>
         </Link>
 
-        {/* Admin Quick Profile Avatar */}
+        
         <Link to="/settings" className="header-avatar-btn">
           <div className="header-avatar-circle">SA</div>
           <div className="avatar-online-dot"></div>

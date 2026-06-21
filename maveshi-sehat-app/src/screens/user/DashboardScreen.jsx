@@ -12,7 +12,7 @@ export default function DashboardScreen() {
   const route = useRoute();
   const params = route.params || {};
 
-  // Dynamic States
+  
   const [profile, setProfile] = useState(getProfile());
   const userName = profile.userName || params.userName || 'Muhammad Ahmed';
   const userId = params.userId || null;
@@ -30,15 +30,15 @@ export default function DashboardScreen() {
   const updateStats = (currentRecords) => {
     const totalScans = currentRecords.length;
     
-    // Calculate unique livestock count
+    
     const uniqueAnimals = new Set(currentRecords.map(r => r.animalId));
     const livestockCount = uniqueAnimals.size;
     
-    // Calculate healthy percentage
+    
     const healthyRecords = currentRecords.filter(r => r.status === 'Healthy' || r.status === 'Recovered');
     const healthyPercentage = totalScans > 0 
       ? Math.round((healthyRecords.length / totalScans) * 100) 
-      : 100; // default to 100% healthy if no scans
+      : 100; 
       
     setStats({
       livestock: livestockCount,
@@ -46,7 +46,7 @@ export default function DashboardScreen() {
       healthy: healthyPercentage
     });
 
-    // Map store records to the dashboard's expected format
+    
     const recent = currentRecords.slice(0, 3).map(rec => ({
       id: rec.id,
       bg: rec.bg,
@@ -63,7 +63,7 @@ export default function DashboardScreen() {
   };
 
   useEffect(() => {
-    // Load records from database for this user
+    
     loadRecords(userName).then(loadedRecords => {
       updateStats(loadedRecords);
     }).catch(err => {
@@ -71,12 +71,12 @@ export default function DashboardScreen() {
       updateStats(getRecords());
     });
 
-    // Subscribe to records updates
+    
     const unsubscribeRecords = subscribe((updatedRecords) => {
       updateStats(updatedRecords);
     });
 
-    // Subscribe to profile updates
+    
     const unsubscribeProfile = subscribeProfile((updatedProfile) => {
       setProfile(updatedProfile);
       loadRecords(updatedProfile.userName).then(loadedRecords => {
@@ -116,7 +116,7 @@ export default function DashboardScreen() {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#58D66D']} />
         }
       >
-        {/* Top Green Header Section */}
+        
         <View style={styles.header}>
           <View style={styles.headerTop}>
             <View>
@@ -133,7 +133,7 @@ export default function DashboardScreen() {
             </TouchableOpacity>
           </View>
 
-          {/* Stats Row */}
+          
           <View style={styles.statsRow}>
             <View style={styles.statItem}>
               <Text style={styles.statValue}>{stats.livestock}</Text>
@@ -152,7 +152,7 @@ export default function DashboardScreen() {
           </View>
         </View>
 
-        {/* Quick Actions Card */}
+        
         <View style={[styles.cardContainer, styles.overlapCard]}>
           <Text style={styles.sectionTitle}>{t('Quick Actions', 'فوری اعمال')}</Text>
           <View style={styles.actionGrid}>
@@ -184,16 +184,16 @@ export default function DashboardScreen() {
               <Text style={styles.actionText}>{t('Heat Alert', 'گرمی کی الرٹ')}</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.actionItem} onPress={handleComingSoon}>
+            <TouchableOpacity style={styles.actionItem} onPress={() => navigation.navigate('Marketplace', { userName, userId })}>
               <View style={[styles.iconBox, { backgroundColor: '#E8F8EA' }]}>
                 <MaterialCommunityIcons name="shopping-outline" size={28} color="#4CB85C" />
               </View>
-              <Text style={styles.actionText}>{t('Marketplace (Soon)', 'مارکیٹ (جلد)')}</Text>
+              <Text style={styles.actionText}>{t('Marketplace', 'دوا خانہ')}</Text>
             </TouchableOpacity>
           </View>
         </View>
 
-        {/* Recent AI Scans Card */}
+        
         <View style={[styles.cardContainer, { marginBottom: 100 }]}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>{t('Recent AI Scans', 'حالیہ اسکین')}</Text>
@@ -237,7 +237,7 @@ export default function DashboardScreen() {
         </View>
       </ScrollView>
 
-      {/* Bottom Navigation */}
+      
       <View style={styles.bottomNav}>
         <TouchableOpacity style={styles.navItem}>
           <Feather name="home" size={24} color="#FFF" />

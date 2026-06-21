@@ -6,7 +6,7 @@ import Feather from 'react-native-vector-icons/Feather';
 export default function VerifyScreen() {
   const navigation = useNavigation();
   const route = useRoute();
-  const { email, role, userName } = route.params || {}; // Get params passed from Register
+  const { email, role, userName } = route.params || {}; 
   const [code, setCode] = useState(['', '', '', '']);
   const [loading, setLoading] = useState(false);
   const inputRefs = [useRef(null), useRef(null), useRef(null), useRef(null)];
@@ -74,7 +74,7 @@ export default function VerifyScreen() {
         style={styles.container}
       >
         <ScrollView contentContainerStyle={styles.scrollContent} bounces={false}>
-          {/* Top Green Section */}
+          
           <View style={styles.topSection}>
             <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
               <Feather name="chevron-left" size={24} color="#FFFFFF" />
@@ -89,12 +89,12 @@ export default function VerifyScreen() {
             <Text style={styles.urduTitle}>فون کی تصدیق کریں</Text>
           </View>
 
-          {/* White Card */}
+          
           <View style={styles.cardContainer}>
             <Text style={styles.instructionText}>Enter 4-digit code sent to</Text>
             <Text style={styles.phoneNumber}>{email || '+92 300 1234567'}</Text>
 
-            {/* OTP Inputs */}
+            
             <View style={styles.otpContainer}>
               {code.map((digit, index) => (
                 <TextInput
@@ -110,7 +110,7 @@ export default function VerifyScreen() {
               ))}
             </View>
 
-            {/* Resend Timer */}
+            
             <Text style={styles.timerText}>
               Resend code in <Text style={styles.timerHighlight}>60s</Text>
             </Text>
@@ -119,7 +119,7 @@ export default function VerifyScreen() {
               <Text style={styles.resendLink}>Resend OTP / دوبارہ بھیجیں</Text>
             </TouchableOpacity>
 
-            {/* Verify Button */}
+            
             <TouchableOpacity 
               style={[styles.verifyBtn, loading && { opacity: 0.7 }]} 
               activeOpacity={0.9}
@@ -144,7 +144,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingTop: 16,
     paddingBottom: 70,
-    alignItems: 'center', // Center content in this screen
+    alignItems: 'center', 
   },
   backButton: {
     flexDirection: 'row',

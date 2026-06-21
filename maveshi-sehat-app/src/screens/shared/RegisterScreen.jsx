@@ -5,7 +5,7 @@ import Feather from 'react-native-vector-icons/Feather';
 
 export default function RegisterScreen() {
   const navigation = useNavigation();
-  const [role, setRole] = useState('farmer'); // 'farmer' or 'vet'
+  const [role, setRole] = useState('farmer'); 
   const [fullName, setFullName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [email, setEmail] = useState('');
@@ -17,7 +17,7 @@ export default function RegisterScreen() {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
-  // Vet-specific fields
+  
   const [pvmcNumber, setPvmcNumber] = useState('');
   const [specialization, setSpecialization] = useState('');
   const [experienceYears, setExperienceYears] = useState('');
@@ -58,7 +58,7 @@ export default function RegisterScreen() {
     try {
       const formData = new FormData();
       const mockFile = {
-        uri: 'data:text/plain;base64,Vk1DLUxJQ0VOU0UtRE9DVU1FTlQtQ09OVEVOVA==', // base64 mock
+        uri: 'data:text/plain;base64,Vk1DLUxJQ0VOU0UtRE9DVU1FTlQtQ09OVEVOVA==', 
         name: choice === 'pdf' ? 'pvmc_license_document.pdf' : 'pvmc_license_photo.jpg',
         type: choice === 'pdf' ? 'application/pdf' : 'image/jpeg'
       };
@@ -81,13 +81,13 @@ export default function RegisterScreen() {
   };
 
   const handleRegister = async () => {
-    setErrorMsg(''); // Reset error
+    setErrorMsg(''); 
 
     if (!fullName.trim() || !phoneNumber.trim() || !email.trim() || !password.trim()) {
       return setErrorMsg('Please fill in all required fields');
     }
     
-    // Basic validations
+    
     if (phoneNumber.length < 10) {
       return setErrorMsg('Please enter a valid phone number');
     }
@@ -101,7 +101,7 @@ export default function RegisterScreen() {
       return setErrorMsg('Passwords do not match!');
     }
 
-    // Vet-specific validations
+    
     if (role === 'vet') {
       if (!pvmcNumber.trim()) {
         return setErrorMsg('Please enter your PVMC License Number');
@@ -175,7 +175,7 @@ export default function RegisterScreen() {
         style={styles.container}
       >
         <ScrollView contentContainerStyle={styles.scrollContent} bounces={false}>
-          {/* Top Green Section */}
+          
           <View style={styles.topSection}>
             <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
               <Feather name="chevron-left" size={24} color="#FFFFFF" />
@@ -185,10 +185,10 @@ export default function RegisterScreen() {
             <Text style={styles.urduTitle}>اکاؤنٹ بنائیں</Text>
           </View>
 
-          {/* White Card */}
+          
           <View style={styles.cardContainer}>
             
-            {/* Full Name */}
+            
             <Text style={styles.label}>Full Name / نام</Text>
             <View style={styles.inputContainer}>
               <Feather name="user" size={20} color="#4CB85C" style={styles.inputIcon} />
@@ -201,7 +201,7 @@ export default function RegisterScreen() {
               />
             </View>
 
-            {/* Email */}
+            
             <Text style={styles.label}>Email Address / ای میل</Text>
             <View style={styles.inputContainer}>
               <Feather name="mail" size={20} color="#4CB85C" style={styles.inputIcon} />
@@ -216,7 +216,7 @@ export default function RegisterScreen() {
               />
             </View>
 
-            {/* Phone Number */}
+            
             <Text style={styles.label}>Phone Number / فون نمبر</Text>
             <View style={styles.inputContainer}>
               <Feather name="phone" size={20} color="#4CB85C" style={styles.inputIcon} />
@@ -230,7 +230,7 @@ export default function RegisterScreen() {
               />
             </View>
 
-            {/* District */}
+            
             <Text style={styles.label}>District / ضلع</Text>
             <TouchableOpacity style={styles.inputContainer} activeOpacity={0.8} onPress={() => setDistrictModalVisible(true)}>
               <Feather name="map-pin" size={20} color="#4CB85C" style={styles.inputIcon} />
@@ -240,7 +240,7 @@ export default function RegisterScreen() {
               <Feather name="chevron-down" size={20} color="#999" />
             </TouchableOpacity>
 
-            {/* Role Selection */}
+            
             <Text style={styles.label}>Role / کردار</Text>
             <View style={styles.roleContainer}>
               <TouchableOpacity 
@@ -261,7 +261,7 @@ export default function RegisterScreen() {
 
             {role === 'vet' && (
               <>
-                {/* License Number */}
+                
                 <Text style={styles.label}>License Number (PVMC) / لائسنس نمبر</Text>
                 <View style={styles.inputContainer}>
                   <Feather name="file-text" size={20} color="#4CB85C" style={styles.inputIcon} />
@@ -274,7 +274,7 @@ export default function RegisterScreen() {
                   />
                 </View>
 
-                {/* Specialization */}
+                
                 <Text style={styles.label}>Specialization / مہارت</Text>
                 <View style={styles.inputContainer}>
                   <Feather name="award" size={20} color="#4CB85C" style={styles.inputIcon} />
@@ -287,7 +287,7 @@ export default function RegisterScreen() {
                   />
                 </View>
 
-                {/* Experience Years */}
+                
                 <Text style={styles.label}>Years of Experience / تجربہ (سال)</Text>
                 <View style={styles.inputContainer}>
                   <Feather name="clock" size={20} color="#4CB85C" style={styles.inputIcon} />
@@ -301,7 +301,7 @@ export default function RegisterScreen() {
                   />
                 </View>
 
-                {/* License Document Upload */}
+                
                 <Text style={styles.label}>License Document (Image/PDF) / لائسنس کی دستاویز</Text>
                 <TouchableOpacity 
                   style={[styles.inputContainer, { justifyContent: 'center', backgroundColor: '#E8F8EA', borderColor: '#4CB85C', borderStyle: 'dashed' }]}
@@ -332,7 +332,7 @@ export default function RegisterScreen() {
               </>
             )}
 
-            {/* Password */}
+            
             <Text style={styles.label}>Password / پاس ورڈ</Text>
             <View style={styles.inputContainer}>
               <Feather name="lock" size={20} color="#4CB85C" style={styles.inputIcon} />
@@ -346,7 +346,7 @@ export default function RegisterScreen() {
               />
             </View>
 
-            {/* Confirm Password */}
+            
             <Text style={styles.label}>Confirm Password / پاس ورڈ کی تصدیق</Text>
             <View style={styles.inputContainer}>
               <Feather name="lock" size={20} color="#4CB85C" style={styles.inputIcon} />
@@ -360,7 +360,7 @@ export default function RegisterScreen() {
               />
             </View>
 
-            {/* Error Message */}
+            
             {errorMsg ? (
               <View style={styles.errorContainer}>
                 <Feather name="alert-circle" size={16} color="#FF3B30" />
@@ -368,7 +368,7 @@ export default function RegisterScreen() {
               </View>
             ) : null}
 
-            {/* Register Button */}
+            
             <TouchableOpacity 
               style={[styles.registerBtn, loading && { opacity: 0.7 }]} 
               activeOpacity={0.9}
@@ -378,7 +378,7 @@ export default function RegisterScreen() {
               <Text style={styles.registerBtnText}>{loading ? 'Registering...' : 'رجسٹر / Register'}</Text>
             </TouchableOpacity>
 
-            {/* Login Link */}
+            
             <View style={styles.loginContainer}>
               <Text style={styles.loginText}>Already have an account? </Text>
               <TouchableOpacity onPress={() => navigation.navigate('Login')}>
@@ -390,7 +390,7 @@ export default function RegisterScreen() {
         </ScrollView>
       </KeyboardAvoidingView>
 
-      {/* District Selection Modal */}
+      
       <Modal visible={isDistrictModalVisible} transparent={true} animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
@@ -417,7 +417,7 @@ export default function RegisterScreen() {
         </View>
       </Modal>
 
-      {/* Upload Choice Modal for Mobile */}
+      
       <Modal visible={isUploadModalVisible} transparent={true} animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
@@ -464,7 +464,7 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    backgroundColor: '#F8FAF9', // Light background for the bottom part
+    backgroundColor: '#F8FAF9', 
   },
   scrollContent: {
     flexGrow: 1,
@@ -473,7 +473,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#58D66D',
     paddingHorizontal: 24,
     paddingTop: 16,
-    paddingBottom: 70, // Extra padding to let card overlap
+    paddingBottom: 70, 
   },
   backButton: {
     flexDirection: 'row',
@@ -501,7 +501,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 24,
     borderRadius: 24,
     padding: 24,
-    marginTop: -40, // Negative margin to overlap the green background
+    marginTop: -40, 
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.05,
@@ -514,7 +514,7 @@ const styles = StyleSheet.create({
     color: '#555',
     marginBottom: 10,
     fontWeight: '600',
-    marginTop: 20, // Space from previous element
+    marginTop: 20, 
   },
   inputContainer: {
     flexDirection: 'row',
@@ -524,17 +524,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     height: 60,
     borderWidth: 1,
-    borderColor: '#D1D5D3', // Adds a visible outline to the container
+    borderColor: '#D1D5D3', 
   },
   inputIcon: {
     marginRight: 12,
   },
   input: {
     flex: 1,
-    height: '100%', // Makes input take full height
+    height: '100%', 
     fontSize: 15,
     color: '#333',
-    outlineStyle: 'none', // Removes default small black web focus outline
+    outlineStyle: 'none', 
   },
   roleContainer: {
     flexDirection: 'row',
@@ -552,7 +552,7 @@ const styles = StyleSheet.create({
   },
   roleButtonActive: {
     borderColor: '#4CB85C',
-    backgroundColor: '#E8F8EA', // Matches active role bg in image
+    backgroundColor: '#E8F8EA', 
   },
   roleText: {
     color: '#666',
@@ -563,7 +563,7 @@ const styles = StyleSheet.create({
     color: '#4CB85C',
   },
   registerBtn: {
-    backgroundColor: '#58D66D', // Match header green
+    backgroundColor: '#58D66D', 
     paddingVertical: 18,
     borderRadius: 16,
     alignItems: 'center',
@@ -573,7 +573,7 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 4,
     marginBottom: 24,
-    marginTop: 16, // Reduced from 32 to give space for error message
+    marginTop: 16, 
   },
   errorContainer: {
     flexDirection: 'row',

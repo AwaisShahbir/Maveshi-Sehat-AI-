@@ -4,10 +4,10 @@ import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 
 export default function App() {
-  const [currentView, setCurrentView] = useState('login'); // 'login', 'register', 'dashboard'
+  const [currentView, setCurrentView] = useState('login'); 
   const [pharmacy, setPharmacy] = useState(null);
 
-  // Check for saved session on load
+  
   useEffect(() => {
     const savedSession = localStorage.getItem('maveshi_sehat_pharmacy_session');
     if (savedSession) {
@@ -34,7 +34,7 @@ export default function App() {
   };
 
   return (
-    <div style={styles.app}>
+    <div className="min-h-screen w-screen bg-slate-50 flex flex-col overflow-x-hidden">
       {currentView === 'login' && (
         <Login 
           onLoginSuccess={handleLoginSuccess} 
@@ -58,13 +58,3 @@ export default function App() {
   );
 }
 
-const styles = {
-  app: {
-    minHeight: '100vh',
-    width: '100vw',
-    backgroundColor: '#0f172a',
-    display: 'flex',
-    flexDirection: 'column',
-    overflowX: 'hidden',
-  }
-};
