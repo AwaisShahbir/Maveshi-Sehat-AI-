@@ -184,11 +184,11 @@ export default function DashboardScreen() {
               <Text style={styles.actionText}>{t('Heat Alert', 'گرمی کی الرٹ')}</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.actionItem} onPress={handleComingSoon}>
+            <TouchableOpacity style={styles.actionItem} onPress={() => navigation.navigate('Marketplace', { userName, userId })}>
               <View style={[styles.iconBox, { backgroundColor: '#E8F8EA' }]}>
                 <MaterialCommunityIcons name="shopping-outline" size={28} color="#4CB85C" />
               </View>
-              <Text style={styles.actionText}>{t('Marketplace (Soon)', 'مارکیٹ (جلد)')}</Text>
+              <Text style={styles.actionText}>{t('Marketplace', 'دوا خانہ')}</Text>
             </TouchableOpacity>
           </View>
         </View>

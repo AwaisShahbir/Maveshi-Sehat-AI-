@@ -242,7 +242,7 @@ const styles = {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    borderBottom: '1px solid #1e293b',
+    borderBottom: '1px solid #e2e8f0',
     paddingBottom: '16px'
   },
   titleArea: {
@@ -252,7 +252,7 @@ const styles = {
   titleEn: {
     fontSize: '22px',
     fontWeight: '700',
-    color: '#ffffff',
+    color: '#0f172a',
     fontFamily: 'Outfit, sans-serif'
   },
   titleUr: {
@@ -304,12 +304,12 @@ const styles = {
   kpiLabel: {
     fontSize: '13px',
     fontWeight: '600',
-    color: '#94a3b8'
+    color: '#475569'
   },
   kpiValue: {
     fontSize: '24px',
     fontWeight: '800',
-    color: '#ffffff',
+    color: '#0f172a',
     fontFamily: 'Outfit, sans-serif',
     margin: '2px 0'
   },
@@ -326,7 +326,7 @@ const styles = {
   medNameEn: {
     fontSize: '14px',
     fontWeight: '700',
-    color: '#ffffff'
+    color: '#0f172a'
   },
   medNameUr: {
     fontSize: '12px',
@@ -345,7 +345,7 @@ const styles = {
   },
   pkgText: {
     fontSize: '12px',
-    color: '#94a3b8',
+    color: '#475569',
     fontWeight: '600'
   },
   levelBlock: {
@@ -357,11 +357,11 @@ const styles = {
   capacityText: {
     fontSize: '11px',
     fontWeight: '600',
-    color: '#94a3b8'
+    color: '#475569'
   },
   barBg: {
     height: '6px',
-    backgroundColor: '#334155',
+    backgroundColor: '#f1f5f9',
     borderRadius: '3px',
     overflow: 'hidden'
   },
@@ -381,8 +381,8 @@ const styles = {
     width: '32px',
     height: '32px',
     borderRadius: '8px',
-    border: '1px solid #334155',
-    backgroundColor: '#0f172a',
+    border: '1px solid #e2e8f0',
+    backgroundColor: '#ffffff',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',

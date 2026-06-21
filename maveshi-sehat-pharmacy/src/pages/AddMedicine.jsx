@@ -32,16 +32,31 @@ export default function AddMedicine({ pharmacy, onSaveSuccess, onCancel }) {
     }));
   };
 
-  const handleImageChange = (e) => {
+  const handleImageChange = async (e) => {
     const file = e.target.files[0];
     if (file) {
       setImagePreview(URL.createObjectURL(file));
-      // For a real app, we would upload this file to the backend, 
-      // but in this dev context we can generate a mock URL or just store the preview
-      setForm(prev => ({
-        ...prev,
-        imageUrl: 'https://images.unsplash.com/photo-1570042225831-d98fa7577f1e?q=80&w=400&auto=format&fit=crop'
-      }));
+      
+      const formData = new FormData();
+      formData.append('license', file);
+      
+      try {
+        const res = await fetch('http://localhost:5000/upload', {
+          method: 'POST',
+          body: formData
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setForm(prev => ({
+            ...prev,
+            imageUrl: data.fileUrl
+          }));
+        } else {
+          console.error('Failed to upload image');
+        }
+      } catch (err) {
+        console.error('Error uploading image:', err);
+      }
     }
   };
 
@@ -388,7 +403,7 @@ const styles = {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    borderBottom: '1px solid #1e293b',
+    borderBottom: '1px solid #e2e8f0',
     paddingBottom: '16px'
   },
   headerTitleContainer: {
@@ -398,7 +413,7 @@ const styles = {
   headerTitle: {
     fontSize: '22px',
     fontWeight: '700',
-    color: '#ffffff',
+    color: '#0f172a',
     fontFamily: 'Outfit, sans-serif'
   },
   headerSubtitle: {
@@ -462,8 +477,8 @@ const styles = {
   cardSectionTitle: {
     fontSize: '15px',
     fontWeight: '700',
-    color: '#f8fafc',
-    borderBottom: '1px solid #334155',
+    color: '#0f172a',
+    borderBottom: '1px solid #e2e8f0',
     paddingBottom: '10px',
     marginBottom: '16px'
   },
@@ -500,9 +515,9 @@ const styles = {
     marginTop: '2px'
   },
   uploadArea: {
-    border: '2px dashed #334155',
+    border: '2px dashed #cbd5e1',
     borderRadius: '12px',
-    backgroundColor: 'rgba(30, 41, 59, 0.2)',
+    backgroundColor: '#f8fafc',
     padding: '40px 20px',
     textAlign: 'center',
     cursor: 'pointer',
@@ -517,7 +532,7 @@ const styles = {
   uploadTextBold: {
     fontSize: '14px',
     fontWeight: '600',
-    color: '#f8fafc',
+    color: '#0f172a',
     marginBottom: '4px'
   },
   uploadTextSub: {
@@ -553,9 +568,9 @@ const styles = {
   },
   previewImgBox: {
     aspectRatio: '4/3',
-    backgroundColor: '#0f172a',
+    backgroundColor: '#f1f5f9',
     borderRadius: '12px',
-    border: '1.5px solid #1e293b',
+    border: '1.5px solid #e2e8f0',
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
@@ -575,7 +590,7 @@ const styles = {
   },
   previewPlaceholderText: {
     fontSize: '11px',
-    color: '#475569',
+    color: '#64748b',
     fontWeight: '600'
   },
   previewBody: {
@@ -586,11 +601,11 @@ const styles = {
   previewMedName: {
     fontSize: '16px',
     fontWeight: '700',
-    color: '#ffffff'
+    color: '#0f172a'
   },
   previewManufacturer: {
     fontSize: '12px',
-    color: '#94a3b8'
+    color: '#475569'
   },
   previewPrice: {
     fontSize: '18px',
@@ -600,8 +615,8 @@ const styles = {
     fontFamily: 'Outfit, sans-serif'
   },
   tipsCard: {
-    backgroundColor: '#0f172a',
-    border: '1px solid #1e293b',
+    backgroundColor: '#ffffff',
+    border: '1px solid #e2e8f0',
     borderRadius: '12px',
     padding: '18px',
     boxShadow: 'var(--shadow-sm)'
@@ -619,7 +634,7 @@ const styles = {
   tipsList: {
     paddingLeft: '18px',
     fontSize: '12px',
-    color: '#94a3b8',
+    color: '#475569',
     display: 'flex',
     flexDirection: 'column',
     gap: '8px'

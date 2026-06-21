@@ -1434,6 +1434,61 @@ app.get('/api/pharmacy/orders/:id/items', async (req, res) => {
   }
 });
 
+app.post('/api/pharmacy/orders', async (req, res) => {
+  try {
+    const { buyerName, buyerNameUrdu, pharmacyId, totalPrice, paymentMethod, items } = req.body;
+    if (!buyerName || !pharmacyId || !totalPrice || !paymentMethod || !items || !Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({ error: 'Missing required parameters or empty items list.' });
+    }
+
+    const pId = parseInt(pharmacyId);
+    
+    // Generate a unique order ID
+    const countRes = await pool.query("SELECT COUNT(*) FROM orders");
+    const count = parseInt(countRes.rows[0].count) || 0;
+    const orderId = `ORD-${1000 + count + Math.floor(Math.random() * 100)}`;
+
+    let totalQty = 0;
+    items.forEach(item => {
+      totalQty += parseInt(item.quantity);
+    });
+
+    // 1. Insert order
+    const orderResult = await pool.query(
+      `INSERT INTO orders (id, buyer_name, buyer_name_urdu, pharmacy_id, items_count, total_price, payment_method, status, created_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, 'pending', CURRENT_TIMESTAMP) RETURNING *`,
+      [orderId, buyerName, buyerNameUrdu || null, pId, totalQty, parseFloat(totalPrice), paymentMethod]
+    );
+
+    // 2. Insert order items
+    for (const item of items) {
+      await pool.query(
+        `INSERT INTO order_items (order_id, medicine_id, quantity, price)
+         VALUES ($1, $2, $3, $4)`,
+        [orderId, parseInt(item.medicineId), parseInt(item.quantity), parseFloat(item.price)]
+      );
+
+      // 3. Deduct stock from medicines and update status reactively
+      await pool.query(
+        `UPDATE medicines SET 
+           stock = GREATEST(0, stock - $1),
+           status = CASE 
+             WHEN GREATEST(0, stock - $1) = 0 THEN 'out_of_stock' 
+             WHEN GREATEST(0, stock - $1) < min_stock THEN 'low_stock' 
+             ELSE status 
+           END
+         WHERE id = $2`,
+        [parseInt(item.quantity), parseInt(item.medicineId)]
+      );
+    }
+
+    res.status(201).json(orderResult.rows[0]);
+  } catch (err) {
+    console.error('Error creating order:', err.message);
+    res.status(500).json({ error: 'Failed to create order.' });
+  }
+});
+
 // --- 6. PROFILE MANAGEMENT ---
 app.get('/api/pharmacy/profile', async (req, res) => {
   try {

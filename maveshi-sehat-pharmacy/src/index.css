@@ -1,41 +1,55 @@
-/* Custom Google Fonts */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&family=Noto+Nastaliq+Urdu:wght@400;700&display=swap');
+@import "tailwindcss";
 
-/* Design Tokens & Variables */
+@theme {
+  --color-brand-50: #f2fbf6;
+  --color-brand-100: #e3f7ec;
+  --color-brand-200: #cbf0da;
+  --color-brand-300: #a3e2be;
+  --color-brand-400: #72cd9b;
+  --color-brand-500: #4cb880;
+  --color-brand-600: #389968;
+  --color-brand-700: #2e7c56;
+  --color-brand-800: #276246;
+  --color-brand-900: #21513b;
+  --color-brand-950: #0e2d20;
+}
+
+/* Design Tokens & Variables - Light Mode */
 :root {
-  --bg-page: #0f172a; /* Slate 900 */
-  --bg-card: #1e293b; /* Slate 800 */
-  --bg-input: #0f172a; /* Slate 900 */
-  --sidebar-bg: #0b1118; /* Near Black */
-  --sidebar-hover: #162435;
+  --bg-page: #f8fafc; /* Slate 50 */
+  --bg-card: #ffffff; /* White */
+  --bg-input: #ffffff; /* White */
+  --sidebar-bg: #111a24; /* Dark for modern professional look / slate 900 */
+  --sidebar-hover: #1b2633;
   --sidebar-active: #10b981; /* Emerald 500 */
   --sidebar-text: #94a3b8; /* Slate 400 */
   --sidebar-text-active: #ffffff;
   
-  --text-main: #f8fafc; /* Slate 50 */
-  --text-muted: #94a3b8; /* Slate 400 */
+  --text-main: #0f172a; /* Slate 900 */
+  --text-muted: #475569; /* Slate 600 */
   --text-light: #64748b; /* Slate 500 */
   
-  --border-light: #334155; /* Slate 700 */
+  --border-light: #e2e8f0; /* Slate 200 */
   
   --color-green: #10b981; /* Emerald 500 */
   --color-green-light: rgba(16, 185, 129, 0.1);
   --color-green-hover: #059669; /* Emerald 600 */
   
   --color-red: #ef4444; /* Red 500 */
-  --color-red-light: rgba(239, 68, 68, 0.15);
+  --color-red-light: rgba(239, 68, 68, 0.1);
   --color-orange: #f59e0b; /* Amber 500 */
-  --color-orange-light: rgba(245, 158, 11, 0.15);
+  --color-orange-light: rgba(245, 158, 11, 0.1);
   --color-blue: #3b82f6; /* Blue 500 */
-  --color-blue-light: rgba(59, 130, 246, 0.15);
+  --color-blue-light: rgba(59, 130, 246, 0.1);
   
   --font-main: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-heading: 'Outfit', sans-serif;
   --font-urdu: 'Noto Nastaliq Urdu', serif;
   
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -4px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
   
   --radius-sm: 8px;
   --radius-md: 12px;
@@ -81,11 +95,11 @@ button, input, select, textarea {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #334155;
+  background: #cbd5e1; /* Slate 300 */
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #475569;
+  background: #94a3b8; /* Slate 400 */
 }
 
 /* Layout Utilities */
@@ -210,12 +224,12 @@ button, input, select, textarea {
 }
 
 .btn-secondary {
-  background-color: #334155;
+  background-color: #f1f5f9;
   color: var(--text-main);
   border: 1px solid var(--border-light);
 }
 .btn-secondary:hover {
-  background-color: #475569;
+  background-color: #e2e8f0;
 }
 
 .btn-sm {
@@ -319,7 +333,7 @@ textarea.form-control {
 }
 
 .custom-table th {
-  background-color: #0b1118;
+  background-color: #f8fafc;
   color: var(--text-muted);
   font-weight: 600;
   padding: 14px 16px;
@@ -339,7 +353,7 @@ textarea.form-control {
 }
 
 .custom-table tbody tr:hover td {
-  background-color: #243347;
+  background-color: #f1f5f9;
 }
 
 /* Modal styles */
@@ -349,7 +363,7 @@ textarea.form-control {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.7);
+  background-color: rgba(0, 0, 0, 0.5); /* lighter backdrop for light mode */
   display: flex;
   align-items: center;
   justify-content: center;

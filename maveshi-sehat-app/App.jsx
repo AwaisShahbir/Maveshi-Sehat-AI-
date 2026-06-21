@@ -18,6 +18,8 @@ import ForumPostDetailScreen from './src/screens/user/ForumPostDetailScreen';
 import AiScanScreen from './src/screens/user/AiScanScreen';
 import HealthRecordsScreen from './src/screens/user/HealthRecordsScreen';
 import ProfileScreen from './src/screens/user/ProfileScreen';
+import MarketplaceScreen from './src/screens/user/MarketplaceScreen';
+import CartScreen from './src/screens/user/CartScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -33,6 +35,8 @@ export default function App() {
         <Stack.Screen name="AiScan" component={AiScanScreen} />
         <Stack.Screen name="HealthRecords" component={HealthRecordsScreen} />
         <Stack.Screen name="Profile" component={ProfileScreen} />
+        <Stack.Screen name="Marketplace" component={MarketplaceScreen} />
+        <Stack.Screen name="Cart" component={CartScreen} />
         <Stack.Screen name="VetDashboard" component={VetDashboardScreen} />
         <Stack.Screen name="HeatAlert" component={HeatAlertScreen} />
         <Stack.Screen name="VeterinariansList" component={VeterinariansListScreen} />

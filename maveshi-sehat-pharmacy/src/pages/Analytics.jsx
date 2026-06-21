@@ -297,14 +297,14 @@ export default function Analytics({ pharmacy, formatPrice }) {
           <h3 className="card-title" style={{ width: '100%', marginBottom: '12px' }}>Customer Satisfaction</h3>
           <div style={styles.circleContainer}>
             <svg width="120" height="120" viewBox="0 0 120 120">
-              <circle cx="60" cy="60" r="50" fill="transparent" stroke="#1e293b" strokeWidth="8" />
+              <circle cx="60" cy="60" r="50" fill="transparent" stroke="#e2e8f0" strokeWidth="8" />
               <circle cx="60" cy="60" r="50" fill="transparent" stroke="#eab308" strokeWidth="8" 
                 strokeDasharray="314.15" 
                 strokeDashoffset={314.15 - (314.15 * (satisfaction * 20)) / 100} 
                 strokeLinecap="round" 
                 transform="rotate(-90 60 60)" 
               />
-              <text x="60" y="66" textAnchor="middle" fill="#ffffff" fontSize="22" fontWeight="bold" fontFamily="Outfit">
+              <text x="60" y="66" textAnchor="middle" fill="#0f172a" fontSize="22" fontWeight="bold" fontFamily="Outfit">
                 {satisfaction.toFixed(1)}
               </text>
             </svg>
@@ -366,14 +366,14 @@ const styles = {
     fontFamily: 'Outfit, sans-serif',
     fontSize: '22px',
     fontWeight: '800',
-    color: '#ffffff',
+    color: '#0f172a',
     lineHeight: '1.2',
     marginBottom: '4px'
   },
   kpiTitleEn: {
     fontSize: '12px',
     fontWeight: '600',
-    color: '#94a3b8'
+    color: '#475569'
   },
   kpiTitleUr: {
     fontFamily: 'Noto Nastaliq Urdu, sans-serif',
@@ -384,7 +384,7 @@ const styles = {
   kpiFooter: {
     display: 'flex',
     alignItems: 'center',
-    borderTop: '1px solid #334155',
+    borderTop: '1px solid #e2e8f0',
     paddingTop: '10px',
     fontSize: '11px',
     color: '#64748b'
@@ -402,7 +402,7 @@ const styles = {
     gap: '16px',
     fontSize: '12px',
     fontWeight: '600',
-    color: '#94a3b8'
+    color: '#475569'
   },
   legendItem: {
     display: 'flex',
@@ -416,15 +416,15 @@ const styles = {
     display: 'inline-block'
   },
   tooltip: {
-    backgroundColor: '#0f172a',
-    border: '1px solid #334155',
+    backgroundColor: '#ffffff',
+    border: '1px solid #e2e8f0',
     padding: '12px',
     borderRadius: '8px',
-    boxShadow: '0 4px 6px rgba(0,0,0,0.2)'
+    boxShadow: '0 4px 6px rgba(0,0,0,0.05)'
   },
   tooltipLabel: {
     fontWeight: '700',
-    color: '#ffffff',
+    color: '#0f172a',
     marginBottom: '6px',
     fontSize: '13px'
   },
@@ -462,7 +462,7 @@ const styles = {
   medNameEn: {
     fontSize: '14px',
     fontWeight: '600',
-    color: '#ffffff'
+    color: '#0f172a'
   },
   medNameUr: {
     fontSize: '11px',
@@ -476,7 +476,7 @@ const styles = {
   },
   medOrderCount: {
     fontSize: '11px',
-    color: '#94a3b8'
+    color: '#64748b'
   },
   medSalesPrice: {
     fontSize: '13px',
@@ -485,7 +485,7 @@ const styles = {
   },
   medProgressBg: {
     height: '4px',
-    backgroundColor: '#334155',
+    backgroundColor: '#f1f5f9',
     borderRadius: '2px',
     overflow: 'hidden'
   },
@@ -514,11 +514,11 @@ const styles = {
     justifyContent: 'space-between',
     fontSize: '13px',
     fontWeight: '600',
-    color: '#94a3b8'
+    color: '#475569'
   },
   distBarBg: {
     height: '6px',
-    backgroundColor: '#334155',
+    backgroundColor: '#f1f5f9',
     borderRadius: '3px',
     overflow: 'hidden'
   },
@@ -534,7 +534,7 @@ const styles = {
   },
   retentionLabel: {
     fontSize: '13px',
-    color: '#94a3b8',
+    color: '#475569',
     textAlign: 'center',
     fontWeight: '500',
     maxWidth: '220px'

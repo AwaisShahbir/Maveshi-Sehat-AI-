@@ -370,7 +370,7 @@ const styles = {
   summaryName: {
     fontSize: '18px',
     fontWeight: '700',
-    color: '#ffffff',
+    color: '#0f172a',
   },
   summaryUrdu: {
     fontSize: '13px',
@@ -386,14 +386,14 @@ const styles = {
     flexDirection: 'column',
     gap: '12px',
     width: '100%',
-    borderTop: '1px solid #334155',
+    borderTop: '1px solid #e2e8f0',
     paddingTop: '20px',
   },
   quickContactItem: {
     display: 'flex',
     alignItems: 'center',
     gap: '10px',
-    color: '#94a3b8',
+    color: '#475569',
     fontSize: '13px',
   },
   detailsGrid: {
@@ -420,7 +420,7 @@ const styles = {
   },
   detailValue: {
     fontSize: '15px',
-    color: '#ffffff',
+    color: '#0f172a',
     fontWeight: '500',
   },
   editForm: {
@@ -434,24 +434,24 @@ const styles = {
   },
   loading: {
     textAlign: 'center',
-    color: '#94a3b8',
+    color: '#64748b',
     padding: '40px 0',
   },
   successAlert: {
-    backgroundColor: 'rgba(16, 185, 129, 0.15)',
+    backgroundColor: 'rgba(16, 185, 129, 0.1)',
     color: '#10b981',
     padding: '14px 18px',
     borderRadius: '12px',
-    border: '1px solid rgba(16, 185, 129, 0.25)',
+    border: '1px solid rgba(16, 185, 129, 0.2)',
     fontWeight: '600',
     fontSize: '14px',
   },
   errorAlert: {
-    backgroundColor: 'rgba(239, 68, 68, 0.15)',
+    backgroundColor: 'rgba(239, 68, 68, 0.1)',
     color: '#ef4444',
     padding: '14px 18px',
     borderRadius: '12px',
-    border: '1px solid rgba(239, 68, 68, 0.25)',
+    border: '1px solid rgba(239, 68, 68, 0.2)',
     fontWeight: '600',
     fontSize: '14px',
   },

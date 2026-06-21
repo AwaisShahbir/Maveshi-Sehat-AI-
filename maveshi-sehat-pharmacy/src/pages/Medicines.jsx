@@ -649,24 +649,24 @@ const styles = {
     height: '42px',
     paddingLeft: '44px',
     paddingRight: '16px',
-    border: '1px solid #1e293b',
+    border: '1px solid #e2e8f0',
     borderRadius: '10px',
-    backgroundColor: '#0f172a',
-    color: '#f8fafc',
+    backgroundColor: '#ffffff',
+    color: '#0f172a',
     fontSize: '14px',
   },
   filterGroup: {
     display: 'flex',
-    backgroundColor: '#0f172a',
+    backgroundColor: '#ffffff',
     padding: '4px',
     borderRadius: '10px',
-    border: '1px solid #1e293b',
+    border: '1px solid #e2e8f0',
   },
   filterBtn: {
     padding: '8px 16px',
     fontSize: '13px',
     fontWeight: '600',
-    color: '#94a3b8',
+    color: '#475569',
     backgroundColor: 'transparent',
     border: 'none',
     cursor: 'pointer',
@@ -700,7 +700,7 @@ const styles = {
   },
   loading: {
     textAlign: 'center',
-    color: '#94a3b8',
+    color: '#64748b',
     padding: '40px 0',
   },
   empty: {
@@ -708,8 +708,8 @@ const styles = {
     color: '#64748b',
     padding: '60px 0',
     fontSize: '15px',
-    backgroundColor: '#1e293b',
-    border: '1px dashed #334155',
+    backgroundColor: '#ffffff',
+    border: '1px dashed #cbd5e1',
     borderRadius: '12px',
   },
   nameBlock: {
@@ -720,7 +720,7 @@ const styles = {
   medNameText: {
     fontWeight: '700',
     fontSize: '14px',
-    color: '#ffffff',
+    color: '#0f172a',
   },
   medNameUrdu: {
     fontSize: '12px',
@@ -735,11 +735,11 @@ const styles = {
   catLabel: {
     fontSize: '12px',
     fontWeight: '600',
-    color: '#94a3b8',
-    backgroundColor: '#1e293b',
+    color: '#475569',
+    backgroundColor: '#f1f5f9',
     padding: '4px 10px',
     borderRadius: '6px',
-    border: '1px solid #334155',
+    border: '1px solid #e2e8f0',
   },
   stockBlock: {
     display: 'flex',
@@ -817,8 +817,8 @@ const styles = {
     width: '32px',
     height: '32px',
     borderRadius: '8px',
-    border: '1px solid #334155',
-    backgroundColor: '#0f172a',
+    border: '1px solid #e2e8f0',
+    backgroundColor: '#ffffff',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -865,11 +865,11 @@ const styles = {
   viewValue: {
     fontSize: '14px',
     fontWeight: '600',
-    color: '#f8fafc',
+    color: '#0f172a',
   },
   viewValueBig: {
     fontSize: '16px',
     fontWeight: '700',
-    color: '#ffffff',
+    color: '#0f172a',
   }
 };

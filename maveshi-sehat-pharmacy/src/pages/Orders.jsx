@@ -282,10 +282,10 @@ const styles = {
   filterBar: {
     display: 'flex',
     gap: '12px',
-    backgroundColor: '#0f172a',
+    backgroundColor: '#ffffff',
     padding: '6px',
     borderRadius: '12px',
-    border: '1px solid #1e293b',
+    border: '1px solid #e2e8f0',
     overflowX: 'auto',
     width: 'fit-content'
   },
@@ -296,7 +296,7 @@ const styles = {
     padding: '8px 16px',
     fontSize: '13px',
     fontWeight: '600',
-    color: '#94a3b8',
+    color: '#475569',
     backgroundColor: 'transparent',
     border: 'none',
     cursor: 'pointer',
@@ -320,8 +320,8 @@ const styles = {
   badgeCount: {
     fontSize: '10px',
     fontWeight: '700',
-    backgroundColor: '#334155',
-    color: '#94a3b8',
+    backgroundColor: '#f1f5f9',
+    color: '#475569',
     padding: '2px 8px',
     borderRadius: '10px',
   },
@@ -335,7 +335,7 @@ const styles = {
   },
   loading: {
     textAlign: 'center',
-    color: '#94a3b8',
+    color: '#64748b',
     padding: '40px 0',
   },
   empty: {
@@ -343,8 +343,8 @@ const styles = {
     color: '#64748b',
     padding: '60px 0',
     fontSize: '15px',
-    backgroundColor: '#1e293b',
-    border: '1px dashed #334155',
+    backgroundColor: '#ffffff',
+    border: '1px dashed #cbd5e1',
     borderRadius: '12px',
   },
   ordersList: {
@@ -385,7 +385,7 @@ const styles = {
   orderIdText: {
     fontWeight: '700',
     fontSize: '15px',
-    color: '#ffffff'
+    color: '#0f172a'
   },
   badge: {
     display: 'inline-flex',
@@ -407,7 +407,7 @@ const styles = {
   buyerNameText: {
     fontWeight: '700',
     fontSize: '14px',
-    color: '#ffffff'
+    color: '#0f172a'
   },
   buyerNameUrdu: {
     fontSize: '12px',
@@ -423,18 +423,18 @@ const styles = {
   orderPriceText: {
     fontWeight: '800',
     fontSize: '16px',
-    color: '#ffffff',
+    color: '#0f172a',
     fontFamily: 'Outfit, sans-serif'
   },
   itemsCountText: {
     fontSize: '12px',
-    color: '#94a3b8',
+    color: '#475569',
     fontWeight: '600'
   },
   cardDetails: {
-    borderTop: '1.5px solid #1e293b',
+    borderTop: '1.5px solid #e2e8f0',
     padding: '24px',
-    backgroundColor: '#0f172a'
+    backgroundColor: '#f8fafc'
   },
   detailsTitle: {
     fontSize: '13px',
@@ -451,7 +451,7 @@ const styles = {
   detailsTable: {
     display: 'flex',
     flexDirection: 'column',
-    border: '1px solid #1e293b',
+    border: '1px solid #e2e8f0',
     borderRadius: '8px',
     overflow: 'hidden',
     marginBottom: '20px'
@@ -459,9 +459,9 @@ const styles = {
   tableHeaderRow: {
     display: 'grid',
     gridTemplateColumns: '2fr 1fr 1fr',
-    backgroundColor: '#0b1118',
+    backgroundColor: '#f1f5f9',
     padding: '10px 16px',
-    borderBottom: '1px solid #1e293b'
+    borderBottom: '1px solid #e2e8f0'
   },
   thLabel: {
     fontSize: '11px',
@@ -473,7 +473,7 @@ const styles = {
     display: 'grid',
     gridTemplateColumns: '2fr 1fr 1fr',
     padding: '12px 16px',
-    borderBottom: '1px solid #1e293b',
+    borderBottom: '1px solid #e2e8f0',
     alignItems: 'center'
   },
   medCol: {
@@ -483,7 +483,7 @@ const styles = {
   medNameText: {
     fontSize: '13px',
     fontWeight: '600',
-    color: '#ffffff'
+    color: '#0f172a'
   },
   medUrduText: {
     fontSize: '11px',
@@ -492,13 +492,13 @@ const styles = {
   },
   qtyText: {
     fontSize: '13px',
-    color: '#94a3b8',
+    color: '#475569',
     fontWeight: '500'
   },
   priceColText: {
     fontSize: '13px',
     fontWeight: '700',
-    color: '#ffffff',
+    color: '#0f172a',
     textAlign: 'right'
   },
   actionRow: {
@@ -517,7 +517,7 @@ const styles = {
     fontWeight: '500'
   },
   methodVal: {
-    color: '#ffffff',
+    color: '#0f172a',
     fontWeight: '700'
   },
   actionBtns: {
@@ -528,7 +528,7 @@ const styles = {
     fontSize: '12px',
     color: '#64748b',
     fontWeight: '600',
-    border: '1px solid #334155',
+    border: '1px solid #cbd5e1',
     padding: '6px 12px',
     borderRadius: '6px'
   }

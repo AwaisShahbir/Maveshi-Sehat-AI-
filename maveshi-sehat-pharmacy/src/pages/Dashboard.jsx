@@ -586,8 +586,8 @@ export default function Dashboard({ pharmacy, onLogout }) {
 const styles = {
   sidebar: {
     width: '280px',
-    backgroundColor: '#070a0e',
-    borderRight: '1px solid #1e293b',
+    backgroundColor: '#111a24',
+    borderRight: '1px solid #1f2a3c',
     display: 'flex',
     flexDirection: 'column',
     height: '100vh',
@@ -600,7 +600,7 @@ const styles = {
     alignItems: 'center',
     gap: '12px',
     padding: '24px',
-    borderBottom: '1px solid #1e293b',
+    borderBottom: '1px solid #1f2a3c',
   },
   brandIcon: {
     width: '36px',
@@ -630,7 +630,7 @@ const styles = {
     alignItems: 'center',
     gap: '12px',
     padding: '20px 24px',
-    borderBottom: '1px solid #1e293b',
+    borderBottom: '1px solid #1f2a3c',
     backgroundColor: 'rgba(30, 41, 59, 0.2)',
   },
   profileAvatar: {
@@ -668,7 +668,7 @@ const styles = {
     display: 'block',
     fontSize: '10px',
     fontWeight: '800',
-    color: '#475569',
+    color: '#64748b',
     padding: '0 24px',
     marginBottom: '10px',
     letterSpacing: '1px',
@@ -724,7 +724,7 @@ const styles = {
   menuBadge: {
     fontSize: '10px',
     fontWeight: '700',
-    backgroundColor: '#334155',
+    backgroundColor: '#1e293b',
     color: '#94a3b8',
     padding: '2px 8px',
     borderRadius: '10px',
@@ -747,7 +747,7 @@ const styles = {
   },
   sidebarFooter: {
     padding: '16px 24px',
-    borderTop: '1px solid #1e293b',
+    borderTop: '1px solid #1f2a3c',
   },
   logoutBtn: {
     display: 'flex',
@@ -755,7 +755,7 @@ const styles = {
     gap: '12px',
     padding: '10px 16px',
     backgroundColor: 'transparent',
-    border: '1px solid #334155',
+    border: '1px solid #1f2a3c',
     color: '#ef4444',
     borderRadius: '8px',
     cursor: 'pointer',
@@ -764,8 +764,8 @@ const styles = {
   },
   header: {
     height: '80px',
-    backgroundColor: '#1e293b',
-    borderBottom: '1px solid #334155',
+    backgroundColor: '#ffffff',
+    borderBottom: '1px solid #e2e8f0',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -782,11 +782,11 @@ const styles = {
     fontFamily: 'Outfit, sans-serif',
     fontSize: '22px',
     fontWeight: '700',
-    color: '#ffffff',
+    color: '#0f172a',
   },
   headerTitleUr: {
     fontSize: '12px',
-    color: '#94a3b8',
+    color: '#64748b',
     marginTop: '2px',
   },
   headerActions: {
@@ -815,9 +815,9 @@ const styles = {
     width: '40px',
     height: '40px',
     borderRadius: '50%',
-    backgroundColor: '#0f172a',
-    border: '1px solid #334155',
-    color: '#ffffff',
+    backgroundColor: '#ffffff',
+    border: '1px solid #e2e8f0',
+    color: '#0f172a',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -838,27 +838,28 @@ const styles = {
     top: '50px',
     right: 0,
     width: '300px',
-    backgroundColor: '#1e293b',
-    border: '1px solid #334155',
+    backgroundColor: '#ffffff',
+    border: '1px solid #e2e8f0',
     borderRadius: '12px',
-    boxShadow: '0 10px 15px -3px rgba(0,0,0,0.5)',
+    boxShadow: '0 10px 15px -3px rgba(0,0,0,0.05)',
     zIndex: 200,
     padding: '16px',
   },
   notifDropHeader: {
     fontSize: '14px',
     fontWeight: '700',
+    color: '#0f172a',
     marginBottom: '12px',
-    borderBottom: '1px solid #334155',
+    borderBottom: '1px solid #e2e8f0',
     paddingBottom: '8px',
   },
   notifItem: {
     padding: '8px 0',
-    borderBottom: '1px solid #334155',
+    borderBottom: '1px solid #e2e8f0',
   },
   notifItemText: {
     fontSize: '12px',
-    color: '#f8fafc',
+    color: '#0f172a',
   },
   notifItemTime: {
     fontSize: '10px',
@@ -869,15 +870,15 @@ const styles = {
     alignItems: 'center',
     gap: '8px',
     padding: '8px 16px',
-    backgroundColor: '#0f172a',
-    border: '1px solid #334155',
+    backgroundColor: '#ffffff',
+    border: '1px solid #e2e8f0',
     borderRadius: '20px',
     cursor: 'pointer',
   },
   headerProfileName: {
     fontSize: '13px',
     fontWeight: '600',
-    color: '#ffffff',
+    color: '#0f172a',
   },
   welcomeBanner: {
     backgroundColor: '#10b981',
@@ -921,7 +922,7 @@ const styles = {
   statLabel: {
     fontSize: '13px',
     fontWeight: '700',
-    color: '#94a3b8',
+    color: '#475569',
   },
   statLabelUr: {
     fontSize: '10px',
@@ -932,7 +933,7 @@ const styles = {
     fontFamily: 'Outfit, sans-serif',
     fontSize: '22px',
     fontWeight: '700',
-    color: '#ffffff',
+    color: '#0f172a',
     margin: '12px 0 4px 0',
   },
   statTrendUp: {
@@ -985,7 +986,6 @@ const styles = {
     alignItems: 'center',
     justifyContent: 'center',
   },
-
   statIconContainerRed: {
     width: '44px',
     height: '44px',
@@ -1028,9 +1028,9 @@ const styles = {
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: '16px',
-    backgroundColor: '#0f172a',
+    backgroundColor: '#ffffff',
     borderRadius: '12px',
-    border: '1px solid #334155',
+    border: '1px solid #e2e8f0',
   },
   orderItemLeft: {
     display: 'flex',
@@ -1044,7 +1044,7 @@ const styles = {
   buyerName: {
     fontSize: '13px',
     fontWeight: '600',
-    color: '#ffffff',
+    color: '#0f172a',
     marginTop: '2px',
   },
   orderItemsCount: {
@@ -1060,7 +1060,7 @@ const styles = {
   orderPrice: {
     fontSize: '15px',
     fontWeight: '700',
-    color: '#ffffff',
+    color: '#0f172a',
   },
   paymentMethod: {
     fontSize: '11px',
@@ -1094,7 +1094,7 @@ const styles = {
   alertMedName: {
     fontSize: '13px',
     fontWeight: '600',
-    color: '#ffffff',
+    color: '#0f172a',
   },
   stockBadgeRed: {
     fontSize: '11px',
@@ -1109,7 +1109,7 @@ const styles = {
   progressBarBg: {
     width: '100%',
     height: '6px',
-    backgroundColor: '#0f172a',
+    backgroundColor: '#f1f5f9',
     borderRadius: '3px',
     overflow: 'hidden',
   },
@@ -1124,6 +1124,18 @@ const styles = {
     marginTop: '4px',
   },
   quickActionsList: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '12px',
+  },
+  quickActionBtn: {
+    width: '100%',
+    height: '42px',
+    fontSize: '13px',
+    display: 'flex',
+    justifyContent: 'flex-start',
+    paddingLeft: '16px',
+  },  quickActionsList: {
     display: 'flex',
     flexDirection: 'column',
     gap: '12px',
