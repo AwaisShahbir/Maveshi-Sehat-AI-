@@ -9,7 +9,7 @@ const pool = new Pool({
   port: process.env.DB_PORT,
 });
 
-// Check if user requested a full reset via --reset or --force command line flags
+
 const shouldReset = process.argv.includes('--reset') || process.argv.includes('--force');
 
 const dropTablesQuery = `

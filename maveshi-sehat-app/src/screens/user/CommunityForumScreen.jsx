@@ -47,7 +47,7 @@ export default function CommunityForumScreen() {
   const [postDescription, setPostDescription] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  // Subscribe to profile updates for dynamic language changes
+  
   useEffect(() => {
     const unsubscribeProfile = subscribeProfile((updatedProfile) => {
       setProfile(updatedProfile);

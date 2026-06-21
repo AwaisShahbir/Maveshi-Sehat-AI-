@@ -8,7 +8,7 @@ import UserManagement from './pages/UserManagement';
 import VetVerification from './pages/VetVerification';
 import PharmacyApproval from './pages/PharmacyApproval';
 
-// Simple placeholder page for sections currently under development
+
 function PlaceholderPage({ name, urdu }) {
   return (
     <div className="card" style={{ padding: '60px 40px', textAlign: 'center', margin: '20px auto', maxWidth: '600px' }}>
@@ -48,7 +48,7 @@ export default function App() {
     if (!saved) return null;
     try {
       const parsed = JSON.parse(saved);
-      const expiryTime = 15 * 60 * 1000; // 15 minutes session expiry
+      const expiryTime = 15 * 60 * 1000; 
       if (Date.now() - parsed.timestamp > expiryTime) {
         sessionStorage.removeItem('adminUser');
         return null;
@@ -85,12 +85,12 @@ export default function App() {
           parsed.timestamp = Date.now();
           sessionStorage.setItem('adminUser', JSON.stringify(parsed));
         } catch (err) {
-          // Ignore
+          
         }
       }
     };
 
-    // Update session timestamp on mouse activity, keypresses, or clicks
+    
     window.addEventListener('mousemove', updateActivity);
     window.addEventListener('keydown', updateActivity);
     window.addEventListener('click', updateActivity);
@@ -100,7 +100,7 @@ export default function App() {
       if (saved) {
         try {
           const parsed = JSON.parse(saved);
-          const expiryTime = 15 * 60 * 1000; // 15 minutes
+          const expiryTime = 15 * 60 * 1000; 
           if (Date.now() - parsed.timestamp > expiryTime) {
             handleLogout();
             alert('Your session has expired due to inactivity. Please log in again. / آپ کا سیشن ختم ہو گیا ہے۔ براہ کرم دوبارہ لاگ ان کریں۔');
@@ -111,7 +111,7 @@ export default function App() {
       } else {
         handleLogout();
       }
-    }, 10000); // Check every 10 seconds
+    }, 10000); 
 
     return () => {
       window.removeEventListener('mousemove', updateActivity);
@@ -128,37 +128,37 @@ export default function App() {
   return (
     <BrowserRouter>
       <div className="app-container">
-        {/* Left Sidebar */}
+        
         <Sidebar onLogout={handleLogout} />
         
-        {/* Right Main Panel */}
+        
         <div className="main-content">
-          {/* Top Header */}
+          
           <Header />
           
-          {/* Page Display Area */}
+          
           <main className="page-container">
             <Routes>
-              {/* Home Dashboard */}
+              
               <Route path="/" element={<Dashboard />} />
               
-              {/* Overview Group */}
+              
               <Route path="/analytics" element={<PlaceholderPage name="Platform & Disease Analytics" urdu="پلیٹ فارم اور بیماری کے تجزیات" />} />
               <Route path="/reports" element={<PlaceholderPage name="Reports Center" urdu="رپورٹس سینٹر" />} />
               
-              {/* User Control Group */}
+              
               <Route path="/users" element={<UserManagement />} />
               <Route path="/vets" element={<VetVerification />} />
               <Route path="/pharmacy-approval" element={<PharmacyApproval />} />
               
-              {/* Management Group */}
+              
               <Route path="/health-records" element={<PlaceholderPage name="Health Records" urdu="صحت کے ریکارڈ" />} />
               <Route path="/medicines" element={<PlaceholderPage name="Medicine Catalogue" urdu="دوائیوں کی فہرست" />} />
               <Route path="/orders" element={<PlaceholderPage name="Order Management" urdu="آرڈرز کا انتظام" />} />
               <Route path="/notifications" element={<PlaceholderPage name="Notifications & Broadcasts" urdu="اطلاعات اور اعلانات" />} />
               <Route path="/settings" element={<PlaceholderPage name="Settings & Configurations" urdu="ترتیبات اور ترامیم" />} />
               
-              {/* Fallback Catch-all Route */}
+              
               <Route path="*" element={<PlaceholderPage name="Page Not Found" urdu="صفحہ نہیں ملا" />} />
             </Routes>
           </main>

@@ -28,10 +28,10 @@ export default function CartScreen() {
   const [profile] = useState(getProfile());
   const [cartItems, setCartItems] = useState(getCart());
   const [subtotal, setSubtotal] = useState(getCartTotal());
-  const [paymentMethod, setPaymentMethod] = useState('COD'); // 'COD', 'Online'
+  const [paymentMethod, setPaymentMethod] = useState('COD'); 
   const [loading, setLoading] = useState(false);
 
-  // Address edit states
+  
   const [buyerName, setBuyerName] = useState(profile.userName || 'Muhammad Ahmed');
   const [buyerNameUrdu, setBuyerNameUrdu] = useState(profile.userNameUrdu || 'محمد احمد');
   const [phone, setPhone] = useState(profile.phone || '+92 300 1234567');
@@ -45,7 +45,7 @@ export default function CartScreen() {
   const deliveryCharges = 150;
   const total = subtotal > 0 ? subtotal + deliveryCharges : 0;
 
-  // Sync with cart updates
+  
   useEffect(() => {
     const unsubscribe = subscribeCart((updatedCart) => {
       setCartItems(updatedCart);
@@ -74,7 +74,7 @@ export default function CartScreen() {
       setLoading(true);
       const baseUrl = Platform.OS === 'android' ? 'http://10.0.2.2:5000' : 'http://localhost:5000';
       
-      // Target the first pharmacy in the cart
+      
       const primaryPharmacyId = cartItems[0].pharmacyId;
 
       const orderPayload = {
@@ -122,7 +122,7 @@ export default function CartScreen() {
     }
   };
 
-  // Get matching mock icons
+  
   const getMedIcon = (item) => {
     const form = (item.dosageForm || '').toLowerCase();
     const cat = item.category.toLowerCase();
@@ -139,12 +139,12 @@ export default function CartScreen() {
   const renderCartItem = ({ item }) => {
     return (
       <View style={styles.itemCard}>
-        {/* Thumbnail icon */}
+        
         <View style={styles.itemIconBox}>
           {getMedIcon(item)}
         </View>
 
-        {/* Medicine Labels */}
+        
         <View style={styles.itemDetails}>
           <Text style={styles.itemNameText}>{item.name}</Text>
           {item.nameUrdu ? (
@@ -154,7 +154,7 @@ export default function CartScreen() {
           <Text style={styles.itemPriceText}>Rs. {Math.round(item.price * item.quantity)}</Text>
         </View>
 
-        {/* Counter Controls */}
+        
         <View style={styles.itemControls}>
           <View style={styles.counterRow}>
             <TouchableOpacity 
@@ -176,7 +176,7 @@ export default function CartScreen() {
             </TouchableOpacity>
           </View>
 
-          {/* Delete Action */}
+          
           <TouchableOpacity 
             style={styles.deleteBtn}
             onPress={() => removeFromCart(item.id)}
@@ -193,7 +193,7 @@ export default function CartScreen() {
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="light-content" backgroundColor="#58D66D" />
 
-      {/* Rounded Header */}
+      
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
           <Feather name="chevron-left" size={26} color="#FFF" />
@@ -207,7 +207,7 @@ export default function CartScreen() {
 
       <ScrollView contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
         
-        {/* Cart items list */}
+        
         {cartItems.length === 0 ? (
           <View style={styles.emptyContainer}>
             <Feather name="shopping-bag" size={64} color="#CBD5E1" />
@@ -231,7 +231,7 @@ export default function CartScreen() {
 
         {cartItems.length > 0 && (
           <>
-            {/* Delivery Address Block */}
+            
             <View style={styles.cardContainer}>
               <View style={styles.cardHeaderRow}>
                 <Feather name="map-pin" size={16} color="#4CB85C" />
@@ -241,7 +241,7 @@ export default function CartScreen() {
               <View style={styles.addressBody}>
                 <Text style={styles.buyerNameText}>{profile.userName}</Text>
                 
-                {/* Formatted address display */}
+                
                 <Text style={styles.addressText}>
                   {profile.location === 'Okara, Punjab' 
                     ? 'Village Chak 123, Tehsil Depalpur, District Okara, Punjab' 
@@ -256,7 +256,7 @@ export default function CartScreen() {
               </View>
             </View>
 
-            {/* Order Summary Block */}
+            
             <View style={styles.cardContainer}>
               <View style={styles.cardHeaderRow}>
                 <Feather name="file-text" size={16} color="#4CB85C" />
@@ -280,7 +280,7 @@ export default function CartScreen() {
               </View>
             </View>
 
-            {/* Payment Method Block */}
+            
             <View style={styles.cardContainer}>
               <View style={styles.cardHeaderRow}>
                 <Feather name="credit-card" size={16} color="#4CB85C" />
@@ -288,7 +288,7 @@ export default function CartScreen() {
               </View>
 
               <View style={styles.paymentOptions}>
-                {/* COD Card */}
+                
                 <TouchableOpacity 
                   style={[styles.paymentCard, paymentMethod === 'COD' && styles.paymentCardSelected]}
                   onPress={() => setPaymentMethod('COD')}
@@ -303,7 +303,7 @@ export default function CartScreen() {
                   </View>
                 </TouchableOpacity>
 
-                {/* Mobile Wallet Card */}
+                
                 <TouchableOpacity 
                   style={[styles.paymentCard, paymentMethod === 'Online' && styles.paymentCardSelected]}
                   onPress={() => setPaymentMethod('Online')}
@@ -320,7 +320,7 @@ export default function CartScreen() {
               </View>
             </View>
 
-            {/* Checkout Button */}
+            
             <TouchableOpacity 
               style={[styles.placeOrderBtn, loading && styles.placeOrderBtnDisabled]}
               onPress={handlePlaceOrder}

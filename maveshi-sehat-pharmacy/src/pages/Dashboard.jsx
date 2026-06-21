@@ -11,7 +11,7 @@ import AddMedicine from './AddMedicine';
 import StockAlerts from './StockAlerts';
 
 export default function Dashboard({ pharmacy, onLogout }) {
-  const [currentView, setCurrentView] = useState('dashboard'); // 'dashboard', 'analytics', 'listings', 'orders', 'profile', 'add-medicine', 'stock-alerts'
+  const [currentView, setCurrentView] = useState('dashboard'); 
   const [editMedId, setEditMedId] = useState(null);
   const [stats, setStats] = useState({
     totalRevenue: 0,
@@ -29,7 +29,7 @@ export default function Dashboard({ pharmacy, onLogout }) {
   ]);
   const [showNotifications, setShowNotifications] = useState(false);
 
-  // Fetch Dashboard Stats & Listings
+  
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
@@ -93,88 +93,104 @@ export default function Dashboard({ pharmacy, onLogout }) {
   };
 
   return (
-    <div className="app-container">
-      {/* Sidebar navigation */}
-      <aside style={styles.sidebar}>
-        <div style={styles.sidebarBrand}>
-          <div style={styles.brandIcon}>
+    <div className="app-container flex min-h-screen w-screen overflow-x-hidden bg-slate-50">
+      
+      <aside className="w-[280px] bg-[#111a24] border-r border-[#1f2a3c] flex flex-col h-screen sticky top-0 z-50">
+        <div className="flex items-center gap-3 p-6 border-b border-[#1f2a3c]">
+          <div className="w-9 h-9 rounded-lg bg-emerald-500/10 flex items-center justify-center border-[1.5px] border-emerald-500">
             <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#10b981" strokeWidth="2.5">
               <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
               <path d="M12 8v8M8 12h8" strokeWidth="3" />
             </svg>
           </div>
           <div>
-            <span style={styles.brandName}>Maveshi Sehat AI</span>
-            <span style={styles.brandTag}>Pharmacy Portal / پورٹل</span>
+            <span className="font-heading text-sm font-extrabold text-white block leading-tight">Maveshi Sehat AI</span>
+            <span className="text-[11px] text-emerald-500 font-semibold block mt-0.5">Pharmacy Portal / پورٹل</span>
           </div>
         </div>
 
-        <div style={styles.sidebarProfile}>
-          <div style={styles.profileAvatar}>
+        <div className="flex items-center gap-3 px-6 py-5 border-b border-[#1f2a3c] bg-slate-800/20">
+          <div className="w-10 h-10 rounded-full bg-emerald-500/10 border border-emerald-500 text-emerald-500 flex items-center justify-center">
             <Store size={20} />
           </div>
           <div>
-            <span style={styles.profileName}>{pharmacy.name}</span>
-            <span style={styles.profileStatus}>Verified / تصدیق شدہ</span>
+            <span className="text-sm font-bold text-white block">{pharmacy.name}</span>
+            <span className="text-[11px] text-emerald-500 font-semibold block mt-0.5">Verified / تصدیق شدہ</span>
           </div>
         </div>
 
-        <nav style={styles.sidebarMenu}>
-          <div style={styles.menuGroup}>
-            <span style={styles.groupTitle}>OVERVIEW</span>
-            <ul style={styles.groupList}>
+        <nav className="flex-1 overflow-y-auto py-5">
+          <div className="mb-5">
+            <span className="block text-[10px] font-extrabold text-slate-500 px-6 mb-2.5 tracking-wider">OVERVIEW</span>
+            <ul className="list-none flex flex-col gap-1">
               <li>
                 <button 
                   onClick={() => setCurrentView('dashboard')}
-                  style={currentView === 'dashboard' ? styles.menuItemActive : styles.menuItem}
+                  className={`flex items-center gap-3.5 px-6 py-2.5 w-full text-left cursor-pointer text-sm transition-all duration-200 ${
+                    currentView === 'dashboard' 
+                      ? 'text-white bg-emerald-500/10 border-l-4 border-emerald-500 font-semibold' 
+                      : 'text-slate-400 bg-transparent border-none hover:text-white'
+                  }`}
                 >
                   <LayoutDashboard size={18} />
-                  <div style={styles.menuLabelBlock}>
-                    <span style={styles.menuLabelEn}>Dashboard</span>
-                    <span style={styles.menuLabelUr}>ڈیش بورڈ</span>
+                  <div className="flex-1 flex flex-col">
+                    <span className="font-semibold">Dashboard</span>
+                    <span className="text-[10px] opacity-70 mt-0.5">ڈیش بورڈ</span>
                   </div>
                 </button>
               </li>
               <li>
                 <button 
                   onClick={() => setCurrentView('analytics')}
-                  style={currentView === 'analytics' ? styles.menuItemActive : styles.menuItem}
+                  className={`flex items-center gap-3.5 px-6 py-2.5 w-full text-left cursor-pointer text-sm transition-all duration-200 ${
+                    currentView === 'analytics' 
+                      ? 'text-white bg-emerald-500/10 border-l-4 border-emerald-500 font-semibold' 
+                      : 'text-slate-400 bg-transparent border-none hover:text-white'
+                  }`}
                 >
                   <BarChart3 size={18} />
-                  <div style={styles.menuLabelBlock}>
-                    <span style={styles.menuLabelEn}>Analytics</span>
-                    <span style={styles.menuLabelUr}>تجزیہ</span>
+                  <div className="flex-1 flex flex-col">
+                    <span className="font-semibold">Analytics</span>
+                    <span className="text-[10px] opacity-70 mt-0.5">تجزیہ</span>
                   </div>
                 </button>
               </li>
             </ul>
           </div>
 
-          <div style={styles.menuGroup}>
-            <span style={styles.groupTitle}>MEDICINES / دوائیں</span>
-            <ul style={styles.groupList}>
+          <div className="mb-5">
+            <span className="block text-[10px] font-extrabold text-slate-500 px-6 mb-2.5 tracking-wider">MEDICINES / دوائیں</span>
+            <ul className="list-none flex flex-col gap-1">
               <li>
                 <button 
                   onClick={() => setCurrentView('listings')}
-                  style={currentView === 'listings' ? styles.menuItemActive : styles.menuItem}
+                  className={`flex items-center gap-3.5 px-6 py-2.5 w-full text-left cursor-pointer text-sm transition-all duration-200 ${
+                    currentView === 'listings' 
+                      ? 'text-white bg-emerald-500/10 border-l-4 border-emerald-500 font-semibold' 
+                      : 'text-slate-400 bg-transparent border-none hover:text-white'
+                  }`}
                 >
                   <Pill size={18} />
-                  <div style={styles.menuLabelBlock}>
-                    <span style={styles.menuLabelEn}>My Listings</span>
-                    <span style={styles.menuLabelUr}>میری فہرست</span>
+                  <div className="flex-1 flex flex-col">
+                    <span className="font-semibold">My Listings</span>
+                    <span className="text-[10px] opacity-70 mt-0.5">میری فہرست</span>
                   </div>
-                  <span style={styles.menuBadge}>{stats.medicineListings}</span>
+                  <span className="text-[10px] font-bold bg-[#1e293b] text-slate-400 px-2 py-0.5 rounded-[10px]">{stats.medicineListings}</span>
                 </button>
               </li>
               <li>
                 <button 
                   onClick={() => setCurrentView('add-medicine')}
-                  style={currentView === 'add-medicine' ? styles.menuItemActive : styles.menuItem}
+                  className={`flex items-center gap-3.5 px-6 py-2.5 w-full text-left cursor-pointer text-sm transition-all duration-200 ${
+                    currentView === 'add-medicine' 
+                      ? 'text-white bg-emerald-500/10 border-l-4 border-emerald-500 font-semibold' 
+                      : 'text-slate-400 bg-transparent border-none hover:text-white'
+                  }`}
                 >
                   <PlusCircle size={18} />
-                  <div style={styles.menuLabelBlock}>
-                    <span style={styles.menuLabelEn}>Add Medicine</span>
-                    <span style={styles.menuLabelUr}>دوائی شامل کریں</span>
+                  <div className="flex-1 flex flex-col">
+                    <span className="font-semibold">Add Medicine</span>
+                    <span className="text-[10px] opacity-70 mt-0.5">دوائی شامل کریں</span>
                   </div>
                 </button>
               </li>
@@ -182,66 +198,78 @@ export default function Dashboard({ pharmacy, onLogout }) {
               <li>
                 <button 
                   onClick={() => setCurrentView('stock-alerts')}
-                  style={currentView === 'stock-alerts' ? styles.menuItemActive : styles.menuItem}
+                  className={`flex items-center gap-3.5 px-6 py-2.5 w-full text-left cursor-pointer text-sm transition-all duration-200 ${
+                    currentView === 'stock-alerts' 
+                      ? 'text-white bg-emerald-500/10 border-l-4 border-emerald-500 font-semibold' 
+                      : 'text-slate-400 bg-transparent border-none hover:text-white'
+                  }`}
                 >
                   <AlertTriangle size={18} />
-                  <div style={styles.menuLabelBlock}>
-                    <span style={styles.menuLabelEn}>Stock Alerts</span>
-                    <span style={styles.menuLabelUr}>اسٹاک الرٹ</span>
+                  <div className="flex-1 flex flex-col">
+                    <span className="font-semibold">Stock Alerts</span>
+                    <span className="text-[10px] opacity-70 mt-0.5">اسٹاک الرٹ</span>
                   </div>
                   {stats.stockAlerts > 0 && (
-                    <span style={styles.menuBadgeWarn}>{stats.stockAlerts}</span>
+                    <span className="text-[10px] font-bold bg-amber-500/20 text-amber-500 px-2 py-0.5 rounded-[10px]">{stats.stockAlerts}</span>
                   )}
                 </button>
               </li>
             </ul>
           </div>
 
-          <div style={styles.menuGroup}>
-            <span style={styles.groupTitle}>ORDERS / آرڈرز</span>
-            <ul style={styles.groupList}>
+          <div className="mb-5">
+            <span className="block text-[10px] font-extrabold text-slate-500 px-6 mb-2.5 tracking-wider">ORDERS / آرڈرز</span>
+            <ul className="list-none flex flex-col gap-1">
               <li>
                 <button 
                   onClick={() => setCurrentView('orders')}
-                  style={currentView === 'orders' ? styles.menuItemActive : styles.menuItem}
+                  className={`flex items-center gap-3.5 px-6 py-2.5 w-full text-left cursor-pointer text-sm transition-all duration-200 ${
+                    currentView === 'orders' 
+                      ? 'text-white bg-emerald-500/10 border-l-4 border-emerald-500 font-semibold' 
+                      : 'text-slate-400 bg-transparent border-none hover:text-white'
+                  }`}
                 >
                   <ShoppingBag size={18} />
-                  <div style={styles.menuLabelBlock}>
-                    <span style={styles.menuLabelEn}>All Orders</span>
-                    <span style={styles.menuLabelUr}>تمام آرڈرز</span>
+                  <div className="flex-1 flex flex-col">
+                    <span className="font-semibold">All Orders</span>
+                    <span className="text-[10px] opacity-70 mt-0.5">تمام آرڈرز</span>
                   </div>
                   {stats.activeOrders > 0 && (
-                    <span style={styles.menuBadgeActive}>{stats.activeOrders}</span>
+                    <span className="text-[10px] font-bold bg-blue-500/20 text-blue-500 px-2 py-0.5 rounded-[10px]">{stats.activeOrders}</span>
                   )}
                 </button>
               </li>
             </ul>
           </div>
 
-          <div style={styles.menuGroup}>
-            <span style={styles.groupTitle}>ACCOUNT / اکاؤنٹ</span>
-            <ul style={styles.groupList}>
+          <div className="mb-5">
+            <span className="block text-[10px] font-extrabold text-slate-500 px-6 mb-2.5 tracking-wider">ACCOUNT / اکاؤنٹ</span>
+            <ul className="list-none flex flex-col gap-1">
               <li>
                 <button 
                   onClick={() => setCurrentView('profile')}
-                  style={currentView === 'profile' ? styles.menuItemActive : styles.menuItem}
+                  className={`flex items-center gap-3.5 px-6 py-2.5 w-full text-left cursor-pointer text-sm transition-all duration-200 ${
+                    currentView === 'profile' 
+                      ? 'text-white bg-emerald-500/10 border-l-4 border-emerald-500 font-semibold' 
+                      : 'text-slate-400 bg-transparent border-none hover:text-white'
+                  }`}
                 >
                   <User size={18} />
-                  <div style={styles.menuLabelBlock}>
-                    <span style={styles.menuLabelEn}>Pharmacy Profile</span>
-                    <span style={styles.menuLabelUr}>فارمیسی پروفائل</span>
+                  <div className="flex-1 flex flex-col">
+                    <span className="font-semibold">Pharmacy Profile</span>
+                    <span className="text-[10px] opacity-70 mt-0.5">فارمیسی پروفائل</span>
                   </div>
                 </button>
               </li>
               <li>
                 <button 
                   onClick={() => setCurrentView('profile')}
-                  style={styles.menuItem}
+                  className="flex items-center gap-3.5 px-6 py-2.5 w-full text-left cursor-pointer text-sm text-slate-400 bg-transparent border-none hover:text-white transition-all duration-200"
                 >
                   <Settings size={18} />
-                  <div style={styles.menuLabelBlock}>
-                    <span style={styles.menuLabelEn}>Settings</span>
-                    <span style={styles.menuLabelUr}>ترتیبات</span>
+                  <div className="flex flex-col">
+                    <span className="font-semibold">Settings</span>
+                    <span className="text-[10px] opacity-70 mt-0.5">ترتیبات</span>
                   </div>
                 </button>
               </li>
@@ -249,21 +277,24 @@ export default function Dashboard({ pharmacy, onLogout }) {
           </div>
         </nav>
 
-        <div style={styles.sidebarFooter}>
-          <button style={styles.logoutBtn} onClick={onLogout}>
+        <div className="p-4 px-6 border-t border-[#1f2a3c]">
+          <button 
+            className="flex items-center gap-3 px-4 py-2.5 bg-transparent border border-[#1f2a3c] text-red-500 rounded-lg cursor-pointer w-full hover:bg-red-500/10 transition-all duration-200" 
+            onClick={onLogout}
+          >
             <LogOut size={16} />
-            <div style={styles.menuLabelBlock}>
-              <span style={{ fontSize: '13px', fontWeight: '600' }}>Logout / لاگ آوٹ</span>
+            <div className="flex flex-col items-start">
+              <span className="text-xs font-semibold">Logout / لاگ آوٹ</span>
             </div>
           </button>
         </div>
       </aside>
 
-      {/* Main page content area */}
-      <main className="main-content">
-        <header style={styles.header}>
-          <div style={styles.headerTitleContainer}>
-            <h2 style={styles.headerTitleEn}>
+      
+      <main className="main-content flex-1 flex flex-col h-screen overflow-y-auto bg-slate-50">
+        <header className="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-8 sticky top-0 z-40">
+          <div className="flex flex-col">
+            <h2 className="font-heading text-xl font-bold text-slate-900">
               {currentView === 'dashboard' && 'Dashboard'}
               {currentView === 'analytics' && 'Analytics'}
               {currentView === 'listings' && 'Medicine Listings'}
@@ -272,7 +303,7 @@ export default function Dashboard({ pharmacy, onLogout }) {
               {currentView === 'add-medicine' && 'Add Medicine'}
               {currentView === 'stock-alerts' && 'Stock Alerts'}
             </h2>
-            <span style={styles.headerTitleUr} className="urdu">
+            <span className="text-xs text-slate-500 mt-0.5 urdu">
               {currentView === 'dashboard' && 'ڈیش بورڈ'}
               {currentView === 'analytics' && 'تجزیہ'}
               {currentView === 'listings' && 'میری فہرست'}
@@ -283,135 +314,144 @@ export default function Dashboard({ pharmacy, onLogout }) {
             </span>
           </div>
 
-          <div style={styles.headerActions}>
-            {/* Notification Bell */}
-            <div style={styles.notifWrapper}>
-              <button style={styles.headerNotifBtn} onClick={() => setShowNotifications(!showNotifications)}>
+          <div className="flex items-center gap-4">
+            
+            <div className="relative">
+              <button 
+                className="w-10 h-10 rounded-full bg-white border border-slate-200 text-slate-900 flex items-center justify-center cursor-pointer relative hover:bg-slate-50 transition-colors" 
+                onClick={() => setShowNotifications(!showNotifications)}
+              >
                 <Bell size={18} />
-                {notifications.some(n => n.unread) && <span style={styles.notifBadge} />}
+                {notifications.some(n => n.unread) && <span className="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-red-500" />}
               </button>
               
               {showNotifications && (
-                <div style={styles.notifDropdown}>
-                  <h4 style={styles.notifDropHeader}>Notifications</h4>
+                <div className="absolute top-12 right-0 w-[300px] bg-white border border-slate-200 rounded-xl shadow-lg z-50 p-4">
+                  <h4 className="text-sm font-bold text-slate-900 mb-3 border-b border-slate-200 pb-2">Notifications</h4>
                   {notifications.map(n => (
-                    <div key={n.id} style={styles.notifItem}>
-                      <p style={styles.notifItemText}>{n.text}</p>
-                      <span style={styles.notifItemTime}>{n.time}</span>
+                    <div key={n.id} className="py-2 border-b border-slate-100 last:border-b-0">
+                      <p className="text-xs text-slate-800">{n.text}</p>
+                      <span className="text-[10px] text-slate-400">{n.time}</span>
                     </div>
                   ))}
                 </div>
               )}
             </div>
 
-            <div style={styles.headerProfileBadge} onClick={() => setCurrentView('profile')}>
-              <Store size={16} style={{ color: '#10b981' }} />
-              <span style={styles.headerProfileName}>{pharmacy.name}</span>
+            <div 
+              className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-full cursor-pointer hover:bg-slate-50 transition-colors" 
+              onClick={() => setCurrentView('profile')}
+            >
+              <Store size={16} className="text-emerald-500" />
+              <span className="text-xs font-semibold text-slate-900">{pharmacy.name}</span>
             </div>
           </div>
         </header>
 
-        <div className="page-container">
+        <div className="page-container p-8 flex-1">
           {currentView === 'dashboard' && (
             <>
-              {/* Welcome banner */}
-              <div style={styles.welcomeBanner}>
-                <h3 style={styles.welcomeTitle}>Welcome back, {pharmacy.name}!</h3>
-                <p style={styles.welcomeSub}>Here's what's happening with your pharmacy today.</p>
-                <p style={styles.welcomeUrdu} className="urdu">آج آپ کی فارمیسی کے ساتھ کیا ہو رہا ہے</p>
+              
+              <div className="bg-emerald-600 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl p-6 md:p-8 mb-7 text-white shadow-sm">
+                <h3 className="font-heading text-2xl font-bold">Welcome back, {pharmacy.name}!</h3>
+                <p className="text-sm opacity-90 mt-1">Here's what's happening with your pharmacy today.</p>
+                <p className="text-xs opacity-80 mt-1.5 urdu">آج آپ کی فارمیسی کے ساتھ کیا ہو رہا ہے</p>
               </div>
 
-              {/* Stats Row */}
-              <div style={styles.statsGrid}>
-                {/* 1. Revenue */}
-                <div className="card" style={styles.statCard}>
-                  <div style={styles.statLeft}>
-                    <span style={styles.statLabel}>Total Revenue</span>
-                    <span style={styles.statLabelUr}>کل آمدنی</span>
-                    <h3 style={styles.statVal}>{formatPrice(stats.totalRevenue)}</h3>
-                    <span style={styles.statTrendUp}>+12.5%</span>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-7">
+                
+                <div className="card flex justify-between items-start p-5">
+                  <div className="flex flex-col">
+                    <span className="text-xs font-bold text-slate-500">Total Revenue</span>
+                    <span className="text-[10px] text-slate-400 mt-0.5">کل آمدنی</span>
+                    <h3 className="font-heading text-xl font-bold text-slate-900 my-3">{formatPrice(stats.totalRevenue)}</h3>
+                    <span className="text-[11px] font-bold text-emerald-500">+12.5%</span>
                   </div>
-                  <div style={styles.statIconContainerGreen}>
+                  <div className="w-11 h-11 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
                     <BarChart3 size={24} />
                   </div>
                 </div>
 
-                {/* 2. Active Orders */}
-                <div className="card" style={styles.statCard}>
-                  <div style={styles.statLeft}>
-                    <span style={styles.statLabel}>Active Orders</span>
-                    <span style={styles.statLabelUr}>فعال آرڈرز</span>
-                    <h3 style={styles.statVal}>{stats.activeOrders}</h3>
-                    <span style={styles.statTrendNeutral}>+2 today</span>
+                
+                <div className="card flex justify-between items-start p-5">
+                  <div className="flex flex-col">
+                    <span className="text-xs font-bold text-slate-500">Active Orders</span>
+                    <span className="text-[10px] text-slate-400 mt-0.5">فعال آرڈرز</span>
+                    <h3 className="font-heading text-xl font-bold text-slate-900 my-3">{stats.activeOrders}</h3>
+                    <span className="text-[11px] font-bold text-blue-500">+2 today</span>
                   </div>
-                  <div style={styles.statIconContainerBlue}>
+                  <div className="w-11 h-11 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center">
                     <ShoppingBag size={24} />
                   </div>
                 </div>
 
-                {/* 3. Medicine Listings */}
-                <div className="card" style={styles.statCard}>
-                  <div style={styles.statLeft}>
-                    <span style={styles.statLabel}>Medicine Listings</span>
-                    <span style={styles.statLabelUr}>دوائیں فہرست</span>
-                    <h3 style={styles.statVal}>{stats.medicineListings}</h3>
-                    <span style={styles.statTrendWarning}>3 low stock</span>
+                
+                <div className="card flex justify-between items-start p-5">
+                  <div className="flex flex-col">
+                    <span className="text-xs font-bold text-slate-500">Medicine Listings</span>
+                    <span className="text-[10px] text-slate-400 mt-0.5">دوائیں فہرست</span>
+                    <h3 className="font-heading text-xl font-bold text-slate-900 my-3">{stats.medicineListings}</h3>
+                    <span className="text-[11px] font-bold text-amber-500">3 low stock</span>
                   </div>
-                  <div style={styles.statIconContainerOrange}>
+                  <div className="w-11 h-11 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center">
                     <Pill size={24} />
                   </div>
                 </div>
 
-                {/* 4. Stock Alerts */}
-                <div className="card" style={styles.statCard}>
-                  <div style={styles.statLeft}>
-                    <span style={styles.statLabel}>Stock Alerts</span>
-                    <span style={styles.statLabelUr}>اسٹاک الرٹ</span>
-                    <h3 style={styles.statVal}>{stats.stockAlerts}</h3>
-                    <span style={styles.statTrendDanger}>Needs attention</span>
+                
+                <div className="card flex justify-between items-start p-5">
+                  <div className="flex flex-col">
+                    <span className="text-xs font-bold text-slate-500">Stock Alerts</span>
+                    <span className="text-[10px] text-slate-400 mt-0.5">اسٹاک الرٹ</span>
+                    <h3 className="font-heading text-xl font-bold text-slate-900 my-3">{stats.stockAlerts}</h3>
+                    <span className="text-[11px] font-bold text-red-500">Needs attention</span>
                   </div>
-                  <div style={styles.statIconContainerRed}>
+                  <div className="w-11 h-11 rounded-xl bg-red-500/10 text-red-500 flex items-center justify-center">
                     <AlertTriangle size={24} />
                   </div>
                 </div>
               </div>
 
-              {/* Main Split Grid */}
+              
               <div className="grid-2-1">
-                {/* Recent Orders Card */}
+                
                 <div className="card">
                   <div className="card-header-flex">
                     <div>
                       <h3 className="card-title">Recent Orders</h3>
                       <p className="card-subtitle">Latest incoming requests</p>
-                      <p style={styles.cardHeaderUrdu} className="urdu">حالیہ آرڈرز</p>
+                      <p className="text-[11px] text-emerald-600 mt-0.5 urdu">حالیہ آرڈرز</p>
                     </div>
-                    <button style={styles.cardHeaderLink} onClick={() => setCurrentView('orders')}>
+                    <button 
+                      className="flex items-center gap-1 text-emerald-500 text-xs font-semibold bg-transparent border-none cursor-pointer" 
+                      onClick={() => setCurrentView('orders')}
+                    >
                       <span>View All</span>
                       <ArrowUpRight size={14} />
                     </button>
                   </div>
 
                   {loading ? (
-                    <p style={styles.emptyText}>Loading recent orders...</p>
+                    <p className="text-center text-slate-400 py-10 text-sm">Loading recent orders...</p>
                   ) : recentOrders.length === 0 ? (
-                    <p style={styles.emptyText}>No recent orders found.</p>
+                    <p className="text-center text-slate-400 py-10 text-sm">No recent orders found.</p>
                   ) : (
-                    <div style={styles.recentOrdersList}>
+                    <div className="flex flex-col gap-4">
                       {recentOrders.map(order => (
-                        <div key={order.id} style={styles.orderItem}>
-                          <div style={styles.orderItemLeft}>
-                            <span style={styles.orderId}>{order.id}</span>
-                            <span style={styles.buyerName}>{order.buyer_name}</span>
-                            <span style={styles.orderItemsCount}>{order.items_count} items</span>
+                        <div key={order.id} className="flex justify-between items-center p-4 bg-white rounded-xl border border-slate-200">
+                          <div className="flex flex-col">
+                            <span className="text-sm font-bold text-emerald-600">{order.id}</span>
+                            <span className="text-xs font-semibold text-slate-900 mt-0.5">{order.buyer_name}</span>
+                            <span className="text-[11px] text-slate-400 mt-0.5">{order.items_count} items</span>
                           </div>
                           
-                          <div style={styles.orderItemMid}>
-                            <span style={styles.orderPrice}>{formatPrice(order.total_price)}</span>
-                            <span style={styles.paymentMethod}>{order.payment_method}</span>
+                          <div className="flex flex-col items-start">
+                            <span className="text-sm font-bold text-slate-900">{formatPrice(order.total_price)}</span>
+                            <span className="text-[10px] text-slate-400 mt-0.5">{order.payment_method}</span>
                           </div>
 
-                          <div style={styles.orderItemRight}>
+                          <div className="flex flex-col items-end">
                             {getStatusBadge(order.status)}
                             {order.status.toLowerCase() === 'pending' && (
                               <button 
@@ -447,49 +487,54 @@ export default function Dashboard({ pharmacy, onLogout }) {
                   )}
                 </div>
 
-                {/* Right Column: Stock Alerts & Quick Actions */}
-                <div style={styles.rightCol}>
-                  {/* Stock Alerts Card */}
-                  <div className="card" style={{ marginBottom: '24px' }}>
+                
+                <div className="flex flex-col gap-6">
+                  
+                  <div className="card">
                     <div className="card-header-flex">
                       <div>
                         <h3 className="card-title">Stock Alerts</h3>
                         <p className="card-subtitle">Items low or out of stock</p>
-                        <p style={styles.cardHeaderUrdu} className="urdu">اسٹاک الرٹ</p>
+                        <p className="text-[11px] text-emerald-600 mt-0.5 urdu">اسٹاک الرٹ</p>
                       </div>
-                      <button style={styles.cardHeaderLink} onClick={() => setCurrentView('stock-alerts')}>
+                      <button 
+                        className="flex items-center gap-1 text-emerald-500 text-xs font-semibold bg-transparent border-none cursor-pointer" 
+                        onClick={() => setCurrentView('stock-alerts')}
+                      >
                         <span>View All</span>
                         <ArrowUpRight size={14} />
                       </button>
                     </div>
 
                     {loading ? (
-                      <p style={styles.emptyText}>Loading alerts...</p>
+                      <p className="text-center text-slate-400 py-10 text-sm">Loading alerts...</p>
                     ) : stockAlertsList.length === 0 ? (
-                      <p style={styles.emptyText}>No stock alerts! Everything is well stocked.</p>
+                      <p className="text-center text-slate-400 py-10 text-sm">No stock alerts! Everything is well stocked.</p>
                     ) : (
-                      <div style={styles.alertsList}>
+                      <div className="flex flex-col gap-4">
                         {stockAlertsList.map(med => {
-                          const maxStock = 20; // arbitrary baseline for progress
+                          const maxStock = 20; 
                           const pct = Math.min(Math.round((med.stock / maxStock) * 100), 100);
                           const barColor = med.stock === 0 ? '#ef4444' : (med.stock < 10 ? '#f59e0b' : '#3b82f6');
                           
                           return (
-                            <div key={med.id} style={styles.alertItem}>
-                              <div style={styles.alertItemHeader}>
-                                <span style={styles.alertMedName}>{med.name}</span>
-                                <span style={med.stock === 0 ? styles.stockBadgeRed : styles.stockBadgeOrange}>
+                            <div key={med.id} className="flex flex-col">
+                              <div className="flex justify-between items-center mb-1.5">
+                                <span className="text-xs font-semibold text-slate-900">{med.name}</span>
+                                <span className={`text-[11px] font-bold ${med.stock === 0 ? 'text-red-500' : 'text-amber-500'}`}>
                                   {med.stock} left
                                 </span>
                               </div>
-                              <div style={styles.progressBarBg}>
-                                <div style={{
-                                  ...styles.progressBarFill,
-                                  width: `${pct}%`,
-                                  backgroundColor: barColor
-                                }} />
+                              <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                <div 
+                                  className="h-full rounded-full transition-all duration-300" 
+                                  style={{
+                                    width: `${pct}%`,
+                                    backgroundColor: barColor
+                                  }} 
+                                />
                               </div>
-                              <span style={styles.alertMedCat}>{med.category}</span>
+                              <span className="text-[10px] text-slate-400 mt-1">{med.category}</span>
                             </div>
                           );
                         })}
@@ -497,13 +542,12 @@ export default function Dashboard({ pharmacy, onLogout }) {
                     )}
                   </div>
 
-                  {/* Quick Actions Card */}
+                  
                   <div className="card">
                     <h3 className="card-title" style={{ marginBottom: '16px' }}>Quick Actions</h3>
-                    <div style={styles.quickActionsList}>
+                    <div className="flex flex-col gap-3">
                       <button 
-                        className="btn btn-primary"
-                        style={styles.quickActionBtn}
+                        className="btn btn-primary w-full h-10 text-xs font-semibold flex justify-start items-center pl-4 gap-2"
                         onClick={() => setCurrentView('add-medicine')}
                       >
                         <PlusCircle size={16} />
@@ -511,8 +555,7 @@ export default function Dashboard({ pharmacy, onLogout }) {
                       </button>
 
                       <button 
-                        className="btn btn-secondary"
-                        style={styles.quickActionBtn}
+                        className="btn btn-secondary w-full h-10 text-xs font-semibold flex justify-start items-center pl-4 gap-2"
                         onClick={() => setCurrentView('orders')}
                       >
                         <ShoppingBag size={16} />
@@ -520,8 +563,7 @@ export default function Dashboard({ pharmacy, onLogout }) {
                       </button>
 
                       <button 
-                        className="btn btn-secondary"
-                        style={styles.quickActionBtn}
+                        className="btn btn-secondary w-full h-10 text-xs font-semibold flex justify-start items-center pl-4 gap-2"
                         onClick={() => setCurrentView('stock-alerts')}
                       >
                         <Pill size={16} />
@@ -582,570 +624,3 @@ export default function Dashboard({ pharmacy, onLogout }) {
     </div>
   );
 }
-
-const styles = {
-  sidebar: {
-    width: '280px',
-    backgroundColor: '#111a24',
-    borderRight: '1px solid #1f2a3c',
-    display: 'flex',
-    flexDirection: 'column',
-    height: '100vh',
-    position: 'sticky',
-    top: 0,
-    zIndex: 100,
-  },
-  sidebarBrand: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '12px',
-    padding: '24px',
-    borderBottom: '1px solid #1f2a3c',
-  },
-  brandIcon: {
-    width: '36px',
-    height: '36px',
-    borderRadius: '8px',
-    backgroundColor: 'rgba(16, 185, 129, 0.1)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    border: '1.5px solid #10b981',
-  },
-  brandName: {
-    fontFamily: 'Outfit, sans-serif',
-    fontSize: '16px',
-    fontWeight: '800',
-    color: '#ffffff',
-    display: 'block',
-  },
-  brandTag: {
-    fontSize: '11px',
-    color: '#10b981',
-    fontWeight: '600',
-    display: 'block',
-  },
-  sidebarProfile: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '12px',
-    padding: '20px 24px',
-    borderBottom: '1px solid #1f2a3c',
-    backgroundColor: 'rgba(30, 41, 59, 0.2)',
-  },
-  profileAvatar: {
-    width: '40px',
-    height: '40px',
-    borderRadius: '50%',
-    backgroundColor: 'rgba(16, 185, 129, 0.1)',
-    border: '1px solid #10b981',
-    color: '#10b981',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  profileName: {
-    fontSize: '14px',
-    fontWeight: '700',
-    color: '#ffffff',
-    display: 'block',
-  },
-  profileStatus: {
-    fontSize: '11px',
-    color: '#10b981',
-    fontWeight: '600',
-    display: 'block',
-  },
-  sidebarMenu: {
-    flex: '1',
-    overflowY: 'auto',
-    padding: '20px 0',
-  },
-  menuGroup: {
-    marginBottom: '20px',
-  },
-  groupTitle: {
-    display: 'block',
-    fontSize: '10px',
-    fontWeight: '800',
-    color: '#64748b',
-    padding: '0 24px',
-    marginBottom: '10px',
-    letterSpacing: '1px',
-  },
-  groupList: {
-    listStyle: 'none',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '4px',
-  },
-  menuItem: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '14px',
-    padding: '10px 24px',
-    color: '#94a3b8',
-    backgroundColor: 'transparent',
-    border: 'none',
-    width: '100%',
-    textAlign: 'left',
-    cursor: 'pointer',
-    fontSize: '14px',
-    transition: 'all 0.2s ease',
-  },
-  menuItemActive: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '14px',
-    padding: '10px 24px',
-    color: '#ffffff',
-    backgroundColor: 'rgba(16, 185, 129, 0.1)',
-    border: 'none',
-    width: '100%',
-    textAlign: 'left',
-    cursor: 'pointer',
-    fontSize: '14px',
-    borderLeft: '4px solid #10b981',
-    transition: 'all 0.2s ease',
-  },
-  menuLabelBlock: {
-    flex: '1',
-    display: 'flex',
-    flexDirection: 'column',
-  },
-  menuLabelEn: {
-    fontWeight: '600',
-  },
-  menuLabelUr: {
-    fontSize: '10px',
-    opacity: '0.7',
-    marginTop: '1px',
-  },
-  menuBadge: {
-    fontSize: '10px',
-    fontWeight: '700',
-    backgroundColor: '#1e293b',
-    color: '#94a3b8',
-    padding: '2px 8px',
-    borderRadius: '10px',
-  },
-  menuBadgeActive: {
-    fontSize: '10px',
-    fontWeight: '700',
-    backgroundColor: 'rgba(59, 130, 246, 0.2)',
-    color: '#3b82f6',
-    padding: '2px 8px',
-    borderRadius: '10px',
-  },
-  menuBadgeWarn: {
-    fontSize: '10px',
-    fontWeight: '700',
-    backgroundColor: 'rgba(245, 158, 11, 0.2)',
-    color: '#f59e0b',
-    padding: '2px 8px',
-    borderRadius: '10px',
-  },
-  sidebarFooter: {
-    padding: '16px 24px',
-    borderTop: '1px solid #1f2a3c',
-  },
-  logoutBtn: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '12px',
-    padding: '10px 16px',
-    backgroundColor: 'transparent',
-    border: '1px solid #1f2a3c',
-    color: '#ef4444',
-    borderRadius: '8px',
-    cursor: 'pointer',
-    width: '100%',
-    transition: 'all 0.2s ease',
-  },
-  header: {
-    height: '80px',
-    backgroundColor: '#ffffff',
-    borderBottom: '1px solid #e2e8f0',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: '0 32px',
-    position: 'sticky',
-    top: 0,
-    zIndex: 90,
-  },
-  headerTitleContainer: {
-    display: 'flex',
-    flexDirection: 'column',
-  },
-  headerTitleEn: {
-    fontFamily: 'Outfit, sans-serif',
-    fontSize: '22px',
-    fontWeight: '700',
-    color: '#0f172a',
-  },
-  headerTitleUr: {
-    fontSize: '12px',
-    color: '#64748b',
-    marginTop: '2px',
-  },
-  headerActions: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '16px',
-  },
-  headerAddBtn: {
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: '8px',
-    padding: '8px 16px',
-    backgroundColor: '#10b981',
-    color: '#ffffff',
-    borderRadius: '8px',
-    fontSize: '13px',
-    fontWeight: '600',
-    border: 'none',
-    cursor: 'pointer',
-    transition: 'background-color 0.2s ease',
-  },
-  notifWrapper: {
-    position: 'relative',
-  },
-  headerNotifBtn: {
-    width: '40px',
-    height: '40px',
-    borderRadius: '50%',
-    backgroundColor: '#ffffff',
-    border: '1px solid #e2e8f0',
-    color: '#0f172a',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    cursor: 'pointer',
-    position: 'relative',
-  },
-  notifBadge: {
-    position: 'absolute',
-    top: '10px',
-    right: '10px',
-    width: '8px',
-    height: '8px',
-    borderRadius: '50%',
-    backgroundColor: '#ef4444',
-  },
-  notifDropdown: {
-    position: 'absolute',
-    top: '50px',
-    right: 0,
-    width: '300px',
-    backgroundColor: '#ffffff',
-    border: '1px solid #e2e8f0',
-    borderRadius: '12px',
-    boxShadow: '0 10px 15px -3px rgba(0,0,0,0.05)',
-    zIndex: 200,
-    padding: '16px',
-  },
-  notifDropHeader: {
-    fontSize: '14px',
-    fontWeight: '700',
-    color: '#0f172a',
-    marginBottom: '12px',
-    borderBottom: '1px solid #e2e8f0',
-    paddingBottom: '8px',
-  },
-  notifItem: {
-    padding: '8px 0',
-    borderBottom: '1px solid #e2e8f0',
-  },
-  notifItemText: {
-    fontSize: '12px',
-    color: '#0f172a',
-  },
-  notifItemTime: {
-    fontSize: '10px',
-    color: '#64748b',
-  },
-  headerProfileBadge: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-    padding: '8px 16px',
-    backgroundColor: '#ffffff',
-    border: '1px solid #e2e8f0',
-    borderRadius: '20px',
-    cursor: 'pointer',
-  },
-  headerProfileName: {
-    fontSize: '13px',
-    fontWeight: '600',
-    color: '#0f172a',
-  },
-  welcomeBanner: {
-    backgroundColor: '#10b981',
-    backgroundImage: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-    borderRadius: '16px',
-    padding: '24px 32px',
-    marginBottom: '28px',
-    color: '#ffffff',
-  },
-  welcomeTitle: {
-    fontFamily: 'Outfit, sans-serif',
-    fontSize: '24px',
-    fontWeight: '700',
-  },
-  welcomeSub: {
-    fontSize: '14px',
-    opacity: '0.9',
-    marginTop: '4px',
-  },
-  welcomeUrdu: {
-    fontSize: '12px',
-    opacity: '0.8',
-    marginTop: '6px',
-  },
-  statsGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-    gap: '20px',
-    marginBottom: '28px',
-  },
-  statCard: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    padding: '20px',
-  },
-  statLeft: {
-    display: 'flex',
-    flexDirection: 'column',
-  },
-  statLabel: {
-    fontSize: '13px',
-    fontWeight: '700',
-    color: '#475569',
-  },
-  statLabelUr: {
-    fontSize: '10px',
-    color: '#64748b',
-    marginTop: '1px',
-  },
-  statVal: {
-    fontFamily: 'Outfit, sans-serif',
-    fontSize: '22px',
-    fontWeight: '700',
-    color: '#0f172a',
-    margin: '12px 0 4px 0',
-  },
-  statTrendUp: {
-    fontSize: '11px',
-    fontWeight: '700',
-    color: '#10b981',
-  },
-  statTrendNeutral: {
-    fontSize: '11px',
-    fontWeight: '700',
-    color: '#3b82f6',
-  },
-  statTrendWarning: {
-    fontSize: '11px',
-    fontWeight: '700',
-    color: '#f59e0b',
-  },
-  statTrendDanger: {
-    fontSize: '11px',
-    fontWeight: '700',
-    color: '#ef4444',
-  },
-  statIconContainerGreen: {
-    width: '44px',
-    height: '44px',
-    borderRadius: '10px',
-    backgroundColor: 'rgba(16, 185, 129, 0.1)',
-    color: '#10b981',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  statIconContainerBlue: {
-    width: '44px',
-    height: '44px',
-    borderRadius: '10px',
-    backgroundColor: 'rgba(59, 130, 246, 0.1)',
-    color: '#3b82f6',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  statIconContainerOrange: {
-    width: '44px',
-    height: '44px',
-    borderRadius: '10px',
-    backgroundColor: 'rgba(245, 158, 11, 0.1)',
-    color: '#f59e0b',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  statIconContainerRed: {
-    width: '44px',
-    height: '44px',
-    borderRadius: '10px',
-    backgroundColor: 'rgba(239, 68, 68, 0.1)',
-    color: '#ef4444',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  cardHeaderLink: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '4px',
-    color: '#10b981',
-    fontSize: '13px',
-    fontWeight: '600',
-    background: 'none',
-    border: 'none',
-    cursor: 'pointer',
-  },
-  cardHeaderUrdu: {
-    fontSize: '11px',
-    color: '#10b981',
-    marginTop: '2px',
-  },
-  emptyText: {
-    textAlign: 'center',
-    color: '#64748b',
-    padding: '40px 0',
-    fontSize: '14px',
-  },
-  recentOrdersList: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '16px',
-  },
-  orderItem: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: '16px',
-    backgroundColor: '#ffffff',
-    borderRadius: '12px',
-    border: '1px solid #e2e8f0',
-  },
-  orderItemLeft: {
-    display: 'flex',
-    flexDirection: 'column',
-  },
-  orderId: {
-    fontSize: '14px',
-    fontWeight: '700',
-    color: '#10b981',
-  },
-  buyerName: {
-    fontSize: '13px',
-    fontWeight: '600',
-    color: '#0f172a',
-    marginTop: '2px',
-  },
-  orderItemsCount: {
-    fontSize: '12px',
-    color: '#64748b',
-    marginTop: '1px',
-  },
-  orderItemMid: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'flex-start',
-  },
-  orderPrice: {
-    fontSize: '15px',
-    fontWeight: '700',
-    color: '#0f172a',
-  },
-  paymentMethod: {
-    fontSize: '11px',
-    color: '#64748b',
-    marginTop: '2px',
-  },
-  orderItemRight: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'flex-end',
-  },
-  rightCol: {
-    display: 'flex',
-    flexDirection: 'column',
-  },
-  alertsList: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '16px',
-  },
-  alertItem: {
-    display: 'flex',
-    flexDirection: 'column',
-  },
-  alertItemHeader: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: '6px',
-  },
-  alertMedName: {
-    fontSize: '13px',
-    fontWeight: '600',
-    color: '#0f172a',
-  },
-  stockBadgeRed: {
-    fontSize: '11px',
-    fontWeight: '700',
-    color: '#ef4444',
-  },
-  stockBadgeOrange: {
-    fontSize: '11px',
-    fontWeight: '700',
-    color: '#f59e0b',
-  },
-  progressBarBg: {
-    width: '100%',
-    height: '6px',
-    backgroundColor: '#f1f5f9',
-    borderRadius: '3px',
-    overflow: 'hidden',
-  },
-  progressBarFill: {
-    height: '100%',
-    borderRadius: '3px',
-    transition: 'width 0.3s ease',
-  },
-  alertMedCat: {
-    fontSize: '11px',
-    color: '#64748b',
-    marginTop: '4px',
-  },
-  quickActionsList: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '12px',
-  },
-  quickActionBtn: {
-    width: '100%',
-    height: '42px',
-    fontSize: '13px',
-    display: 'flex',
-    justifyContent: 'flex-start',
-    paddingLeft: '16px',
-  },  quickActionsList: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '12px',
-  },
-  quickActionBtn: {
-    width: '100%',
-    height: '42px',
-    fontSize: '13px',
-    display: 'flex',
-    justifyContent: 'flex-start',
-    paddingLeft: '16px',
-  },
-};

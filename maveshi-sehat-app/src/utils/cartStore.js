@@ -1,4 +1,4 @@
-// Global store for managing shopping cart items in the mobile application
+
 let cart = [];
 let listeners = [];
 

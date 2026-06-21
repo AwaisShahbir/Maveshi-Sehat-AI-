@@ -29,7 +29,7 @@ export default function Login({ onLoginSuccess }) {
         throw new Error(data.error || 'Login failed. Please try again.');
       }
       
-      // Call parent success trigger
+      
       onLoginSuccess(data.user);
     } catch (err) {
       setErrorMsg(err.message);
@@ -41,21 +41,21 @@ export default function Login({ onLoginSuccess }) {
   return (
     <div className="login-page-container">
       <div className="login-card">
-        {/* Brand Header */}
+        
         <div className="login-brand">
           <div className="login-logo">M</div>
           <h2 className="login-brand-name">Maveshi Sehat AI</h2>
           <span className="login-brand-tag">Admin Dashboard / ایڈمن پینل</span>
         </div>
 
-        {/* Info text */}
+        
         <p className="login-subtitle">
           Please sign in to access your administrative workspace.
           <br />
           <span style={{ fontSize: '12px', opacity: 0.8 }}>لاگ ان کریں اور اپنا کام شروع کریں</span>
         </p>
 
-        {/* Error Alert */}
+        
         {errorMsg && (
           <div className="login-error-container">
             <AlertCircle size={16} />
@@ -63,9 +63,9 @@ export default function Login({ onLoginSuccess }) {
           </div>
         )}
 
-        {/* Login Form */}
+        
         <form onSubmit={handleSubmit} className="login-form">
-          {/* Email field */}
+          
           <div className="form-group">
             <label className="form-label">Email Address / ای میل</label>
             <div className="login-input-wrapper">
@@ -81,7 +81,7 @@ export default function Login({ onLoginSuccess }) {
             </div>
           </div>
 
-          {/* Password field */}
+          
           <div className="form-group" style={{ marginBottom: '24px' }}>
             <label className="form-label">Password / پاس ورڈ</label>
             <div className="login-input-wrapper">
@@ -97,7 +97,7 @@ export default function Login({ onLoginSuccess }) {
             </div>
           </div>
 
-          {/* Submit button */}
+          
           <button 
             type="submit" 
             className="btn btn-primary login-submit-btn"

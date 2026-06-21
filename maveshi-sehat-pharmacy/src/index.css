@@ -15,32 +15,32 @@
   --color-brand-950: #0e2d20;
 }
 
-/* Design Tokens & Variables - Light Mode */
+
 :root {
-  --bg-page: #f8fafc; /* Slate 50 */
-  --bg-card: #ffffff; /* White */
-  --bg-input: #ffffff; /* White */
-  --sidebar-bg: #111a24; /* Dark for modern professional look / slate 900 */
+  --bg-page: #f8fafc; 
+  --bg-card: #ffffff; 
+  --bg-input: #ffffff; 
+  --sidebar-bg: #111a24; 
   --sidebar-hover: #1b2633;
-  --sidebar-active: #10b981; /* Emerald 500 */
-  --sidebar-text: #94a3b8; /* Slate 400 */
+  --sidebar-active: #10b981; 
+  --sidebar-text: #94a3b8; 
   --sidebar-text-active: #ffffff;
   
-  --text-main: #0f172a; /* Slate 900 */
-  --text-muted: #475569; /* Slate 600 */
-  --text-light: #64748b; /* Slate 500 */
+  --text-main: #0f172a; 
+  --text-muted: #475569; 
+  --text-light: #64748b; 
   
-  --border-light: #e2e8f0; /* Slate 200 */
+  --border-light: #e2e8f0; 
   
-  --color-green: #10b981; /* Emerald 500 */
+  --color-green: #10b981; 
   --color-green-light: rgba(16, 185, 129, 0.1);
-  --color-green-hover: #059669; /* Emerald 600 */
+  --color-green-hover: #059669; 
   
-  --color-red: #ef4444; /* Red 500 */
+  --color-red: #ef4444; 
   --color-red-light: rgba(239, 68, 68, 0.1);
-  --color-orange: #f59e0b; /* Amber 500 */
+  --color-orange: #f59e0b; 
   --color-orange-light: rgba(245, 158, 11, 0.1);
-  --color-blue: #3b82f6; /* Blue 500 */
+  --color-blue: #3b82f6; 
   --color-blue-light: rgba(59, 130, 246, 0.1);
   
   --font-main: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -57,36 +57,38 @@
   --radius-xl: 24px;
 }
 
-/* Base Resets */
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+@layer base {
+  
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    font-family: var(--font-main);
+    background-color: var(--bg-page);
+    color: var(--text-main);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  button, input, select, textarea {
+    font-family: inherit;
+    font-size: inherit;
+    color: inherit;
+    outline: none;
+  }
 }
 
-body {
-  font-family: var(--font-main);
-  background-color: var(--bg-page);
-  color: var(--text-main);
-  line-height: 1.5;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  overflow-x: hidden;
-}
 
-a {
-  color: inherit;
-  text-decoration: none;
-}
-
-button, input, select, textarea {
-  font-family: inherit;
-  font-size: inherit;
-  color: inherit;
-  outline: none;
-}
-
-/* Scrollbar styles */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -95,14 +97,14 @@ button, input, select, textarea {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1; /* Slate 300 */
+  background: #cbd5e1; 
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8; /* Slate 400 */
+  background: #94a3b8; 
 }
 
-/* Layout Utilities */
+
 .app-container {
   display: flex;
   min-height: 100vh;
@@ -125,7 +127,7 @@ button, input, select, textarea {
   flex: 1;
 }
 
-/* Urdu Text Adjustments */
+
 .urdu {
   font-family: var(--font-urdu), var(--font-main);
   font-size: 0.9em;
@@ -133,7 +135,7 @@ button, input, select, textarea {
   direction: rtl;
 }
 
-/* Grid Layouts */
+
 .grid-4 {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -161,7 +163,7 @@ button, input, select, textarea {
   }
 }
 
-/* Cards */
+
 .card {
   background-color: var(--bg-card);
   border-radius: var(--radius-lg);
@@ -192,7 +194,7 @@ button, input, select, textarea {
   margin-top: 2px;
 }
 
-/* Buttons */
+
 .btn {
   display: inline-flex;
   align-items: center;
@@ -238,7 +240,7 @@ button, input, select, textarea {
   border-radius: var(--radius-sm);
 }
 
-/* Badges */
+
 .badge {
   display: inline-flex;
   align-items: center;
@@ -274,7 +276,7 @@ button, input, select, textarea {
   border: 1px solid rgba(59, 130, 246, 0.2);
 }
 
-/* Forms & Inputs */
+
 .form-group {
   margin-bottom: 18px;
 }
@@ -317,7 +319,7 @@ textarea.form-control {
   resize: vertical;
 }
 
-/* Custom Table */
+
 .table-responsive {
   width: 100%;
   overflow-x: auto;
@@ -356,14 +358,14 @@ textarea.form-control {
   background-color: #f1f5f9;
 }
 
-/* Modal styles */
+
 .modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5); /* lighter backdrop for light mode */
+  background-color: rgba(0, 0, 0, 0.5); 
   display: flex;
   align-items: center;
   justify-content: center;

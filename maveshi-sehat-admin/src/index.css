@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-/* Design Tokens & Variables */
+
 :root {
   --sidebar-bg: #111a24;
   --sidebar-hover: #1b2633;
@@ -39,35 +39,37 @@
   --radius-xl: 24px;
 }
 
-/* Base Resets */
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+@layer base {
+  
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    font-family: var(--font-main);
+    background-color: var(--bg-page);
+    color: var(--text-main);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  button, input, select, textarea {
+    font-family: inherit;
+    font-size: inherit;
+    color: inherit;
+    outline: none;
+  }
 }
 
-body {
-  font-family: var(--font-main);
-  background-color: var(--bg-page);
-  color: var(--text-main);
-  line-height: 1.5;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
 
-a {
-  color: inherit;
-  text-decoration: none;
-}
-
-button, input, select, textarea {
-  font-family: inherit;
-  font-size: inherit;
-  color: inherit;
-  outline: none;
-}
-
-/* App Container Layout */
 .app-container {
   display: flex;
   min-height: 100vh;
@@ -75,7 +77,7 @@ button, input, select, textarea {
   overflow-x: hidden;
 }
 
-/* Main Content Area */
+
 .main-content {
   flex: 1;
   display: flex;
@@ -85,7 +87,7 @@ button, input, select, textarea {
   background-color: var(--bg-page);
 }
 
-/* Scrollbar styles */
+
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -101,7 +103,7 @@ button, input, select, textarea {
   background: #94a3b8;
 }
 
-/* Grid Layouts */
+
 .grid-4 {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -129,7 +131,7 @@ button, input, select, textarea {
   }
 }
 
-/* Card Component */
+
 .card {
   background-color: var(--bg-card);
   border-radius: var(--radius-lg);
@@ -159,7 +161,7 @@ button, input, select, textarea {
   margin-top: 2px;
 }
 
-/* Badges */
+
 .badge {
   display: inline-flex;
   align-items: center;
@@ -190,7 +192,7 @@ button, input, select, textarea {
   color: var(--color-blue);
 }
 
-/* Tables */
+
 .table-responsive {
   width: 100%;
   overflow-x: auto;
@@ -227,7 +229,7 @@ button, input, select, textarea {
   background-color: #fcfdfd;
 }
 
-/* Buttons */
+
 .btn {
   display: inline-flex;
   align-items: center;
@@ -280,7 +282,7 @@ button, input, select, textarea {
   color: var(--text-main);
 }
 
-/* Tabs UI */
+
 .tabs-container {
   display: flex;
   gap: 16px;
@@ -304,7 +306,7 @@ button, input, select, textarea {
   border-bottom-color: var(--color-green);
 }
 
-/* Forms & Inputs */
+
 .form-group {
   margin-bottom: 16px;
 }
@@ -318,11 +320,9 @@ button, input, select, textarea {
 }
 
 
-/* ==========================================
-   LAYOUT, SIDEBAR, AND HEADER STYLING
-   ========================================== */
 
-/* Sidebar Container */
+
+
 .sidebar {
   width: 280px;
   min-width: 280px;
@@ -334,7 +334,7 @@ button, input, select, textarea {
   border-right: 1px solid rgba(255,255,255,0.05);
 }
 
-/* Sidebar Brand */
+
 .sidebar-brand {
   display: flex;
   align-items: center;
@@ -367,7 +367,7 @@ button, input, select, textarea {
   display: block;
 }
 
-/* Sidebar Profile */
+
 .sidebar-profile {
   display: flex;
   align-items: center;
@@ -400,7 +400,7 @@ button, input, select, textarea {
   display: block;
 }
 
-/* Sidebar Menu */
+
 .sidebar-menu {
   flex: 1;
   overflow-y: auto;
@@ -422,7 +422,7 @@ button, input, select, textarea {
   list-style: none;
 }
 
-/* Menu Item */
+
 .menu-item {
   display: flex;
   align-items: center;
@@ -484,7 +484,7 @@ button, input, select, textarea {
   color: #fca5a5;
 }
 
-/* Sidebar Footer */
+
 .sidebar-footer {
   padding: 16px 24px;
   border-top: 1px solid rgba(255,255,255,0.05);
@@ -509,7 +509,7 @@ button, input, select, textarea {
   border-color: transparent;
 }
 
-/* Header Container */
+
 .main-header {
   height: 80px;
   background-color: #ffffff;
@@ -535,14 +535,14 @@ button, input, select, textarea {
   color: var(--text-muted);
 }
 
-/* Header Actions */
+
 .header-actions {
   display: flex;
   align-items: center;
   gap: 20px;
 }
 
-/* Search Box */
+
 .header-search-container {
   display: flex;
   align-items: center;
@@ -569,7 +569,7 @@ button, input, select, textarea {
   width: 100%;
 }
 
-/* Notification Bell */
+
 .header-notification-btn {
   position: relative;
   width: 40px;
@@ -601,7 +601,7 @@ button, input, select, textarea {
   justify-content: center;
 }
 
-/* Admin Quick Profile Avatar */
+
 .header-avatar-btn {
   position: relative;
   cursor: pointer;
@@ -630,7 +630,7 @@ button, input, select, textarea {
   border-radius: 50%;
 }
 
-/* Main Content Page Container */
+
 .page-container {
   padding: 32px;
   flex: 1;
@@ -658,7 +658,7 @@ textarea.form-control {
   resize: vertical;
 }
 
-/* Bilingual Label Support */
+
 .bilingual-header {
   font-family: var(--font-heading);
 }
@@ -670,9 +670,7 @@ textarea.form-control {
   margin-top: 2px;
 }
 
-/* ==========================================
-   LOGIN PAGE STYLING
-   ========================================== */
+
 
 .login-page-container {
   display: flex;
@@ -783,11 +781,9 @@ textarea.form-control {
 }
 
 
-/* ==========================================
-   DASHBOARD STATS & WIDGETS STYLING
-   ========================================== */
 
-/* KPI Cards */
+
+
 .kpi-card {
   display: flex;
   align-items: center;
@@ -848,7 +844,7 @@ textarea.form-control {
 .text-orange { color: var(--color-orange); }
 .text-red { color: var(--color-red); }
 
-/* Pending Actions */
+
 .pending-section {
   border-bottom: 1px solid var(--border-light);
   padding-bottom: 16px;
@@ -950,7 +946,7 @@ textarea.form-control {
   padding: 10px 0;
 }
 
-/* System Status */
+
 .status-list {
   display: flex;
   flex-direction: column;
@@ -999,11 +995,9 @@ textarea.form-control {
   border-radius: 20px;
 }
 
-/* ==========================================
-   VET VERIFICATION & PHARMACY CARDS STYLING
-   ========================================== */
 
-/* Vet Verification Grid */
+
+
 .vet-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -1055,7 +1049,7 @@ textarea.form-control {
   margin-top: 2px;
 }
 
-/* Vet Details List */
+
 .vet-details-list {
   display: flex;
   flex-direction: column;
@@ -1103,7 +1097,7 @@ textarea.form-control {
   color: var(--text-main);
 }
 
-/* License Document Box */
+
 .license-doc-box {
   display: flex;
   align-items: center;
@@ -1136,7 +1130,7 @@ textarea.form-control {
   font-weight: 500;
 }
 
-/* Experience Box */
+
 .experience-box {
   display: flex;
   align-items: flex-start;
@@ -1153,7 +1147,7 @@ textarea.form-control {
   line-height: 1.5;
 }
 
-/* Vet Card Actions */
+
 .vet-card-actions {
   display: flex;
   flex-direction: column;
@@ -1167,7 +1161,7 @@ textarea.form-control {
   border-radius: var(--radius-md);
 }
 
-/* Pharmacy Approval Components */
+
 .p-avatar-box {
   width: 48px;
   height: 48px;
@@ -1179,7 +1173,7 @@ textarea.form-control {
   min-width: 48px;
 }
 
-/* Empty State Widget */
+
 .empty-state {
   display: flex;
   flex-direction: column;

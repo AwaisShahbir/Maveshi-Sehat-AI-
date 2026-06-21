@@ -24,7 +24,7 @@ export default function StockAlerts({ pharmacy, onEditMedicine, onAddMedicine })
     fetchMedicines();
   }, [pharmacy.id]);
 
-  // Derived package label based on dosage form
+  
   const getPackageLabel = (dosageForm) => {
     const form = (dosageForm || '').toLowerCase();
     if (form.includes('tablet') || form.includes('bolus') || form.includes('capsule')) return 'boxes';
@@ -33,7 +33,7 @@ export default function StockAlerts({ pharmacy, onEditMedicine, onAddMedicine })
     return 'units';
   };
 
-  // Restock date formatter
+  
   const getRestockTime = (dateString) => {
     if (!dateString) return 'Restock date unknown';
     const seconds = Math.floor((new Date() - new Date(dateString)) / 1000);
@@ -44,7 +44,7 @@ export default function StockAlerts({ pharmacy, onEditMedicine, onAddMedicine })
     return 'Last restocked: Just now';
   };
 
-  // Classify stocks
+  
   const criticalList = [];
   const lowList = [];
   const goodList = [];
@@ -65,72 +65,72 @@ export default function StockAlerts({ pharmacy, onEditMedicine, onAddMedicine })
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '300px', color: '#94a3b8' }}>
+      <div className="flex justify-center items-center min-h-[300px] text-slate-400 text-sm font-medium">
         <p>Loading inventory metrics... / لوڈ ہو رہا ہے...</p>
       </div>
     );
   }
 
   return (
-    <div style={styles.container}>
-      {/* Top action bar */}
-      <div style={styles.headerBar}>
-        <div style={styles.titleArea}>
-          <h2 style={styles.titleEn}>Stock Alerts</h2>
-          <span style={styles.titleUr} className="urdu">اسٹاک الرٹ</span>
+    <div className="flex flex-col gap-6">
+      
+      <div className="flex justify-between items-center border-b border-slate-200 pb-4">
+        <div className="flex flex-col">
+          <h2 className="text-xl font-bold text-slate-800">Stock Alerts</h2>
+          <span className="text-xs text-emerald-600 font-semibold mt-0.5 urdu">اسٹاک الرٹ</span>
         </div>
-        <button style={styles.addMedBtn} onClick={onAddMedicine}>
+        <button className="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-500 text-white rounded-full font-semibold text-xs hover:bg-emerald-600 transition-colors" onClick={onAddMedicine}>
           <Plus size={16} />
           <span>Add Medicine</span>
         </button>
       </div>
 
-      {/* Top 3 KPI Summary Cards */}
-      <div style={styles.kpiGrid}>
-        {/* KPI 1: Critical */}
-        <div style={styles.kpiCard}>
-          <div style={{ ...styles.iconBox, backgroundColor: 'rgba(239, 68, 68, 0.1)', color: '#ef4444' }}>
+      
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        
+        <div className="bg-white rounded-2xl border border-slate-100 p-5 flex items-center gap-4 shadow-sm">
+          <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-red-500/10 text-red-500">
             <ShieldAlert size={22} />
           </div>
-          <div style={styles.kpiText}>
-            <span style={styles.kpiLabel}>Critical Stock</span>
-            <h3 style={styles.kpiValue}>{criticalList.length}</h3>
-            <span style={styles.kpiSubText}>Needs immediate attention</span>
+          <div className="flex flex-col">
+            <span className="text-xs font-semibold text-slate-500">Critical Stock</span>
+            <h3 className="text-2xl font-extrabold text-slate-800 my-0.5">{criticalList.length}</h3>
+            <span className="text-[10px] text-slate-400 font-semibold">Needs immediate attention</span>
           </div>
         </div>
 
-        {/* KPI 2: Low */}
-        <div style={styles.kpiCard}>
-          <div style={{ ...styles.iconBox, backgroundColor: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b' }}>
+        
+        <div className="bg-white rounded-2xl border border-slate-100 p-5 flex items-center gap-4 shadow-sm">
+          <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-amber-500/10 text-amber-500">
             <AlertTriangle size={22} />
           </div>
-          <div style={styles.kpiText}>
-            <span style={styles.kpiLabel}>Low Stock</span>
-            <h3 style={styles.kpiValue}>{lowList.length}</h3>
-            <span style={styles.kpiSubText}>Restock soon</span>
+          <div className="flex flex-col">
+            <span className="text-xs font-semibold text-slate-500">Low Stock</span>
+            <h3 className="text-2xl font-extrabold text-slate-800 my-0.5">{lowList.length}</h3>
+            <span className="text-[10px] text-slate-400 font-semibold">Restock soon</span>
           </div>
         </div>
 
-        {/* KPI 3: Good */}
-        <div style={styles.kpiCard}>
-          <div style={{ ...styles.iconBox, backgroundColor: 'rgba(16, 185, 129, 0.1)', color: '#10b981' }}>
+        
+        <div className="bg-white rounded-2xl border border-slate-100 p-5 flex items-center gap-4 shadow-sm">
+          <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-emerald-500/10 text-emerald-500">
             <CheckCircle2 size={22} />
           </div>
-          <div style={styles.kpiText}>
-            <span style={styles.kpiLabel}>Good Stock</span>
-            <h3 style={styles.kpiValue}>{goodList.length}</h3>
-            <span style={styles.kpiSubText}>Healthy levels</span>
+          <div className="flex flex-col">
+            <span className="text-xs font-semibold text-slate-500">Good Stock</span>
+            <h3 className="text-2xl font-extrabold text-slate-800 my-0.5">{goodList.length}</h3>
+            <span className="text-[10px] text-slate-400 font-semibold">Healthy levels</span>
           </div>
         </div>
       </div>
 
-      {/* Table listings */}
-      <div className="card" style={{ padding: '24px' }}>
-        <h3 className="card-title" style={{ marginBottom: '4px' }}>Medicine Stock Levels</h3>
-        <p className="card-subtitle" style={{ marginBottom: '20px' }}>دوائیوں کے اسٹاک کی سطح</p>
+      
+      <div className="card p-6 bg-white border border-slate-100 rounded-2xl shadow-sm">
+        <h3 className="card-title mb-1">Medicine Stock Levels</h3>
+        <p className="card-subtitle mb-5">دوائیوں کے اسٹاک کی سطح</p>
         
         {medicines.length === 0 ? (
-          <p style={{ textAlign: 'center', color: '#64748b', padding: '40px 0' }}>No medicines found. Seed initial listing to view alerts.</p>
+          <p className="text-center text-slate-500 py-10 text-sm">No medicines found. Seed initial listing to view alerts.</p>
         ) : (
           <div className="table-responsive">
             <table className="custom-table">
@@ -141,7 +141,7 @@ export default function StockAlerts({ pharmacy, onEditMedicine, onAddMedicine })
                   <th>Min / Max</th>
                   <th>Stock Level</th>
                   <th>Status</th>
-                  <th style={{ width: '100px' }}>Actions</th>
+                  <th className="w-[100px]">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -152,71 +152,66 @@ export default function StockAlerts({ pharmacy, onEditMedicine, onAddMedicine })
                   const pkg = getPackageLabel(med.dosage_form);
                   const restockText = getRestockTime(med.last_restocked || med.created_at);
 
-                  // Colors
-                  let barColor = '#10b981';
-                  let stockColor = '#10b981';
+                  
+                  let barColorClass = 'bg-emerald-500';
+                  let stockColorClass = 'text-emerald-600';
                   let statusText = 'Good';
-                  let statusBg = 'rgba(16, 185, 129, 0.1)';
+                  let statusBadgeClass = 'text-emerald-700 bg-emerald-50 border border-emerald-100';
                   
                   if (med.stock === 0 || capacityPct <= 8) {
-                    barColor = '#ef4444';
-                    stockColor = '#ef4444';
+                    barColorClass = 'bg-red-500';
+                    stockColorClass = 'text-red-600';
                     statusText = 'Critical';
-                    statusBg = 'rgba(239, 68, 68, 0.15)';
+                    statusBadgeClass = 'text-red-700 bg-red-50 border border-red-100';
                   } else if (med.stock < minS) {
-                    barColor = '#f59e0b';
-                    stockColor = '#f59e0b';
+                    barColorClass = 'bg-amber-500';
+                    stockColorClass = 'text-amber-600';
                     statusText = 'Low';
-                    statusBg = 'rgba(245, 158, 11, 0.15)';
+                    statusBadgeClass = 'text-amber-700 bg-amber-50 border border-amber-100';
                   }
 
                   return (
                     <tr key={med.id}>
-                      {/* Name / دوا */}
+                      
                       <td>
-                        <div style={styles.medBlock}>
-                          <span style={styles.medNameEn}>{med.name}</span>
-                          {med.name_urdu && <span style={styles.medNameUr}>{med.name_urdu}</span>}
-                          <span style={styles.medRestock}>{restockText}</span>
+                        <div className="flex flex-col gap-0.5">
+                          <span className="text-sm font-semibold text-slate-800">{med.name}</span>
+                          {med.name_urdu && <span className="text-xs text-emerald-500 font-semibold urdu">{med.name_urdu}</span>}
+                          <span className="text-[10px] text-slate-400 font-medium">{restockText}</span>
                         </div>
                       </td>
 
-                      {/* Current Stock */}
+                      
                       <td>
-                        <span style={{ ...styles.stockCount, color: stockColor }}>{med.stock}</span>
-                        <span style={styles.pkgText}>{pkg}</span>
+                        <span className={`text-sm font-extrabold mr-1 ${stockColorClass}`}>{med.stock}</span>
+                        <span className="text-xs text-slate-500 font-semibold">{pkg}</span>
                       </td>
 
-                      {/* Min / Max */}
-                      <td style={{ color: '#94a3b8', fontWeight: '600' }}>
+                      
+                      <td className="text-slate-400 font-semibold">
                         {minS} / {maxS}
                       </td>
 
-                      {/* Stock Level Capacity Bar */}
+                      
                       <td>
-                        <div style={styles.levelBlock}>
-                          <span style={styles.capacityText}>{capacityPct}% capacity</span>
-                          <div style={styles.barBg}>
-                            <div style={{ ...styles.barFill, width: `${capacityPct}%`, backgroundColor: barColor }} />
+                        <div className="flex flex-col gap-1.5 max-w-[160px]">
+                          <span className="text-[10px] font-semibold text-slate-500">{capacityPct}% capacity</span>
+                          <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                            <div className={`h-full rounded-full ${barColorClass}`} style={{ width: `${capacityPct}%` }} />
                           </div>
                         </div>
                       </td>
 
-                      {/* Status */}
+                      
                       <td>
-                        <span style={{
-                          ...styles.statusBadge,
-                          color: stockColor,
-                          backgroundColor: statusBg,
-                          border: `1px solid ${stockColor}22`
-                        }}>
+                        <span className={`inline-flex items-center px-3 py-1 text-[10px] font-bold rounded-full ${statusBadgeClass}`}>
                           {statusText}
                         </span>
                       </td>
 
-                      {/* Actions */}
+                      
                       <td>
-                        <button style={styles.editActionBtn} onClick={() => onEditMedicine(med)}>
+                        <button className="w-8 h-8 rounded-lg border border-slate-200 bg-white flex items-center justify-center hover:bg-slate-50 hover:border-slate-300 transition-all" onClick={() => onEditMedicine(med)}>
                           <Edit3 size={15} style={{ color: '#10b981' }} />
                         </button>
                       </td>
@@ -232,161 +227,3 @@ export default function StockAlerts({ pharmacy, onEditMedicine, onAddMedicine })
   );
 }
 
-const styles = {
-  container: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '24px'
-  },
-  headerBar: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    borderBottom: '1px solid #e2e8f0',
-    paddingBottom: '16px'
-  },
-  titleArea: {
-    display: 'flex',
-    flexDirection: 'column'
-  },
-  titleEn: {
-    fontSize: '22px',
-    fontWeight: '700',
-    color: '#0f172a',
-    fontFamily: 'Outfit, sans-serif'
-  },
-  titleUr: {
-    fontSize: '13px',
-    color: '#10b981',
-    marginTop: '2px'
-  },
-  addMedBtn: {
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: '8px',
-    padding: '10px 20px',
-    backgroundColor: '#10b981',
-    color: '#ffffff',
-    borderRadius: '30px',
-    fontSize: '13px',
-    fontWeight: '600',
-    border: 'none',
-    cursor: 'pointer',
-    transition: 'background-color 0.2s ease',
-  },
-  kpiGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-    gap: '20px'
-  },
-  kpiCard: {
-    backgroundColor: 'var(--bg-card)',
-    borderRadius: 'var(--radius-lg)',
-    border: '1px solid var(--border-light)',
-    padding: '24px',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '20px',
-    boxShadow: 'var(--shadow-md)'
-  },
-  iconBox: {
-    width: '48px',
-    height: '48px',
-    borderRadius: '12px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center'
-  },
-  kpiText: {
-    display: 'flex',
-    flexDirection: 'column'
-  },
-  kpiLabel: {
-    fontSize: '13px',
-    fontWeight: '600',
-    color: '#475569'
-  },
-  kpiValue: {
-    fontSize: '24px',
-    fontWeight: '800',
-    color: '#0f172a',
-    fontFamily: 'Outfit, sans-serif',
-    margin: '2px 0'
-  },
-  kpiSubText: {
-    fontSize: '11px',
-    color: '#64748b',
-    fontWeight: '600'
-  },
-  medBlock: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '2px'
-  },
-  medNameEn: {
-    fontSize: '14px',
-    fontWeight: '700',
-    color: '#0f172a'
-  },
-  medNameUr: {
-    fontSize: '12px',
-    color: '#10b981',
-    fontWeight: '600'
-  },
-  medRestock: {
-    fontSize: '11px',
-    color: '#64748b',
-    fontWeight: '500'
-  },
-  stockCount: {
-    fontSize: '15px',
-    fontWeight: '800',
-    marginRight: '4px'
-  },
-  pkgText: {
-    fontSize: '12px',
-    color: '#475569',
-    fontWeight: '600'
-  },
-  levelBlock: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '6px',
-    maxWidth: '160px'
-  },
-  capacityText: {
-    fontSize: '11px',
-    fontWeight: '600',
-    color: '#475569'
-  },
-  barBg: {
-    height: '6px',
-    backgroundColor: '#f1f5f9',
-    borderRadius: '3px',
-    overflow: 'hidden'
-  },
-  barFill: {
-    height: '100%',
-    borderRadius: '3px'
-  },
-  statusBadge: {
-    display: 'inline-flex',
-    alignItems: 'center',
-    padding: '4px 12px',
-    fontSize: '11px',
-    fontWeight: '700',
-    borderRadius: '20px'
-  },
-  editActionBtn: {
-    width: '32px',
-    height: '32px',
-    borderRadius: '8px',
-    border: '1px solid #e2e8f0',
-    backgroundColor: '#ffffff',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    cursor: 'pointer',
-    transition: 'all 0.2s ease',
-  }
-};

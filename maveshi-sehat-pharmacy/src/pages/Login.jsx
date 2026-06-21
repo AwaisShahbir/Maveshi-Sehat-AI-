@@ -37,14 +37,14 @@ export default function Login({ onLoginSuccess, onViewChange }) {
 
   return (
     <div className="flex min-h-screen w-screen bg-slate-50">
-      {/* Left Banner Section */}
+      
       <div 
         className="hidden md:flex flex-col justify-center items-center p-10 bg-gradient-to-br from-emerald-950 to-emerald-900 border-r border-emerald-800 text-white"
         style={{ flex: '1.1' }}
       >
         <div className="flex flex-col items-center mb-10">
           <div className="w-[90px] h-[90px] rounded-full bg-emerald-500/10 border-2 border-emerald-500 flex items-center justify-center mb-5">
-            {/* Custom SVG logo resembling the cross and hands shape */}
+            
             <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="#10b981" strokeWidth="2">
               <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
               <path d="M12 8v8M8 12h8" strokeWidth="3" />
@@ -108,7 +108,7 @@ export default function Login({ onLoginSuccess, onViewChange }) {
         </div>
       </div>
 
-      {/* Right Login Form Section */}
+      
       <div 
         className="flex items-center justify-center p-6 md:p-10"
         style={{ flex: '1.2' }}

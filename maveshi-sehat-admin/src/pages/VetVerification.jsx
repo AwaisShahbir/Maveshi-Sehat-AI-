@@ -4,7 +4,7 @@ import { Shield, Phone, MapPin, Award, Check, X, FileText, HelpCircle, Copy } fr
 export default function VetVerification() {
   const [vets, setVets] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('pending'); // 'pending', 'verified', 'rejected'
+  const [activeTab, setActiveTab] = useState('pending'); 
 
   const fetchVets = async () => {
     setLoading(true);
@@ -12,7 +12,7 @@ export default function VetVerification() {
       const res = await fetch('http://localhost:5000/api/admin/users');
       if (res.ok) {
         const users = await res.json();
-        // Filter only vets
+        
         const vetUsers = users.filter(user => user.role === 'vet');
         setVets(vetUsers);
       }
@@ -100,7 +100,7 @@ export default function VetVerification() {
   return (
     <div className="vet-verification-view">
       
-      {/* Tabs */}
+      
       <div className="tabs-container">
         <button 
           className={`tab-btn ${activeTab === 'pending' ? 'active' : ''}`}
@@ -128,13 +128,13 @@ export default function VetVerification() {
         <div className="vet-grid">
           {filteredVets.map(vet => (
             <div className="vet-card card" key={vet.id}>
-              {/* Profile Header */}
+              
               <div className="vet-card-header">
                 <div className="vet-avatar">{getInitials(vet.full_name)}</div>
                 <h3 className="vet-name">{vet.full_name}</h3>
                 <span className="vet-urdu-name">ڈاکٹر</span>
                 
-                {/* Specialization Badge */}
+                
                 <span className={`badge ${getSpecializationClass(vet.specialization)}`} style={{ marginTop: '8px' }}>
                   {vet.specialization || 'Livestock Generalist'}
                 </span>
@@ -146,9 +146,9 @@ export default function VetVerification() {
                 )}
               </div>
 
-              {/* Vet Details */}
+              
               <div className="vet-details-list">
-                {/* License */}
+                
                 <div className="vet-detail-item">
                   <span className="vd-label">License No.</span>
                   <div className="vd-license-box">
@@ -161,19 +161,19 @@ export default function VetVerification() {
                   </div>
                 </div>
 
-                {/* Phone */}
+                
                 <div className="vet-detail-item">
                   <span className="vd-label">Phone</span>
                   <span className="vd-value">{vet.phone_number}</span>
                 </div>
 
-                {/* City */}
+                
                 <div className="vet-detail-item">
                   <span className="vd-label">City</span>
                   <span className="vd-value">{vet.district || 'Pakistan'}</span>
                 </div>
 
-                {/* Submitted date */}
+                
                 <div className="vet-detail-item">
                   <span className="vd-label">Submitted</span>
                   <span className="vd-value text-muted" style={{ fontSize: '12px' }}>
@@ -182,7 +182,7 @@ export default function VetVerification() {
                 </div>
               </div>
 
-              {/* License Document Preview Box */}
+              
               <div className="license-doc-box">
                 <FileText size={24} className="doc-icon" />
                 <div className="doc-info">
@@ -205,7 +205,7 @@ export default function VetVerification() {
                 </div>
               </div>
 
-              {/* Experience Info */}
+              
               <div className="experience-box">
                 <Award size={16} style={{ color: 'var(--color-blue)' }} />
                 <span className="exp-text">
@@ -215,7 +215,7 @@ export default function VetVerification() {
                 </span>
               </div>
 
-              {/* Action Buttons (Show for pending or info_requested status) */}
+              
               {(vet.status === 'pending' || vet.status === 'info_requested') && (
                 <div className="vet-card-actions">
                   <button className="btn btn-primary approve-btn" onClick={() => handleAction(vet.id, 'approve')}>
@@ -245,7 +245,7 @@ export default function VetVerification() {
         </div>
       )}
 
-      {/* Info Request Modal Overlay */}
+      
       {selectedVetForInfo && (
         <div className="modal-backdrop" style={{
           position: 'fixed',

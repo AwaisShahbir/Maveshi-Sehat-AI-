@@ -9,7 +9,7 @@ export default function VetDashboardScreen() {
   const route = useRoute();
   const params = route.params || {};
 
-  // Dynamic States
+  
   const [userName, setUserName] = useState(params.userName || 'Dr. Rahim');
   const [isAvailable, setIsAvailable] = useState(true);
 
@@ -62,7 +62,7 @@ export default function VetDashboardScreen() {
       <StatusBar barStyle="light-content" backgroundColor="#58D66D" />
       
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        {/* Top Green Header Section */}
+        
         <View style={styles.header}>
           <View style={styles.headerTop}>
             <TouchableOpacity onPress={handleComingSoon} style={{ zIndex: 1 }}>
@@ -88,7 +88,7 @@ export default function VetDashboardScreen() {
             </View>
           </View>
 
-          {/* Welcome Card */}
+          
           <View style={styles.welcomeCard}>
             <View style={styles.welcomeLeft}>
               <Text style={styles.welcomeTitle}>Good Morning, {userName}</Text>
@@ -109,7 +109,7 @@ export default function VetDashboardScreen() {
           </View>
         </View>
 
-        {/* Stats Row */}
+        
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.statsScrollContainer}>
           <View style={styles.statBox}>
             <View style={styles.statTop}>
@@ -144,7 +144,7 @@ export default function VetDashboardScreen() {
           </View>
         </ScrollView>
 
-        {/* New Cases List */}
+        
         <View style={styles.casesSection}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>New Cases / نئے کیسز</Text>
@@ -189,7 +189,7 @@ export default function VetDashboardScreen() {
 
       </ScrollView>
 
-      {/* Bottom Navigation */}
+      
       <View style={styles.bottomNavContainer}>
         <View style={styles.bottomNavHeader}>
           <Text style={styles.quickActionsTitle}>Quick Actions / فوری اعمال</Text>
@@ -296,11 +296,11 @@ const styles = StyleSheet.create({
     padding: 16,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start', // Allows text to wrap nicely
-    gap: 12, // Prevents text from colliding with the toggle
+    alignItems: 'flex-start', 
+    gap: 12, 
   },
   welcomeLeft: {
-    flex: 1, // Will wrap long text
+    flex: 1, 
   },
   welcomeTitle: { color: '#FFF', fontSize: 16, fontWeight: 'bold', marginBottom: 2 },
   welcomeUrdu: { color: '#FFF', fontSize: 12, marginBottom: 8 },
@@ -312,7 +312,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 20,
-    flexShrink: 0, // Prevents the toggle pill from getting squished
+    flexShrink: 0, 
   },
   availableText: { color: '#FFF', fontSize: 10, marginRight: 4, fontWeight: '600' },
 
@@ -448,7 +448,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     paddingVertical: 12,
-    paddingBottom: 24, // Extra padding for safe area
+    paddingBottom: 24, 
   },
   navItem: { alignItems: 'center' },
   navText: { fontSize: 10, color: '#A3A3A3', marginTop: 4, fontWeight: '600' },

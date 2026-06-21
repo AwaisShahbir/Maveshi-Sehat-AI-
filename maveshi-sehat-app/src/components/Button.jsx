@@ -20,7 +20,7 @@ export default function Button({ title, onPress, variant = 'white' }) {
 const styles = StyleSheet.create({
   button: {
     paddingVertical: 18,
-    borderRadius: 16, // More rounded corners
+    borderRadius: 16, 
     alignItems: 'center',
     marginBottom: 16,
     width: '100%',
@@ -34,10 +34,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
   },
   yellowBg: {
-    backgroundColor: '#FFE135', // Slightly richer yellow to match screenshot
+    backgroundColor: '#FFE135', 
   },
   whiteText: {
-    color: '#4CB85C', // A greener text to match the mockup
+    color: '#4CB85C', 
     fontSize: 16,
     fontWeight: '700',
   },

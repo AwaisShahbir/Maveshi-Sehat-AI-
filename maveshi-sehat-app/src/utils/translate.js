@@ -1,13 +1,9 @@
 import { getProfile } from './profileStore';
 
-/**
- * Returns translated text based on selected language preference in profileStore.
- * @param {string} en - English text
- * @param {string} ur - Urdu text
- */
+
 export const t = (en, ur) => {
   const profile = getProfile();
-  const lang = profile.language || 'English'; // Default to English
+  const lang = profile.language || 'English'; 
   
   if (lang === 'Urdu') {
     return ur || en;
@@ -15,18 +11,14 @@ export const t = (en, ur) => {
   if (lang === 'English') {
     return en || ur;
   }
-  // 'Both' - Bilingual mode
+  
   if (en && ur) {
     return `${en} / ${ur}`;
   }
   return en || ur || '';
 };
 
-/**
- * Returns translated disease description based on profile language preference.
- * @param {string} disease - English disease name
- * @param {string} defaultDesc - English description fallback
- */
+
 export const getLocalizedDescription = (disease, defaultDesc) => {
   const profile = getProfile();
   const lang = profile.language || 'English';
@@ -47,11 +39,7 @@ export const getLocalizedDescription = (disease, defaultDesc) => {
   return defaultDesc;
 };
 
-/**
- * Returns translated first-aid tips array based on profile language preference.
- * @param {string} disease - English disease name
- * @param {string[]} defaultTips - English tips array fallback
- */
+
 export const getLocalizedFirstAid = (disease, defaultTips = []) => {
   const profile = getProfile();
   const lang = profile.language || 'English';

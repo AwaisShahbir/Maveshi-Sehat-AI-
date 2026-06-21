@@ -5,16 +5,16 @@ export default function Medicines({ pharmacy, showAddModal, onCloseAddModal, edi
   const [medicines, setMedicines] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  const [stockFilter, setStockFilter] = useState('All'); // 'All', 'Low Stock', 'Good Stock'
+  const [stockFilter, setStockFilter] = useState('All'); 
 
-  // Modals state
+  
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isViewOpen, setIsViewOpen] = useState(false);
   const [viewingMed, setViewingMed] = useState(null);
   const [editingMed, setEditingMed] = useState(null);
 
-  // Form states
+  
   const [form, setForm] = useState({
     name: '',
     nameUrdu: '',
@@ -201,48 +201,62 @@ export default function Medicines({ pharmacy, showAddModal, onCloseAddModal, edi
   });
 
   return (
-    <div style={styles.container}>
-      {/* Top Header Actions bar (matching Screenshot 2 search + filter tabs + green button) */}
-      <div style={styles.actionBar}>
-        <div style={styles.searchWrapper}>
-          <Search size={18} style={styles.searchIcon} />
+    <div className="flex flex-col gap-6">
+      
+      <div className="flex justify-between items-center gap-5">
+        <div className="relative flex items-center flex-[1.2] max-w-[450px]">
+          <Search size={18} className="absolute left-3.5 text-slate-400" />
           <input
             type="text"
             placeholder="Search medicines..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            style={styles.searchInput}
+            className="w-full h-10 pl-11 pr-4 border border-slate-200 rounded-xl bg-white text-slate-900 text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
           />
         </div>
 
-        {/* Filter Pills */}
-        <div style={styles.filterGroup}>
+        
+        <div className="flex bg-white p-1 rounded-xl border border-slate-200">
           <button
             onClick={() => setStockFilter('All')}
-            style={stockFilter === 'All' ? styles.filterBtnActive : styles.filterBtn}
+            className={`px-4 py-2 text-xs font-semibold border-none cursor-pointer rounded-lg transition-all ${
+              stockFilter === 'All' 
+                ? 'text-white bg-emerald-500' 
+                : 'text-slate-600 bg-transparent hover:bg-slate-50'
+            }`}
           >
             All Stock
           </button>
           <button
             onClick={() => setStockFilter('Low Stock')}
-            style={stockFilter === 'Low Stock' ? styles.filterBtnActive : styles.filterBtn}
+            className={`px-4 py-2 text-xs font-semibold border-none cursor-pointer rounded-lg transition-all ${
+              stockFilter === 'Low Stock' 
+                ? 'text-white bg-emerald-500' 
+                : 'text-slate-600 bg-transparent hover:bg-slate-50'
+            }`}
           >
             Low Stock
           </button>
           <button
             onClick={() => setStockFilter('Good Stock')}
-            style={stockFilter === 'Good Stock' ? styles.filterBtnActive : styles.filterBtn}
+            className={`px-4 py-2 text-xs font-semibold border-none cursor-pointer rounded-lg transition-all ${
+              stockFilter === 'Good Stock' 
+                ? 'text-white bg-emerald-500' 
+                : 'text-slate-600 bg-transparent hover:bg-slate-50'
+            }`}
           >
             Good Stock
           </button>
         </div>
       </div>
 
-      {/* Table Listings */}
+      
       {loading ? (
-        <div style={styles.loading}>Loading medicines list...</div>
+        <div className="text-center text-slate-500 py-10">Loading medicines list...</div>
       ) : filteredMedicines.length === 0 ? (
-        <div style={styles.empty}>No medicines found matching the filters.</div>
+        <div className="text-center text-slate-500 py-16 text-sm bg-white border border-dashed border-slate-300 rounded-2xl">
+          No medicines found matching the filters.
+        </div>
       ) : (
         <div className="table-responsive">
           <table className="custom-table">
@@ -264,82 +278,91 @@ export default function Medicines({ pharmacy, showAddModal, onCloseAddModal, edi
                 
                 return (
                   <tr key={med.id}>
-                    {/* ID Column */}
-                    <td style={{ fontWeight: '700', color: '#94a3b8' }}>
+                    
+                    <td className="font-bold text-slate-400">
                       {formatMedicineId(med.id)}
                     </td>
                     
-                    {/* Name Column (Bilingual + Manufacturer) */}
+                    
                     <td>
-                      <div style={styles.nameBlock}>
-                        <span style={styles.medNameText}>{med.name}</span>
-                        {med.name_urdu && <span style={styles.medNameUrdu}>{med.name_urdu}</span>}
-                        {med.manufacturer && <span style={styles.medManufacturer}>{med.manufacturer}</span>}
+                      <div className="flex flex-col gap-0.5">
+                        <span className="font-bold text-sm text-slate-900">{med.name}</span>
+                        {med.name_urdu && <span className="text-xs text-emerald-600 font-semibold urdu">{med.name_urdu}</span>}
+                        {med.manufacturer && <span className="text-[11px] text-slate-400 font-medium">{med.manufacturer}</span>}
                       </div>
                     </td>
                     
-                    {/* Category Column */}
+                    
                     <td>
-                      <span style={styles.catLabel}>{med.category}</span>
+                      <span className="text-xs font-semibold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-md border border-slate-200">{med.category}</span>
                     </td>
                     
-                    {/* Price Column */}
-                    <td style={{ fontWeight: '700', color: '#ffffff' }}>
+                    
+                    <td className="font-bold text-slate-950">
                       {new Intl.NumberFormat('en-PK').format(med.price)}
                     </td>
                     
-                    {/* Stock Column (Low stock alerts) */}
+                    
                     <td>
-                      <div style={styles.stockBlock}>
+                      <div className="flex flex-col gap-0.5">
                         {isLow ? (
-                          <div style={styles.stockAlertRow}>
-                            <AlertTriangle size={14} style={{ color: '#f59e0b', marginRight: '4px' }} />
-                            <span style={styles.stockCountLow}>{med.stock}</span>
+                          <div className="flex items-center">
+                            <AlertTriangle size={14} className="text-amber-500 mr-1" />
+                            <span className="font-bold text-amber-500">{med.stock}</span>
                           </div>
                         ) : (
-                          <span style={styles.stockCountGood}>{med.stock}</span>
+                          <span className="font-bold text-emerald-600">{med.stock}</span>
                         )}
-                        <span style={styles.minStockText}>Min: {minS}</span>
+                        <span className="text-[10px] text-slate-400 font-semibold">Min: {minS}</span>
                       </div>
                     </td>
                     
-                    {/* Status Toggle Column */}
+                    
                     <td>
-                      <div style={styles.statusCell}>
-                        <label style={styles.switch}>
+                      <div className="flex items-center gap-2">
+                        <label className="relative inline-block w-9 h-5 cursor-pointer">
                           <input 
                             type="checkbox" 
                             checked={med.status !== 'inactive'}
                             onChange={() => handleToggleStatus(med)}
-                            style={styles.switchInput}
+                            className="opacity-0 w-0 h-0"
                           />
-                          <span style={{
-                            ...styles.switchSlider,
-                            backgroundColor: med.status !== 'inactive' ? '#10b981' : '#475569'
-                          }}>
-                            <span style={{
-                              ...styles.switchKnob,
-                              transform: med.status !== 'inactive' ? 'translateX(16px)' : 'translateX(2px)'
-                            }} />
+                          <span className={`absolute inset-0 rounded-full transition-all flex items-center ${
+                            med.status !== 'inactive' ? 'bg-emerald-500' : 'bg-slate-300'
+                          }`}>
+                            <span className={`w-4 h-4 bg-white rounded-full transition-all block shadow-sm ${
+                              med.status !== 'inactive' ? 'translate-x-[18px]' : 'translate-x-[2px]'
+                            }`} />
                           </span>
                         </label>
-                        <span style={med.status !== 'inactive' ? styles.statusActive : styles.statusInactive}>
+                        <span className={`text-xs font-semibold ${
+                          med.status !== 'inactive' ? 'text-emerald-600' : 'text-slate-400'
+                        }`}>
                           {med.status !== 'inactive' ? 'Active' : 'Inactive'}
                         </span>
                       </div>
                     </td>
                     
-                    {/* Actions Column */}
+                    
                     <td>
-                      <div style={styles.actionBtns}>
-                        <button style={styles.actionBtnIcon} onClick={() => handleOpenView(med)}>
-                          <Eye size={15} style={{ color: '#10b981' }} />
+                      <div className="flex gap-2">
+                        <button 
+                          className="w-8 h-8 rounded-lg border border-slate-200 bg-white flex items-center justify-center cursor-pointer hover:bg-slate-50 transition-all" 
+                          onClick={() => handleOpenView(med)}
+                        >
+                          <Eye size={15} className="text-emerald-500" />
                         </button>
-                        <button style={styles.actionBtnIcon} onClick={() => handleOpenEdit(med)}>
-                          <Edit size={15} style={{ color: '#3b82f6' }} />
+                        <button 
+                          className="w-8 h-8 rounded-lg border border-slate-200 bg-white flex items-center justify-center cursor-pointer hover:bg-slate-50 transition-all" 
+                          onClick={() => handleOpenEdit(med)}
+                        >
+                          <Edit size={15} className="text-blue-500" />
                         </button>
-                        <button style={styles.actionBtnIcon} onClick={() => handleDelete(med.id)}>
-                          <Trash2 size={15} style={{ color: '#ef4444' }} />
+                        <button 
+                          className="w-8 h-8 rounded-lg border border-slate-200 bg-white flex items-center justify-center cursor-pointer hover:bg-slate-50 transition-all" 
+                          onClick={() => handleDelete(med.id)}
+                        >
+                          <Trash2 size={15} className="text-red-500" />
                         </button>
                       </div>
                     </td>
@@ -351,60 +374,65 @@ export default function Medicines({ pharmacy, showAddModal, onCloseAddModal, edi
         </div>
       )}
 
-      {/* VIEW MODAL */}
+      
       {isViewOpen && viewingMed && (
         <div className="modal-overlay">
-          <div className="modal-content" style={{ maxWidth: '450px' }}>
-            <button style={styles.modalCloseBtn} onClick={handleCloseView}><X size={18} /></button>
-            <h3 className="modal-title" style={{ color: '#10b981', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div className="modal-content max-w-[450px]">
+            <button 
+              className="absolute top-4 right-4 bg-transparent border-none text-slate-400 hover:text-slate-600 cursor-pointer" 
+              onClick={handleCloseView}
+            >
+              <X size={18} />
+            </button>
+            <h3 className="modal-title text-emerald-600 flex items-center gap-2">
               <Pill size={20} />
               <span>Medicine Details</span>
             </h3>
             
-            <div style={styles.viewGrid}>
-              <div style={styles.viewItem}>
-                <span style={styles.viewLabel}>Medicine ID</span>
-                <span style={styles.viewValue}>{formatMedicineId(viewingMed.id)}</span>
+            <div className="grid grid-cols-2 gap-4 mt-4">
+              <div className="flex flex-col gap-1">
+                <span className="text-[11px] text-slate-400 font-semibold uppercase tracking-wider">Medicine ID</span>
+                <span className="text-sm font-semibold text-slate-900">{formatMedicineId(viewingMed.id)}</span>
               </div>
-              <div style={styles.viewItem}>
-                <span style={styles.viewLabel}>Status</span>
-                <span style={viewingMed.status !== 'inactive' ? styles.statusActive : styles.statusInactive}>
+              <div className="flex flex-col gap-1">
+                <span className="text-[11px] text-slate-400 font-semibold uppercase tracking-wider">Status</span>
+                <span className={`text-xs font-semibold ${viewingMed.status !== 'inactive' ? 'text-emerald-600' : 'text-slate-400'}`}>
                   {viewingMed.status !== 'inactive' ? 'Active' : 'Inactive'}
                 </span>
               </div>
-              <div style={styles.viewItemFull}>
-                <span style={styles.viewLabel}>English Name</span>
-                <span style={styles.viewValueBig}>{viewingMed.name}</span>
+              <div className="flex flex-col gap-1 col-span-2">
+                <span className="text-[11px] text-slate-400 font-semibold uppercase tracking-wider">English Name</span>
+                <span className="text-base font-bold text-slate-900">{viewingMed.name}</span>
               </div>
               {viewingMed.name_urdu && (
-                <div style={styles.viewItemFull}>
-                  <span style={styles.viewLabel}>Urdu Name</span>
-                  <span style={{ ...styles.viewValueBig, color: '#10b981' }}>{viewingMed.name_urdu}</span>
+                <div className="flex flex-col gap-1 col-span-2">
+                  <span className="text-[11px] text-slate-400 font-semibold uppercase tracking-wider">Urdu Name</span>
+                  <span className="text-base font-bold text-emerald-600 urdu">{viewingMed.name_urdu}</span>
                 </div>
               )}
               {viewingMed.manufacturer && (
-                <div style={styles.viewItemFull}>
-                  <span style={styles.viewLabel}>Manufacturer / Company</span>
-                  <span style={styles.viewValue}>{viewingMed.manufacturer}</span>
+                <div className="flex flex-col gap-1 col-span-2">
+                  <span className="text-[11px] text-slate-400 font-semibold uppercase tracking-wider">Manufacturer / Company</span>
+                  <span className="text-sm font-semibold text-slate-900">{viewingMed.manufacturer}</span>
                 </div>
               )}
-              <div style={styles.viewItem}>
-                <span style={styles.viewLabel}>Category</span>
-                <span style={styles.viewValue}>{viewingMed.category}</span>
+              <div className="flex flex-col gap-1">
+                <span className="text-[11px] text-slate-400 font-semibold uppercase tracking-wider">Category</span>
+                <span className="text-sm font-semibold text-slate-900">{viewingMed.category}</span>
               </div>
-              <div style={styles.viewItem}>
-                <span style={styles.viewLabel}>Price (PKR)</span>
-                <span style={{ ...styles.viewValue, fontWeight: '700', color: '#10b981' }}>
+              <div className="flex flex-col gap-1">
+                <span className="text-[11px] text-slate-400 font-semibold uppercase tracking-wider">Price (PKR)</span>
+                <span className="text-sm font-bold text-emerald-600">
                   {new Intl.NumberFormat('en-PK', { style: 'currency', currency: 'PKR', minimumFractionDigits: 0 }).format(viewingMed.price)}
                 </span>
               </div>
-              <div style={styles.viewItem}>
-                <span style={styles.viewLabel}>Stock Level</span>
-                <span style={styles.viewValue}>{viewingMed.stock} units</span>
+              <div className="flex flex-col gap-1">
+                <span className="text-[11px] text-slate-400 font-semibold uppercase tracking-wider">Stock Level</span>
+                <span className="text-sm font-semibold text-slate-900">{viewingMed.stock} units</span>
               </div>
-              <div style={styles.viewItem}>
-                <span style={styles.viewLabel}>Min Stock Alert</span>
-                <span style={styles.viewValue}>{viewingMed.min_stock || 10} units</span>
+              <div className="flex flex-col gap-1">
+                <span className="text-[11px] text-slate-400 font-semibold uppercase tracking-wider">Min Stock Alert</span>
+                <span className="text-sm font-semibold text-slate-900">{viewingMed.min_stock || 10} units</span>
               </div>
             </div>
             
@@ -415,11 +443,16 @@ export default function Medicines({ pharmacy, showAddModal, onCloseAddModal, edi
         </div>
       )}
 
-      {/* ADD MODAL */}
+      
       {isAddOpen && (
         <div className="modal-overlay">
           <div className="modal-content">
-            <button style={styles.modalCloseBtn} onClick={handleCloseAdd}><X size={18} /></button>
+            <button 
+              className="absolute top-4 right-4 bg-transparent border-none text-slate-400 hover:text-slate-600 cursor-pointer" 
+              onClick={handleCloseAdd}
+            >
+              <X size={18} />
+            </button>
             <h3 className="modal-title">Add New Medicine</h3>
             <form onSubmit={handleAddSubmit}>
               <div className="form-group">
@@ -470,7 +503,7 @@ export default function Medicines({ pharmacy, showAddModal, onCloseAddModal, edi
                 </select>
               </div>
 
-              <div style={styles.formGrid}>
+              <div className="grid grid-cols-2 gap-4">
                 <div className="form-group">
                   <label className="form-label">Price (PKR)</label>
                   <input
@@ -519,11 +552,16 @@ export default function Medicines({ pharmacy, showAddModal, onCloseAddModal, edi
         </div>
       )}
 
-      {/* EDIT MODAL */}
+      
       {isEditOpen && (
         <div className="modal-overlay">
           <div className="modal-content">
-            <button style={styles.modalCloseBtn} onClick={handleCloseEdit}><X size={18} /></button>
+            <button 
+              className="absolute top-4 right-4 bg-transparent border-none text-slate-400 hover:text-slate-600 cursor-pointer" 
+              onClick={handleCloseEdit}
+            >
+              <X size={18} />
+            </button>
             <h3 className="modal-title">Edit Medicine Details</h3>
             <form onSubmit={handleEditSubmit}>
               <div className="form-group">
@@ -571,7 +609,7 @@ export default function Medicines({ pharmacy, showAddModal, onCloseAddModal, edi
                 </select>
               </div>
 
-              <div style={styles.formGrid}>
+              <div className="grid grid-cols-2 gap-4">
                 <div className="form-group">
                   <label className="form-label">Price (PKR)</label>
                   <input
@@ -619,257 +657,3 @@ export default function Medicines({ pharmacy, showAddModal, onCloseAddModal, edi
     </div>
   );
 }
-
-const styles = {
-  container: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '24px',
-  },
-  actionBar: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    gap: '20px',
-  },
-  searchWrapper: {
-    position: 'relative',
-    display: 'flex',
-    alignItems: 'center',
-    flex: '1.2',
-    maxWidth: '450px',
-  },
-  searchIcon: {
-    position: 'absolute',
-    left: '14px',
-    color: '#64748b',
-  },
-  searchInput: {
-    width: '100%',
-    height: '42px',
-    paddingLeft: '44px',
-    paddingRight: '16px',
-    border: '1px solid #e2e8f0',
-    borderRadius: '10px',
-    backgroundColor: '#ffffff',
-    color: '#0f172a',
-    fontSize: '14px',
-  },
-  filterGroup: {
-    display: 'flex',
-    backgroundColor: '#ffffff',
-    padding: '4px',
-    borderRadius: '10px',
-    border: '1px solid #e2e8f0',
-  },
-  filterBtn: {
-    padding: '8px 16px',
-    fontSize: '13px',
-    fontWeight: '600',
-    color: '#475569',
-    backgroundColor: 'transparent',
-    border: 'none',
-    cursor: 'pointer',
-    borderRadius: '8px',
-    transition: 'all 0.2s ease',
-  },
-  filterBtnActive: {
-    padding: '8px 16px',
-    fontSize: '13px',
-    fontWeight: '600',
-    color: '#ffffff',
-    backgroundColor: '#10b981',
-    border: 'none',
-    cursor: 'pointer',
-    borderRadius: '8px',
-    transition: 'all 0.2s ease',
-  },
-  addMedBtn: {
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: '8px',
-    padding: '10px 20px',
-    backgroundColor: '#10b981',
-    color: '#ffffff',
-    borderRadius: '30px',
-    fontSize: '13px',
-    fontWeight: '600',
-    border: 'none',
-    cursor: 'pointer',
-    transition: 'background-color 0.2s ease',
-  },
-  loading: {
-    textAlign: 'center',
-    color: '#64748b',
-    padding: '40px 0',
-  },
-  empty: {
-    textAlign: 'center',
-    color: '#64748b',
-    padding: '60px 0',
-    fontSize: '15px',
-    backgroundColor: '#ffffff',
-    border: '1px dashed #cbd5e1',
-    borderRadius: '12px',
-  },
-  nameBlock: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '2px',
-  },
-  medNameText: {
-    fontWeight: '700',
-    fontSize: '14px',
-    color: '#0f172a',
-  },
-  medNameUrdu: {
-    fontSize: '12px',
-    color: '#10b981',
-    fontWeight: '600',
-  },
-  medManufacturer: {
-    fontSize: '11px',
-    color: '#64748b',
-    fontWeight: '500',
-  },
-  catLabel: {
-    fontSize: '12px',
-    fontWeight: '600',
-    color: '#475569',
-    backgroundColor: '#f1f5f9',
-    padding: '4px 10px',
-    borderRadius: '6px',
-    border: '1px solid #e2e8f0',
-  },
-  stockBlock: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '2px',
-  },
-  stockAlertRow: {
-    display: 'flex',
-    alignItems: 'center',
-  },
-  stockCountLow: {
-    fontWeight: '700',
-    color: '#f59e0b',
-  },
-  stockCountGood: {
-    fontWeight: '700',
-    color: '#10b981',
-  },
-  minStockText: {
-    fontSize: '10px',
-    color: '#64748b',
-    fontWeight: '600',
-  },
-  statusCell: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-  },
-  switch: {
-    position: 'relative',
-    display: 'inline-block',
-    width: '36px',
-    height: '20px',
-    cursor: 'pointer',
-  },
-  switchInput: {
-    opacity: 0,
-    width: 0,
-    height: 0,
-  },
-  switchSlider: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    borderRadius: '20px',
-    transition: 'all 0.2s ease',
-    display: 'flex',
-    alignItems: 'center',
-  },
-  switchKnob: {
-    width: '16px',
-    height: '16px',
-    backgroundColor: '#ffffff',
-    borderRadius: '50%',
-    transition: 'all 0.2s ease',
-    display: 'block',
-  },
-  statusActive: {
-    fontSize: '12px',
-    color: '#10b981',
-    fontWeight: '600',
-  },
-  statusInactive: {
-    fontSize: '12px',
-    color: '#94a3b8',
-    fontWeight: '600',
-  },
-  actionBtns: {
-    display: 'flex',
-    gap: '8px',
-  },
-  actionBtnIcon: {
-    width: '32px',
-    height: '32px',
-    borderRadius: '8px',
-    border: '1px solid #e2e8f0',
-    backgroundColor: '#ffffff',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    cursor: 'pointer',
-    transition: 'all 0.2s ease',
-  },
-  modalCloseBtn: {
-    position: 'absolute',
-    top: '16px',
-    right: '16px',
-    background: 'none',
-    border: 'none',
-    color: '#64748b',
-    cursor: 'pointer',
-  },
-  formGrid: {
-    display: 'grid',
-    gridTemplateColumns: '1fr 1fr',
-    gap: '16px',
-  },
-  viewGrid: {
-    display: 'grid',
-    gridTemplateColumns: '1fr 1fr',
-    gap: '16px',
-    marginTop: '16px',
-  },
-  viewItem: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '4px',
-  },
-  viewItemFull: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '4px',
-    gridColumn: 'span 2',
-  },
-  viewLabel: {
-    fontSize: '11px',
-    color: '#64748b',
-    fontWeight: '600',
-    textTransform: 'uppercase',
-  },
-  viewValue: {
-    fontSize: '14px',
-    fontWeight: '600',
-    color: '#0f172a',
-  },
-  viewValueBig: {
-    fontSize: '16px',
-    fontWeight: '700',
-    color: '#0f172a',
-  }
-};

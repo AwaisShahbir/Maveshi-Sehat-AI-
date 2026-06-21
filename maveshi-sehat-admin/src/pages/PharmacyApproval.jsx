@@ -4,7 +4,7 @@ import { Store, Phone, MapPin, Check, X, Clipboard, ExternalLink, ShieldCheck } 
 export default function PharmacyApproval() {
   const [pharmacies, setPharmacies] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('pending'); // 'pending', 'approved', 'rejected'
+  const [activeTab, setActiveTab] = useState('pending'); 
   const [selectedPharmacy, setSelectedPharmacy] = useState(null);
 
   const fetchPharmacies = async () => {
@@ -56,7 +56,7 @@ export default function PharmacyApproval() {
   return (
     <div className="pharmacy-approval-view">
       
-      {/* Tabs */}
+      
       <div className="tabs-container">
         <button 
           className={`tab-btn ${activeTab === 'pending' ? 'active' : ''}`}
@@ -82,13 +82,13 @@ export default function PharmacyApproval() {
         <div style={{ textAlign: 'center', padding: '40px' }}>Loading pharmacy approvals... / لوڈ ہو رہا ہے...</div>
       ) : (
         <div className="pharmacy-layout">
-          {/* Main Card List */}
+          
           <div className="pharmacy-cards-container" style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginBottom: '32px' }}>
             {filteredPharmacies.map(pharm => (
               <div className="pharmacy-card card" key={pharm.id} style={{ borderLeft: '4px solid var(--color-orange)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '20px' }}>
                   
-                  {/* Left content details */}
+                  
                   <div style={{ display: 'flex', gap: '16px', flex: 1, minWidth: '280px' }}>
                     <div className="p-avatar-box">
                       <Store size={24} style={{ color: 'var(--color-orange)' }} />
@@ -110,7 +110,7 @@ export default function PharmacyApproval() {
                     </div>
                   </div>
 
-                  {/* Right Action buttons */}
+                  
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', alignItems: 'flex-end', justifyContent: 'center' }}>
                     <span className="badge badge-orange" style={{ marginBottom: '8px' }}>
                       {pharm.status.toUpperCase()} / زیر التواء
@@ -148,7 +148,7 @@ export default function PharmacyApproval() {
             )}
           </div>
 
-          {/* Bottom Table: Approved Pharmacies */}
+          
           <div className="card">
             <div className="card-title-container">
               <div>
@@ -203,7 +203,7 @@ export default function PharmacyApproval() {
         </div>
       )}
 
-      {/* Modal for View Full Profile */}
+      
       {selectedPharmacy && (
         <div style={{
           position: 'fixed',
@@ -232,7 +232,7 @@ export default function PharmacyApproval() {
             overflow: 'hidden',
             maxHeight: '90vh'
           }}>
-            {/* Modal Header */}
+            
             <div style={{
               display: 'flex',
               justifyContent: 'space-between',
@@ -270,10 +270,10 @@ export default function PharmacyApproval() {
               </button>
             </div>
 
-            {/* Modal Body */}
+            
             <div style={{ padding: '24px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '20px' }}>
               
-              {/* Status Badge */}
+              
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ fontSize: '13px', color: '#94a3b8' }}>
                   Registered on: <strong>{new Date(selectedPharmacy.created_at).toLocaleDateString([], { day: 'numeric', month: 'long', year: 'numeric' })}</strong>
@@ -283,7 +283,7 @@ export default function PharmacyApproval() {
                 </span>
               </div>
 
-              {/* Grid 2 Column Details */}
+              
               <div style={{
                 display: 'grid',
                 gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
@@ -324,13 +324,13 @@ export default function PharmacyApproval() {
                 </div>
               </div>
 
-              {/* Full Address */}
+              
               <div style={{ fontSize: '14px', borderTop: '1px solid #334155', paddingTop: '16px' }}>
                 <span style={{ color: '#94a3b8', display: 'block', marginBottom: '6px', fontSize: '12px', fontWeight: 600, textTransform: 'uppercase' }}>Full Address</span>
                 <p style={{ margin: 0, lineHeight: 1.5 }}>{selectedPharmacy.address}</p>
               </div>
 
-              {/* Stats Block */}
+              
               <div style={{ 
                 display: 'grid', 
                 gridTemplateColumns: '1fr 1fr', 
@@ -355,7 +355,7 @@ export default function PharmacyApproval() {
                 </div>
               </div>
 
-              {/* Description */}
+              
               {selectedPharmacy.description && (
                 <div style={{ fontSize: '14px', borderTop: '1px solid #334155', paddingTop: '16px' }}>
                   <span style={{ color: '#94a3b8', display: 'block', marginBottom: '6px', fontSize: '12px', fontWeight: 600, textTransform: 'uppercase' }}>Description</span>
@@ -365,7 +365,7 @@ export default function PharmacyApproval() {
 
             </div>
 
-            {/* Modal Footer */}
+            
             <div style={{
               padding: '16px 24px',
               borderTop: '1px solid #334155',

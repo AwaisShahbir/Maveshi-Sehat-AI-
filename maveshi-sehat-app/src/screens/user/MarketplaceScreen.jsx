@@ -34,7 +34,7 @@ export default function MarketplaceScreen() {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [cartCount, setCartCount] = useState(getCartCount());
 
-  // Subscribe to cart updates
+  
   useEffect(() => {
     const unsubscribe = subscribeCart(() => {
       setCartCount(getCartCount());
@@ -48,7 +48,7 @@ export default function MarketplaceScreen() {
       const response = await fetch(`${baseUrl}/api/admin/medicines`);
       if (!response.ok) throw new Error('Failed to fetch medicines');
       const data = await response.json();
-      // Filter out inactive medicines for marketplace
+      
       const activeMeds = data.filter(med => med.status !== 'inactive');
       setMedicines(activeMeds);
     } catch (error) {
@@ -68,20 +68,20 @@ export default function MarketplaceScreen() {
     fetchMedicines();
   };
 
-  // Helper to map category pills
+  
   const categories = ['All', 'Medicines', 'Vaccines', 'Supplements'];
 
   const filteredMedicines = medicines.filter(med => {
-    // 1. Search Query filter
+    
     const matchesSearch = 
       med.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (med.name_urdu && med.name_urdu.toLowerCase().includes(searchQuery.toLowerCase())) ||
       (med.manufacturer && med.manufacturer.toLowerCase().includes(searchQuery.toLowerCase()));
 
-    // 2. Category filter
+    
     let matchesCategory = true;
     if (selectedCategory === 'Medicines') {
-      // Show general medicines (antibiotic, antiparasitic, others)
+      
       matchesCategory = med.category.toLowerCase() !== 'vaccine' && med.category.toLowerCase() !== 'vitamin';
     } else if (selectedCategory === 'Vaccines') {
       matchesCategory = med.category.toLowerCase() === 'vaccine';
@@ -92,7 +92,7 @@ export default function MarketplaceScreen() {
     return matchesSearch && matchesCategory;
   });
 
-  // Get medicine thumbnail representation
+  
   const getMedIcon = (med) => {
     const form = (med.dosage_form || '').toLowerCase();
     const cat = med.category.toLowerCase();
@@ -112,12 +112,12 @@ export default function MarketplaceScreen() {
   const renderMedicineCard = ({ item }) => {
     const isOutOfStock = item.stock <= 0;
     
-    // Map rating dynamically or use dummy matching mockup
+    
     const rating = (4.0 + (item.id % 10) * 0.1).toFixed(1);
     
     return (
       <View style={styles.card}>
-        {/* Medicine Image / Icon Container */}
+        
         <View style={styles.cardImgBox}>
           {item.image_url ? (
             <Image source={{ uri: getImageUrl(item.image_url) }} style={styles.cardImg} />
@@ -126,7 +126,7 @@ export default function MarketplaceScreen() {
           )}
         </View>
 
-        {/* Card Body */}
+        
         <View style={styles.cardBody}>
           <Text style={styles.medNameEn} numberOfLines={1}>{item.name}</Text>
           {item.name_urdu && (
@@ -135,14 +135,14 @@ export default function MarketplaceScreen() {
             </Text>
           )}
 
-          {/* Rating and Volume details */}
+          
           <View style={styles.medMetaRow}>
             <Text style={styles.ratingText}>★ {rating}</Text>
             <Text style={styles.metaDivider}>•</Text>
             <Text style={styles.strengthText} numberOfLines={1}>{item.strength || 'dose'}</Text>
           </View>
 
-          {/* Price & Stock status */}
+          
           <View style={styles.priceRow}>
             <Text style={styles.priceText}>Rs. {Math.round(item.price)}</Text>
             <View style={[
@@ -158,7 +158,7 @@ export default function MarketplaceScreen() {
             </View>
           </View>
 
-          {/* Add to Cart button */}
+          
           <TouchableOpacity 
             style={[styles.addBtn, isOutOfStock && styles.addBtnDisabled]} 
             onPress={() => !isOutOfStock && addToCart(item)}
@@ -178,7 +178,7 @@ export default function MarketplaceScreen() {
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="light-content" backgroundColor="#58D66D" />
 
-      {/* Main Header Block matching mockup */}
+      
       <View style={styles.header}>
         <View style={styles.headerTop}>
           <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
@@ -189,7 +189,7 @@ export default function MarketplaceScreen() {
             <Text style={styles.headerSubtitle} className="urdu">دوا خانہ</Text>
           </View>
           
-          {/* Cart Icon with Live Badge */}
+          
           <TouchableOpacity 
             style={styles.cartButton} 
             onPress={() => navigation.navigate('Cart', { userName, userId })}
@@ -203,7 +203,7 @@ export default function MarketplaceScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Search Bar Input */}
+        
         <View style={styles.searchContainer}>
           <Feather name="search" size={18} color="#888" style={styles.searchIcon} />
           <TextInput
@@ -221,7 +221,7 @@ export default function MarketplaceScreen() {
         </View>
       </View>
 
-      {/* Horizontal Category Filter Pills */}
+      
       <View style={styles.categoriesContainer}>
         <FlatList
           data={categories}
@@ -232,7 +232,7 @@ export default function MarketplaceScreen() {
           renderItem={({ item }) => {
             const isActive = selectedCategory === item;
             
-            // Map Urdu labels for category pills
+            
             let urduLabel = '';
             if (item === 'All') urduLabel = 'سب';
             else if (item === 'Medicines') urduLabel = 'دوائیں';
@@ -253,7 +253,7 @@ export default function MarketplaceScreen() {
         />
       </View>
 
-      {/* Listings Grid */}
+      
       {loading && !refreshing ? (
         <View style={styles.loaderContainer}>
           <ActivityIndicator size="large" color="#58D66D" />
@@ -278,7 +278,7 @@ export default function MarketplaceScreen() {
         </View>
       )}
 
-      {/* Bottom Nav Bar matching mockup layout */}
+      
       <View style={styles.bottomNav}>
         <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Dashboard')}>
           <Feather name="home" size={22} color="#A3E6B2" />

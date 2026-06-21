@@ -28,10 +28,10 @@ export default function HealthRecordsScreen() {
   const userName = activeUserName;
   const userId = params.userId || null;
 
-  // State
+  
   const [records, setRecords] = useState(getRecords());
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeFilter, setActiveFilter] = useState('All'); // 'All', 'Active', 'Under Treatment', 'Recovered', 'Healthy'
+  const [activeFilter, setActiveFilter] = useState('All'); 
   const [showFilterOptions, setShowFilterOptions] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState(null);
   const [detailModalVisible, setDetailModalVisible] = useState(false);
@@ -41,7 +41,7 @@ export default function HealthRecordsScreen() {
     setDetailModalVisible(true);
   };
 
-  // Subscribe to profile modifications and load records
+  
   useEffect(() => {
     const activeUser = getProfile().userName;
     setActiveUserName(activeUser);
@@ -66,15 +66,15 @@ export default function HealthRecordsScreen() {
     };
   }, []);
 
-  // Filter & Search Logic
+  
   const filteredRecords = records.filter((rec) => {
-    // 1. Search Query
+    
     const matchesSearch = 
       rec.animalId.toLowerCase().includes(searchQuery.toLowerCase()) ||
       rec.disease.toLowerCase().includes(searchQuery.toLowerCase()) ||
       rec.diseaseUrdu.includes(searchQuery);
 
-    // 2. Filter Status
+    
     let matchesFilter = true;
     if (activeFilter !== 'All') {
       if (activeFilter === 'Active') {
@@ -91,7 +91,7 @@ export default function HealthRecordsScreen() {
     return matchesSearch && matchesFilter;
   });
 
-  // Calculate dynamic stats
+  
   const totalScans = records.length;
   const activeCases = records.filter(r => r.status === 'Active' || r.status === 'Under Treatment').length;
   const healthyCount = records.filter(r => r.status === 'Healthy' || r.status === 'Recovered').length;
@@ -110,13 +110,13 @@ export default function HealthRecordsScreen() {
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="light-content" backgroundColor="#58D66D" />
       
-      {/* Scrollable Container */}
+      
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        {/* Header Section */}
+        
         <View style={styles.header}>
           <Text style={styles.headerTitle}>{t('Health Records', 'صحت کے ریکارڈ')}</Text>
           
-          {/* Search & Filter Bar */}
+          
           <View style={styles.searchBarRow}>
             <View style={styles.searchContainer}>
               <Feather name="search" size={20} color="#999" style={styles.searchIcon} />
@@ -142,7 +142,7 @@ export default function HealthRecordsScreen() {
           </View>
         </View>
 
-        {/* Dynamic Filter Chips */}
+        
         {showFilterOptions && (
           <View style={styles.filterChipsRow}>
             {['All', 'Active', 'Under Treatment', 'Recovered', 'Healthy'].map((filter) => (
@@ -165,7 +165,7 @@ export default function HealthRecordsScreen() {
           </View>
         )}
 
-        {/* Stats Row Cards */}
+        
         <View style={styles.statsCardRow}>
           <View style={styles.statCard}>
             <Text style={styles.statValue}>{totalScans}</Text>
@@ -181,12 +181,12 @@ export default function HealthRecordsScreen() {
           </View>
         </View>
 
-        {/* Health Records List */}
+        
         <View style={styles.recordsListContainer}>
           {filteredRecords.length > 0 ? (
             filteredRecords.map((rec) => (
               <TouchableOpacity key={rec.id} style={styles.recordCard} onPress={() => handleOpenRecordDetail(rec)}>
-                {/* Left side circular image or icon status */}
+                
                 <View style={[styles.iconContainer, { backgroundColor: rec.bg, overflow: 'hidden' }]}>
                   {rec.uri ? (
                     <Image source={{ uri: rec.uri }} style={{ width: 44, height: 44, resizeMode: 'cover' }} />
@@ -195,14 +195,14 @@ export default function HealthRecordsScreen() {
                   )}
                 </View>
 
-                {/* Middle details */}
+                
                 <View style={styles.detailsContainer}>
                   <Text style={styles.diseaseTitle}>{t(rec.disease, rec.diseaseUrdu)}</Text>
                   <Text style={styles.animalSub}>
                     {rec.animalId} • {rec.timeAgo === 'Just now' ? t('Just now', 'ابھی ابھی') : rec.timeAgo}
                   </Text>
                   
-                  {/* Badges */}
+                  
                   <View style={styles.badgesRow}>
                     <View style={[
                       styles.badge, 
@@ -230,7 +230,7 @@ export default function HealthRecordsScreen() {
                   </View>
                 </View>
 
-                {/* Right side confidence */}
+                
                 <View style={styles.rightContainer}>
                   <Text style={styles.confidenceText}>{rec.confidence}</Text>
                 </View>
@@ -244,11 +244,11 @@ export default function HealthRecordsScreen() {
           )}
         </View>
 
-        {/* Dummy space for scrolling */}
+        
         <View style={{ height: 120 }} />
       </ScrollView>
 
-      {/* Record Detail Modal */}
+      
       <Modal
         animationType="slide"
         transparent={true}
@@ -267,14 +267,14 @@ export default function HealthRecordsScreen() {
                 </View>
 
                 <ScrollView showsVerticalScrollIndicator={false} style={{ marginBottom: 16 }}>
-                  {/* Large Captured Image */}
+                  
                   {selectedRecord.uri && (
                     <View style={styles.detailImageWrapper}>
                       <Image source={{ uri: selectedRecord.uri }} style={styles.detailImage} />
                     </View>
                   )}
 
-                  {/* Header info */}
+                  
                   <View style={styles.detailHeaderInfo}>
                     <View style={{ flex: 1 }}>
                       <Text style={styles.detailDisease}>{t(selectedRecord.disease, selectedRecord.diseaseUrdu)}</Text>
@@ -286,7 +286,7 @@ export default function HealthRecordsScreen() {
                     </View>
                   </View>
 
-                  {/* Metadata Table */}
+                  
                   <View style={styles.detailTable}>
                     <View style={styles.tableRow}>
                       <Text style={styles.tableLabel}>{t('Animal Type:', 'قسم / نوعیت:')}</Text>
@@ -308,7 +308,7 @@ export default function HealthRecordsScreen() {
                     </View>
                   </View>
 
-                  {/* Clinical Description */}
+                  
                   {selectedRecord.description && (
                     <>
                       <Text style={styles.sectionTitleModal}>{t('Clinical Description:', 'طبی تفصیل:')}</Text>
@@ -316,7 +316,7 @@ export default function HealthRecordsScreen() {
                     </>
                   )}
 
-                  {/* Recommended First Aid */}
+                  
                   {selectedRecord.firstAid && selectedRecord.firstAid.length > 0 && (
                     <>
                       <Text style={styles.sectionTitleModal}>{t('First Aid / Treatment:', 'ابتدائی طبی امداد:')}</Text>
@@ -330,7 +330,7 @@ export default function HealthRecordsScreen() {
                   )}
                 </ScrollView>
 
-                {/* Consult Veterinarian Quick Action */}
+                
                 <TouchableOpacity 
                   style={styles.consultVetBtnModal} 
                   onPress={() => {
@@ -347,7 +347,7 @@ export default function HealthRecordsScreen() {
         </View>
       </Modal>
 
-      {/* Bottom Navigation */}
+      
       <View style={styles.bottomNavContainer}>
         <View style={styles.bottomNav}>
           <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Dashboard')}>

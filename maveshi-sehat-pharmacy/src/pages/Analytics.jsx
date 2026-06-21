@@ -46,14 +46,14 @@ export default function Analytics({ pharmacy, formatPrice }) {
   const retention = data?.customerRetention || 0;
   const satisfaction = data?.customerSatisfaction || 4.8;
 
-  // Custom tool tip for Recharts
+  
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       return (
-        <div style={styles.tooltip}>
-          <p style={styles.tooltipLabel}>{label}</p>
-          <p style={{ color: '#10b981', margin: 0 }}>Revenue: {formatPrice(payload[0].value)}</p>
-          <p style={{ color: '#60a5fa', margin: 0 }}>Orders: {payload[1].value}</p>
+        <div className="bg-white border border-slate-200 p-3 rounded-lg shadow-md">
+          <p className="font-bold text-slate-800 mb-1.5 text-xs">{label}</p>
+          <p className="text-emerald-500 text-xs m-0">Revenue: {formatPrice(payload[0].value)}</p>
+          <p className="text-blue-500 text-xs m-0">Orders: {payload[1].value}</p>
         </div>
       );
     }
@@ -61,108 +61,108 @@ export default function Analytics({ pharmacy, formatPrice }) {
   };
 
   return (
-    <div style={styles.container}>
-      {/* Top row: 4 KPI Cards */}
-      <div style={styles.kpiGrid}>
-        {/* KPI 1: Revenue */}
-        <div style={styles.kpiCard}>
-          <div style={styles.kpiHeader}>
-            <div style={{ ...styles.kpiIconBox, backgroundColor: 'rgba(16, 185, 129, 0.1)', color: '#10b981' }}>
+    <div className="flex flex-col gap-6">
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+        
+        <div className="bg-white rounded-2xl border border-slate-100 p-5 flex flex-col justify-between shadow-sm">
+          <div className="flex justify-between items-center mb-3.5">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-emerald-500/10 text-emerald-500">
               <DollarSign size={22} />
             </div>
-            <span style={styles.kpiPercentage}>+18.2%</span>
+            <span className="text-xs font-bold text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded-full">+18.2%</span>
           </div>
-          <div style={styles.kpiBody}>
-            <h3 style={styles.kpiValue}>{formatPrice(kpis.totalRevenue)}</h3>
-            <p style={styles.kpiTitleEn}>Total Revenue</p>
-            <p style={styles.kpiTitleUr}>کل آمدنی</p>
+          <div className="mb-3.5">
+            <h3 className="text-xl font-extrabold text-slate-800 mb-1 leading-tight">{formatPrice(kpis.totalRevenue)}</h3>
+            <p className="text-xs font-semibold text-slate-600">Total Revenue</p>
+            <p className="text-[10px] text-slate-400 mt-0.5 urdu">کل آمدنی</p>
           </div>
-          <div style={styles.kpiFooter}>
-            <TrendingUp size={12} style={{ color: '#10b981', marginRight: '4px' }} />
-            <span style={styles.kpiFooterText}>+18.2% vs last month</span>
+          <div className="flex items-center border-t border-slate-100 pt-2.5 text-[11px] text-slate-400">
+            <TrendingUp size={12} className="text-emerald-500 mr-1" />
+            <span className="font-medium">+18.2% vs last month</span>
           </div>
         </div>
 
-        {/* KPI 2: Total Orders */}
-        <div style={styles.kpiCard}>
-          <div style={styles.kpiHeader}>
-            <div style={{ ...styles.kpiIconBox, backgroundColor: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6' }}>
+        
+        <div className="bg-white rounded-2xl border border-slate-100 p-5 flex flex-col justify-between shadow-sm">
+          <div className="flex justify-between items-center mb-3.5">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-blue-500/10 text-blue-500">
               <ShoppingBag size={22} />
             </div>
-            <span style={styles.kpiPercentage}>+12.5%</span>
+            <span className="text-xs font-bold text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded-full">+12.5%</span>
           </div>
-          <div style={styles.kpiBody}>
-            <h3 style={styles.kpiValue}>{kpis.totalOrders}</h3>
-            <p style={styles.kpiTitleEn}>Total Orders</p>
-            <p style={styles.kpiTitleUr}>کل آرڈرز</p>
+          <div className="mb-3.5">
+            <h3 className="text-xl font-extrabold text-slate-800 mb-1 leading-tight">{kpis.totalOrders}</h3>
+            <p className="text-xs font-semibold text-slate-600">Total Orders</p>
+            <p className="text-[10px] text-slate-400 mt-0.5 urdu">کل آرڈرز</p>
           </div>
-          <div style={styles.kpiFooter}>
-            <TrendingUp size={12} style={{ color: '#10b981', marginRight: '4px' }} />
-            <span style={styles.kpiFooterText}>+12.5% vs last month</span>
+          <div className="flex items-center border-t border-slate-100 pt-2.5 text-[11px] text-slate-400">
+            <TrendingUp size={12} className="text-emerald-500 mr-1" />
+            <span className="font-medium">+12.5% vs last month</span>
           </div>
         </div>
 
-        {/* KPI 3: Active Customers */}
-        <div style={styles.kpiCard}>
-          <div style={styles.kpiHeader}>
-            <div style={{ ...styles.kpiIconBox, backgroundColor: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b' }}>
+        
+        <div className="bg-white rounded-2xl border border-slate-100 p-5 flex flex-col justify-between shadow-sm">
+          <div className="flex justify-between items-center mb-3.5">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-amber-500/10 text-amber-500">
               <Users size={22} />
             </div>
-            <span style={styles.kpiPercentage}>+5</span>
+            <span className="text-xs font-bold text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded-full">+5</span>
           </div>
-          <div style={styles.kpiBody}>
-            <h3 style={styles.kpiValue}>{kpis.activeCustomers}</h3>
-            <p style={styles.kpiTitleEn}>Active Customers</p>
-            <p style={styles.kpiTitleUr}>فعال صارفین</p>
+          <div className="mb-3.5">
+            <h3 className="text-xl font-extrabold text-slate-800 mb-1 leading-tight">{kpis.activeCustomers}</h3>
+            <p className="text-xs font-semibold text-slate-600">Active Customers</p>
+            <p className="text-[10px] text-slate-400 mt-0.5 urdu">فعال صارفین</p>
           </div>
-          <div style={styles.kpiFooter}>
-            <TrendingUp size={12} style={{ color: '#10b981', marginRight: '4px' }} />
-            <span style={styles.kpiFooterText}>+5 new this month</span>
+          <div className="flex items-center border-t border-slate-100 pt-2.5 text-[11px] text-slate-400">
+            <TrendingUp size={12} className="text-emerald-500 mr-1" />
+            <span className="font-medium">+5 new this month</span>
           </div>
         </div>
 
-        {/* KPI 4: Avg. Order Value */}
-        <div style={styles.kpiCard}>
-          <div style={styles.kpiHeader}>
-            <div style={{ ...styles.kpiIconBox, backgroundColor: 'rgba(139, 92, 246, 0.1)', color: '#8b5cf6' }}>
+        
+        <div className="bg-white rounded-2xl border border-slate-100 p-5 flex flex-col justify-between shadow-sm">
+          <div className="flex justify-between items-center mb-3.5">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-purple-500/10 text-purple-500">
               <TrendingUp size={22} />
             </div>
-            <span style={styles.kpiPercentage}>+4.8%</span>
+            <span className="text-xs font-bold text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded-full">+4.8%</span>
           </div>
-          <div style={styles.kpiBody}>
-            <h3 style={styles.kpiValue}>{formatPrice(kpis.avgOrderValue)}</h3>
-            <p style={styles.kpiTitleEn}>Avg. Order Value</p>
-            <p style={styles.kpiTitleUr}>اوسط آرڈر ویلیو</p>
+          <div className="mb-3.5">
+            <h3 className="text-xl font-extrabold text-slate-800 mb-1 leading-tight">{formatPrice(kpis.avgOrderValue)}</h3>
+            <p className="text-xs font-semibold text-slate-600">Avg. Order Value</p>
+            <p className="text-[10px] text-slate-400 mt-0.5 urdu">اوسط آرڈر ویلیو</p>
           </div>
-          <div style={styles.kpiFooter}>
-            <TrendingUp size={12} style={{ color: '#10b981', marginRight: '4px' }} />
-            <span style={styles.kpiFooterText}>+4.8% vs last month</span>
+          <div className="flex items-center border-t border-slate-100 pt-2.5 text-[11px] text-slate-400">
+            <TrendingUp size={12} className="text-emerald-500 mr-1" />
+            <span className="font-medium">+4.8% vs last month</span>
           </div>
         </div>
       </div>
 
-      {/* Middle row: Revenue Overview chart & Top Medicines list */}
-      <div style={styles.chartMedGrid}>
-        {/* Left Side: Revenue Overview */}
-        <div className="card" style={{ flex: 2, display: 'flex', flexDirection: 'column' }}>
-          <div style={styles.cardHeaderFlex}>
+      
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <div className="card lg:col-span-2 flex flex-col">
+          <div className="flex justify-between items-center mb-4">
             <div>
               <h3 className="card-title">Revenue Overview</h3>
               <p className="card-subtitle">Monthly sales tracking • آمدنی کا جائزہ</p>
             </div>
-            <div style={styles.legendWrapper}>
-              <div style={styles.legendItem}><span style={{ ...styles.legendDot, backgroundColor: '#10b981' }}></span> Revenue (PKR)</div>
-              <div style={styles.legendItem}><span style={{ ...styles.legendDot, backgroundColor: '#3b82f6' }}></span> Order Count</div>
+            <div className="flex gap-4 text-xs font-semibold text-slate-600">
+              <div className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full inline-block bg-emerald-500"></span> Revenue (PKR)</div>
+              <div className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full inline-block bg-blue-500"></span> Order Count</div>
             </div>
           </div>
-          <div style={{ width: '100%', height: 350, flex: 1 }}>
+          <div className="w-full h-[350px] flex-1">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={revenueOverview} margin={{ top: 10, right: 10, left: 10, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
-                <XAxis dataKey="name" tick={{ fill: '#94a3b8', fontSize: 12 }} axisLine={false} />
-                <YAxis yAxisId="left" tick={{ fill: '#94a3b8', fontSize: 12 }} axisLine={false} />
-                <YAxis yAxisId="right" orientation="right" tick={{ fill: '#94a3b8', fontSize: 12 }} axisLine={false} />
-                <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(51, 65, 85, 0.3)' }} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+                <XAxis dataKey="name" tick={{ fill: '#64748b', fontSize: 12 }} axisLine={false} />
+                <YAxis yAxisId="left" tick={{ fill: '#64748b', fontSize: 12 }} axisLine={false} />
+                <YAxis yAxisId="right" orientation="right" tick={{ fill: '#64748b', fontSize: 12 }} axisLine={false} />
+                <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(241, 245, 249, 0.5)' }} />
                 <Bar yAxisId="left" dataKey="Revenue" radius={[4, 4, 0, 0]}>
                   {revenueOverview.map((entry, index) => (
                     <Cell key={`cell-rev-${index}`} fill="#10b981" />
@@ -178,54 +178,54 @@ export default function Analytics({ pharmacy, formatPrice }) {
           </div>
         </div>
 
-        {/* Right Side: Top Medicines */}
-        <div className="card" style={{ flex: 1.2 }}>
-          <div style={styles.cardHeaderFlex}>
+        
+        <div className="card lg:col-span-1">
+          <div className="flex justify-between items-center mb-4">
             <div>
               <h3 className="card-title">Top Medicines</h3>
               <p className="card-subtitle">Most selling products • اعلیٰ دوائیں</p>
             </div>
           </div>
           
-          <div style={styles.topMedList}>
+          <div className="flex flex-col gap-4 mt-2.5">
             {topMedicines.map((med, idx) => {
               const maxSales = Math.max(...topMedicines.map(m => m.sales), 1);
               const percent = Math.round((med.sales / maxSales) * 100);
               
-              // Colors for top rank badges
+              
               const badgeColors = [
                 { bg: '#10b981', text: '#ffffff' },
-                { bg: 'rgba(16, 185, 129, 0.2)', text: '#10b981' },
-                { bg: '#1e293b', text: '#94a3b8' },
-                { bg: '#1e293b', text: '#94a3b8' },
-                { bg: '#1e293b', text: '#94a3b8' }
+                { bg: 'rgba(16, 185, 129, 0.1)', text: '#10b981' },
+                { bg: '#f1f5f9', text: '#64748b' },
+                { bg: '#f1f5f9', text: '#64748b' },
+                { bg: '#f1f5f9', text: '#64748b' }
               ];
               const badgeStyle = badgeColors[idx] || badgeColors[4];
 
               return (
-                <div key={idx} style={styles.medItem}>
-                  <div style={styles.medRankRow}>
-                    <div style={{ ...styles.rankBadge, backgroundColor: badgeStyle.bg, color: badgeStyle.text }}>
+                <div key={idx} className="flex flex-col gap-1.5">
+                  <div className="flex items-center gap-3">
+                    <div className="w-6 h-6 rounded flex items-center justify-center text-xs font-bold" style={{ backgroundColor: badgeStyle.bg, color: badgeStyle.text }}>
                       {idx + 1}
                     </div>
-                    <div style={styles.medInfo}>
-                      <span style={styles.medNameEn}>{med.name}</span>
-                      {med.nameUrdu && <span style={styles.medNameUr}>{med.nameUrdu}</span>}
+                    <div className="flex-1 flex flex-col">
+                      <span className="text-sm font-semibold text-slate-800">{med.name}</span>
+                      {med.nameUrdu && <span className="text-[10px] text-emerald-500 font-semibold urdu">{med.nameUrdu}</span>}
                     </div>
-                    <div style={styles.medSales}>
-                      <span style={styles.medOrderCount}>{med.orders} orders</span>
-                      <span style={styles.medSalesPrice}>{formatPrice(med.sales)}</span>
+                    <div className="flex flex-col items-end">
+                      <span className="text-[10px] text-slate-400">{med.orders} orders</span>
+                      <span className="text-xs font-bold text-emerald-600">{formatPrice(med.sales)}</span>
                     </div>
                   </div>
-                  <div style={styles.medProgressBg}>
-                    <div style={{ ...styles.medProgressFill, width: `${percent}%` }} />
+                  <div className="h-1 bg-slate-100 rounded-full overflow-hidden">
+                    <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${percent}%` }} />
                   </div>
                 </div>
               );
             })}
 
             {topMedicines.length === 0 && (
-              <p style={{ color: '#64748b', fontSize: '13px', textAlign: 'center', marginTop: '40px' }}>
+              <p className="text-slate-400 text-xs text-center mt-10">
                 No medicine sales recorded yet.
               </p>
             )}
@@ -233,71 +233,71 @@ export default function Analytics({ pharmacy, formatPrice }) {
         </div>
       </div>
 
-      {/* Bottom row: Order Distribution, Customer Retention & Satisfaction */}
-      <div style={styles.bottomGrid}>
-        {/* Card 1: Order Status Distribution */}
-        <div className="card" style={{ flex: 1 }}>
-          <h3 className="card-title" style={{ marginBottom: '18px' }}>Order Status Distribution</h3>
+      
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        
+        <div className="card">
+          <h3 className="card-title mb-4.5">Order Status Distribution</h3>
           
-          <div style={styles.distList}>
-            <div style={styles.distItem}>
-              <div style={styles.distLabelRow}>
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-1.5">
+              <div className="flex justify-between text-xs font-semibold text-slate-600">
                 <span>Completed</span>
                 <span>{distribution.completed}%</span>
               </div>
-              <div style={styles.distBarBg}>
-                <div style={{ ...styles.distBarFill, width: `${distribution.completed}%`, backgroundColor: '#10b981' }} />
+              <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                <div className="h-full rounded-full bg-emerald-500" style={{ width: `${distribution.completed}%` }} />
               </div>
             </div>
 
-            <div style={styles.distItem}>
-              <div style={styles.distLabelRow}>
+            <div className="flex flex-col gap-1.5">
+              <div className="flex justify-between text-xs font-semibold text-slate-600">
                 <span>Processing</span>
                 <span>{distribution.processing}%</span>
               </div>
-              <div style={styles.distBarBg}>
-                <div style={{ ...styles.distBarFill, width: `${distribution.processing}%`, backgroundColor: '#3b82f6' }} />
+              <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                <div className="h-full rounded-full bg-blue-500" style={{ width: `${distribution.processing}%` }} />
               </div>
             </div>
 
-            <div style={styles.distItem}>
-              <div style={styles.distLabelRow}>
+            <div className="flex flex-col gap-1.5">
+              <div className="flex justify-between text-xs font-semibold text-slate-600">
                 <span>Cancelled</span>
                 <span>{distribution.cancelled}%</span>
               </div>
-              <div style={styles.distBarBg}>
-                <div style={{ ...styles.distBarFill, width: `${distribution.cancelled}%`, backgroundColor: '#ef4444' }} />
+              <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                <div className="h-full rounded-full bg-red-500" style={{ width: `${distribution.cancelled}%` }} />
               </div>
             </div>
           </div>
         </div>
 
-        {/* Card 2: Customer Retention */}
-        <div className="card" style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-          <h3 className="card-title" style={{ width: '100%', marginBottom: '12px' }}>Customer Retention</h3>
-          <div style={styles.circleContainer}>
+        
+        <div className="card flex flex-col items-center justify-center p-6 text-center">
+          <h3 className="card-title w-full mb-3 text-left">Customer Retention</h3>
+          <div className="flex justify-center items-center my-4">
             <svg width="120" height="120" viewBox="0 0 120 120">
-              <circle cx="60" cy="60" r="50" fill="transparent" stroke="#1e293b" strokeWidth="8" />
+              <circle cx="60" cy="60" r="50" fill="transparent" stroke="#f1f5f9" strokeWidth="8" />
               <circle cx="60" cy="60" r="50" fill="transparent" stroke="#10b981" strokeWidth="8" 
                 strokeDasharray="314.15" 
                 strokeDashoffset={314.15 - (314.15 * retention) / 100} 
                 strokeLinecap="round" 
                 transform="rotate(-90 60 60)" 
               />
-              <text x="60" y="66" textAnchor="middle" fill="#ffffff" fontSize="22" fontWeight="bold" fontFamily="Outfit">
+              <text x="60" y="66" textAnchor="middle" fill="#0f172a" fontSize="22" fontWeight="bold" fontFamily="Outfit">
                 {retention}%
               </text>
             </svg>
           </div>
-          <p style={styles.retentionLabel}>Customers who ordered more than once</p>
+          <p className="text-xs text-slate-500 text-center font-medium max-w-[220px]">Customers who ordered more than once</p>
         </div>
 
-        {/* Card 3: Customer Satisfaction */}
-        <div className="card" style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-          <h3 className="card-title" style={{ width: '100%', marginBottom: '12px' }}>Customer Satisfaction</h3>
-          <div style={styles.circleContainer}>
+        
+        <div className="card flex flex-col items-center justify-center p-6 text-center">
+          <h3 className="card-title w-full mb-3 text-left">Customer Satisfaction</h3>
+          <div className="flex justify-center items-center my-4">
             <svg width="120" height="120" viewBox="0 0 120 120">
-              <circle cx="60" cy="60" r="50" fill="transparent" stroke="#e2e8f0" strokeWidth="8" />
+              <circle cx="60" cy="60" r="50" fill="transparent" stroke="#f1f5f9" strokeWidth="8" />
               <circle cx="60" cy="60" r="50" fill="transparent" stroke="#eab308" strokeWidth="8" 
                 strokeDasharray="314.15" 
                 strokeDashoffset={314.15 - (314.15 * (satisfaction * 20)) / 100} 
@@ -309,234 +309,10 @@ export default function Analytics({ pharmacy, formatPrice }) {
               </text>
             </svg>
           </div>
-          <p style={styles.retentionLabel}>Average rating from farmers</p>
+          <p className="text-xs text-slate-500 text-center font-medium max-w-[220px]">Average rating from farmers</p>
         </div>
       </div>
     </div>
   );
 }
 
-const styles = {
-  container: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '24px'
-  },
-  kpiGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-    gap: '20px'
-  },
-  kpiCard: {
-    backgroundColor: 'var(--bg-card)',
-    borderRadius: 'var(--radius-lg)',
-    border: '1px solid var(--border-light)',
-    padding: '20px',
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'space-between',
-    boxShadow: 'var(--shadow-md)'
-  },
-  kpiHeader: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: '14px'
-  },
-  kpiIconBox: {
-    width: '40px',
-    height: '40px',
-    borderRadius: '10px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center'
-  },
-  kpiPercentage: {
-    fontSize: '12px',
-    fontWeight: '700',
-    color: '#10b981',
-    backgroundColor: 'rgba(16, 185, 129, 0.1)',
-    padding: '2px 8px',
-    borderRadius: '20px'
-  },
-  kpiBody: {
-    marginBottom: '14px'
-  },
-  kpiValue: {
-    fontFamily: 'Outfit, sans-serif',
-    fontSize: '22px',
-    fontWeight: '800',
-    color: '#0f172a',
-    lineHeight: '1.2',
-    marginBottom: '4px'
-  },
-  kpiTitleEn: {
-    fontSize: '12px',
-    fontWeight: '600',
-    color: '#475569'
-  },
-  kpiTitleUr: {
-    fontFamily: 'Noto Nastaliq Urdu, sans-serif',
-    fontSize: '10px',
-    color: '#64748b',
-    marginTop: '1px'
-  },
-  kpiFooter: {
-    display: 'flex',
-    alignItems: 'center',
-    borderTop: '1px solid #e2e8f0',
-    paddingTop: '10px',
-    fontSize: '11px',
-    color: '#64748b'
-  },
-  kpiFooterText: {
-    fontWeight: '500'
-  },
-  chartMedGrid: {
-    display: 'grid',
-    gridTemplateColumns: '1.7fr 1fr',
-    gap: '24px'
-  },
-  legendWrapper: {
-    display: 'flex',
-    gap: '16px',
-    fontSize: '12px',
-    fontWeight: '600',
-    color: '#475569'
-  },
-  legendItem: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '6px'
-  },
-  legendDot: {
-    width: '8px',
-    height: '8px',
-    borderRadius: '50%',
-    display: 'inline-block'
-  },
-  tooltip: {
-    backgroundColor: '#ffffff',
-    border: '1px solid #e2e8f0',
-    padding: '12px',
-    borderRadius: '8px',
-    boxShadow: '0 4px 6px rgba(0,0,0,0.05)'
-  },
-  tooltipLabel: {
-    fontWeight: '700',
-    color: '#0f172a',
-    marginBottom: '6px',
-    fontSize: '13px'
-  },
-  topMedList: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '16px',
-    marginTop: '10px'
-  },
-  medItem: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '6px'
-  },
-  medRankRow: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '12px'
-  },
-  rankBadge: {
-    width: '24px',
-    height: '24px',
-    borderRadius: '4px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontSize: '12px',
-    fontWeight: '700'
-  },
-  medInfo: {
-    flex: '1',
-    display: 'flex',
-    flexDirection: 'column'
-  },
-  medNameEn: {
-    fontSize: '14px',
-    fontWeight: '600',
-    color: '#0f172a'
-  },
-  medNameUr: {
-    fontSize: '11px',
-    color: '#10b981',
-    fontWeight: '500'
-  },
-  medSales: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'flex-end'
-  },
-  medOrderCount: {
-    fontSize: '11px',
-    color: '#64748b'
-  },
-  medSalesPrice: {
-    fontSize: '13px',
-    fontWeight: '700',
-    color: '#10b981'
-  },
-  medProgressBg: {
-    height: '4px',
-    backgroundColor: '#f1f5f9',
-    borderRadius: '2px',
-    overflow: 'hidden'
-  },
-  medProgressFill: {
-    height: '100%',
-    backgroundColor: '#10b981',
-    borderRadius: '2px'
-  },
-  bottomGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-    gap: '24px'
-  },
-  distList: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '16px'
-  },
-  distItem: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '6px'
-  },
-  distLabelRow: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    fontSize: '13px',
-    fontWeight: '600',
-    color: '#475569'
-  },
-  distBarBg: {
-    height: '6px',
-    backgroundColor: '#f1f5f9',
-    borderRadius: '3px',
-    overflow: 'hidden'
-  },
-  distBarFill: {
-    height: '100%',
-    borderRadius: '3px'
-  },
-  circleContainer: {
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    margin: '16px 0 12px'
-  },
-  retentionLabel: {
-    fontSize: '13px',
-    color: '#475569',
-    textAlign: 'center',
-    fontWeight: '500',
-    maxWidth: '220px'
-  }
-};

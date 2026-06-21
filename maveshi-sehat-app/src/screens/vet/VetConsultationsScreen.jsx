@@ -13,7 +13,7 @@ export default function VetConsultationsScreen() {
   const [conversations, setConversations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [activeTab, setActiveTab] = useState('active'); // 'active' or 'resolved'
+  const [activeTab, setActiveTab] = useState('active'); 
 
   const fetchConversations = async () => {
     try {
@@ -112,7 +112,7 @@ export default function VetConsultationsScreen() {
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="light-content" backgroundColor="#58D66D" />
 
-      {/* Header */}
+      
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
           <Feather name="chevron-left" size={24} color="#FFF" />
@@ -126,7 +126,7 @@ export default function VetConsultationsScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* Tabs */}
+      
       <View style={styles.tabsContainer}>
         <TouchableOpacity 
           style={[styles.tab, activeTab === 'active' && styles.activeTab]}
@@ -147,7 +147,7 @@ export default function VetConsultationsScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* List */}
+      
       {loading && !refreshing ? (
         <View style={styles.loaderContainer}>
           <ActivityIndicator size="large" color="#58D66D" />

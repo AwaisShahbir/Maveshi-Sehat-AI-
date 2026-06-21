@@ -5,7 +5,7 @@ export default function UserManagement() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeFilter, setActiveFilter] = useState('all'); // 'all', 'owner', 'vet', 'blocked'
+  const [activeFilter, setActiveFilter] = useState('all'); 
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -48,19 +48,19 @@ export default function UserManagement() {
     }
   };
 
-  // Export mock CSV
+  
   const handleExportCSV = () => {
     alert('Exporting user records as CSV... / سی ایس وی برآمد ہو رہا ہے...');
   };
 
-  // Filtering and Searching
+  
   const filteredUsers = users.filter(user => {
-    // 1. Role / Blocked Filter
+    
     if (activeFilter === 'owner' && user.role !== 'farmer') return false;
     if (activeFilter === 'vet' && user.role !== 'vet') return false;
     if (activeFilter === 'blocked' && user.status !== 'blocked') return false;
 
-    // 2. Search Query matching
+    
     const query = searchQuery.toLowerCase();
     const nameMatch = user.full_name?.toLowerCase().includes(query);
     const emailMatch = user.email?.toLowerCase().includes(query);
@@ -80,9 +80,9 @@ export default function UserManagement() {
   return (
     <div className="user-management-view">
       
-      {/* Top Controls Bar */}
+      
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '20px', marginBottom: '24px', flexWrap: 'wrap' }}>
-        {/* Left: Role Filter Toggles */}
+        
         <div style={{ display: 'flex', gap: '10px' }}>
           <button 
             className={`btn ${activeFilter === 'all' ? 'btn-primary' : 'btn-secondary'}`}
@@ -114,7 +114,7 @@ export default function UserManagement() {
           </button>
         </div>
 
-        {/* Right: Search and Export */}
+        
         <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
           <div className="header-search-container" style={{ width: '220px', backgroundColor: '#fff', border: '1px solid var(--border-light)' }}>
             <Search size={16} className="search-icon" />
@@ -133,7 +133,7 @@ export default function UserManagement() {
         </div>
       </div>
 
-      {/* Main Table Card */}
+      
       <div className="card">
         <div className="card-title-container">
           <div>
@@ -176,12 +176,12 @@ export default function UserManagement() {
                     <td>{new Date(user.created_at).toLocaleDateString([], { month: 'short', year: 'numeric' })}</td>
                     <td>
                       <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
-                        {/* View Action */}
+                        
                         <button className="btn-icon-only" title="View details" onClick={() => alert(`Viewing details of ${user.full_name} (${user.email})`)}>
                           <Eye size={16} />
                         </button>
                         
-                        {/* Toggle Block Action */}
+                        
                         <button 
                           className="btn-icon-only" 
                           style={{ color: user.status === 'blocked' ? 'var(--color-green)' : 'var(--color-red)' }} 

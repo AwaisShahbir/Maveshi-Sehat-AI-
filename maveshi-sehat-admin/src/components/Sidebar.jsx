@@ -33,7 +33,7 @@ export default function Sidebar({ onLogout }) {
 
     fetchSidebarStats();
 
-    // Poll every 10 seconds to keep sidebar numbers up-to-date
+    
     const interval = setInterval(fetchSidebarStats, 10000);
     return () => clearInterval(interval);
   }, []);
@@ -76,7 +76,7 @@ export default function Sidebar({ onLogout }) {
 
   return (
     <div className="sidebar">
-      {/* Brand Header */}
+      
       <div className="sidebar-brand">
         <div className="brand-logo">M</div>
         <div className="brand-info">
@@ -85,7 +85,7 @@ export default function Sidebar({ onLogout }) {
         </div>
       </div>
 
-      {/* Admin Profile Info */}
+      
       <div className="sidebar-profile">
         <div className="profile-avatar">SA</div>
         <div className="profile-info">
@@ -94,7 +94,7 @@ export default function Sidebar({ onLogout }) {
         </div>
       </div>
 
-      {/* Navigation Groups */}
+      
       <div className="sidebar-menu">
         {menuGroups.map((group, groupIdx) => (
           <div className="menu-group" key={groupIdx}>
@@ -125,7 +125,7 @@ export default function Sidebar({ onLogout }) {
         ))}
       </div>
 
-      {/* Logout Footer */}
+      
       <div className="sidebar-footer">
         <button className="logout-btn" onClick={onLogout}>
           <LogOut className="logout-icon" size={18} />

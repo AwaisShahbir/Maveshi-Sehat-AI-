@@ -41,13 +41,13 @@ export default function ForumPostDetailScreen() {
   const [isLiked, setIsLiked] = useState(false);
   const [likedComments, setLikedComments] = useState(new Set());
 
-  // Reply-to-comment state
-  const [replyingTo, setReplyingTo] = useState(null); // { id, authorName }
+  
+  const [replyingTo, setReplyingTo] = useState(null); 
 
   const flatListRef = useRef(null);
   const inputRef = useRef(null);
 
-  // Subscribe to profile updates
+  
   useEffect(() => {
     const unsubscribeProfile = subscribeProfile((updatedProfile) => {
       setProfile(updatedProfile);
@@ -62,7 +62,7 @@ export default function ForumPostDetailScreen() {
       if (!response.ok) throw new Error('Failed to fetch post details');
       const data = await response.json();
       setPost(data.post);
-      // Build threaded comment structure: top-level + nested
+      
       const allComments = data.comments || [];
       setComments(allComments);
     } catch (error) {
@@ -166,7 +166,7 @@ export default function ForumPostDetailScreen() {
   const handleReplyToComment = (comment) => {
     setReplyingTo({ id: comment.id, authorName: comment.author_name });
     setReplyText('');
-    // Focus the input
+    
     setTimeout(() => inputRef.current?.focus(), 100);
   };
 
@@ -192,7 +192,7 @@ export default function ForumPostDetailScreen() {
     return name.trim().charAt(0).toUpperCase();
   };
 
-  // Build a nested structure: top-level comments with their replies
+  
   const buildThreadedComments = () => {
     const topLevel = comments.filter((c) => !c.parent_comment_id);
     const replies = comments.filter((c) => !!c.parent_comment_id);
@@ -225,7 +225,7 @@ export default function ForumPostDetailScreen() {
           </View>
         </View>
         <Text style={styles.commentBodyText}>{reply.comment}</Text>
-        {/* Like for nested reply */}
+        
         <TouchableOpacity
           style={styles.commentActionRow}
           onPress={() => handleLikeComment(reply.id)}
@@ -246,7 +246,7 @@ export default function ForumPostDetailScreen() {
 
     return (
       <View style={styles.commentCard}>
-        {/* Comment Header */}
+        
         <View style={styles.commentHeader}>
           <View style={[styles.commentAvatar, { backgroundColor: isVet ? '#FFB020' : '#58D66D' }]}>
             <Text style={styles.commentAvatarText}>{getAvatarLetter(item.author_name)}</Text>
@@ -265,10 +265,10 @@ export default function ForumPostDetailScreen() {
           </View>
         </View>
 
-        {/* Comment Body */}
+        
         <Text style={styles.commentBodyText}>{item.comment}</Text>
 
-        {/* Like + Reply actions */}
+        
         <View style={styles.commentActionsRow}>
           <TouchableOpacity
             style={styles.commentActionBtn}
@@ -298,7 +298,7 @@ export default function ForumPostDetailScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Nested Replies */}
+        
         {item.replies && item.replies.length > 0 && (
           <View style={styles.nestedRepliesContainer}>
             <View style={styles.nestedLine} />
@@ -424,7 +424,7 @@ export default function ForumPostDetailScreen() {
             showsVerticalScrollIndicator={false}
           />
 
-          {/* Reply Banner — shows when replying to a specific comment */}
+          
           {replyingTo && (
             <View style={styles.replyBanner}>
               <Feather name="corner-down-right" size={14} color="#58D66D" style={{ marginRight: 6 }} />
@@ -437,7 +437,7 @@ export default function ForumPostDetailScreen() {
             </View>
           )}
 
-          {/* Reply Input */}
+          
           <View style={[styles.inputContainer, { paddingBottom: Math.max(insets.bottom, 10) }]}>
             <View style={styles.inputInner}>
               <View style={styles.inputAvatarSmall}>
@@ -646,7 +646,7 @@ const styles = StyleSheet.create({
     color: '#AAA',
     marginTop: 4,
   },
-  // Top-level comment card
+  
   commentCard: {
     backgroundColor: '#FFF',
     borderRadius: 14,
@@ -736,7 +736,7 @@ const styles = StyleSheet.create({
     color: '#AAA',
     fontWeight: '600',
   },
-  // Nested replies
+  
   nestedRepliesContainer: {
     flexDirection: 'row',
     marginTop: 12,
@@ -757,7 +757,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#F4F4F4',
   },
-  // Reply banner
+  
   replyBanner: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -772,7 +772,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#555',
   },
-  // Input area
+  
   inputContainer: {
     backgroundColor: '#FFF',
     borderTopWidth: 1,

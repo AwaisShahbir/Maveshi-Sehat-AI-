@@ -13,7 +13,7 @@ async function main() {
   try {
     console.log('🔄 Initializing Forum Tables...');
 
-    // 1. Create forum_posts table
+    
     await pool.query(`
       CREATE TABLE IF NOT EXISTS forum_posts (
         id SERIAL PRIMARY KEY,
@@ -27,7 +27,7 @@ async function main() {
     `);
     console.log('✅ Created forum_posts table');
 
-    // 2. Create forum_comments table
+    
     await pool.query(`
       CREATE TABLE IF NOT EXISTS forum_comments (
         id SERIAL PRIMARY KEY,

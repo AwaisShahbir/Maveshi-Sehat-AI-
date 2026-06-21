@@ -25,7 +25,7 @@ export default function Dashboard() {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Fetch stats from backend
+  
   const fetchStats = async () => {
     try {
       const res = await fetch('http://localhost:5000/api/admin/dashboard-stats');
@@ -42,7 +42,7 @@ export default function Dashboard() {
     fetchStats();
   }, []);
 
-  // Approve/Reject actions
+  
   const handleUserAction = async (userId, action) => {
     try {
       const res = await fetch('http://localhost:5000/api/admin/users/action', {
@@ -52,7 +52,7 @@ export default function Dashboard() {
       });
       if (res.ok) {
         alert(`Vet account ${action === 'approve' ? 'approved' : 'rejected'} successfully!`);
-        fetchStats(); // refresh data
+        fetchStats(); 
       }
     } catch (err) {
       console.error(err);
@@ -68,7 +68,7 @@ export default function Dashboard() {
       });
       if (res.ok) {
         alert(`Pharmacy ${action === 'approve' ? 'approved' : 'rejected'} successfully!`);
-        fetchStats(); // refresh data
+        fetchStats(); 
       }
     } catch (err) {
       console.error(err);
@@ -79,7 +79,7 @@ export default function Dashboard() {
     return <div style={{ padding: '32px', textAlign: 'center' }}>Loading dashboard data... / لوڈ ہو رہا ہے...</div>;
   }
 
-  // Fallback default mock data for the trends chart if backend has no historical data
+  
   const trendData = [
     { name: '01 May', LSD: 12, FMD: 8, Tick: 15 },
     { name: '03 May', LSD: 15, FMD: 12, Tick: 18 },
@@ -93,9 +93,9 @@ export default function Dashboard() {
   return (
     <div className="dashboard-view">
       
-      {/* 1. KPIs Top Grid */}
+      
       <div className="grid-4">
-        {/* Total Users */}
+        
         <div className="card kpi-card">
           <div className="kpi-icon-container blue">
             <Users size={24} />
@@ -110,7 +110,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Active Vets */}
+        
         <div className="card kpi-card">
           <div className="kpi-icon-container green">
             <Stethoscope size={24} />
@@ -125,7 +125,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* AI Scans Today */}
+        
         <div className="card kpi-card">
           <div className="kpi-icon-container yellow">
             <Binary size={24} />
@@ -140,7 +140,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Active Orders */}
+        
         <div className="card kpi-card">
           <div className="kpi-icon-container red">
             <ShoppingBag size={24} />
@@ -156,9 +156,9 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* 2. Middle Grid: Line Chart & Pending Actions */}
+      
       <div className="grid-2-1">
-        {/* Line Chart */}
+        
         <div className="card">
           <div className="card-title-container">
             <div>
@@ -183,7 +183,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Pending Actions */}
+        
         <div className="card">
           <div className="card-title-container">
             <div>
@@ -246,9 +246,9 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* 3. Bottom Grid: Recent Detections & System Status */}
+      
       <div className="grid-2-1">
-        {/* Recent Detections */}
+        
         <div className="card">
           <div className="card-title-container">
             <div>
@@ -295,7 +295,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* System Status */}
+        
         <div className="card">
           <div className="card-title-container">
             <div>
