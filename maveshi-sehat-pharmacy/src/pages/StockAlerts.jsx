@@ -74,18 +74,22 @@ export default function StockAlerts({ pharmacy, onEditMedicine, onAddMedicine })
   return (
     <div className="flex flex-col gap-6">
       
-      <div className="flex justify-between items-center border-b border-slate-200 pb-4">
+      {/* Header Section */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white p-4 rounded-2xl border border-slate-100 shadow-sm gap-4">
         <div className="flex flex-col">
-          <h2 className="text-xl font-bold text-slate-800">Stock Alerts</h2>
-          <span className="text-xs text-emerald-600 font-semibold mt-0.5 urdu">اسٹاک الرٹ</span>
+          <h2 className="text-lg font-bold text-slate-900 font-heading">Stock Alerts / اسٹاک الرٹ</h2>
+          <span className="text-xs text-[#3da860] font-semibold mt-0.5 urdu">اسٹاک کی نگرانی اور تنبیہات</span>
         </div>
-        <button className="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-500 text-white rounded-full font-semibold text-xs hover:bg-emerald-600 transition-colors" onClick={onAddMedicine}>
-          <Plus size={16} />
-          <span>Add Medicine</span>
+        <button 
+          className="inline-flex items-center gap-2 px-4 py-2 bg-[#3da860] hover:bg-[#2e8c4e] text-white rounded-xl font-bold text-xs shadow-md shadow-[#3da860]/10 transition-all cursor-pointer" 
+          onClick={onAddMedicine}
+        >
+          <Plus size={14} />
+          <span>Add Medicine / نئی دوا شامل کریں</span>
         </button>
       </div>
 
-      
+      {/* KPI Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
         
         <div className="bg-white rounded-2xl border border-slate-100 p-5 flex items-center gap-4 shadow-sm">
@@ -93,58 +97,60 @@ export default function StockAlerts({ pharmacy, onEditMedicine, onAddMedicine })
             <ShieldAlert size={22} />
           </div>
           <div className="flex flex-col">
-            <span className="text-xs font-semibold text-slate-500">Critical Stock</span>
-            <h3 className="text-2xl font-extrabold text-slate-800 my-0.5">{criticalList.length}</h3>
-            <span className="text-[10px] text-slate-400 font-semibold">Needs immediate attention</span>
+            <span className="text-xs font-semibold text-slate-500">Critical Stock / تشویشناک اسٹاک</span>
+            <h3 className="text-2xl font-extrabold text-red-600 my-0.5">{criticalList.length}</h3>
+            <span className="text-[10px] text-slate-400 font-semibold">Immediate attention needed / فوراً لوڈ کریں</span>
           </div>
         </div>
 
-        
         <div className="bg-white rounded-2xl border border-slate-100 p-5 flex items-center gap-4 shadow-sm">
           <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-amber-500/10 text-amber-500">
             <AlertTriangle size={22} />
           </div>
           <div className="flex flex-col">
-            <span className="text-xs font-semibold text-slate-500">Low Stock</span>
-            <h3 className="text-2xl font-extrabold text-slate-800 my-0.5">{lowList.length}</h3>
-            <span className="text-[10px] text-slate-400 font-semibold">Restock soon</span>
+            <span className="text-xs font-semibold text-slate-500">Low Stock / کم اسٹاک</span>
+            <h3 className="text-2xl font-extrabold text-amber-500 my-0.5">{lowList.length}</h3>
+            <span className="text-[10px] text-slate-400 font-semibold">Restock soon / اسٹاک منگوائیں</span>
           </div>
         </div>
 
-        
         <div className="bg-white rounded-2xl border border-slate-100 p-5 flex items-center gap-4 shadow-sm">
-          <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-emerald-500/10 text-emerald-500">
+          <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-[#3da860]/10 text-[#3da860]">
             <CheckCircle2 size={22} />
           </div>
           <div className="flex flex-col">
-            <span className="text-xs font-semibold text-slate-500">Good Stock</span>
-            <h3 className="text-2xl font-extrabold text-slate-800 my-0.5">{goodList.length}</h3>
-            <span className="text-[10px] text-slate-400 font-semibold">Healthy levels</span>
+            <span className="text-xs font-semibold text-slate-500">Good Stock / وافر اسٹاک</span>
+            <h3 className="text-2xl font-extrabold text-[#3da860] my-0.5">{goodList.length}</h3>
+            <span className="text-[10px] text-slate-400 font-semibold">Healthy inventory level / تسلی بخش اسٹاک</span>
           </div>
         </div>
       </div>
 
-      
-      <div className="card p-6 bg-white border border-slate-100 rounded-2xl shadow-sm">
-        <h3 className="card-title mb-1">Medicine Stock Levels</h3>
-        <p className="card-subtitle mb-5">دوائیوں کے اسٹاک کی سطح</p>
+      {/* Main Levels Table Card */}
+      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden p-6">
+        <div className="mb-5">
+          <h3 className="card-title text-slate-900 font-bold mb-1">Medicine Stock Levels</h3>
+          <p className="text-xs text-slate-400 urdu">دوائیوں کے اسٹاک کی سطح اور صلاحیت</p>
+        </div>
         
         {medicines.length === 0 ? (
-          <p className="text-center text-slate-500 py-10 text-sm">No medicines found. Seed initial listing to view alerts.</p>
+          <div className="text-center text-slate-500 py-16 text-sm bg-slate-50 rounded-2xl border border-dashed border-slate-200 px-4">
+            No medicines found. Seed initial listing to view alerts.
+          </div>
         ) : (
-          <div className="table-responsive">
+          <div className="table-responsive !border-none !rounded-none">
             <table className="custom-table">
               <thead>
                 <tr>
-                  <th>Medicine / دوا</th>
-                  <th>Current Stock</th>
-                  <th>Min / Max</th>
-                  <th>Stock Level</th>
-                  <th>Status</th>
-                  <th className="w-[100px]">Actions</th>
+                  <th className="font-bold text-slate-500 uppercase tracking-wider text-xs">Medicine / دوا</th>
+                  <th className="font-bold text-slate-500 uppercase tracking-wider text-xs">Current Stock</th>
+                  <th className="font-bold text-slate-500 uppercase tracking-wider text-xs">Min / Max</th>
+                  <th className="font-bold text-slate-500 uppercase tracking-wider text-xs">Stock Capacity</th>
+                  <th className="font-bold text-slate-500 uppercase tracking-wider text-xs">Status</th>
+                  <th className="w-[100px] font-bold text-slate-500 uppercase tracking-wider text-xs text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-slate-100">
                 {medicines.map(med => {
                   const minS = med.min_stock || 10;
                   const maxS = med.max_stock || 100;
@@ -152,11 +158,10 @@ export default function StockAlerts({ pharmacy, onEditMedicine, onAddMedicine })
                   const pkg = getPackageLabel(med.dosage_form);
                   const restockText = getRestockTime(med.last_restocked || med.created_at);
 
-                  
-                  let barColorClass = 'bg-emerald-500';
-                  let stockColorClass = 'text-emerald-600';
+                  let barColorClass = 'bg-[#3da860]';
+                  let stockColorClass = 'text-[#3da860]';
                   let statusText = 'Good';
-                  let statusBadgeClass = 'text-emerald-700 bg-emerald-50 border border-emerald-100';
+                  let statusBadgeClass = 'text-[#3da860] bg-[#3da860]/10 border border-[#3da860]/20';
                   
                   if (med.stock === 0 || capacityPct <= 8) {
                     barColorClass = 'bg-red-500';
@@ -171,49 +176,49 @@ export default function StockAlerts({ pharmacy, onEditMedicine, onAddMedicine })
                   }
 
                   return (
-                    <tr key={med.id}>
-                      
+                    <tr key={med.id} className="hover:bg-slate-50/50 transition-colors">
                       <td>
                         <div className="flex flex-col gap-0.5">
-                          <span className="text-sm font-semibold text-slate-800">{med.name}</span>
-                          {med.name_urdu && <span className="text-xs text-emerald-500 font-semibold urdu">{med.name_urdu}</span>}
+                          <span className="text-sm font-bold text-slate-900">{med.name}</span>
+                          {med.name_urdu && <span className="text-xs text-[#3da860] font-semibold urdu">{med.name_urdu}</span>}
                           <span className="text-[10px] text-slate-400 font-medium">{restockText}</span>
                         </div>
                       </td>
 
-                      
                       <td>
                         <span className={`text-sm font-extrabold mr-1 ${stockColorClass}`}>{med.stock}</span>
                         <span className="text-xs text-slate-500 font-semibold">{pkg}</span>
                       </td>
 
-                      
-                      <td className="text-slate-400 font-semibold">
+                      <td className="text-slate-400 font-bold font-mono text-xs">
                         {minS} / {maxS}
                       </td>
 
-                      
                       <td>
                         <div className="flex flex-col gap-1.5 max-w-[160px]">
-                          <span className="text-[10px] font-semibold text-slate-500">{capacityPct}% capacity</span>
+                          <span className="text-[10px] font-bold text-slate-500">{capacityPct}% capacity</span>
                           <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                            <div className={`h-full rounded-full ${barColorClass}`} style={{ width: `${capacityPct}%` }} />
+                            <div className={`h-full rounded-full transition-all duration-500 ${barColorClass}`} style={{ width: `${capacityPct}%` }} />
                           </div>
                         </div>
                       </td>
 
-                      
                       <td>
                         <span className={`inline-flex items-center px-3 py-1 text-[10px] font-bold rounded-full ${statusBadgeClass}`}>
                           {statusText}
                         </span>
                       </td>
 
-                      
                       <td>
-                        <button className="w-8 h-8 rounded-lg border border-slate-200 bg-white flex items-center justify-center hover:bg-slate-50 hover:border-slate-300 transition-all" onClick={() => onEditMedicine(med)}>
-                          <Edit3 size={15} style={{ color: '#10b981' }} />
-                        </button>
+                        <div className="flex justify-end">
+                          <button 
+                            className="w-8 h-8 rounded-lg border border-slate-200 bg-white flex items-center justify-center cursor-pointer hover:border-[#3da860] hover:bg-[#3da860]/5 text-slate-500 hover:text-[#3da860] transition-all" 
+                            onClick={() => onEditMedicine(med)}
+                            title="Edit Medicine"
+                          >
+                            <Edit3 size={15} />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );

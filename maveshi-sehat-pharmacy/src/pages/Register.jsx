@@ -66,20 +66,20 @@ export default function Register({ onViewChange }) {
 
   if (success) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 p-6">
+      <div className="min-h-screen flex items-center justify-center bg-[#eff7f2] p-6">
         <div className="w-full max-w-[460px] bg-white border border-slate-200 rounded-[24px] p-8 md:p-12 text-center shadow-xl">
-          <div className="w-20 h-20 rounded-full bg-emerald-500/10 text-emerald-500 flex items-center justify-center mx-auto mb-6 border-2 border-emerald-500">
+          <div className="w-20 h-20 rounded-full bg-[#3da860]/10 text-[#3da860] flex items-center justify-center mx-auto mb-6 border-[3px] border-[#3da860]">
             <ShieldCheck size={48} />
           </div>
           <h2 className="font-heading text-2xl font-bold text-slate-900 mb-4">Application Submitted!</h2>
           <p className="text-sm text-slate-600 leading-relaxed">
             Thank you for registering <strong>{formData.name}</strong>. Your application is now pending admin review.
           </p>
-          <p className="text-xs text-emerald-600 mt-3 leading-loose urdu">
+          <p className="text-xs text-[#3da860] mt-3 leading-loose urdu">
             آپ کی فارمیسی کی رجسٹریشن درخواست موصول ہو گئی ہے۔ ایڈمن کی منظوری کے بعد آپ لاگ ان کر سکیں گے۔
           </p>
           <button 
-            className="w-full h-11 bg-emerald-600 hover:bg-emerald-700 text-white border-none rounded-xl text-sm font-bold cursor-pointer mt-8 transition-colors duration-200" 
+            className="w-full h-11 bg-[#3da860] hover:bg-[#2e8c4e] text-white border-none rounded-xl text-sm font-bold cursor-pointer mt-8 transition-colors duration-200" 
             onClick={() => onViewChange('login')}
           >
             Back to Login / لاگ ان پر واپس جائیں
@@ -90,11 +90,11 @@ export default function Register({ onViewChange }) {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col">
+    <div className="min-h-screen bg-[#eff7f2] text-slate-900 flex flex-col">
       
       <header className="flex items-center p-6 md:px-8 bg-white border-b border-slate-200 gap-6">
         <button 
-          className="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 text-slate-900 rounded-xl font-semibold text-xs cursor-pointer hover:bg-slate-50 transition-colors duration-200" 
+          className="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 text-slate-900 rounded-xl font-semibold text-xs cursor-pointer hover:bg-[#eff7f2] transition-colors duration-200" 
           onClick={() => onViewChange('login')}
         >
           <ArrowLeft size={18} />
@@ -102,7 +102,7 @@ export default function Register({ onViewChange }) {
         </button>
         <div className="flex flex-col">
           <h1 className="font-heading text-xl font-bold text-slate-900">Register Pharmacy Portal</h1>
-          <p className="text-xs text-emerald-600 mt-0.5 urdu">فارمیسی رجسٹریشن فارم</p>
+          <p className="text-xs text-[#3da860] mt-0.5 urdu">فارمیسی رجسٹریشن فارم</p>
         </div>
       </header>
 
@@ -114,7 +114,7 @@ export default function Register({ onViewChange }) {
           
           <section className="bg-white rounded-2xl border border-slate-200 p-6 md:p-8 shadow-sm">
             <div className="flex items-center gap-3 mb-5 border-b border-slate-100 pb-3">
-              <Info size={20} className="text-emerald-500" />
+              <Info size={20} className="text-[#3da860]" />
               <h2 className="text-sm font-bold text-slate-900">Basic Information / بنیادی معلومات</h2>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -129,7 +129,7 @@ export default function Register({ onViewChange }) {
                   placeholder="e.g. Al-Shifa Medical Store"
                   value={formData.name}
                   onChange={handleChange}
-                  className="form-control bg-white border border-slate-200 text-slate-900 rounded-xl focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 w-full"
+                  className="form-control bg-white border border-slate-200 text-slate-900 rounded-xl focus:border-[#3da860] focus:ring-2 focus:ring-[#3da860]/20 w-full"
                 />
               </div>
               <div className="form-group mb-0">
@@ -142,7 +142,7 @@ export default function Register({ onViewChange }) {
                   placeholder="مثال: الشفاء میڈیکل اسٹور"
                   value={formData.nameUrdu}
                   onChange={handleChange}
-                  className="form-control bg-white border border-slate-200 text-slate-900 rounded-xl focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 w-full text-right"
+                  className="form-control bg-white border border-slate-200 text-slate-900 rounded-xl focus:border-[#3da860] focus:ring-2 focus:ring-[#3da860]/20 w-full text-right"
                 />
               </div>
             </div>
@@ -158,7 +158,7 @@ export default function Register({ onViewChange }) {
                   placeholder="e.g. Dr. Ahmed Ali"
                   value={formData.ownerName}
                   onChange={handleChange}
-                  className="form-control bg-white border border-slate-200 text-slate-900 rounded-xl focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 w-full"
+                  className="form-control bg-white border border-slate-200 text-slate-900 rounded-xl focus:border-[#3da860] focus:ring-2 focus:ring-[#3da860]/20 w-full"
                 />
               </div>
               <div className="form-group mb-0">
@@ -172,7 +172,7 @@ export default function Register({ onViewChange }) {
                   placeholder="e.g. 12345-6789012-3"
                   value={formData.cnic}
                   onChange={handleChange}
-                  className="form-control bg-white border border-slate-200 text-slate-900 rounded-xl focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 w-full"
+                  className="form-control bg-white border border-slate-200 text-slate-900 rounded-xl focus:border-[#3da860] focus:ring-2 focus:ring-[#3da860]/20 w-full"
                 />
               </div>
             </div>
@@ -181,7 +181,7 @@ export default function Register({ onViewChange }) {
           
           <section className="bg-white rounded-2xl border border-slate-200 p-6 md:p-8 shadow-sm">
             <div className="flex items-center gap-3 mb-5 border-b border-slate-100 pb-3">
-              <Store size={20} className="text-emerald-500" />
+              <Store size={20} className="text-[#3da860]" />
               <h2 className="text-sm font-bold text-slate-900">Contact Information / رابطہ کی معلومات</h2>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
@@ -196,7 +196,7 @@ export default function Register({ onViewChange }) {
                   placeholder="e.g. +92 300 1234567"
                   value={formData.phone}
                   onChange={handleChange}
-                  className="form-control bg-white border border-slate-200 text-slate-900 rounded-xl focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 w-full"
+                  className="form-control bg-white border border-slate-200 text-slate-900 rounded-xl focus:border-[#3da860] focus:ring-2 focus:ring-[#3da860]/20 w-full"
                 />
               </div>
               <div className="form-group mb-0">
@@ -209,7 +209,7 @@ export default function Register({ onViewChange }) {
                   placeholder="e.g. +92 300 1234567"
                   value={formData.whatsapp}
                   onChange={handleChange}
-                  className="form-control bg-white border border-slate-200 text-slate-900 rounded-xl focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 w-full"
+                  className="form-control bg-white border border-slate-200 text-slate-900 rounded-xl focus:border-[#3da860] focus:ring-2 focus:ring-[#3da860]/20 w-full"
                 />
               </div>
               <div className="form-group mb-0">
@@ -223,7 +223,7 @@ export default function Register({ onViewChange }) {
                   placeholder="e.g. alshifa@example.com"
                   value={formData.email}
                   onChange={handleChange}
-                  className="form-control bg-white border border-slate-200 text-slate-900 rounded-xl focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 w-full"
+                  className="form-control bg-white border border-slate-200 text-slate-900 rounded-xl focus:border-[#3da860] focus:ring-2 focus:ring-[#3da860]/20 w-full"
                 />
               </div>
             </div>
@@ -232,7 +232,7 @@ export default function Register({ onViewChange }) {
           
           <section className="bg-white rounded-2xl border border-slate-200 p-6 md:p-8 shadow-sm">
             <div className="flex items-center gap-3 mb-5 border-b border-slate-100 pb-3">
-              <MapPin size={20} className="text-emerald-500" />
+              <MapPin size={20} className="text-[#3da860]" />
               <h2 className="text-sm font-bold text-slate-900">Location / مقام</h2>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -244,7 +244,7 @@ export default function Register({ onViewChange }) {
                   name="province"
                   value={formData.province}
                   onChange={handleChange}
-                  className="form-control bg-white border border-slate-200 text-slate-900 rounded-xl focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 w-full cursor-pointer"
+                  className="form-control bg-white border border-slate-200 text-slate-900 rounded-xl focus:border-[#3da860] focus:ring-2 focus:ring-[#3da860]/20 w-full cursor-pointer"
                 >
                   <option value="Punjab">Punjab</option>
                   <option value="Sindh">Sindh</option>
@@ -265,7 +265,7 @@ export default function Register({ onViewChange }) {
                   placeholder="e.g. Faisalabad"
                   value={formData.city}
                   onChange={handleChange}
-                  className="form-control bg-white border border-slate-200 text-slate-900 rounded-xl focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 w-full"
+                  className="form-control bg-white border border-slate-200 text-slate-900 rounded-xl focus:border-[#3da860] focus:ring-2 focus:ring-[#3da860]/20 w-full"
                 />
               </div>
             </div>
@@ -279,7 +279,7 @@ export default function Register({ onViewChange }) {
                 placeholder="Enter complete store location details..."
                 value={formData.address}
                 onChange={handleChange}
-                className="form-control bg-white border border-slate-200 text-slate-900 rounded-xl focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 w-full h-[80px]"
+                className="form-control bg-white border border-slate-200 text-slate-900 rounded-xl focus:border-[#3da860] focus:ring-2 focus:ring-[#3da860]/20 w-full h-[80px]"
               />
             </div>
           </section>
@@ -287,7 +287,7 @@ export default function Register({ onViewChange }) {
           
           <section className="bg-white rounded-2xl border border-slate-200 p-6 md:p-8 shadow-sm">
             <div className="flex items-center gap-3 mb-5 border-b border-slate-100 pb-3">
-              <Award size={20} className="text-emerald-500" />
+              <Award size={20} className="text-[#3da860]" />
               <h2 className="text-sm font-bold text-slate-900">License Information / لائسنس کی معلومات</h2>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -302,7 +302,7 @@ export default function Register({ onViewChange }) {
                   placeholder="e.g. DRAP/PB/2024/0145"
                   value={formData.licenseNumber}
                   onChange={handleChange}
-                  className="form-control bg-white border border-slate-200 text-slate-900 rounded-xl focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 w-full"
+                  className="form-control bg-white border border-slate-200 text-slate-900 rounded-xl focus:border-[#3da860] focus:ring-2 focus:ring-[#3da860]/20 w-full"
                 />
               </div>
               <div className="form-group mb-0">
@@ -315,7 +315,7 @@ export default function Register({ onViewChange }) {
                   required
                   value={formData.licenseExpiry}
                   onChange={handleChange}
-                  className="form-control bg-white border border-slate-200 text-slate-900 rounded-xl focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 w-full"
+                  className="form-control bg-white border border-slate-200 text-slate-900 rounded-xl focus:border-[#3da860] focus:ring-2 focus:ring-[#3da860]/20 w-full"
                 />
               </div>
             </div>
@@ -324,7 +324,7 @@ export default function Register({ onViewChange }) {
           
           <section className="bg-white rounded-2xl border border-slate-200 p-6 md:p-8 shadow-sm">
             <div className="flex items-center gap-3 mb-5 border-b border-slate-100 pb-3">
-              <Store size={20} className="text-emerald-500" />
+              <Store size={20} className="text-[#3da860]" />
               <h2 className="text-sm font-bold text-slate-900">Business Details / کاروباری تفصیلات</h2>
             </div>
             <div className="form-group">
@@ -338,7 +338,7 @@ export default function Register({ onViewChange }) {
                 placeholder="e.g. Mon-Sat: 9:00 AM - 8:00 PM"
                 value={formData.businessHours}
                 onChange={handleChange}
-                className="form-control bg-white border border-slate-200 text-slate-900 rounded-xl focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 w-full"
+                className="form-control bg-white border border-slate-200 text-slate-900 rounded-xl focus:border-[#3da860] focus:ring-2 focus:ring-[#3da860]/20 w-full"
               />
             </div>
             <div className="form-group mb-0">
@@ -350,7 +350,7 @@ export default function Register({ onViewChange }) {
                 placeholder="Write a brief overview of your products, medicines available, etc..."
                 value={formData.description}
                 onChange={handleChange}
-                className="form-control bg-white border border-slate-200 text-slate-900 rounded-xl focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 w-full h-[100px]"
+                className="form-control bg-white border border-slate-200 text-slate-900 rounded-xl focus:border-[#3da860] focus:ring-2 focus:ring-[#3da860]/20 w-full h-[100px]"
               />
             </div>
           </section>
@@ -358,7 +358,7 @@ export default function Register({ onViewChange }) {
           
           <section className="bg-white rounded-2xl border border-slate-200 p-6 md:p-8 shadow-sm">
             <div className="flex items-center gap-3 mb-5 border-b border-slate-100 pb-3">
-              <Award size={20} className="text-emerald-500" />
+              <Award size={20} className="text-[#3da860]" />
               <h2 className="text-sm font-bold text-slate-900">Security / سیکیورٹی</h2>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -374,7 +374,7 @@ export default function Register({ onViewChange }) {
                   placeholder="Create password"
                   value={formData.password}
                   onChange={handleChange}
-                  className="form-control bg-white border border-slate-200 text-slate-900 rounded-xl focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 w-full"
+                  className="form-control bg-white border border-slate-200 text-slate-900 rounded-xl focus:border-[#3da860] focus:ring-2 focus:ring-[#3da860]/20 w-full"
                 />
               </div>
               <div className="form-group mb-0">
@@ -388,7 +388,7 @@ export default function Register({ onViewChange }) {
                   placeholder="Repeat password"
                   value={formData.confirmPassword}
                   onChange={handleChange}
-                  className="form-control bg-white border border-slate-200 text-slate-900 rounded-xl focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 w-full"
+                  className="form-control bg-white border border-slate-200 text-slate-900 rounded-xl focus:border-[#3da860] focus:ring-2 focus:ring-[#3da860]/20 w-full"
                 />
               </div>
             </div>
@@ -397,7 +397,7 @@ export default function Register({ onViewChange }) {
           <button 
             type="submit" 
             disabled={loading} 
-            className="h-12 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 text-white text-sm font-bold border-none rounded-xl flex items-center justify-center gap-2.5 cursor-pointer shadow-lg shadow-emerald-500/20 mt-3 transition-all duration-200"
+            className="h-12 bg-[#3da860] hover:bg-[#2e8c4e] disabled:bg-[#3da860]/50 text-white text-sm font-bold border-none rounded-xl flex items-center justify-center gap-2.5 cursor-pointer shadow-lg shadow-[#3da860]/20 mt-3 transition-all duration-200"
           >
             <Send size={18} />
             <span>{loading ? 'Submitting Request...' : 'Submit Registration / درخواست جمع کرائیں'}</span>
