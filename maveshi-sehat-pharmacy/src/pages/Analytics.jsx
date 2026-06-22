@@ -52,7 +52,7 @@ export default function Analytics({ pharmacy, formatPrice }) {
       return (
         <div className="bg-white border border-slate-200 p-3 rounded-lg shadow-md">
           <p className="font-bold text-slate-800 mb-1.5 text-xs">{label}</p>
-          <p className="text-emerald-500 text-xs m-0">Revenue: {formatPrice(payload[0].value)}</p>
+          <p className="text-[#3da860] text-xs m-0">Revenue: {formatPrice(payload[0].value)}</p>
           <p className="text-blue-500 text-xs m-0">Orders: {payload[1].value}</p>
         </div>
       );
@@ -67,10 +67,10 @@ export default function Analytics({ pharmacy, formatPrice }) {
         
         <div className="bg-white rounded-2xl border border-slate-100 p-5 flex flex-col justify-between shadow-sm">
           <div className="flex justify-between items-center mb-3.5">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-emerald-500/10 text-emerald-500">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-[#3da860]/10 text-[#3da860]">
               <DollarSign size={22} />
             </div>
-            <span className="text-xs font-bold text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded-full">+18.2%</span>
+            <span className="text-xs font-bold text-[#3da860] bg-[#3da860]/10 px-2 py-0.5 rounded-full">+18.2%</span>
           </div>
           <div className="mb-3.5">
             <h3 className="text-xl font-extrabold text-slate-800 mb-1 leading-tight">{formatPrice(kpis.totalRevenue)}</h3>
@@ -78,7 +78,7 @@ export default function Analytics({ pharmacy, formatPrice }) {
             <p className="text-[10px] text-slate-400 mt-0.5 urdu">کل آمدنی</p>
           </div>
           <div className="flex items-center border-t border-slate-100 pt-2.5 text-[11px] text-slate-400">
-            <TrendingUp size={12} className="text-emerald-500 mr-1" />
+            <TrendingUp size={12} className="text-[#3da860] mr-1" />
             <span className="font-medium">+18.2% vs last month</span>
           </div>
         </div>
@@ -89,7 +89,7 @@ export default function Analytics({ pharmacy, formatPrice }) {
             <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-blue-500/10 text-blue-500">
               <ShoppingBag size={22} />
             </div>
-            <span className="text-xs font-bold text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded-full">+12.5%</span>
+            <span className="text-xs font-bold text-[#3da860] bg-[#3da860]/10 px-2 py-0.5 rounded-full">+12.5%</span>
           </div>
           <div className="mb-3.5">
             <h3 className="text-xl font-extrabold text-slate-800 mb-1 leading-tight">{kpis.totalOrders}</h3>
@@ -97,7 +97,7 @@ export default function Analytics({ pharmacy, formatPrice }) {
             <p className="text-[10px] text-slate-400 mt-0.5 urdu">کل آرڈرز</p>
           </div>
           <div className="flex items-center border-t border-slate-100 pt-2.5 text-[11px] text-slate-400">
-            <TrendingUp size={12} className="text-emerald-500 mr-1" />
+            <TrendingUp size={12} className="text-[#3da860] mr-1" />
             <span className="font-medium">+12.5% vs last month</span>
           </div>
         </div>
@@ -108,7 +108,7 @@ export default function Analytics({ pharmacy, formatPrice }) {
             <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-amber-500/10 text-amber-500">
               <Users size={22} />
             </div>
-            <span className="text-xs font-bold text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded-full">+5</span>
+            <span className="text-xs font-bold text-[#3da860] bg-[#3da860]/10 px-2 py-0.5 rounded-full">+5</span>
           </div>
           <div className="mb-3.5">
             <h3 className="text-xl font-extrabold text-slate-800 mb-1 leading-tight">{kpis.activeCustomers}</h3>
@@ -116,7 +116,7 @@ export default function Analytics({ pharmacy, formatPrice }) {
             <p className="text-[10px] text-slate-400 mt-0.5 urdu">فعال صارفین</p>
           </div>
           <div className="flex items-center border-t border-slate-100 pt-2.5 text-[11px] text-slate-400">
-            <TrendingUp size={12} className="text-emerald-500 mr-1" />
+            <TrendingUp size={12} className="text-[#3da860] mr-1" />
             <span className="font-medium">+5 new this month</span>
           </div>
         </div>
@@ -127,7 +127,7 @@ export default function Analytics({ pharmacy, formatPrice }) {
             <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-purple-500/10 text-purple-500">
               <TrendingUp size={22} />
             </div>
-            <span className="text-xs font-bold text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded-full">+4.8%</span>
+            <span className="text-xs font-bold text-[#3da860] bg-[#3da860]/10 px-2 py-0.5 rounded-full">+4.8%</span>
           </div>
           <div className="mb-3.5">
             <h3 className="text-xl font-extrabold text-slate-800 mb-1 leading-tight">{formatPrice(kpis.avgOrderValue)}</h3>
@@ -135,7 +135,7 @@ export default function Analytics({ pharmacy, formatPrice }) {
             <p className="text-[10px] text-slate-400 mt-0.5 urdu">اوسط آرڈر ویلیو</p>
           </div>
           <div className="flex items-center border-t border-slate-100 pt-2.5 text-[11px] text-slate-400">
-            <TrendingUp size={12} className="text-emerald-500 mr-1" />
+            <TrendingUp size={12} className="text-[#3da860] mr-1" />
             <span className="font-medium">+4.8% vs last month</span>
           </div>
         </div>
@@ -151,7 +151,7 @@ export default function Analytics({ pharmacy, formatPrice }) {
               <p className="card-subtitle">Monthly sales tracking • آمدنی کا جائزہ</p>
             </div>
             <div className="flex gap-4 text-xs font-semibold text-slate-600">
-              <div className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full inline-block bg-emerald-500"></span> Revenue (PKR)</div>
+              <div className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full inline-block bg-[#3da860]"></span> Revenue (PKR)</div>
               <div className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full inline-block bg-blue-500"></span> Order Count</div>
             </div>
           </div>
@@ -165,7 +165,7 @@ export default function Analytics({ pharmacy, formatPrice }) {
                 <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(241, 245, 249, 0.5)' }} />
                 <Bar yAxisId="left" dataKey="Revenue" radius={[4, 4, 0, 0]}>
                   {revenueOverview.map((entry, index) => (
-                    <Cell key={`cell-rev-${index}`} fill="#10b981" />
+                    <Cell key={`cell-rev-${index}`} fill="#3da860" />
                   ))}
                 </Bar>
                 <Bar yAxisId="right" dataKey="Orders" radius={[4, 4, 0, 0]}>
@@ -194,8 +194,8 @@ export default function Analytics({ pharmacy, formatPrice }) {
               
               
               const badgeColors = [
-                { bg: '#10b981', text: '#ffffff' },
-                { bg: 'rgba(16, 185, 129, 0.1)', text: '#10b981' },
+                { bg: '#3da860', text: '#ffffff' },
+                { bg: 'rgba(61, 168, 96, 0.1)', text: '#3da860' },
                 { bg: '#f1f5f9', text: '#64748b' },
                 { bg: '#f1f5f9', text: '#64748b' },
                 { bg: '#f1f5f9', text: '#64748b' }
@@ -210,15 +210,15 @@ export default function Analytics({ pharmacy, formatPrice }) {
                     </div>
                     <div className="flex-1 flex flex-col">
                       <span className="text-sm font-semibold text-slate-800">{med.name}</span>
-                      {med.nameUrdu && <span className="text-[10px] text-emerald-500 font-semibold urdu">{med.nameUrdu}</span>}
+                      {med.nameUrdu && <span className="text-[10px] text-[#3da860] font-semibold urdu">{med.nameUrdu}</span>}
                     </div>
                     <div className="flex flex-col items-end">
                       <span className="text-[10px] text-slate-400">{med.orders} orders</span>
-                      <span className="text-xs font-bold text-emerald-600">{formatPrice(med.sales)}</span>
+                      <span className="text-xs font-bold text-[#3da860]">{formatPrice(med.sales)}</span>
                     </div>
                   </div>
                   <div className="h-1 bg-slate-100 rounded-full overflow-hidden">
-                    <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${percent}%` }} />
+                    <div className="h-full bg-[#3da860] rounded-full" style={{ width: `${percent}%` }} />
                   </div>
                 </div>
               );
@@ -246,7 +246,7 @@ export default function Analytics({ pharmacy, formatPrice }) {
                 <span>{distribution.completed}%</span>
               </div>
               <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                <div className="h-full rounded-full bg-emerald-500" style={{ width: `${distribution.completed}%` }} />
+                <div className="h-full rounded-full bg-[#3da860]" style={{ width: `${distribution.completed}%` }} />
               </div>
             </div>
 
@@ -278,7 +278,7 @@ export default function Analytics({ pharmacy, formatPrice }) {
           <div className="flex justify-center items-center my-4">
             <svg width="120" height="120" viewBox="0 0 120 120">
               <circle cx="60" cy="60" r="50" fill="transparent" stroke="#f1f5f9" strokeWidth="8" />
-              <circle cx="60" cy="60" r="50" fill="transparent" stroke="#10b981" strokeWidth="8" 
+              <circle cx="60" cy="60" r="50" fill="transparent" stroke="#3da860" strokeWidth="8" 
                 strokeDasharray="314.15" 
                 strokeDashoffset={314.15 - (314.15 * retention) / 100} 
                 strokeLinecap="round" 

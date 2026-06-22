@@ -17,13 +17,13 @@
 
 
 :root {
-  --bg-page: #f8fafc; 
+  --bg-page: #eff7f2; 
   --bg-card: #ffffff; 
   --bg-input: #ffffff; 
-  --sidebar-bg: #111a24; 
-  --sidebar-hover: #1b2633;
-  --sidebar-active: #10b981; 
-  --sidebar-text: #94a3b8; 
+  --sidebar-bg: #135431; 
+  --sidebar-hover: #1e6d42;
+  --sidebar-active: #3da860; 
+  --sidebar-text: #c5dbd0; 
   --sidebar-text-active: #ffffff;
   
   --text-main: #0f172a; 
@@ -32,9 +32,9 @@
   
   --border-light: #e2e8f0; 
   
-  --color-green: #10b981; 
-  --color-green-light: rgba(16, 185, 129, 0.1);
-  --color-green-hover: #059669; 
+  --color-green: #3da860; 
+  --color-green-light: rgba(61, 168, 96, 0.1);
+  --color-green-hover: #2e8c4e; 
   
   --color-red: #ef4444; 
   --color-red-light: rgba(239, 68, 68, 0.1);

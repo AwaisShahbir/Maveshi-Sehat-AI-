@@ -82,7 +82,8 @@ export default function Orders({ pharmacy, onOrderAction, formatPrice, getStatus
   return (
     <div className="flex flex-col gap-6">
       
-      <div className="flex gap-3 bg-white p-1.5 rounded-xl border border-slate-200 overflow-x-auto w-fit">
+      {/* Top Status Tabs */}
+      <div className="flex gap-2.5 bg-white p-2 rounded-2xl border border-slate-100 shadow-sm overflow-x-auto w-full sm:w-fit">
         {statusFilters.map(status => {
           const count = getCounts(status);
           const isActive = selectedStatus === status;
@@ -91,14 +92,14 @@ export default function Orders({ pharmacy, onOrderAction, formatPrice, getStatus
             <button
               key={status}
               onClick={() => setSelectedStatus(status)}
-              className={`inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold border-none cursor-pointer rounded-lg transition-all ${
+              className={`inline-flex items-center gap-2 px-4 py-2 text-xs font-bold border-none cursor-pointer rounded-xl transition-all whitespace-nowrap ${
                 isActive 
-                  ? 'text-white bg-emerald-500' 
+                  ? 'text-white bg-[#3da860] shadow-md shadow-[#3da860]/10' 
                   : 'text-slate-600 bg-transparent hover:bg-slate-50'
               }`}
             >
               <span>{status === 'All' ? 'All Orders' : status}</span>
-              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-[10px] ${
+              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-[10px] transition-all ${
                 isActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'
               }`}>
                 {count}
@@ -108,11 +109,14 @@ export default function Orders({ pharmacy, onOrderAction, formatPrice, getStatus
         })}
       </div>
 
-      
+      {/* Orders List Container */}
       {loading ? (
-        <div className="text-center text-slate-500 py-10">Loading orders... / لوڈ ہو رہا ہے...</div>
+        <div className="text-center text-slate-500 py-16 flex flex-col items-center justify-center gap-3">
+          <div className="w-8 h-8 border-3 border-[#3da860] border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-sm font-medium text-slate-500">Loading orders... / آرڈرز لوڈ ہو رہے ہیں...</p>
+        </div>
       ) : filteredOrders.length === 0 ? (
-        <div className="text-center text-slate-500 py-16 text-sm bg-white border border-dashed border-slate-300 rounded-2xl">
+        <div className="text-center text-slate-500 py-16 text-sm bg-white border border-dashed border-slate-200 rounded-2xl">
           No orders found matching the filter.
         </div>
       ) : (
@@ -122,80 +126,84 @@ export default function Orders({ pharmacy, onOrderAction, formatPrice, getStatus
             const items = orderDetails[order.id] || [];
             
             return (
-              <div key={order.id} className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm transition-all duration-200">
-                <div className="grid grid-cols-1 md:grid-cols-3 items-center p-5 cursor-pointer select-none" onClick={() => toggleExpand(order.id)}>
-                  <div className="flex items-center gap-3.5">
+              <div key={order.id} className={`bg-white rounded-2xl border ${isExpanded ? 'border-[#3da860]' : 'border-slate-100'} overflow-hidden shadow-sm hover:shadow-md transition-all duration-200`}>
+                
+                {/* Accordion Toggle Header */}
+                <div className="grid grid-cols-1 md:grid-cols-3 items-center p-5 cursor-pointer select-none gap-3" onClick={() => toggleExpand(order.id)}>
+                  <div className="flex items-center gap-3">
                     {isExpanded ? (
-                      <ChevronDown size={18} className="text-slate-400 shrink-0" />
+                      <ChevronDown size={18} className="text-[#3da860] shrink-0" />
                     ) : (
                       <ChevronRight size={18} className="text-slate-400 shrink-0" />
                     )}
-                    <div className="flex items-center gap-2.5">
-                      <span className="font-bold text-sm text-slate-900">{order.id}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="font-extrabold text-sm text-slate-900 font-mono">{order.id}</span>
                       {getCleanStatusBadge(order.status)}
                     </div>
-                    <span className="text-xs text-slate-400 font-semibold">
+                    <span className="text-[11px] text-slate-400 font-medium whitespace-nowrap">
                       {new Date(order.created_at).toLocaleString([], { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }).replace(',', '')}
                     </span>
                   </div>
 
-                  <div className="flex flex-col mt-2 md:mt-0">
+                  <div className="flex flex-col">
                     <span className="font-bold text-sm text-slate-900">{order.buyer_name}</span>
                     {order.buyer_name_urdu && (
-                      <span className="text-xs text-slate-400 font-semibold urdu">{order.buyer_name_urdu}</span>
+                      <span className="text-xs text-slate-400 font-semibold urdu mt-0.5">{order.buyer_name_urdu}</span>
                     )}
                   </div>
 
-                  <div className="flex flex-col items-start md:items-end mt-2 md:mt-0">
+                  <div className="flex flex-col items-start md:items-end">
                     <span className="font-extrabold text-base text-slate-900 font-heading">{formatPrice(order.total_price)}</span>
-                    <span className="text-xs text-slate-500 font-semibold">{order.items_count} items</span>
+                    <span className="text-[11px] text-slate-400 font-bold mt-0.5">{order.items_count} items</span>
                   </div>
                 </div>
 
-                
+                {/* Accordion Expanded Drawer */}
                 {isExpanded && (
-                  <div className="border-t border-slate-200 p-6 bg-slate-50">
-                    <h4 className="text-xs font-bold text-emerald-600 uppercase tracking-wider mb-4">Order Items Details / آرڈر کی تفصیلات</h4>
+                  <div className="border-t border-slate-100 p-6 bg-slate-50/50">
+                    <h4 className="text-xs font-bold text-[#135431] uppercase tracking-wider mb-4 font-heading">
+                      Order Items Details / آرڈر کی تفصیلات
+                    </h4>
                     
                     {items.length === 0 ? (
                       <p className="text-slate-400 text-xs">Loading items list...</p>
                     ) : (
-                      <div className="flex flex-col border border-slate-200 rounded-lg overflow-hidden mb-5">
-                        <div className="grid grid-cols-3 bg-slate-100 p-2.5 px-4 border-b border-slate-200">
-                          <span className="text-[11px] font-bold text-slate-400 uppercase">Medicine Name</span>
-                          <span className="text-[11px] font-bold text-slate-400 uppercase">Quantity</span>
-                          <span className="text-[11px] font-bold text-slate-400 uppercase text-right">Price</span>
+                      <div className="flex flex-col border border-slate-200/60 rounded-xl overflow-hidden mb-5 bg-white">
+                        <div className="grid grid-cols-3 bg-slate-50/80 p-3 px-4 border-b border-slate-200/60">
+                          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Medicine Name</span>
+                          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Quantity</span>
+                          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider text-right">Price</span>
                         </div>
                         {items.map((item, idx) => (
-                          <div key={idx} className="grid grid-cols-3 p-3 px-4 border-b border-slate-200 last:border-b-0 items-center">
+                          <div key={idx} className="grid grid-cols-3 p-3 px-4 border-b border-slate-100 last:border-b-0 items-center">
                             <div className="flex flex-col">
-                              <span className="text-xs font-semibold text-slate-900">{item.name}</span>
-                              {item.name_urdu && <span className="text-[11px] text-emerald-600 font-semibold urdu">{item.name_urdu}</span>}
+                              <span className="text-xs font-bold text-slate-900">{item.name}</span>
+                              {item.name_urdu && <span className="text-xs text-[#3da860] font-semibold urdu mt-0.5">{item.name_urdu}</span>}
                             </div>
                             <span className="text-xs text-slate-600 font-semibold">{item.quantity} units</span>
-                            <span className="text-xs font-bold text-slate-900 text-right">{formatPrice(item.price * item.quantity)}</span>
+                            <span className="text-xs font-extrabold text-slate-900 text-right">{formatPrice(item.price * item.quantity)}</span>
                           </div>
                         ))}
                       </div>
                     )}
 
-                    <div className="flex justify-between items-center mt-4">
-                      <div className="flex gap-2 text-xs">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-t border-slate-100 pt-4 gap-4">
+                      <div className="flex items-center gap-2 text-xs">
                         <span className="text-slate-500 font-semibold">Payment Method:</span>
-                        <span className="text-slate-900 font-bold">{order.payment_method}</span>
+                        <span className="text-slate-900 font-extrabold bg-slate-100 px-2 py-0.5 rounded-md">{order.payment_method}</span>
                       </div>
                       
-                      <div className="flex gap-2.5">
+                      <div className="flex gap-2 w-full sm:w-auto">
                         {order.status.toLowerCase() === 'pending' && (
                           <>
                             <button 
-                              className="btn btn-primary"
+                              className="btn btn-primary bg-[#3da860] hover:bg-[#2e8c4e] shadow-md shadow-[#3da860]/10 flex-1 sm:flex-initial"
                               onClick={() => handleAction(order.id, 'processing')}
                             >
                               Accept Order
                             </button>
                             <button 
-                              className="btn btn-danger"
+                              className="btn btn-danger flex-1 sm:flex-initial"
                               onClick={() => handleAction(order.id, 'cancelled')}
                             >
                               Cancel
@@ -205,13 +213,13 @@ export default function Orders({ pharmacy, onOrderAction, formatPrice, getStatus
                         {order.status.toLowerCase() === 'processing' && (
                           <>
                             <button 
-                              className="btn btn-primary bg-blue-500 hover:bg-blue-600 border-none"
+                              className="btn btn-primary bg-blue-500 hover:bg-blue-600 border-none shadow-md shadow-blue-500/10 flex-1 sm:flex-initial"
                               onClick={() => handleAction(order.id, 'dispatched')}
                             >
                               Dispatch Order
                             </button>
                             <button 
-                              className="btn btn-danger"
+                              className="btn btn-danger flex-1 sm:flex-initial"
                               onClick={() => handleAction(order.id, 'cancelled')}
                             >
                               Cancel
@@ -220,14 +228,16 @@ export default function Orders({ pharmacy, onOrderAction, formatPrice, getStatus
                         )}
                         {order.status.toLowerCase() === 'dispatched' && (
                           <button 
-                            className="btn btn-primary"
+                            className="btn btn-primary bg-[#3da860] hover:bg-[#2e8c4e] shadow-md shadow-[#3da860]/10 w-full sm:w-auto"
                             onClick={() => handleAction(order.id, 'completed')}
                           >
                             Complete Delivery
                           </button>
                         )}
                         {(order.status.toLowerCase() === 'completed' || order.status.toLowerCase() === 'delivered' || order.status.toLowerCase() === 'cancelled') && (
-                          <span className="text-xs text-slate-500 font-semibold border border-slate-300 px-3 py-1.5 rounded-md">Order Processed</span>
+                          <span className="text-xs text-slate-500 font-semibold border border-slate-200 bg-slate-100 px-3 py-1.5 rounded-xl w-full sm:w-auto text-center">
+                            Order Processed / آرڈر مکمل ہو گیا
+                          </span>
                         )}
                       </div>
                     </div>
