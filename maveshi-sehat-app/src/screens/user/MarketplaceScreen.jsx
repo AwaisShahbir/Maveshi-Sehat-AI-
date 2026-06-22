@@ -122,7 +122,14 @@ export default function MarketplaceScreen() {
           {item.image_url ? (
             <Image source={{ uri: getImageUrl(item.image_url) }} style={styles.cardImg} />
           ) : (
-            getMedIcon(item)
+            <Image 
+              source={{ 
+                uri: item.category.toLowerCase() === 'vaccine' 
+                  ? 'https://images.unsplash.com/photo-1618588507085-c79565432917?auto=format&fit=crop&q=80&w=200' 
+                  : 'https://images.unsplash.com/photo-1585435557343-3b092031a831?auto=format&fit=crop&q=80&w=200' 
+              }} 
+              style={styles.cardImg} 
+            />
           )}
         </View>
 
@@ -314,14 +321,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#58D66D',
     paddingHorizontal: 16,
     paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 0) + 14 : 14,
-    paddingBottom: 20,
+    paddingBottom: 40,
     borderBottomLeftRadius: 28,
     borderBottomRightRadius: 28,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 4,
   },
   headerTop: {
     flexDirection: 'row',
@@ -397,7 +399,9 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   categoriesContainer: {
-    marginVertical: 14,
+    marginTop: -22,
+    marginBottom: 14,
+    zIndex: 10,
   },
   categoriesList: {
     paddingHorizontal: 16,

@@ -382,10 +382,11 @@ export default function AiScanScreen() {
         
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-            <Feather name="chevron-left" size={28} color="#FFF" />
+            <Feather name="chevron-left" size={24} color="#FFF" />
             <Text style={styles.backText}>{t('Back', 'پیچھے')}</Text>
           </TouchableOpacity>
           <Text style={styles.headerTitle}>{t('AI Disease Detection', 'بیماری کی تشخیص')}</Text>
+          <Text style={styles.headerUrdu}>بیماری کی تشخیص</Text>
         </View>
 
         
@@ -424,18 +425,20 @@ export default function AiScanScreen() {
           
           {!selectedImage ? (
             <View style={styles.uploadRow}>
-              <TouchableOpacity style={styles.uploadCard} onPress={handleTakePhoto}>
+              <TouchableOpacity style={[styles.uploadCard, { borderColor: '#4CB85C' }]} onPress={handleTakePhoto}>
                 <View style={[styles.uploadIconBg, { backgroundColor: '#E8F8EA' }]}>
-                  <Feather name="camera" size={32} color="#4CB85C" />
+                  <Feather name="camera" size={28} color="#4CB85C" />
                 </View>
-                <Text style={styles.uploadTitle}>{t('Take Photo', 'تصویر لیں')}</Text>
+                <Text style={[styles.uploadTitle, { color: '#333' }]}>{t('Take Photo', 'تصویر لیں')}</Text>
+                <Text style={styles.uploadUrdu}>تصویر لیں</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity style={styles.uploadCard} onPress={handleChooseFromGallery}>
+              <TouchableOpacity style={[styles.uploadCard, { borderColor: '#F5B041' }]} onPress={handleChooseFromGallery}>
                 <View style={[styles.uploadIconBg, { backgroundColor: '#FFF5E5' }]}>
-                  <Feather name="image" size={32} color="#FFB020" />
+                  <Feather name="image" size={28} color="#F5B041" />
                 </View>
-                <Text style={styles.uploadTitle}>{t('From Gallery', 'گیلری سے')}</Text>
+                <Text style={[styles.uploadTitle, { color: '#333' }]}>{t('From Gallery', 'گیلری سے')}</Text>
+                <Text style={styles.uploadUrdu}>گیلری سے</Text>
               </TouchableOpacity>
             </View>
           ) : (
@@ -532,14 +535,14 @@ export default function AiScanScreen() {
         
         <View style={styles.tipsCard}>
           <View style={styles.tipsHeader}>
-            <Feather name="info" size={20} color="#1A73E8" style={{ marginRight: 8 }} />
+            <Feather name="info" size={18} color="#1A73E8" style={{ marginRight: 8 }} />
             <Text style={styles.tipsTitle}>Tips for Best Results:</Text>
           </View>
           <View style={styles.tipsContent}>
             <Text style={styles.tipText}>• Ensure good lighting</Text>
             <Text style={styles.tipText}>• Capture affected area clearly</Text>
             <Text style={styles.tipText}>• Keep camera steady</Text>
-            <Text style={[styles.tipText, { marginTop: 6, fontWeight: 'bold' }]}>• روشنی اچھی ہو / واضح تصویر لیں</Text>
+            <Text style={[styles.tipText, { marginTop: 8, fontWeight: 'bold' }]}>• روشنی اچھی ہو / واضح تصویر لیں</Text>
           </View>
         </View>
 
@@ -636,12 +639,12 @@ const styles = StyleSheet.create({
   backButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
-    marginLeft: -8,
+    marginBottom: 20,
+    marginLeft: -4,
   },
-  backText: { color: '#FFF', fontSize: 16, fontWeight: '600' },
-  headerTitle: { fontSize: 26, fontWeight: 'bold', color: '#FFF' },
-  headerUrdu: { fontSize: 16, color: '#E8F8EA', marginTop: 4, fontWeight: '500' },
+  backText: { color: '#FFF', fontSize: 14, fontWeight: '600', marginLeft: 4 },
+  headerTitle: { fontSize: 24, fontWeight: 'bold', color: '#FFF' },
+  headerUrdu: { fontSize: 16, color: '#E8F8EA', marginTop: 6, fontWeight: '500' },
 
   mainCard: {
     backgroundColor: '#FFF',
@@ -697,11 +700,10 @@ const styles = StyleSheet.create({
   uploadCard: {
     width: '48%',
     backgroundColor: '#FFF',
-    borderWidth: 1.5,
-    borderColor: '#DDE2E0',
+    borderWidth: 1,
     borderStyle: 'dashed',
-    borderRadius: 16,
-    paddingVertical: 24,
+    borderRadius: 12,
+    paddingVertical: 20,
     alignItems: 'center',
   },
   uploadIconBg: {

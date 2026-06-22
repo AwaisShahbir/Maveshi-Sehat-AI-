@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, SafeAreaView, StatusBar, KeyboardAvoidingView, Platform, ScrollView, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
+import { updateProfile } from '../../utils/profileStore';
 
 export default function LoginScreen() {
   const navigation = useNavigation();
@@ -40,6 +41,12 @@ export default function LoginScreen() {
         throw new Error(data.error || 'Login failed');
       }
       
+      // Update global profile store
+      updateProfile({
+        userName: data.user.fullName,
+        phone: data.user.phoneNumber || phoneNumber,
+      });
+
       if (data.user.role === 'vet') {
         navigation.replace('VetDashboard', { userName: data.user.fullName, userId: data.user.id });
       } else {
@@ -62,7 +69,11 @@ export default function LoginScreen() {
         <ScrollView contentContainerStyle={styles.scrollContent} bounces={false}>
           
           <View style={styles.topSection}>
-            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+            <TouchableOpacity 
+              onPress={() => navigation.goBack()} 
+              style={styles.backButton}
+              hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+            >
               <Feather name="chevron-left" size={24} color="#FFFFFF" />
               <Text style={styles.backText}>Back</Text>
             </TouchableOpacity>
@@ -178,7 +189,7 @@ const styles = StyleSheet.create({
   topSection: {
     backgroundColor: '#58D66D',
     paddingHorizontal: 24,
-    paddingTop: 16,
+    paddingTop: Platform.OS === 'android' ? 40 : 16,
     paddingBottom: 70, // Extra padding to let card overlap
   },
   backButton: {

@@ -140,8 +140,19 @@ export default function CartScreen() {
     return (
       <View style={styles.itemCard}>
         
-        <View style={styles.itemIconBox}>
-          {getMedIcon(item)}
+        <View style={styles.itemImgBox}>
+          {item.image_url ? (
+            <Image source={{ uri: getImageUrl(item.image_url) }} style={styles.itemImg} />
+          ) : (
+            <Image 
+              source={{ 
+                uri: item.category.toLowerCase() === 'vaccine' 
+                  ? 'https://images.unsplash.com/photo-1618588507085-c79565432917?auto=format&fit=crop&q=80&w=200' 
+                  : 'https://images.unsplash.com/photo-1585435557343-3b092031a831?auto=format&fit=crop&q=80&w=200' 
+              }} 
+              style={styles.itemImg} 
+            />
+          )}
         </View>
 
         
@@ -419,14 +430,20 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  itemIconBox: {
-    width: 46,
-    height: 46,
+  itemImgBox: {
+    width: 60,
+    height: 60,
     borderRadius: 12,
     backgroundColor: '#F3FBF5',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
+    overflow: 'hidden',
+  },
+  itemImg: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
   },
   itemDetails: {
     flex: 1,

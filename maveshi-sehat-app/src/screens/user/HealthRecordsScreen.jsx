@@ -115,6 +115,7 @@ export default function HealthRecordsScreen() {
         
         <View style={styles.header}>
           <Text style={styles.headerTitle}>{t('Health Records', 'صحت کے ریکارڈ')}</Text>
+          <Text style={styles.headerUrdu}>صحت کے ریکارڈ</Text>
           
           
           <View style={styles.searchBarRow}>
@@ -384,11 +385,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#58D66D',
     paddingHorizontal: 24,
     paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 0) + 16 : 16,
-    paddingBottom: 50,
+    paddingBottom: 40,
     borderBottomLeftRadius: 30,
     borderBottomRightRadius: 30,
   },
-  headerTitle: { fontSize: 28, fontWeight: 'bold', color: '#FFF' },
+  headerTitle: { fontSize: 26, fontWeight: 'bold', color: '#FFF' },
   headerUrdu: { fontSize: 16, color: '#E8F8EA', marginTop: 4, fontWeight: '500' },
 
   searchBarRow: {
@@ -459,22 +460,22 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    marginTop: -24,
+    marginTop: -20,
     marginBottom: 20,
   },
   statCard: {
     backgroundColor: '#FFF',
     width: '31%',
-    borderRadius: 16,
+    borderRadius: 12,
     paddingVertical: 14,
     alignItems: 'center',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.04,
-    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
     elevation: 3,
   },
-  statValue: { fontSize: 20, fontWeight: 'bold', color: '#333' },
+  statValue: { fontSize: 22, fontWeight: '800', color: '#333' },
   statLabel: { fontSize: 11, color: '#666', marginTop: 4, fontWeight: '600' },
   statUrdu: { fontSize: 9, color: '#999', marginTop: 2 },
 

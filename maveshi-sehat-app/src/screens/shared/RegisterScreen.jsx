@@ -177,7 +177,11 @@ export default function RegisterScreen() {
         <ScrollView contentContainerStyle={styles.scrollContent} bounces={false}>
           
           <View style={styles.topSection}>
-            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+            <TouchableOpacity 
+              onPress={() => navigation.goBack()} 
+              style={styles.backButton}
+              hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+            >
               <Feather name="chevron-left" size={24} color="#FFFFFF" />
               <Text style={styles.backText}>Back</Text>
             </TouchableOpacity>
@@ -472,7 +476,7 @@ const styles = StyleSheet.create({
   topSection: {
     backgroundColor: '#58D66D',
     paddingHorizontal: 24,
-    paddingTop: 16,
+    paddingTop: Platform.OS === 'android' ? 40 : 16,
     paddingBottom: 70, 
   },
   backButton: {

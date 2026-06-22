@@ -14,6 +14,7 @@ import {
   Alert,
   ScrollView,
   Share,
+  KeyboardAvoidingView,
 } from 'react-native';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
