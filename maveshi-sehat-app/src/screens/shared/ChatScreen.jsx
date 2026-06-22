@@ -299,8 +299,8 @@ export default function ChatScreen() {
               {item.message}
             </Text>
           )}
+          <Text style={[styles.messageTime, isMe ? { color: 'rgba(255,255,255,0.7)' } : { color: '#999' }]}>{timeText}</Text>
         </View>
-        <Text style={styles.messageTime}>{timeText}</Text>
       </View>
     );
   };
@@ -317,19 +317,16 @@ export default function ChatScreen() {
         <View style={styles.headerInfo}>
           <Text style={styles.headerName}>{partnerName}</Text>
           <Text style={styles.headerRole}>
-            {partnerRole === 'vet' ? 'Veterinarian / جانوروں کا ڈاکٹر' : 'Farmer / مویشی پال'}
+            {partnerRole === 'vet' ? 'Large Animal Specialist' : 'Farmer / کسان'}
           </Text>
         </View>
-        <View style={[
-          styles.statusPill, 
-          { backgroundColor: conversationStatus === 'active' ? '#E8F8EA' : '#F0F0F0' }
-        ]}>
-          <Text style={[
-            styles.statusPillText, 
-            { color: conversationStatus === 'active' ? '#58D66D' : '#888' }
-          ]}>
-            {conversationStatus === 'active' ? 'Active' : 'Resolved'}
-          </Text>
+        <View style={styles.headerActions}>
+          <TouchableOpacity style={styles.headerActionBtn}>
+            <Feather name="phone" size={20} color="#FFF" />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.headerActionBtn}>
+            <Feather name="video" size={20} color="#FFF" />
+          </TouchableOpacity>
         </View>
       </View>
 
@@ -369,7 +366,7 @@ export default function ChatScreen() {
                 style={styles.iconButton} 
                 onPress={() => setImageModalVisible(true)}
               >
-                <Feather name="image" size={22} color="#4CB85C" />
+                <Feather name="paperclip" size={22} color="#4CB85C" style={{ transform: [{ rotate: '-45deg' }] }} />
               </TouchableOpacity>
 
               {userRole === 'vet' && (
@@ -572,14 +569,18 @@ const styles = StyleSheet.create({
     fontSize: 11,
     marginTop: 2,
   },
-  statusPill: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
-  statusPillText: {
-    fontSize: 11,
-    fontWeight: 'bold',
+  headerActionBtn: {
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 10,
   },
   loaderContainer: {
     flex: 1,

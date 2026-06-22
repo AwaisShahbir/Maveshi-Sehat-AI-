@@ -26,35 +26,35 @@ export default function ProfileScreen() {
   const params = route.params || {};
   const userId = params.userId || 'user_123';
 
-  
   const [profile, setProfile] = useState(getProfile());
   const [records, setRecords] = useState(getRecords());
 
-  
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [langModalVisible, setLangModalVisible] = useState(false);
+  
   const [editName, setEditName] = useState(profile.userName);
   const [editNameUrdu, setEditNameUrdu] = useState(profile.userNameUrdu);
   const [editPhone, setEditPhone] = useState(profile.phone);
   const [editLocation, setEditLocation] = useState(profile.location);
 
-  
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
   useEffect(() => {
-    
-    loadRecords(profile.userName).then(loadedRecords => {
+    if (params.userName && params.userName !== profile.userName) {
+      updateProfile({ userName: params.userName });
+    }
+
+    loadRecords(params.userName || profile.userName).then(loadedRecords => {
       setRecords(loadedRecords);
     }).catch(err => console.log('Error loading records for profile:', err));
 
-    
     const unsubscribeProfile = subscribeProfile((updatedProfile) => {
       setProfile(updatedProfile);
-      
       loadRecords(updatedProfile.userName).then(loadedRecords => {
         setRecords(loadedRecords);
       }).catch(err => console.log('Error reloading records for profile:', err));
     });
 
-    
     const unsubscribeRecords = subscribe((updatedRecords) => {
       setRecords(updatedRecords);
     });
@@ -65,7 +65,6 @@ export default function ProfileScreen() {
     };
   }, []);
 
-  
   useEffect(() => {
     setEditName(profile.userName);
     setEditNameUrdu(profile.userNameUrdu);
@@ -73,11 +72,9 @@ export default function ProfileScreen() {
     setEditLocation(profile.location);
   }, [profile]);
 
-  
   const totalScans = records.length;
   const uniqueAnimals = new Set(records.map(r => r.animalId)).size;
 
-  
   const getInitials = (name) => {
     if (!name) return 'MA';
     const parts = name.split(' ');
@@ -110,6 +107,17 @@ export default function ProfileScreen() {
     setLangModalVisible(true);
   };
 
+  const handleLogout = () => {
+    Alert.alert(
+      "Logout",
+      "Are you sure you want to logout?",
+      [
+        { text: "Cancel", style: "cancel" },
+        { text: "Logout", style: "destructive", onPress: () => navigation.replace('Welcome') }
+      ]
+    );
+  };
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="light-content" backgroundColor="#58D66D" />
@@ -118,107 +126,101 @@ export default function ProfileScreen() {
         
         <View style={styles.header}>
           <Text style={styles.headerTitle}>{t('Profile & Settings', 'پروفائل اور ترتیبات')}</Text>
+          <Text style={styles.headerUrdu}>پروفائل اور ترتیبات</Text>
         </View>
 
-        
         <View style={styles.profileCard}>
           <View style={styles.cardTopRow}>
-            
             <View style={styles.avatar}>
               <Text style={styles.avatarText}>{getInitials(profile.userName)}</Text>
             </View>
 
-            
             <View style={styles.userInfo}>
               <Text style={styles.userName}>{profile.userName}</Text>
               <Text style={styles.userNameUrdu}>{profile.userNameUrdu}</Text>
-              
               <View style={styles.roleBadge}>
                 <Feather name="user" size={12} color="#58D66D" style={{ marginRight: 4 }} />
-                <Text style={styles.roleText}>{t('Farmer', 'کسان')}</Text>
+                <Text style={styles.roleText}>{t('Farmer / کسان', 'کسان')}</Text>
               </View>
             </View>
 
-            
             <TouchableOpacity style={styles.editIconBtn} onPress={() => setEditModalVisible(true)}>
-              <Feather name="edit-2" size={20} color="#58D66D" />
+              <Feather name="edit-2" size={18} color="#58D66D" />
             </TouchableOpacity>
           </View>
 
-          
           <View style={styles.statsDivider} />
           <View style={styles.statsRow}>
             <View style={styles.statItem}>
               <Text style={styles.statValue}>{uniqueAnimals}</Text>
               <Text style={styles.statLabel}>{t('Livestock', 'مویشی')}</Text>
+              <Text style={styles.statUrdu}>مویشی</Text>
             </View>
-            <View style={styles.statColumnDivider} />
             <View style={styles.statItem}>
               <Text style={styles.statValue}>{totalScans}</Text>
               <Text style={styles.statLabel}>{t('AI Scans', 'اسکین')}</Text>
+              <Text style={styles.statUrdu}>اسکین</Text>
             </View>
-            <View style={styles.statColumnDivider} />
             <View style={styles.statItem}>
               <Text style={styles.statValue}>{profile.consultationsCount}</Text>
               <Text style={styles.statLabel}>{t('Consultations', 'مشاورت')}</Text>
+              <Text style={styles.statUrdu}>مشاورت</Text>
             </View>
           </View>
         </View>
 
-        
+        <Text style={styles.groupTitle}>{t('Account', 'کھاتہ / اکاؤنٹ')}</Text>
         <View style={styles.settingsGroup}>
-          <Text style={styles.groupTitle}>{t('Account', 'کھاتہ / اکاؤنٹ')}</Text>
-          
           <TouchableOpacity style={styles.settingsItem} onPress={() => setEditModalVisible(true)}>
             <View style={[styles.itemIconBg, { backgroundColor: '#E8F8EA' }]}>
               <Feather name="user" size={18} color="#58D66D" />
             </View>
             <View style={styles.itemDetails}>
-              <Text style={styles.itemTitle}>{t('Edit Profile', 'پروفائل تبدیل کریں')}</Text>
+              <Text style={styles.itemTitle}>{t('Edit Profile', 'پروفائل ایڈیٹ کریں')}</Text>
+              <Text style={styles.itemSubtitle}>پروفائل ایڈیٹ کریں</Text>
             </View>
-            <Feather name="chevron-right" size={18} color="#ccc" />
+            <Feather name="chevron-right" size={18} color="#888" />
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.settingsItem} onPress={() => setEditModalVisible(true)}>
             <View style={[styles.itemIconBg, { backgroundColor: '#E8F8EA' }]}>
-              <Feather name="phone" size={18} color="#58D66D" />
+              <Feather name="phone-call" size={18} color="#58D66D" />
             </View>
             <View style={styles.itemDetails}>
               <Text style={styles.itemTitle}>{t('Phone Number', 'فون نمبر')}</Text>
+              <Text style={styles.itemSubtitle}>فون نمبر</Text>
               <Text style={styles.itemVal}>{profile.phone}</Text>
             </View>
-            <Feather name="chevron-right" size={18} color="#ccc" />
+            <Feather name="chevron-right" size={18} color="#888" />
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.settingsItem} onPress={() => setEditModalVisible(true)}>
+          <TouchableOpacity style={[styles.settingsItem, { borderBottomWidth: 0 }]} onPress={() => setEditModalVisible(true)}>
             <View style={[styles.itemIconBg, { backgroundColor: '#E8F8EA' }]}>
               <Feather name="map-pin" size={18} color="#58D66D" />
             </View>
             <View style={styles.itemDetails}>
               <Text style={styles.itemTitle}>{t('Location', 'مقام / پتہ')}</Text>
+              <Text style={styles.itemSubtitle}>مقام</Text>
               <Text style={styles.itemVal}>{profile.location}</Text>
             </View>
-            <Feather name="chevron-right" size={18} color="#ccc" />
+            <Feather name="chevron-right" size={18} color="#888" />
           </TouchableOpacity>
         </View>
 
-        <View style={[styles.settingsGroup, { marginBottom: 100 }]}>
-          <Text style={styles.groupTitle}>{t('Preferences', 'ترجیحات')}</Text>
-
+        <Text style={styles.groupTitle}>{t('Preferences', 'ترجیحات')}</Text>
+        <View style={styles.settingsGroup}>
           <TouchableOpacity style={styles.settingsItem} onPress={openLanguageSelector}>
             <View style={[styles.itemIconBg, { backgroundColor: '#E8F8EA' }]}>
               <Feather name="globe" size={18} color="#58D66D" />
             </View>
             <View style={styles.itemDetails}>
               <Text style={styles.itemTitle}>{t('Language', 'زبان')}</Text>
-              <Text style={styles.itemSubtitle}>{t('Preferred App Language', 'ترجیحی زبان')}</Text>
+              <Text style={styles.itemSubtitle}>زبان</Text>
               <Text style={styles.itemVal}>
-                {profile.language === 'English' 
-                  ? '🇬🇧 English' 
-                  : (profile.language === 'Urdu' ? '🇵🇰 اردو (Urdu)' : '🔄 English / اردو (Both)')}
+                {profile.language === 'English' ? 'English / اردو' : (profile.language === 'Urdu' ? 'اردو' : 'English / اردو')}
               </Text>
             </View>
-            <Feather name="chevron-right" size={18} color="#ccc" />
+            <Feather name="chevron-right" size={18} color="#888" />
           </TouchableOpacity>
 
           <View style={styles.settingsItem}>
@@ -226,19 +228,67 @@ export default function ProfileScreen() {
               <Feather name="bell" size={18} color="#58D66D" />
             </View>
             <View style={styles.itemDetails}>
-              <Text style={styles.itemTitle}>{t('Notifications', 'اطلاعات / نوٹیفکیشن')}</Text>
+              <Text style={styles.itemTitle}>{t('Notifications', 'اطلاعات')}</Text>
+              <Text style={styles.itemSubtitle}>اطلاعات</Text>
             </View>
             <Switch
               value={profile.notificationsEnabled}
               onValueChange={toggleNotifications}
-              trackColor={{ false: '#dcdcdc', true: '#A3E6B2' }}
-              thumbColor={profile.notificationsEnabled ? '#58D66D' : '#f4f3f4'}
+              trackColor={{ false: '#dcdcdc', true: '#58D66D' }}
+              thumbColor={'#FFF'}
+            />
+          </View>
+
+          <View style={[styles.settingsItem, { borderBottomWidth: 0 }]}>
+            <View style={[styles.itemIconBg, { backgroundColor: '#E8F8EA' }]}>
+              <Feather name="moon" size={18} color="#58D66D" />
+            </View>
+            <View style={styles.itemDetails}>
+              <Text style={styles.itemTitle}>{t('Dark Mode', 'ڈارک موڈ')}</Text>
+              <Text style={styles.itemSubtitle}>ڈارک موڈ</Text>
+            </View>
+            <Switch
+              value={isDarkMode}
+              onValueChange={setIsDarkMode}
+              trackColor={{ false: '#dcdcdc', true: '#58D66D' }}
+              thumbColor={'#FFF'}
             />
           </View>
         </View>
+
+        <Text style={styles.groupTitle}>{t('Support', 'مدد')}</Text>
+        <View style={styles.settingsGroup}>
+          <TouchableOpacity style={styles.settingsItem}>
+            <View style={[styles.itemIconBg, { backgroundColor: '#E8F8EA' }]}>
+              <Feather name="shield" size={18} color="#58D66D" />
+            </View>
+            <View style={styles.itemDetails}>
+              <Text style={styles.itemTitle}>{t('Privacy Policy', 'رازداری کی پالیسی')}</Text>
+              <Text style={styles.itemSubtitle}>رازداری کی پالیسی</Text>
+            </View>
+            <Feather name="chevron-right" size={18} color="#888" />
+          </TouchableOpacity>
+
+          <TouchableOpacity style={[styles.settingsItem, { borderBottomWidth: 0 }]}>
+            <View style={[styles.itemIconBg, { backgroundColor: '#E8F8EA' }]}>
+              <Feather name="help-circle" size={18} color="#58D66D" />
+            </View>
+            <View style={styles.itemDetails}>
+              <Text style={styles.itemTitle}>{t('Help & Support', 'مدد اور معاونت')}</Text>
+              <Text style={styles.itemSubtitle}>مدد اور معاونت</Text>
+            </View>
+            <Feather name="chevron-right" size={18} color="#888" />
+          </TouchableOpacity>
+        </View>
+
+        <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
+          <Feather name="log-out" size={18} color="#FF3B30" style={{ transform: [{ scaleX: -1 }], marginRight: 8 }} />
+          <Text style={styles.logoutBtnText}>{t('Logout / لاگ آؤٹ', 'لاگ آؤٹ')}</Text>
+        </TouchableOpacity>
+
       </ScrollView>
 
-      
+      {/* Edit Profile Modal */}
       <Modal
         animationType="slide"
         transparent={true}
@@ -248,7 +298,7 @@ export default function ProfileScreen() {
         <View style={styles.modalBg}>
           <View style={styles.modalContainer}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>{t('Edit Profile Info', 'پروفائل تبدیل کریں')}</Text>
+              <Text style={styles.modalTitle}>{t('Edit Profile Info', 'پروفائل ایڈیٹ کریں')}</Text>
               <TouchableOpacity onPress={() => setEditModalVisible(false)}>
                 <Feather name="x" size={24} color="#333" />
               </TouchableOpacity>
@@ -300,7 +350,7 @@ export default function ProfileScreen() {
         </View>
       </Modal>
 
-      
+      {/* Language Modal */}
       <Modal
         animationType="slide"
         transparent={true}
@@ -358,7 +408,6 @@ export default function ProfileScreen() {
         </View>
       </Modal>
 
-      
       <View style={styles.bottomNavContainer}>
         <View style={styles.bottomNav}>
           <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Dashboard')}>
@@ -388,8 +437,8 @@ export default function ProfileScreen() {
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#F8FAF9' },
-  scrollContent: { paddingBottom: 20 },
+  safeArea: { flex: 1, backgroundColor: '#F4F7F5' },
+  scrollContent: { paddingBottom: 100 },
   
   header: {
     backgroundColor: '#58D66D',
@@ -399,13 +448,13 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 30,
     borderBottomRightRadius: 30,
   },
-  headerTitle: { fontSize: 28, fontWeight: 'bold', color: '#FFF' },
-  headerUrdu: { fontSize: 16, color: '#E8F8EA', marginTop: 4, fontWeight: '500' },
+  headerTitle: { fontSize: 24, fontWeight: 'bold', color: '#FFF' },
+  headerUrdu: { fontSize: 14, color: '#E8F8EA', marginTop: 2, fontWeight: '500' },
 
   profileCard: {
     backgroundColor: '#FFF',
     marginHorizontal: 20,
-    borderRadius: 24,
+    borderRadius: 20,
     padding: 20,
     marginTop: -40,
     shadowColor: '#000',
@@ -418,11 +467,12 @@ const styles = StyleSheet.create({
   cardTopRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    position: 'relative',
   },
   avatar: {
-    width: 76,
-    height: 76,
-    borderRadius: 24,
+    width: 64,
+    height: 64,
+    borderRadius: 16,
     backgroundColor: '#58D66D',
     justifyContent: 'center',
     alignItems: 'center',
@@ -433,25 +483,24 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
   },
-  userName: { fontSize: 20, fontWeight: 'bold', color: '#333' },
-  userNameUrdu: { fontSize: 14, color: '#666', marginTop: 2 },
+  userName: { fontSize: 18, fontWeight: 'bold', color: '#333' },
+  userNameUrdu: { fontSize: 12, color: '#666', marginTop: 2 },
   roleBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#E8F8EA',
     paddingHorizontal: 8,
     paddingVertical: 4,
-    borderRadius: 8,
+    borderRadius: 12,
     marginTop: 6,
     alignSelf: 'flex-start',
   },
   roleText: { fontSize: 10, color: '#58D66D', fontWeight: 'bold' },
   editIconBtn: {
-    padding: 8,
-    borderRadius: 12,
-    backgroundColor: '#F7F9F8',
-    borderWidth: 1,
-    borderColor: '#E2E6E4',
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    padding: 4,
   },
   statsDivider: {
     height: 1,
@@ -467,45 +516,41 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flex: 1,
   },
-  statValue: { fontSize: 20, fontWeight: 'bold', color: '#333' },
+  statValue: { fontSize: 18, fontWeight: 'bold', color: '#333' },
   statLabel: { fontSize: 11, color: '#666', marginTop: 4, fontWeight: '600' },
-  statUrdu: { fontSize: 9, color: '#999', marginTop: 2 },
-  statColumnDivider: {
-    width: 1,
-    height: 36,
-    backgroundColor: '#F0F0F0',
-  },
+  statUrdu: { fontSize: 10, color: '#999', marginTop: 2 },
 
+  groupTitle: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#666',
+    marginBottom: 8,
+    marginLeft: 24,
+    marginTop: 10,
+  },
   settingsGroup: {
     backgroundColor: '#FFF',
     marginHorizontal: 20,
-    borderRadius: 20,
-    padding: 16,
-    marginBottom: 20,
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    marginBottom: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.03,
     shadowRadius: 6,
     elevation: 2,
   },
-  groupTitle: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#888',
-    marginBottom: 12,
-    marginLeft: 4,
-  },
   settingsItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 12,
+    paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#F7F9F8',
+    borderBottomColor: '#F0F0F0',
   },
   itemIconBg: {
-    width: 38,
-    height: 38,
-    borderRadius: 12,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 14,
@@ -514,8 +559,26 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   itemTitle: { fontSize: 14, fontWeight: 'bold', color: '#333' },
-  itemSubtitle: { fontSize: 11, color: '#999', marginTop: 1 },
-  itemVal: { fontSize: 12, color: '#58D66D', fontWeight: '600', marginTop: 3 },
+  itemSubtitle: { fontSize: 11, color: '#888', marginTop: 2 },
+  itemVal: { fontSize: 11, color: '#666', marginTop: 2 },
+
+  logoutBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginHorizontal: 20,
+    marginTop: 10,
+    paddingVertical: 16,
+    borderRadius: 16,
+    backgroundColor: '#FFF',
+    borderWidth: 1,
+    borderColor: '#FF3B30',
+  },
+  logoutBtnText: {
+    color: '#FF3B30',
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
 
   modalBg: {
     flex: 1,

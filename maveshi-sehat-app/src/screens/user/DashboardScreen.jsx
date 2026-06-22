@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, Sta
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import LinearGradient from 'react-native-linear-gradient';
 import { getRecords, subscribe, loadRecords } from '../../utils/recordsStore';
 import { getProfile, subscribeProfile } from '../../utils/profileStore';
 import { t } from '../../utils/translate';
@@ -117,13 +118,16 @@ export default function DashboardScreen() {
         }
       >
         
-        <View style={styles.header}>
+        <LinearGradient 
+          colors={['#58D66D', '#4CB85C']} 
+          style={styles.header}
+        >
           <View style={styles.headerTop}>
             <View>
               <Text style={styles.greeting}>{t('Assalam-o-Alaikum', 'السلام علیکم')}</Text>
               <Text style={styles.userName}>{userName}</Text>
             </View>
-            <TouchableOpacity style={styles.notificationBtn} onPress={handleComingSoon}>
+            <TouchableOpacity style={styles.notificationBtn} onPress={() => navigation.navigate('Notifications')}>
               <Feather name="bell" size={24} color="#FFF" />
               {notificationsCount > 0 && (
                 <View style={styles.badge}>
@@ -138,66 +142,72 @@ export default function DashboardScreen() {
             <View style={styles.statItem}>
               <Text style={styles.statValue}>{stats.livestock}</Text>
               <Text style={styles.statLabel}>{t('Livestock', 'مویشی')}</Text>
+              <Text style={styles.statUrdu}>مویشی</Text>
             </View>
-            <View style={styles.statDivider} />
             <View style={styles.statItem}>
               <Text style={styles.statValue}>{stats.aiScans}</Text>
               <Text style={styles.statLabel}>{t('AI Scans', 'اسکین')}</Text>
+              <Text style={styles.statUrdu}>اسکین</Text>
             </View>
-            <View style={styles.statDivider} />
             <View style={styles.statItem}>
               <Text style={styles.statValue}>{stats.healthy}%</Text>
               <Text style={styles.statLabel}>{t('Healthy', 'صحت مند')}</Text>
+              <Text style={styles.statUrdu}>صحت مند</Text>
             </View>
           </View>
-        </View>
+        </LinearGradient>
 
         
         <View style={[styles.cardContainer, styles.overlapCard]}>
-          <Text style={styles.sectionTitle}>{t('Quick Actions', 'فوری اعمال')}</Text>
+          <Text style={styles.sectionTitle}>{t('Quick Actions / فوری اعمال', 'فوری اعمال')}</Text>
           <View style={styles.actionGrid}>
             <TouchableOpacity style={styles.actionItem} onPress={() => navigation.navigate('AiScan', { userName, userId })}>
               <View style={[styles.iconBox, { backgroundColor: '#E8F8EA' }]}>
                 <MaterialCommunityIcons name="line-scan" size={28} color="#4CB85C" />
               </View>
               <Text style={styles.actionText}>{t('AI Scan', 'اسکین')}</Text>
+              <Text style={styles.actionUrdu}>اسکین</Text>
             </TouchableOpacity>
             
-            <TouchableOpacity style={styles.actionItem} onPress={handleComingSoon}>
+            <TouchableOpacity style={styles.actionItem} onPress={() => navigation.navigate('Vaccination')}>
               <View style={[styles.iconBox, { backgroundColor: '#FFF5E5' }]}>
-                <MaterialCommunityIcons name="syringe" size={28} color="#FFB020" />
+                <MaterialCommunityIcons name="needle" size={28} color="#F5B041" />
               </View>
-              <Text style={styles.actionText}>{t('Vaccination (Soon)', 'ویکسین (جلد)')}</Text>
+              <Text style={styles.actionText}>{t('Vaccination', 'ویکسین')}</Text>
+              <Text style={styles.actionUrdu}>ویکسین</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.actionItem} onPress={() => navigation.navigate('VeterinariansList', { userName })}>
+            <TouchableOpacity style={styles.actionItem} onPress={() => navigation.navigate('VeterinariansList', { userName, userId })}>
               <View style={[styles.iconBox, { backgroundColor: '#E8F8EA' }]}>
-                <MaterialCommunityIcons name="chat-outline" size={28} color="#4CB85C" />
+                <Feather name="message-square" size={26} color="#4CB85C" />
               </View>
               <Text style={styles.actionText}>{t('Vet Chat', 'ڈاکٹر چیٹ')}</Text>
+              <Text style={styles.actionUrdu}>ڈاکٹر</Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.actionItem} onPress={() => navigation.navigate('HeatAlert', { userName, userId })}>
               <View style={[styles.iconBox, { backgroundColor: '#FFF5E5' }]}>
-                <MaterialCommunityIcons name="thermometer" size={28} color="#FFB020" />
+                <Feather name="thermometer" size={28} color="#F5B041" />
               </View>
-              <Text style={styles.actionText}>{t('Heat Alert', 'گرمی کی الرٹ')}</Text>
+              <Text style={styles.actionText}>{t('Heat Alert', 'گرمی')}</Text>
+              <Text style={styles.actionUrdu}>گرمی</Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.actionItem} onPress={() => navigation.navigate('Marketplace', { userName, userId })}>
               <View style={[styles.iconBox, { backgroundColor: '#E8F8EA' }]}>
-                <MaterialCommunityIcons name="shopping-outline" size={28} color="#4CB85C" />
+                <Feather name="shopping-bag" size={26} color="#4CB85C" />
               </View>
-              <Text style={styles.actionText}>{t('Marketplace', 'دوا خانہ')}</Text>
+              <Text style={styles.actionText}>{t('Marketplace', 'مارکیٹ')}</Text>
+              <Text style={styles.actionUrdu}>مارکیٹ</Text>
             </TouchableOpacity>
           </View>
         </View>
 
         
-        <View style={[styles.cardContainer, { marginBottom: 100 }]}>
+        <View style={styles.cardContainer}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>{t('Recent AI Scans', 'حالیہ اسکین')}</Text>
-            <TouchableOpacity onPress={handleComingSoon}>
+            <Text style={styles.sectionTitle}>{t('Recent AI Scans / حالیہ اسکین', 'حالیہ اسکین')}</Text>
+            <TouchableOpacity onPress={() => navigation.navigate('HealthRecords', { userName, userId })}>
               <Text style={styles.viewAll}>{t('View All', 'سب دیکھیں')}</Text>
             </TouchableOpacity>
           </View>
@@ -209,22 +219,20 @@ export default function DashboardScreen() {
           ) : recentScans.length > 0 ? (
             recentScans.map((scan) => (
               <TouchableOpacity key={scan.id} style={styles.scanItem} onPress={() => navigation.navigate('HealthRecords', { userName, userId })}>
-                <View style={[styles.scanIconBox, { backgroundColor: scan.bg }]}>
+                <View style={[styles.scanIconBox, { backgroundColor: scan.bg, borderRadius: 10, borderWidth: 1, borderColor: `${scan.color}30` }]}>
                   {scan.rawRecord && scan.rawRecord.uri ? (
-                    <Image source={{ uri: scan.rawRecord.uri }} style={{ width: 40, height: 40, borderRadius: 20 }} />
+                    <Image source={{ uri: scan.rawRecord.uri }} style={{ width: 40, height: 40, borderRadius: 10 }} />
                   ) : (
                     <Feather name={scan.icon} size={20} color={scan.color} />
                   )}
                 </View>
                 <View style={styles.scanDetails}>
-                  <Text style={styles.scanTitle}>{scan.title}</Text>
+                  <Text style={styles.scanTitle}>{scan.title.split(' - ')[1] || scan.title}</Text>
                   <Text style={styles.scanTime}>{scan.time}</Text>
                 </View>
                 <View style={styles.scanStatus}>
                   <Text style={styles.scanPercentage}>{scan.percentage}%</Text>
-                  <View style={[styles.severityBadge, { backgroundColor: scan.bg }]}>
-                    <Text style={[styles.severityText, { color: scan.color }]}>{scan.severity}</Text>
-                  </View>
+                  <Text style={[styles.severityText, { color: scan.color }]}>{scan.severity}</Text>
                 </View>
               </TouchableOpacity>
             ))
@@ -235,11 +243,32 @@ export default function DashboardScreen() {
             </View>
           )}
         </View>
+
+        
+        <View style={[styles.cardContainer, { backgroundColor: '#F5B041', marginBottom: 100, elevation: 2 }]}>
+          <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
+            <View style={{ backgroundColor: 'rgba(255,255,255,0.2)', padding: 10, borderRadius: 12, marginRight: 12 }}>
+              <Feather name="trending-up" size={24} color="#FFF" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#FFF', marginBottom: 4 }}>Heat Stress Warning</Text>
+              <Text style={{ fontSize: 12, color: 'rgba(255,255,255,0.9)', marginBottom: 12, lineHeight: 18 }}>
+                THI Index: 78 - Moderate stress expected today
+              </Text>
+              <TouchableOpacity 
+                style={{ backgroundColor: 'rgba(255,255,255,0.3)', alignSelf: 'flex-start', paddingHorizontal: 16, paddingVertical: 6, borderRadius: 20 }}
+                onPress={() => navigation.navigate('HeatAlert', { userName, userId })}
+              >
+                <Text style={{ color: '#FFF', fontSize: 12, fontWeight: '600' }}>View Details</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
       </ScrollView>
 
       
       <View style={styles.bottomNav}>
-        <TouchableOpacity style={styles.navItem}>
+        <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Dashboard')}>
           <Feather name="home" size={24} color="#FFF" />
           <Text style={styles.navText}>{t('Home', 'ہوم')}</Text>
         </TouchableOpacity>
@@ -255,7 +284,7 @@ export default function DashboardScreen() {
           <Feather name="message-square" size={24} color="#A3E6B2" />
           <Text style={[styles.navText, { color: '#A3E6B2' }]}>{t('Forum', 'فورم')}</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Profile', { userId })}>
+        <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Profile', { userName, userId })}>
           <Feather name="user" size={24} color="#A3E6B2" />
           <Text style={[styles.navText, { color: '#A3E6B2' }]}>{t('Profile', 'پروفائل')}</Text>
         </TouchableOpacity>
@@ -269,7 +298,6 @@ const styles = StyleSheet.create({
   scrollContent: { paddingBottom: 20 },
   
   header: {
-    backgroundColor: '#58D66D',
     borderBottomLeftRadius: 30,
     borderBottomRightRadius: 30,
     paddingHorizontal: 24,
@@ -307,14 +335,14 @@ const styles = StyleSheet.create({
   
   statsRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'space-around',
     alignItems: 'center',
+    paddingHorizontal: 10,
   },
   statItem: { alignItems: 'center' },
-  statValue: { fontSize: 24, fontWeight: 'bold', color: '#FFF' },
-  statLabel: { fontSize: 12, color: '#E8F8EA', marginTop: 2 },
-  statUrdu: { fontSize: 10, color: '#E8F8EA', marginTop: 2 },
-  statDivider: { width: 1, height: 40, backgroundColor: 'rgba(255,255,255,0.3)' },
+  statValue: { fontSize: 28, fontWeight: '800', color: '#FFF' },
+  statLabel: { fontSize: 11, color: '#FFF', marginTop: 2, fontWeight: '600' },
+  statUrdu: { fontSize: 9, color: 'rgba(255,255,255,0.8)', marginTop: 2 },
 
   cardContainer: {
     backgroundColor: '#FFF',
@@ -343,13 +371,12 @@ const styles = StyleSheet.create({
   actionGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 20,
-    justifyContent: 'space-between'
+    justifyContent: 'flex-start',
   },
   actionItem: {
     alignItems: 'center',
-    width: '30%',
-    marginBottom: 10,
+    width: '33.33%',
+    marginBottom: 20,
   },
   iconBox: {
     width: 60,
@@ -358,17 +385,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 8,
+    backgroundColor: '#FFF',
   },
-  actionText: { fontSize: 12, fontWeight: '600', color: '#333', textAlign: 'center' },
-  actionUrdu: { fontSize: 10, color: '#666', textAlign: 'center' },
+  actionText: { fontSize: 11, fontWeight: 'bold', color: '#333', textAlign: 'center' },
+  actionUrdu: { fontSize: 10, color: '#888', textAlign: 'center', marginTop: 2 },
   soonText: { fontSize: 9, color: '#FF4D4D', fontWeight: 'bold' },
 
   scanItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 12,
+    paddingVertical: 14,
     borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
+    borderBottomColor: '#F5F5F5',
   },
   scanIconBox: {
     width: 40,
@@ -382,13 +410,8 @@ const styles = StyleSheet.create({
   scanTitle: { fontSize: 14, fontWeight: '600', color: '#333' },
   scanTime: { fontSize: 12, color: '#888', marginTop: 4 },
   scanStatus: { alignItems: 'flex-end' },
-  scanPercentage: { fontSize: 14, fontWeight: 'bold', color: '#333', marginBottom: 4 },
-  severityBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 8,
-  },
-  severityText: { fontSize: 10, fontWeight: 'bold' },
+  scanPercentage: { fontSize: 15, fontWeight: 'bold', color: '#333', marginBottom: 4 },
+  severityText: { fontSize: 11, fontWeight: 'bold' },
 
   loadingContainer: {
     alignItems: 'center',

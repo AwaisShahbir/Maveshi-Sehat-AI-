@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, FlatList, TextInput, TouchableOpacity, StatusBar, ActivityIndicator, Platform } from 'react-native';
+import { 
+  View, Text, StyleSheet, SafeAreaView, FlatList, TextInput, 
+  TouchableOpacity, StatusBar, ActivityIndicator, Platform, Alert, Image
+} from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { getProfile, subscribeProfile } from '../../utils/profileStore';
 import { t } from '../../utils/translate';
+import LinearGradient from 'react-native-linear-gradient';
 
 export default function VeterinariansListScreen() {
   const navigation = useNavigation();
@@ -13,13 +17,13 @@ export default function VeterinariansListScreen() {
 
   const [profile, setProfile] = useState(getProfile());
   const userName = profile.userName || params.userName || 'Awais shabbir ';
+  const userId = params.userId || 1;
 
   const [vets, setVets] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  
   useEffect(() => {
     const unsubscribeProfile = subscribeProfile((updatedProfile) => {
       setProfile(updatedProfile);
@@ -62,6 +66,7 @@ export default function VeterinariansListScreen() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          farmerId: userId,
           farmerName: userName,
           vetId: vet.id
         })
@@ -93,92 +98,110 @@ export default function VeterinariansListScreen() {
     (vet.specialization && vet.specialization.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
-  const renderVetCard = ({ item }) => {
-    const experienceText = item.experience_years 
-      ? t(`${item.experience_years} Years Experience`, `${item.experience_years} سال کا تجربہ`)
-      : t('Experienced Vet', 'تجربہ کار ڈاکٹر');
+  const getInitials = (name) => {
+    if (!name) return 'V';
+    const parts = name.trim().split(' ');
+    if (parts.length > 0 && parts[0].toLowerCase() === 'dr.') {
+      parts.shift();
+    }
+    if (parts.length > 0) {
+      return parts[0][0].toUpperCase();
+    }
+    return 'V';
+  };
+
+  const renderVetCard = ({ item, index }) => {
+    const isBusy = index % 3 === 2; // Mocking busy status for UI showcase
 
     return (
       <View style={styles.card}>
         <View style={styles.cardHeader}>
-          <View style={styles.avatarContainer}>
-            <MaterialCommunityIcons name="doctor" size={28} color="#58D66D" />
-            <View style={styles.onlineBadge} />
+          <View style={styles.avatarWrapper}>
+            <View style={styles.avatarBg}>
+              <Text style={styles.avatarText}>{getInitials(item.full_name)}</Text>
+            </View>
+            <View style={[styles.statusDot, { backgroundColor: isBusy ? '#FF3B30' : '#58D66D' }]} />
           </View>
+          
           <View style={styles.vetInfo}>
-            <Text style={styles.vetName}>{item.full_name}</Text>
+            <View style={styles.nameRow}>
+              <Text style={styles.vetName}>{item.full_name}</Text>
+              <MaterialCommunityIcons name="check-decagram" size={16} color="#58D66D" style={{ marginLeft: 4 }} />
+            </View>
+            <Text style={styles.vetNameUrdu}>ڈاکٹر {item.full_name.replace('Dr. ', '')}</Text>
             <Text style={styles.vetSpecialization}>
-              {item.specialization || t('General Veterinarian', 'عام جانوروں کا ڈاکٹر')}
+              {item.specialization || 'Generalist'}
             </Text>
-            <View style={styles.locationContainer}>
-              <Feather name="map-pin" size={12} color="#666" />
-              <Text style={styles.locationText}>{item.district}</Text>
+            
+            <View style={styles.metaRow}>
+              <View style={styles.ratingContainer}>
+                <Feather name="star" size={12} color="#F5B041" style={{ marginRight: 4 }} />
+                <Text style={styles.ratingText}>4.8 <Text style={styles.ratingCount}>(127)</Text></Text>
+              </View>
+              <View style={styles.locationContainer}>
+                <Feather name="map-pin" size={12} color="#888" style={{ marginRight: 4 }} />
+                <Text style={styles.locationText}>{item.district || 'Lahore, Punjab'}</Text>
+              </View>
             </View>
           </View>
         </View>
 
-        <Text style={styles.experienceText}>{experienceText}</Text>
-
-        <View style={styles.cardFooter}>
-          <View style={styles.ratingContainer}>
-            <Feather name="star" size={14} color="#FFB020" style={{ marginRight: 4 }} />
-            <Text style={styles.ratingText}>{t('4.9 (Verified)', '4.9 (تصدیق شدہ)')}</Text>
+        <View style={styles.experienceRow}>
+          <Text style={styles.experienceLabel}>Experience: <Text style={styles.experienceValue}>{item.experience_years || 5} years</Text></Text>
+          <View style={[styles.availabilityBadge, { backgroundColor: isBusy ? '#FFEBEB' : '#E8F8EA' }]}>
+            <Text style={[styles.availabilityText, { color: isBusy ? '#FF3B30' : '#58D66D' }]}>
+              {isBusy ? 'Busy' : 'Available Now'}
+            </Text>
           </View>
-          <TouchableOpacity 
-            style={styles.chatButton} 
-            onPress={() => handleChatNow(item)}
-            activeOpacity={0.8}
-          >
-            <Feather name="message-square" size={16} color="#FFF" style={{ marginRight: 6 }} />
-            <Text style={styles.chatButtonText}>{t('Chat Now', 'مشورہ کریں')}</Text>
+        </View>
+
+        <View style={styles.actionButtonsRow}>
+          <TouchableOpacity style={styles.chatBtn} onPress={() => handleChatNow(item)}>
+            <Feather name="message-square" size={16} color="#FFF" style={{ marginRight: 8 }} />
+            <Text style={styles.chatBtnText}>Chat Now</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.callBtn}>
+            <Feather name="phone" size={16} color="#58D66D" style={{ marginRight: 8 }} />
+            <Text style={styles.callBtnText}>Call</Text>
           </TouchableOpacity>
         </View>
+
+        <TouchableOpacity style={styles.bookBtn}>
+          <Feather name="calendar" size={16} color="#D98A22" style={{ marginRight: 8 }} />
+          <Text style={styles.bookBtnText}>Book Appointment / ملاقات بک کریں</Text>
+        </TouchableOpacity>
       </View>
     );
   };
-
-  const lang = profile.language || 'English';
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="light-content" backgroundColor="#58D66D" />
       
-      
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-          <Feather name="chevron-left" size={24} color="#FFF" />
-        </TouchableOpacity>
-        <View style={styles.headerTitleContainer}>
-          {lang === 'English' && <Text style={styles.headerTitle}>Find Veterinarians</Text>}
-          {lang === 'Urdu' && <Text style={styles.headerTitle}>جانوروں کے ڈاکٹر تلاش کریں</Text>}
-          {lang === 'Both' && (
-            <>
-              <Text style={styles.headerTitle}>Find Veterinarians</Text>
-              <Text style={styles.headerSubtitle}>جانوروں کے ڈاکٹر تلاش کریں</Text>
-            </>
-          )}
-        </View>
-        <View style={{ width: 24 }} /> 
-      </View>
-
-      
-      <View style={styles.searchContainer}>
-        <Feather name="search" size={20} color="#888" style={styles.searchIcon} />
-        <TextInput
-          style={styles.searchInput}
-          placeholder={t('Search by name, specialty...', 'تلاش کریں...')}
-          placeholderTextColor="#888"
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-        />
-        {searchQuery.length > 0 && (
-          <TouchableOpacity onPress={() => setSearchQuery('')}>
-            <Feather name="x" size={18} color="#888" />
+      <View style={styles.headerArea}>
+        <View style={styles.headerTop}>
+          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+            <Feather name="chevron-left" size={28} color="#FFF" />
           </TouchableOpacity>
-        )}
+        </View>
+
+        <View style={styles.headerTitleContainer}>
+          <Text style={styles.headerTitle}>Veterinarians</Text>
+          <Text style={styles.headerSubtitle}>ڈاکٹرز کی فہرست</Text>
+        </View>
+
+        <View style={styles.searchContainer}>
+          <Feather name="search" size={20} color="#FFF" style={styles.searchIcon} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search veterinarians..."
+            placeholderTextColor="rgba(255,255,255,0.7)"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+        </View>
       </View>
 
-      
       {loading && !refreshing ? (
         <View style={styles.loaderContainer}>
           <ActivityIndicator size="large" color="#58D66D" />
@@ -210,162 +233,226 @@ export default function VeterinariansListScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#F8FAF9',
+    backgroundColor: '#F4F7F5',
   },
-  header: {
+  headerArea: {
     backgroundColor: '#58D66D',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 0) + 14 : 14,
-    paddingBottom: 14,
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
+    paddingHorizontal: 20,
+    paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 0) + 10 : 10,
+    paddingBottom: 40,
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
+  },
+  headerTop: {
+    marginBottom: 10,
   },
   backButton: {
-    padding: 4,
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    marginLeft: -8,
   },
   headerTitleContainer: {
-    alignItems: 'center',
+    marginBottom: 20,
   },
   headerTitle: {
-    color: '#FFF',
-    fontSize: 18,
+    fontSize: 28,
     fontWeight: 'bold',
+    color: '#FFF',
   },
   headerSubtitle: {
+    fontSize: 18,
     color: '#E8F8EA',
-    fontSize: 12,
-    marginTop: 2,
+    marginTop: 4,
   },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFF',
-    marginHorizontal: 16,
-    marginVertical: 12,
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    height: 48,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 5,
-    elevation: 2,
+    backgroundColor: 'rgba(255,255,255,0.25)',
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    height: 52,
   },
   searchIcon: {
-    marginRight: 8,
+    marginRight: 10,
   },
   searchInput: {
     flex: 1,
-    fontSize: 14,
-    color: '#333',
+    fontSize: 16,
+    color: '#FFF',
     height: '100%',
   },
   listContainer: {
-    padding: 16,
-    paddingBottom: 24,
+    paddingHorizontal: 20,
+    paddingTop: 10,
+    paddingBottom: 30,
+    marginTop: -20,
   },
   card: {
     backgroundColor: '#FFF',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 14,
+    borderRadius: 20,
+    padding: 20,
+    marginBottom: 16,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.05,
-    shadowRadius: 5,
-    elevation: 2,
-    borderWidth: 1,
-    borderColor: '#E8F2EC',
+    shadowRadius: 8,
+    elevation: 3,
   },
   cardHeader: {
     flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 16,
   },
-  avatarContainer: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: '#E8F8EA',
+  avatarWrapper: {
+    marginRight: 16,
+    position: 'relative',
+  },
+  avatarBg: {
+    width: 56,
+    height: 56,
+    borderRadius: 16,
+    backgroundColor: '#58D66D',
     justifyContent: 'center',
     alignItems: 'center',
-    position: 'relative',
-    marginRight: 12,
   },
-  onlineBadge: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: '#58D66D',
-    position: 'absolute',
-    bottom: 2,
-    right: 2,
+  avatarText: {
+    color: '#FFF',
+    fontSize: 24,
+    fontWeight: 'bold',
+  },
+  statusDot: {
+    width: 14,
+    height: 14,
+    borderRadius: 7,
     borderWidth: 2,
     borderColor: '#FFF',
+    position: 'absolute',
+    bottom: -2,
+    right: -2,
   },
   vetInfo: {
     flex: 1,
+    justifyContent: 'center',
+  },
+  nameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   vetName: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#333',
   },
-  vetSpecialization: {
+  vetNameUrdu: {
     fontSize: 13,
-    color: '#58D66D',
-    fontWeight: '600',
+    color: '#666',
     marginTop: 2,
   },
-  locationContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  vetSpecialization: {
+    fontSize: 13,
+    color: '#777',
     marginTop: 4,
   },
-  locationText: {
-    fontSize: 11,
-    color: '#666',
-    marginLeft: 4,
-  },
-  experienceText: {
-    fontSize: 12,
-    color: '#666',
-    backgroundColor: '#F8FAF9',
-    padding: 8,
-    borderRadius: 8,
-    marginBottom: 12,
-  },
-  cardFooter: {
+  metaRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    borderTopWidth: 1,
-    borderTopColor: '#F0F0F0',
-    paddingTop: 12,
+    marginTop: 8,
   },
   ratingContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    marginRight: 16,
   },
   ratingText: {
-    fontSize: 11,
-    color: '#666',
-    fontWeight: '500',
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#333',
   },
-  chatButton: {
-    backgroundColor: '#58D66D',
+  ratingCount: {
+    color: '#888',
+    fontWeight: 'normal',
+  },
+  locationContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 20,
   },
-  chatButtonText: {
-    color: '#FFF',
+  locationText: {
     fontSize: 12,
+    color: '#888',
+  },
+  experienceRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  experienceLabel: {
+    fontSize: 13,
+    color: '#666',
+  },
+  experienceValue: {
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  availabilityBadge: {
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  availabilityText: {
+    fontSize: 11,
+    fontWeight: 'bold',
+  },
+  actionButtonsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  chatBtn: {
+    flex: 1,
+    backgroundColor: '#58D66D',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderRadius: 24,
+    marginRight: 8,
+  },
+  chatBtnText: {
+    color: '#FFF',
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  callBtn: {
+    flex: 1,
+    backgroundColor: '#FFF',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderRadius: 24,
+    marginLeft: 8,
+    borderWidth: 1,
+    borderColor: '#58D66D',
+  },
+  callBtnText: {
+    color: '#58D66D',
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  bookBtn: {
+    backgroundColor: '#FFF9E6',
+    borderWidth: 1,
+    borderColor: '#F5B041',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderRadius: 24,
+  },
+  bookBtnText: {
+    color: '#D98A22',
+    fontSize: 14,
     fontWeight: 'bold',
   },
   loaderContainer: {
@@ -389,12 +476,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#555',
     marginTop: 16,
-    textAlign: 'center',
-  },
-  emptyUrduText: {
-    fontSize: 13,
-    color: '#888',
-    marginTop: 4,
     textAlign: 'center',
   },
   retryButton: {
