@@ -70,7 +70,7 @@ export default function Analytics({ pharmacy, formatPrice }) {
             <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-[#3da860]/10 text-[#3da860]">
               <DollarSign size={22} />
             </div>
-            <span className="text-xs font-bold text-[#3da860] bg-[#3da860]/10 px-2 py-0.5 rounded-full">+18.2%</span>
+            <span className="text-xs font-bold text-[#3da860] bg-[#3da860]/10 px-2 py-0.5 rounded-full">Completed</span>
           </div>
           <div className="mb-3.5">
             <h3 className="text-xl font-extrabold text-slate-800 mb-1 leading-tight">{formatPrice(kpis.totalRevenue)}</h3>
@@ -79,7 +79,7 @@ export default function Analytics({ pharmacy, formatPrice }) {
           </div>
           <div className="flex items-center border-t border-slate-100 pt-2.5 text-[11px] text-slate-400">
             <TrendingUp size={12} className="text-[#3da860] mr-1" />
-            <span className="font-medium">+18.2% vs last month</span>
+            <span className="font-medium">All completed orders</span>
           </div>
         </div>
 
@@ -89,7 +89,7 @@ export default function Analytics({ pharmacy, formatPrice }) {
             <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-blue-500/10 text-blue-500">
               <ShoppingBag size={22} />
             </div>
-            <span className="text-xs font-bold text-[#3da860] bg-[#3da860]/10 px-2 py-0.5 rounded-full">+12.5%</span>
+            <span className="text-xs font-bold text-blue-500 bg-blue-500/10 px-2 py-0.5 rounded-full">Orders</span>
           </div>
           <div className="mb-3.5">
             <h3 className="text-xl font-extrabold text-slate-800 mb-1 leading-tight">{kpis.totalOrders}</h3>
@@ -98,7 +98,7 @@ export default function Analytics({ pharmacy, formatPrice }) {
           </div>
           <div className="flex items-center border-t border-slate-100 pt-2.5 text-[11px] text-slate-400">
             <TrendingUp size={12} className="text-[#3da860] mr-1" />
-            <span className="font-medium">+12.5% vs last month</span>
+            <span className="font-medium">Total orders processed</span>
           </div>
         </div>
 
@@ -108,7 +108,7 @@ export default function Analytics({ pharmacy, formatPrice }) {
             <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-amber-500/10 text-amber-500">
               <Users size={22} />
             </div>
-            <span className="text-xs font-bold text-[#3da860] bg-[#3da860]/10 px-2 py-0.5 rounded-full">+5</span>
+            <span className="text-xs font-bold text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded-full">Customers</span>
           </div>
           <div className="mb-3.5">
             <h3 className="text-xl font-extrabold text-slate-800 mb-1 leading-tight">{kpis.activeCustomers}</h3>
@@ -117,7 +117,7 @@ export default function Analytics({ pharmacy, formatPrice }) {
           </div>
           <div className="flex items-center border-t border-slate-100 pt-2.5 text-[11px] text-slate-400">
             <TrendingUp size={12} className="text-[#3da860] mr-1" />
-            <span className="font-medium">+5 new this month</span>
+            <span className="font-medium">Unique active buyers</span>
           </div>
         </div>
 
@@ -127,7 +127,7 @@ export default function Analytics({ pharmacy, formatPrice }) {
             <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-purple-500/10 text-purple-500">
               <TrendingUp size={22} />
             </div>
-            <span className="text-xs font-bold text-[#3da860] bg-[#3da860]/10 px-2 py-0.5 rounded-full">+4.8%</span>
+            <span className="text-xs font-bold text-purple-500 bg-purple-500/10 px-2 py-0.5 rounded-full">Average</span>
           </div>
           <div className="mb-3.5">
             <h3 className="text-xl font-extrabold text-slate-800 mb-1 leading-tight">{formatPrice(kpis.avgOrderValue)}</h3>
@@ -136,7 +136,7 @@ export default function Analytics({ pharmacy, formatPrice }) {
           </div>
           <div className="flex items-center border-t border-slate-100 pt-2.5 text-[11px] text-slate-400">
             <TrendingUp size={12} className="text-[#3da860] mr-1" />
-            <span className="font-medium">+4.8% vs last month</span>
+            <span className="font-medium">Average order value</span>
           </div>
         </div>
       </div>

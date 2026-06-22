@@ -24,10 +24,7 @@ export default function Dashboard({ pharmacy, onLogout }) {
   const [stockAlertsList, setStockAlertsList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAddMedModal, setShowAddMedModal] = useState(false);
-  const [notifications, setNotifications] = useState([
-    { id: 1, text: 'New order #ORD-1045 received', time: '10m ago', unread: true },
-    { id: 2, text: 'Stock warning: Deltamethrin Tick Grease is low', time: '2h ago', unread: true }
-  ]);
+  const [notifications, setNotifications] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
 
   
@@ -51,6 +48,38 @@ export default function Dashboard({ pharmacy, onLogout }) {
   useEffect(() => {
     fetchDashboardData();
   }, [pharmacy.id, currentView]);
+
+  useEffect(() => {
+    const list = [];
+    let notifId = 1;
+    recentOrders.forEach(order => {
+      if (order.status.toLowerCase() === 'pending') {
+        list.push({
+          id: notifId++,
+          text: `New order ${order.id} received`,
+          time: 'New',
+          unread: true
+        });
+      }
+    });
+    stockAlertsList.forEach(med => {
+      list.push({
+        id: notifId++,
+        text: `Stock warning: ${med.name} is low (${med.stock} left)`,
+        time: 'Low Stock',
+        unread: true
+      });
+    });
+    if (list.length === 0) {
+      list.push({
+        id: 1,
+        text: 'All stocks are healthy and orders updated.',
+        time: 'Just now',
+        unread: false
+      });
+    }
+    setNotifications(list);
+  }, [recentOrders, stockAlertsList]);
 
   const handleOrderAction = async (orderId, newStatus) => {
     try {
@@ -366,7 +395,7 @@ export default function Dashboard({ pharmacy, onLogout }) {
                     <span className="text-xs font-bold text-slate-500">Total Revenue</span>
                     <span className="text-[10px] text-slate-400 mt-0.5">کل آمدنی</span>
                     <h3 className="font-heading text-xl font-bold text-slate-900 my-3">{formatPrice(stats.totalRevenue)}</h3>
-                    <span className="text-[11px] font-bold text-[#3da860] bg-[#3da860]/10 px-2 py-0.5 rounded-full w-fit">+12.5%</span>
+                    <span className="text-[11px] font-bold text-[#3da860] bg-[#3da860]/10 px-2 py-0.5 rounded-full w-fit">Total sales</span>
                   </div>
                   <div className="w-11 h-11 rounded-xl bg-[#3da860]/10 text-[#3da860] flex items-center justify-center shadow-inner">
                     <BarChart3 size={24} />
@@ -379,7 +408,9 @@ export default function Dashboard({ pharmacy, onLogout }) {
                     <span className="text-xs font-bold text-slate-500">Active Orders</span>
                     <span className="text-[10px] text-slate-400 mt-0.5">فعال آرڈرز</span>
                     <h3 className="font-heading text-xl font-bold text-slate-900 my-3">{stats.activeOrders}</h3>
-                    <span className="text-[11px] font-bold text-blue-500 bg-blue-500/10 px-2 py-0.5 rounded-full w-fit">+2 today</span>
+                    <span className="text-[11px] font-bold text-blue-500 bg-blue-500/10 px-2 py-0.5 rounded-full w-fit">
+                      {stats.activeOrders > 0 ? `${stats.activeOrders} active` : '0 active'}
+                    </span>
                   </div>
                   <div className="w-11 h-11 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center shadow-inner">
                     <ShoppingBag size={24} />
@@ -392,7 +423,9 @@ export default function Dashboard({ pharmacy, onLogout }) {
                     <span className="text-xs font-bold text-slate-500">Medicine Listings</span>
                     <span className="text-[10px] text-slate-400 mt-0.5">دوائیں فہرست</span>
                     <h3 className="font-heading text-xl font-bold text-slate-900 my-3">{stats.medicineListings}</h3>
-                    <span className="text-[11px] font-bold text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded-full w-fit">3 low stock</span>
+                    <span className="text-[11px] font-bold text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded-full w-fit">
+                      {stats.stockAlerts > 0 ? `${stats.stockAlerts} alerts` : 'Stock normal'}
+                    </span>
                   </div>
                   <div className="w-11 h-11 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center shadow-inner">
                     <Pill size={24} />
@@ -405,7 +438,9 @@ export default function Dashboard({ pharmacy, onLogout }) {
                     <span className="text-xs font-bold text-slate-500">Stock Alerts</span>
                     <span className="text-[10px] text-slate-400 mt-0.5">اسٹاک الرٹ</span>
                     <h3 className="font-heading text-xl font-bold text-slate-900 my-3">{stats.stockAlerts}</h3>
-                    <span className="text-[11px] font-bold text-red-500 bg-red-500/10 px-2 py-0.5 rounded-full w-fit">Needs attention</span>
+                    <span className="text-[11px] font-bold text-red-500 bg-red-500/10 px-2 py-0.5 rounded-full w-fit">
+                      {stats.stockAlerts > 0 ? `${stats.stockAlerts} alerts` : 'Healthy stock'}
+                    </span>
                   </div>
                   <div className="w-11 h-11 rounded-xl bg-red-500/10 text-red-500 flex items-center justify-center shadow-inner">
                     <AlertTriangle size={24} />
