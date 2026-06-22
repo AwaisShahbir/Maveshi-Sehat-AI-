@@ -7,7 +7,10 @@ An AI-powered mobile application designed to revolutionize livestock healthcare 
 - **Secure Authentication:** Complete registration flow featuring encrypted passwords and real-time Email OTP verification.
 - **Bilingual Interface:** Support for both English and Urdu for maximum accessibility.
 - **Modern UI/UX:** Responsive, smooth, and intuitive React Native design optimized for iOS, Android, and Web.
-- **AI Integration (Upcoming):** Automated diagnosis and health recommendations based on symptoms.
+- **AI Disease Detection:** Image-based analysis using the camera or gallery to detect symptoms for diseases like Lumpy Skin Disease, FMD, and Mastitis.
+- **Veterinary Consultation Chat:** Direct messaging connecting farmers with verified veterinarians, featuring automatic AI Scan Report sharing.
+- **Marketplace & Cart:** Fully interactive UI for buying livestock and medical supplies with a cart system and floating total.
+- **Health Records Management:** Track past AI scans, active diseases, and their treatment outcomes seamlessly.
 
 ## 🛠️ Technology Stack
 - **Frontend:** React Native, Expo, React Navigation (Expo Router)

@@ -83,7 +83,8 @@ export default function VeterinariansListScreen() {
         partnerRole: 'vet',
         userName: userName,
         userRole: 'farmer',
-        vetId: vet.id
+        vetId: vet.id,
+        initialRecord: params.initialRecord || null
       });
     } catch (error) {
       console.error('Error starting conversation:', error);

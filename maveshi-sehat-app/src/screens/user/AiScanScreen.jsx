@@ -172,7 +172,7 @@ export default function AiScanScreen() {
           console.log('Camera error: ', response.errorMessage);
           Alert.alert(
             'Camera Unavailable',
-            'Real camera is not available or permission is denied on emulator. Opening sample selector instead.',
+            'Real camera is not available. Opening sample selector instead.',
             [{ text: 'OK', onPress: () => setPickerModalVisible(true) }]
           );
         } else if (response.assets && response.assets.length > 0) {
@@ -185,12 +185,8 @@ export default function AiScanScreen() {
         }
       });
     } catch (err) {
-      console.log('Falling back to mock camera simulation due to native build:', err);
-      Alert.alert(
-        'Running in Simulation Mode',
-        'Native camera module is not compiled yet. Opening sample photo selector instead.',
-        [{ text: 'Choose Sample', onPress: () => setPickerModalVisible(true) }]
-      );
+      console.log('Falling back to mock camera simulation:', err);
+      setPickerModalVisible(true);
     }
   };
 
@@ -216,7 +212,7 @@ export default function AiScanScreen() {
           console.log('Gallery error: ', response.errorMessage);
           Alert.alert(
             'Gallery Unavailable',
-            'Real gallery is not available on emulator. Opening sample selector instead.',
+            'Real gallery is not available. Opening sample selector instead.',
             [{ text: 'OK', onPress: () => setPickerModalVisible(true) }]
           );
         } else if (response.assets && response.assets.length > 0) {
@@ -229,12 +225,8 @@ export default function AiScanScreen() {
         }
       });
     } catch (err) {
-      console.log('Falling back to mock gallery simulation due to native build:', err);
-      Alert.alert(
-        'Running in Simulation Mode',
-        'Native gallery module is not compiled yet. Opening sample photo selector instead.',
-        [{ text: 'Choose Sample', onPress: () => setPickerModalVisible(true) }]
-      );
+      console.log('Falling back to mock gallery simulation:', err);
+      setPickerModalVisible(true);
     }
   };
 
@@ -523,7 +515,7 @@ export default function AiScanScreen() {
 
               <TouchableOpacity 
                 style={styles.consultBtn} 
-                onPress={() => navigation.navigate('VeterinariansList', { userName })}
+                onPress={() => navigation.navigate('VeterinariansList', { userName, initialRecord: scanResult })}
               >
                 <Feather name="message-circle" size={16} color="#FFF" style={{ marginRight: 6 }} />
                 <Text style={styles.consultBtnText}>{t('Consult Vet', 'ڈاکٹر سے رابطہ')}</Text>

@@ -336,7 +336,7 @@ export default function HealthRecordsScreen() {
                   style={styles.consultVetBtnModal} 
                   onPress={() => {
                     setDetailModalVisible(false);
-                    navigation.navigate('VeterinariansList', { userName });
+                    navigation.navigate('VeterinariansList', { userName, initialRecord: selectedRecord });
                   }}
                 >
                   <Feather name="message-circle" size={18} color="#FFF" style={{ marginRight: 8 }} />

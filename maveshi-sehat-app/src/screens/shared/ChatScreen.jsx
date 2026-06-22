@@ -122,6 +122,14 @@ export default function ChatScreen() {
     }
   }, [loading]);
 
+  useEffect(() => {
+    if (params.initialRecord && !inputText) {
+      const rec = params.initialRecord;
+      const initialText = `AI Disease Detection Report:\nAnimal: ${rec.animalType} (${rec.animalId})\nDisease: ${rec.disease}\nConfidence: ${rec.confidence}\nRisk Level: ${rec.risk}`;
+      setInputText(initialText);
+    }
+  }, [params.initialRecord]);
+
   const handleSendMessage = (text = '', imageUrl = null, isPrescription = false, prescriptionData = null) => {
     const finalMsg = text.trim();
     if (!finalMsg && !imageUrl && !isPrescription) return;
