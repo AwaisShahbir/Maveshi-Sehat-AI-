@@ -12,6 +12,7 @@ import VetDashboardScreen from './src/screens/vet/VetDashboardScreen';
 import HeatAlertScreen from './src/screens/user/HeatAlertScreen';
 import VeterinariansListScreen from './src/screens/user/VeterinariansListScreen';
 import VetConsultationsScreen from './src/screens/vet/VetConsultationsScreen';
+import MyConsultationsScreen from './src/screens/user/MyConsultationsScreen';
 import ChatScreen from './src/screens/shared/ChatScreen';
 import CommunityForumScreen from './src/screens/user/CommunityForumScreen';
 import ForumPostDetailScreen from './src/screens/user/ForumPostDetailScreen';
@@ -44,6 +45,7 @@ export default function App() {
         <Stack.Screen name="HeatAlert" component={HeatAlertScreen} />
         <Stack.Screen name="VeterinariansList" component={VeterinariansListScreen} />
         <Stack.Screen name="VetConsultations" component={VetConsultationsScreen} />
+        <Stack.Screen name="MyConsultations" component={MyConsultationsScreen} />
         <Stack.Screen name="Chat" component={ChatScreen} />
         <Stack.Screen name="CommunityForum" component={CommunityForumScreen} />
         <Stack.Screen name="ForumPostDetail" component={ForumPostDetailScreen} />

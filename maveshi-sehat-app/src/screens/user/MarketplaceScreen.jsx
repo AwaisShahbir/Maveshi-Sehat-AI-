@@ -44,7 +44,7 @@ export default function MarketplaceScreen() {
 
   const fetchMedicines = async () => {
     try {
-      const baseUrl = Platform.OS === 'android' ? 'http://10.0.2.2:5000' : 'http://localhost:5000';
+      const baseUrl = Platform.OS === 'android' ? 'http://localhost:5000' : 'http://localhost:5000';
       const response = await fetch(`${baseUrl}/api/admin/medicines`);
       if (!response.ok) throw new Error('Failed to fetch medicines');
       const data = await response.json();

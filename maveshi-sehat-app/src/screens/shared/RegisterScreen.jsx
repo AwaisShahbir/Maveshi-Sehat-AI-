@@ -64,7 +64,7 @@ export default function RegisterScreen() {
       };
       formData.append('license', mockFile);
 
-      const response = await fetch('http://10.0.2.2:5000/upload', {
+      const response = await fetch('http://localhost:5000/upload', {
         method: 'POST',
         body: formData
       });
@@ -123,7 +123,7 @@ export default function RegisterScreen() {
 
     setLoading(true);
     try {
-      const response = await fetch('http://10.0.2.2:5000/register', {
+      const response = await fetch('http://localhost:5000/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 

@@ -8,25 +8,26 @@ export default function VetConsultationsScreen() {
   const navigation = useNavigation();
   const route = useRoute();
   const params = route.params || {};
+  const userId = params.user?.id || params.userId || 1;
   const userName = params.userName || 'Dr. Rahim';
 
-  const [conversations, setConversations] = useState([]);
+  const [consultations, setConsultations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [activeTab, setActiveTab] = useState('active'); 
+  const [activeTab, setActiveTab] = useState('pending'); // 'pending' or 'approved'
 
-  const fetchConversations = async () => {
+  const fetchConsultations = async () => {
     try {
-      const baseUrl = Platform.OS === 'android' ? 'http://10.0.2.2:5000' : 'http://localhost:5000';
-      const url = `${baseUrl}/api/chat/conversations/vet?vetName=${encodeURIComponent(userName)}`;
+      const baseUrl = Platform.OS === 'android' ? 'http://localhost:5000' : 'http://localhost:5000';
+      const url = `${baseUrl}/api/consultations/vet/${userId}`;
       const response = await fetch(url);
       if (!response.ok) {
-        throw new Error('Failed to fetch conversations');
+        throw new Error('Failed to fetch consultations');
       }
       const data = await response.json();
-      setConversations(data);
+      setConsultations(data.consultations || []);
     } catch (error) {
-      console.error('Error fetching conversations:', error);
+      console.error('Error fetching consultations:', error);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -34,26 +35,61 @@ export default function VetConsultationsScreen() {
   };
 
   useEffect(() => {
-    fetchConversations();
-  }, [userName]);
+    fetchConsultations();
+  }, [userId]);
 
   const handleRefresh = () => {
     setRefreshing(true);
-    fetchConversations();
+    fetchConsultations();
   };
 
-  const handleSelectConversation = (item) => {
-    navigation.navigate('Chat', {
-      conversationId: item.id,
-      partnerName: item.farmer_name,
-      partnerRole: 'farmer',
-      userName: userName,
-      userRole: 'vet',
-      vetId: item.vet_id
-    });
+  const handleStatusUpdate = async (id, status) => {
+    try {
+      const baseUrl = Platform.OS === 'android' ? 'http://localhost:5000' : 'http://localhost:5000';
+      const response = await fetch(`${baseUrl}/api/consultations/${id}/status`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status })
+      });
+      if (response.ok) fetchConsultations();
+    } catch (err) {
+      console.error('Error updating status:', err);
+    }
   };
 
-  const filteredConversations = conversations.filter(conv => conv.status === activeTab);
+  const handleSelectConversation = async (item) => {
+    if (item.status !== 'approved' || item.type !== 'online_chat') return;
+
+    try {
+      const baseUrl = Platform.OS === 'android' ? 'http://localhost:5000' : 'http://localhost:5000';
+      const response = await fetch(`${baseUrl}/api/chat/conversation`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          farmerId: item.farmer_id,
+          farmerName: item.farmer_name,
+          vetId: userId
+        })
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error);
+
+      navigation.navigate('Chat', {
+        conversationId: data.id,
+        partnerName: item.farmer_name,
+        partnerRole: 'farmer',
+        userName: userName,
+        userRole: 'vet',
+        vetId: userId,
+        initialRecord: item.ai_record_data ? (typeof item.ai_record_data === 'string' ? JSON.parse(item.ai_record_data) : item.ai_record_data) : null
+      });
+    } catch (error) {
+      console.error('Error opening chat', error);
+    }
+  };
+
+  const filteredConsultations = consultations.filter(conv => conv.status === activeTab);
 
   const renderConversationCard = ({ item }) => {
     const timeText = new Date(item.created_at).toLocaleDateString(undefined, {
@@ -63,17 +99,13 @@ export default function VetConsultationsScreen() {
       minute: '2-digit'
     });
 
-    const isResolved = item.status === 'resolved';
+    const isApproved = item.status === 'approved';
 
     return (
-      <TouchableOpacity 
-        style={styles.card} 
-        onPress={() => handleSelectConversation(item)}
-        activeOpacity={0.8}
-      >
+      <View style={styles.card}>
         <View style={styles.cardHeader}>
-          <View style={[styles.avatar, { backgroundColor: isResolved ? '#E0E0E0' : '#E8F8EA' }]}>
-            <Text style={[styles.avatarText, { color: isResolved ? '#666' : '#58D66D' }]}>
+          <View style={[styles.avatar, { backgroundColor: isApproved ? '#E8F8EA' : '#FFF3CD' }]}>
+            <Text style={[styles.avatarText, { color: isApproved ? '#58D66D' : '#856404' }]}>
               {item.farmer_name ? item.farmer_name.trim().charAt(0).toUpperCase() : 'F'}
             </Text>
           </View>
@@ -86,25 +118,55 @@ export default function VetConsultationsScreen() {
 
             <View style={styles.detailsRow}>
               <View style={styles.districtContainer}>
-                <Feather name="map-pin" size={12} color="#888" />
-                <Text style={styles.districtText}>{item.farmer_district || 'N/A'}</Text>
+                <Feather name="file-text" size={12} color="#888" />
+                <Text style={styles.districtText}>{item.type === 'online_chat' ? 'Online Consult' : 'Physical Appointment'}</Text>
               </View>
 
               <View style={[
                 styles.statusBadge, 
-                { backgroundColor: isResolved ? '#F0F0F0' : '#E8F8EA' }
+                { backgroundColor: isApproved ? '#E8F8EA' : '#FFF3CD' }
               ]}>
                 <Text style={[
                   styles.statusText, 
-                  { color: isResolved ? '#888' : '#58D66D' }
+                  { color: isApproved ? '#58D66D' : '#856404' }
                 ]}>
-                  {isResolved ? 'Resolved / حل شدہ' : 'Active / جاری'}
+                  {item.status.toUpperCase()}
                 </Text>
               </View>
             </View>
           </View>
         </View>
-      </TouchableOpacity>
+
+        <View style={styles.reasonContainer}>
+          <Text style={styles.reasonLabel}>Reason:</Text>
+          <Text style={styles.reasonText}>{item.reason}</Text>
+        </View>
+
+        {item.appointment_date && (
+          <View style={styles.reasonContainer}>
+            <Text style={styles.reasonLabel}>Date/Time:</Text>
+            <Text style={styles.reasonText}>{new Date(item.appointment_date).toLocaleString()}</Text>
+          </View>
+        )}
+
+        {item.status === 'pending' && (
+          <View style={styles.actionButtonsRow}>
+            <TouchableOpacity style={styles.rejectBtn} onPress={() => handleStatusUpdate(item.id, 'rejected')}>
+              <Text style={styles.rejectBtnText}>Reject</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.acceptBtn} onPress={() => handleStatusUpdate(item.id, 'approved')}>
+              <Text style={styles.acceptBtnText}>Accept</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {isApproved && item.type === 'online_chat' && (
+          <TouchableOpacity style={styles.chatBtn} onPress={() => handleSelectConversation(item)}>
+            <Feather name="message-square" size={16} color="#FFF" style={{ marginRight: 8 }} />
+            <Text style={styles.chatBtnText}>Open Chat</Text>
+          </TouchableOpacity>
+        )}
+      </View>
     );
   };
 
@@ -129,20 +191,20 @@ export default function VetConsultationsScreen() {
       
       <View style={styles.tabsContainer}>
         <TouchableOpacity 
-          style={[styles.tab, activeTab === 'active' && styles.activeTab]}
-          onPress={() => setActiveTab('active')}
+          style={[styles.tab, activeTab === 'pending' && styles.activeTab]}
+          onPress={() => setActiveTab('pending')}
         >
-          <Text style={[styles.tabText, activeTab === 'active' && styles.activeTabText]}>
-            Active / جاری ({conversations.filter(c => c.status === 'active').length})
+          <Text style={[styles.tabText, activeTab === 'pending' && styles.activeTabText]}>
+            Pending ({consultations.filter(c => c.status === 'pending').length})
           </Text>
         </TouchableOpacity>
         
         <TouchableOpacity 
-          style={[styles.tab, activeTab === 'resolved' && styles.activeTab]}
-          onPress={() => setActiveTab('resolved')}
+          style={[styles.tab, activeTab === 'approved' && styles.activeTab]}
+          onPress={() => setActiveTab('approved')}
         >
-          <Text style={[styles.tabText, activeTab === 'resolved' && styles.activeTabText]}>
-            Resolved / حل شدہ ({conversations.filter(c => c.status === 'resolved').length})
+          <Text style={[styles.tabText, activeTab === 'approved' && styles.activeTabText]}>
+            Approved ({consultations.filter(c => c.status === 'approved').length})
           </Text>
         </TouchableOpacity>
       </View>
@@ -153,9 +215,9 @@ export default function VetConsultationsScreen() {
           <ActivityIndicator size="large" color="#58D66D" />
           <Text style={styles.loadingText}>Loading consultations...</Text>
         </View>
-      ) : filteredConversations.length > 0 ? (
+      ) : filteredConsultations.length > 0 ? (
         <FlatList
-          data={filteredConversations}
+          data={filteredConsultations}
           renderItem={renderConversationCard}
           keyExtractor={(item) => item.id.toString()}
           contentContainerStyle={styles.listContainer}
@@ -168,9 +230,9 @@ export default function VetConsultationsScreen() {
           <MaterialCommunityIcons name="chat-question" size={64} color="#CCC" />
           <Text style={styles.emptyText}>No {activeTab} consultations</Text>
           <Text style={styles.emptyUrduText}>
-            {activeTab === 'active' 
-              ? 'کوئی جاری مشورہ نہیں ملا' 
-              : 'کوئی حل شدہ مشورہ نہیں ملا'}
+            {activeTab === 'pending' 
+              ? 'کوئی زیر التوا درخواست نہیں' 
+              : 'کوئی منظور شدہ درخواست نہیں'}
           </Text>
           <TouchableOpacity style={styles.retryButton} onPress={handleRefresh}>
             <Text style={styles.retryButtonText}>Refresh / تازہ کریں</Text>
@@ -362,4 +424,60 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: 'bold',
   },
+  reasonContainer: {
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#F0F0F0',
+  },
+  reasonLabel: {
+    fontSize: 12,
+    color: '#888',
+    marginBottom: 4,
+  },
+  reasonText: {
+    fontSize: 14,
+    color: '#444',
+  },
+  actionButtonsRow: {
+    flexDirection: 'row',
+    marginTop: 16,
+  },
+  rejectBtn: {
+    flex: 1,
+    paddingVertical: 10,
+    backgroundColor: '#FFEBEB',
+    borderRadius: 8,
+    alignItems: 'center',
+    marginRight: 8,
+  },
+  rejectBtnText: {
+    color: '#FF3B30',
+    fontWeight: 'bold',
+  },
+  acceptBtn: {
+    flex: 1,
+    paddingVertical: 10,
+    backgroundColor: '#58D66D',
+    borderRadius: 8,
+    alignItems: 'center',
+    marginLeft: 8,
+  },
+  acceptBtnText: {
+    color: '#FFF',
+    fontWeight: 'bold',
+  },
+  chatBtn: {
+    marginTop: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#58D66D',
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  chatBtnText: {
+    color: '#FFF',
+    fontWeight: 'bold',
+  }
 });

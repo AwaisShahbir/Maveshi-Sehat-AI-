@@ -16,6 +16,7 @@ const dropTablesQuery = `
   DROP TABLE IF EXISTS order_items CASCADE;
   DROP TABLE IF EXISTS messages CASCADE;
   DROP TABLE IF EXISTS conversations CASCADE;
+  DROP TABLE IF EXISTS consultations CASCADE;
   DROP TABLE IF EXISTS admin_notifications CASCADE;
   DROP TABLE IF EXISTS announcements CASCADE;
   DROP TABLE IF EXISTS detections CASCADE;
@@ -48,6 +49,19 @@ CREATE TABLE IF NOT EXISTS otps (
   email VARCHAR(255) NOT NULL,
   otp VARCHAR(10) NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS consultations (
+  id SERIAL PRIMARY KEY,
+  farmer_id INT REFERENCES users(id) ON DELETE CASCADE,
+  vet_id INT REFERENCES users(id) ON DELETE CASCADE,
+  type VARCHAR(50) NOT NULL, -- 'online_chat', 'physical_appointment'
+  status VARCHAR(50) DEFAULT 'pending', -- 'pending', 'approved', 'rejected', 'completed'
+  ai_record_data JSON,
+  appointment_date TIMESTAMP,
+  reason TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS pharmacies (

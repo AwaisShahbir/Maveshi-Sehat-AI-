@@ -1898,6 +1898,85 @@ io.on('connection', (socket) => {
   });
 });
 
+// --- CONSULTATION WORKFLOW --- //
+
+app.post('/api/consultations', async (req, res) => {
+  try {
+    const { farmer_id, vet_id, type, ai_record_data, appointment_date, reason } = req.body;
+    
+    if (!farmer_id || !vet_id || !type) {
+      return res.status(400).json({ error: 'farmer_id, vet_id, and type are required' });
+    }
+
+    const result = await pool.query(
+      `INSERT INTO consultations (farmer_id, vet_id, type, ai_record_data, appointment_date, reason)
+       VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+      [farmer_id, vet_id, type, ai_record_data ? JSON.stringify(ai_record_data) : null, appointment_date, reason]
+    );
+
+    res.status(201).json({ success: true, consultation: result.rows[0] });
+  } catch (err) {
+    console.error('Error creating consultation:', err);
+    res.status(500).json({ error: 'Failed to create consultation request' });
+  }
+});
+
+app.get('/api/consultations/farmer/:id', async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT c.*, u.full_name as vet_name, u.specialization as vet_specialization 
+       FROM consultations c 
+       JOIN users u ON c.vet_id = u.id 
+       WHERE c.farmer_id = $1 ORDER BY c.created_at DESC`,
+      [req.params.id]
+    );
+    res.json({ success: true, consultations: result.rows });
+  } catch (err) {
+    console.error('Error fetching farmer consultations:', err);
+    res.status(500).json({ error: 'Failed to fetch consultations' });
+  }
+});
+
+app.get('/api/consultations/vet/:id', async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT c.*, u.full_name as farmer_name, u.phone_number as farmer_phone 
+       FROM consultations c 
+       JOIN users u ON c.farmer_id = u.id 
+       WHERE c.vet_id = $1 ORDER BY c.created_at DESC`,
+      [req.params.id]
+    );
+    res.json({ success: true, consultations: result.rows });
+  } catch (err) {
+    console.error('Error fetching vet consultations:', err);
+    res.status(500).json({ error: 'Failed to fetch consultations' });
+  }
+});
+
+app.put('/api/consultations/:id/status', async (req, res) => {
+  try {
+    const { status } = req.body;
+    if (!['pending', 'approved', 'rejected', 'completed'].includes(status)) {
+      return res.status(400).json({ error: 'Invalid status' });
+    }
+
+    const result = await pool.query(
+      `UPDATE consultations SET status = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 RETURNING *`,
+      [status, req.params.id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Consultation not found' });
+    }
+
+    res.json({ success: true, consultation: result.rows[0] });
+  } catch (err) {
+    console.error('Error updating consultation status:', err);
+    res.status(500).json({ error: 'Failed to update consultation' });
+  }
+});
+
+
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);

@@ -179,10 +179,18 @@ export default function DashboardScreen() {
 
             <TouchableOpacity style={styles.actionItem} onPress={() => navigation.navigate('VeterinariansList', { userName, userId })}>
               <View style={[styles.iconBox, { backgroundColor: '#E8F8EA' }]}>
-                <Feather name="message-square" size={26} color="#4CB85C" />
+                <Feather name="users" size={26} color="#4CB85C" />
               </View>
-              <Text style={styles.actionText}>{t('Vet Chat', 'ڈاکٹر چیٹ')}</Text>
+              <Text style={styles.actionText}>{t('Veterinarians', 'ڈاکٹرز')}</Text>
               <Text style={styles.actionUrdu}>ڈاکٹر</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.actionItem} onPress={() => navigation.navigate('MyConsultations')}>
+              <View style={[styles.iconBox, { backgroundColor: '#E8F8EA' }]}>
+                <Feather name="calendar" size={26} color="#4CB85C" />
+              </View>
+              <Text style={styles.actionText}>{t('Consultations', 'مشاورت')}</Text>
+              <Text style={styles.actionUrdu}>مشاورت</Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.actionItem} onPress={() => navigation.navigate('HeatAlert', { userName, userId })}>

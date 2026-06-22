@@ -13,13 +13,15 @@ import {
   StatusBar, 
   ActivityIndicator, 
   KeyboardAvoidingView, 
-  Platform 
+  Platform,
+  Alert
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Feather from 'react-native-vector-icons/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import io from 'socket.io-client';
+import { pick, types, isCancel } from '@react-native-documents/picker';
 
 
 const MOCK_SYMPTOM_IMAGES = [
@@ -44,6 +46,7 @@ export default function ChatScreen() {
   const [ourUserId, setOurUserId] = useState(null);
   const [imageModalVisible, setImageModalVisible] = useState(false);
   const [prescriptionModalVisible, setPrescriptionModalVisible] = useState(false);
+  const [selectedAttachmentUri, setSelectedAttachmentUri] = useState(null);
 
   
   const [diagnosis, setDiagnosis] = useState('');
@@ -52,7 +55,7 @@ export default function ChatScreen() {
 
   const socketRef = useRef(null);
   const flatListRef = useRef(null);
-  const baseUrl = Platform.OS === 'android' ? 'http://10.0.2.2:5000' : 'http://localhost:5000';
+  const baseUrl = Platform.OS === 'android' ? 'http://localhost:5000' : 'http://localhost:5000';
 
   useEffect(() => {
     
@@ -125,25 +128,35 @@ export default function ChatScreen() {
   useEffect(() => {
     if (params.initialRecord && !inputText) {
       const rec = params.initialRecord;
-      const initialText = `AI Disease Detection Report:\nAnimal: ${rec.animalType} (${rec.animalId})\nDisease: ${rec.disease}\nConfidence: ${rec.confidence}\nRisk Level: ${rec.risk}`;
+      const animalType = rec.animalType || 'Livestock';
+      const animalId = rec.animalId || rec.generatedAnimalId || 'Unknown';
+      const disease = rec.disease || rec.status || 'Unknown';
+      const risk = rec.risk || rec.severity || 'Unknown';
+      
+      const initialText = `AI Disease Detection Report:\nAnimal: ${animalType} (${animalId})\nDisease: ${disease}\nConfidence: ${rec.confidence || 'N/A'}\nRisk Level: ${risk}`;
       setInputText(initialText);
+      
+      if (rec.uri) {
+        setSelectedAttachmentUri(rec.uri);
+      }
     }
   }, [params.initialRecord]);
 
   const handleSendMessage = (text = '', imageUrl = null, isPrescription = false, prescriptionData = null) => {
     const finalMsg = text.trim();
-    if (!finalMsg && !imageUrl && !isPrescription) return;
+    if (!finalMsg && !imageUrl && !isPrescription && !selectedAttachmentUri) return;
 
     if (socketRef.current && ourUserId) {
       socketRef.current.emit('send_message', {
         conversationId,
         senderId: ourUserId,
         message: finalMsg || null,
-        imageUrl: imageUrl || null,
+        imageUrl: imageUrl || selectedAttachmentUri || null,
         isPrescription,
         prescriptionData
       });
       setInputText('');
+      setSelectedAttachmentUri(null);
     }
   };
 
@@ -151,9 +164,57 @@ export default function ChatScreen() {
     handleSendMessage(inputText);
   };
 
+  const handleAttachmentSelect = () => {
+    Alert.alert(
+      'Attach Image',
+      'Choose a source',
+      [
+        {
+          text: 'Camera',
+          onPress: () => {
+            import('react-native-image-picker').then(({ launchCamera }) => {
+              launchCamera({ mediaType: 'photo', quality: 0.8 }, (res) => {
+                if (res.assets && res.assets.length > 0) setSelectedAttachmentUri(res.assets[0].uri);
+              });
+            }).catch(() => setImageModalVisible(true));
+          }
+        },
+        {
+          text: 'Gallery',
+          onPress: () => {
+            import('react-native-image-picker').then(({ launchImageLibrary }) => {
+              launchImageLibrary({ mediaType: 'photo', quality: 0.8 }, (res) => {
+                if (res.assets && res.assets.length > 0) setSelectedAttachmentUri(res.assets[0].uri);
+              });
+            }).catch(() => setImageModalVisible(true));
+          }
+        },
+        {
+          text: 'Document',
+          onPress: async () => {
+            try {
+              const res = await pick({
+                type: [types.allFiles],
+              });
+              if (res && res.length > 0) {
+                setSelectedAttachmentUri(res[0].uri);
+              }
+            } catch (err) {
+              if (!isCancel(err)) {
+                Alert.alert('Error', 'Failed to pick document');
+              }
+            }
+          }
+        },
+        { text: 'Cancel', style: 'cancel' }
+      ],
+      { cancelable: true }
+    );
+  };
+
   const handleSendMockImage = (imageUrl) => {
     setImageModalVisible(false);
-    handleSendMessage('', imageUrl);
+    setSelectedAttachmentUri(imageUrl);
   };
 
   
@@ -369,13 +430,25 @@ export default function ChatScreen() {
               </Text>
             </View>
           ) : (
-            <View style={[styles.inputContainer, { paddingBottom: Math.max(insets.bottom, 10) }]}>
-              <TouchableOpacity 
-                style={styles.iconButton} 
-                onPress={() => setImageModalVisible(true)}
-              >
-                <Feather name="paperclip" size={22} color="#4CB85C" style={{ transform: [{ rotate: '-45deg' }] }} />
-              </TouchableOpacity>
+            <View style={{ paddingBottom: Math.max(insets.bottom, 10) }}>
+              {selectedAttachmentUri && (
+                <View style={styles.attachmentPreviewContainer}>
+                  <Image source={{ uri: selectedAttachmentUri }} style={styles.attachmentPreviewImage} />
+                  <TouchableOpacity 
+                    style={styles.attachmentRemoveBtn} 
+                    onPress={() => setSelectedAttachmentUri(null)}
+                  >
+                    <Feather name="x" size={14} color="#FFF" />
+                  </TouchableOpacity>
+                </View>
+              )}
+              <View style={styles.inputContainer}>
+                <TouchableOpacity 
+                  style={styles.iconButton} 
+                  onPress={handleAttachmentSelect}
+                >
+                  <Feather name="paperclip" size={22} color="#4CB85C" style={{ transform: [{ rotate: '-45deg' }] }} />
+                </TouchableOpacity>
 
               {userRole === 'vet' && (
                 <TouchableOpacity 
@@ -395,13 +468,14 @@ export default function ChatScreen() {
                 multiline
               />
 
-              <TouchableOpacity 
-                style={[styles.sendButton, !inputText.trim() && styles.sendButtonDisabled]} 
-                onPress={handleSendText}
-                disabled={!inputText.trim()}
-              >
-                <Feather name="send" size={18} color="#FFF" />
-              </TouchableOpacity>
+                <TouchableOpacity 
+                  style={[styles.sendButton, (!inputText.trim() && !selectedAttachmentUri) && styles.sendButtonDisabled]} 
+                  onPress={handleSendText}
+                  disabled={!inputText.trim() && !selectedAttachmentUri}
+                >
+                  <Feather name="send" size={18} color="#FFF" />
+                </TouchableOpacity>
+              </View>
             </View>
           )}
         </KeyboardAvoidingView>
@@ -924,5 +998,30 @@ const styles = StyleSheet.create({
     color: '#FFF',
     fontSize: 14,
     fontWeight: 'bold',
+  },
+  attachmentPreviewContainer: {
+    padding: 10,
+    backgroundColor: '#FFF',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
+    flexDirection: 'row',
+  },
+  attachmentPreviewImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 8,
+  },
+  attachmentRemoveBtn: {
+    position: 'absolute',
+    top: 5,
+    left: 60,
+    backgroundColor: '#FF3B30',
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });

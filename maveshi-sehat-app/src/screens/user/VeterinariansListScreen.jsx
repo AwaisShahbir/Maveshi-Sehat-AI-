@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   View, Text, StyleSheet, SafeAreaView, FlatList, TextInput, 
-  TouchableOpacity, StatusBar, ActivityIndicator, Platform, Alert, Image
+  TouchableOpacity, StatusBar, ActivityIndicator, Platform, Alert, Image, Modal
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
@@ -17,12 +17,18 @@ export default function VeterinariansListScreen() {
 
   const [profile, setProfile] = useState(getProfile());
   const userName = profile.userName || params.userName || 'Awais shabbir ';
-  const userId = params.userId || 1;
+  const userId = profile.userId || params.userId || 2;
 
   const [vets, setVets] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [consultModalVisible, setConsultModalVisible] = useState(false);
+  const [selectedVet, setSelectedVet] = useState(null);
+  const [consultType, setConsultType] = useState('online_chat'); // 'online_chat' or 'physical_appointment'
+  const [appointmentDate, setAppointmentDate] = useState('');
+  const [appointmentTime, setAppointmentTime] = useState('');
+  const [reason, setReason] = useState('');
 
   useEffect(() => {
     const unsubscribeProfile = subscribeProfile((updatedProfile) => {
@@ -33,7 +39,7 @@ export default function VeterinariansListScreen() {
 
   const fetchVets = async () => {
     try {
-      const baseUrl = Platform.OS === 'android' ? 'http://10.0.2.2:5000' : 'http://localhost:5000';
+      const baseUrl = Platform.OS === 'android' ? 'http://localhost:5000' : 'http://localhost:5000';
       const url = `${baseUrl}/api/vets?ownerName=${encodeURIComponent(userName)}`;
       const response = await fetch(url);
       if (!response.ok) {
@@ -58,37 +64,57 @@ export default function VeterinariansListScreen() {
     fetchVets();
   };
 
-  const handleChatNow = async (vet) => {
+  const openConsultModal = (vet, type) => {
+    setSelectedVet(vet);
+    setConsultType(type);
+    setConsultModalVisible(true);
+  };
+
+  const submitConsultationRequest = async () => {
+    if (!reason.trim()) {
+      Alert.alert('Required', 'Please provide a reason for the consultation.');
+      return;
+    }
+    if (consultType === 'physical_appointment' && (!appointmentDate || !appointmentTime)) {
+      Alert.alert('Required', 'Please provide both date and time for the physical appointment.');
+      return;
+    }
+
     try {
       setLoading(true);
-      const baseUrl = Platform.OS === 'android' ? 'http://10.0.2.2:5000' : 'http://localhost:5000';
-      const response = await fetch(`${baseUrl}/api/chat/conversation`, {
+      const baseUrl = Platform.OS === 'android' ? 'http://localhost:5000' : 'http://localhost:5000';
+      const response = await fetch(`${baseUrl}/api/consultations`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          farmerId: userId,
-          farmerName: userName,
-          vetId: vet.id
+          farmer_id: userId,
+          vet_id: selectedVet.id,
+          type: consultType,
+          reason: reason,
+          appointment_date: consultType === 'physical_appointment' ? `${appointmentDate} ${appointmentTime}` : null,
+          ai_record_data: params.initialRecord || null
         })
       });
 
       const data = await response.json();
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to start conversation');
+        throw new Error(data.error || 'Failed to request consultation');
       }
 
-      navigation.navigate('Chat', {
-        conversationId: data.id,
-        partnerName: vet.full_name,
-        partnerRole: 'vet',
-        userName: userName,
-        userRole: 'farmer',
-        vetId: vet.id,
-        initialRecord: params.initialRecord || null
-      });
+      setConsultModalVisible(false);
+      setReason('');
+      setAppointmentDate('');
+      setAppointmentTime('');
+      
+      Alert.alert(
+        'Request Sent / درخواست بھیج دی گئی',
+        'Your request has been sent to the vet. You can track its status in your Consultations dashboard.',
+        [{ text: 'OK', onPress: () => navigation.navigate('Dashboard') }]
+      );
+      
     } catch (error) {
-      console.error('Error starting conversation:', error);
-      Alert.alert(t('Error', 'خرابی'), t('Could not start consultation. Please try again.', 'مشاورت شروع نہیں کی جا سکی۔ براہ کرم دوبارہ کوشش کریں۔'));
+      console.error('Error submitting consultation:', error);
+      Alert.alert('Error', 'Could not send request. Please try again later.');
     } finally {
       setLoading(false);
     }
@@ -157,19 +183,15 @@ export default function VeterinariansListScreen() {
         </View>
 
         <View style={styles.actionButtonsRow}>
-          <TouchableOpacity style={styles.chatBtn} onPress={() => handleChatNow(item)}>
+          <TouchableOpacity style={styles.chatBtn} onPress={() => openConsultModal(item, 'online_chat')}>
             <Feather name="message-square" size={16} color="#FFF" style={{ marginRight: 8 }} />
-            <Text style={styles.chatBtnText}>Chat Now</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.callBtn}>
-            <Feather name="phone" size={16} color="#58D66D" style={{ marginRight: 8 }} />
-            <Text style={styles.callBtnText}>Call</Text>
+            <Text style={styles.chatBtnText}>Req. Online Consult</Text>
           </TouchableOpacity>
         </View>
 
-        <TouchableOpacity style={styles.bookBtn}>
+        <TouchableOpacity style={styles.bookBtn} onPress={() => openConsultModal(item, 'physical_appointment')}>
           <Feather name="calendar" size={16} color="#D98A22" style={{ marginRight: 8 }} />
-          <Text style={styles.bookBtnText}>Book Appointment / ملاقات بک کریں</Text>
+          <Text style={styles.bookBtnText}>Book Physical Appointment</Text>
         </TouchableOpacity>
       </View>
     );
@@ -227,6 +249,67 @@ export default function VeterinariansListScreen() {
           </TouchableOpacity>
         </View>
       )}
+      {/* Consultation Request Modal */}
+      <Modal visible={consultModalVisible} transparent={true} animationType="slide">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>
+              {consultType === 'online_chat' ? 'Request Online Consult' : 'Book Physical Appointment'}
+            </Text>
+            <Text style={styles.modalSubtitle}>with Dr. {selectedVet?.full_name?.replace('Dr. ', '')}</Text>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>Reason for Consultation:</Text>
+              <TextInput
+                style={[styles.textInput, { height: 80, textAlignVertical: 'top' }]}
+                placeholder="Describe your animal's issue..."
+                value={reason}
+                onChangeText={setReason}
+                multiline
+              />
+            </View>
+
+            {consultType === 'physical_appointment' && (
+              <>
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>Date (e.g. YYYY-MM-DD):</Text>
+                  <TextInput
+                    style={styles.textInput}
+                    placeholder="2023-10-15"
+                    value={appointmentDate}
+                    onChangeText={setAppointmentDate}
+                  />
+                </View>
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>Time (e.g. 14:30):</Text>
+                  <TextInput
+                    style={styles.textInput}
+                    placeholder="14:30"
+                    value={appointmentTime}
+                    onChangeText={setAppointmentTime}
+                  />
+                </View>
+              </>
+            )}
+
+            {params.initialRecord && (
+              <View style={styles.aiRecordNotice}>
+                <Feather name="info" size={16} color="#0056b3" style={{ marginRight: 6 }} />
+                <Text style={styles.aiRecordNoticeText}>AI Scan Report will be attached automatically.</Text>
+              </View>
+            )}
+
+            <View style={styles.modalButtons}>
+              <TouchableOpacity style={styles.cancelBtn} onPress={() => setConsultModalVisible(false)}>
+                <Text style={styles.cancelBtnText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.submitBtn} onPress={submitConsultationRequest}>
+                <Text style={styles.submitBtnText}>Submit Request</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -358,6 +441,96 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: 8,
+  },
+  loader: {
+    marginTop: 50,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: '#FFF',
+    width: '100%',
+    borderRadius: 20,
+    padding: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 10,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 4,
+  },
+  modalSubtitle: {
+    fontSize: 16,
+    color: '#666',
+    marginBottom: 20,
+  },
+  inputGroup: {
+    marginBottom: 16,
+  },
+  inputLabel: {
+    fontSize: 14,
+    color: '#444',
+    marginBottom: 8,
+    fontWeight: '500',
+  },
+  textInput: {
+    backgroundColor: '#F5F7FA',
+    borderRadius: 12,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    fontSize: 15,
+  },
+  aiRecordNotice: {
+    flexDirection: 'row',
+    backgroundColor: '#cce5ff',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 20,
+    alignItems: 'center',
+  },
+  aiRecordNoticeText: {
+    color: '#0056b3',
+    fontSize: 13,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 10,
+  },
+  cancelBtn: {
+    flex: 1,
+    padding: 14,
+    borderRadius: 12,
+    backgroundColor: '#F5F5F5',
+    marginRight: 8,
+    alignItems: 'center',
+  },
+  cancelBtnText: {
+    color: '#666',
+    fontWeight: 'bold',
+  },
+  submitBtn: {
+    flex: 1,
+    padding: 14,
+    borderRadius: 12,
+    backgroundColor: '#58D66D',
+    marginLeft: 8,
+    alignItems: 'center',
+  },
+  submitBtnText: {
+    color: '#FFF',
+    fontWeight: 'bold',
   },
   ratingContainer: {
     flexDirection: 'row',
