@@ -843,6 +843,7 @@ app.post('/api/pharmacy/login', async (req, res) => {
 
 
 async function simulateOrdersIfEmpty(pharmacyId) {
+  return; // Disabled simulation to allow fully blank, functional portal state.
   try {
     
     const orderCheck = await pool.query("SELECT COUNT(*) FROM orders WHERE pharmacy_id = $1", [pharmacyId]);
