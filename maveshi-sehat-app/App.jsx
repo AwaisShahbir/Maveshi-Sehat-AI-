@@ -2,7 +2,7 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
-
+import SplashScreen from './src/screens/shared/SplashScreen';
 import WelcomeScreen from './src/screens/shared/WelcomeScreen';
 import LoginScreen from './src/screens/shared/LoginScreen';
 import RegisterScreen from './src/screens/shared/RegisterScreen';
@@ -20,13 +20,15 @@ import HealthRecordsScreen from './src/screens/user/HealthRecordsScreen';
 import ProfileScreen from './src/screens/user/ProfileScreen';
 import MarketplaceScreen from './src/screens/user/MarketplaceScreen';
 import CartScreen from './src/screens/user/CartScreen';
+import VaccinationScreen from './src/screens/user/VaccinationScreen';
 
 const Stack = createNativeStackNavigator();
 
 export default function App() {
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="Welcome" screenOptions={{ headerShown: false }}>
+      <Stack.Navigator initialRouteName="Splash" screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="Splash" component={SplashScreen} />
         <Stack.Screen name="Welcome" component={WelcomeScreen} />
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="Register" component={RegisterScreen} />
@@ -34,6 +36,7 @@ export default function App() {
         <Stack.Screen name="Dashboard" component={DashboardScreen} />
         <Stack.Screen name="AiScan" component={AiScanScreen} />
         <Stack.Screen name="HealthRecords" component={HealthRecordsScreen} />
+        <Stack.Screen name="Vaccination" component={VaccinationScreen} />
         <Stack.Screen name="Profile" component={ProfileScreen} />
         <Stack.Screen name="Marketplace" component={MarketplaceScreen} />
         <Stack.Screen name="Cart" component={CartScreen} />
