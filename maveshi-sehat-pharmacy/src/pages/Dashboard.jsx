@@ -9,6 +9,7 @@ import Profile from './Profile';
 import Analytics from './Analytics';
 import AddMedicine from './AddMedicine';
 import StockAlerts from './StockAlerts';
+import logoImg from '../assets/logo.png';
 
 export default function Dashboard({ pharmacy, onLogout }) {
   const [currentView, setCurrentView] = useState('dashboard'); 
@@ -97,31 +98,30 @@ export default function Dashboard({ pharmacy, onLogout }) {
       
       <aside className="w-[280px] bg-[#135431] border-r border-[#0e3a22] flex flex-col h-screen sticky top-0 z-50">
         <div className="flex items-center gap-3 p-6 border-b border-[#0e3a22]/60">
-          <div className="w-9 h-9 rounded-lg bg-[#3da860]/10 flex items-center justify-center border-[1.5px] border-[#3da860]">
-            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#3da860" strokeWidth="2.5">
-              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-              <path d="M12 8v8M8 12h8" strokeWidth="3" />
-            </svg>
-          </div>
+          <img 
+            src={logoImg} 
+            alt="Maveshi Sehat AI Logo" 
+            style={{ width: '38px', height: '38px', borderRadius: '50%', objectFit: 'cover', border: '2px solid rgba(255,255,255,0.2)' }} 
+          />
           <div>
             <span className="font-heading text-sm font-extrabold text-white block leading-tight">Maveshi Sehat AI</span>
-            <span className="text-[11px] text-[#3da860] font-bold block mt-0.5">Pharmacy Portal / پورٹل</span>
+            <span className="text-[11px] text-[#c5dbd0] font-bold block mt-0.5">Pharmacy Portal / پورٹل</span>
           </div>
         </div>
 
         <div className="flex items-center gap-3 px-6 py-5 border-b border-[#0e3a22]/60 bg-black/10">
-          <div className="w-10 h-10 rounded-full bg-[#3da860]/10 border border-[#3da860] text-[#3da860] flex items-center justify-center">
+          <div className="w-10 h-10 rounded-full bg-[#3da860] text-white flex items-center justify-center">
             <Store size={20} />
           </div>
           <div>
             <span className="text-sm font-bold text-white block">{pharmacy.name}</span>
-            <span className="text-[11px] text-[#3da860] font-semibold block mt-0.5">Verified / تصدیق شدہ</span>
+            <span className="text-[11px] text-[#c5dbd0] font-semibold block mt-0.5">Verified / تصدیق شدہ</span>
           </div>
         </div>
 
         <nav className="flex-1 overflow-y-auto py-5">
           <div className="mb-5">
-            <span className="block text-[10px] font-extrabold text-[#3da860]/75 px-6 mb-2.5 tracking-wider">OVERVIEW</span>
+            <span className="block text-[10px] font-extrabold text-[#c5dbd0]/75 px-6 mb-2.5 tracking-wider">OVERVIEW</span>
             <ul className="list-none flex flex-col gap-1.5">
               <li>
                 <button 
@@ -159,7 +159,7 @@ export default function Dashboard({ pharmacy, onLogout }) {
           </div>
 
           <div className="mb-5">
-            <span className="block text-[10px] font-extrabold text-[#3da860]/75 px-6 mb-2.5 tracking-wider">MEDICINES / دوائیں</span>
+            <span className="block text-[10px] font-extrabold text-[#c5dbd0]/75 px-6 mb-2.5 tracking-wider">MEDICINES / دوائیں</span>
             <ul className="list-none flex flex-col gap-1.5">
               <li>
                 <button 
@@ -220,7 +220,7 @@ export default function Dashboard({ pharmacy, onLogout }) {
           </div>
 
           <div className="mb-5">
-            <span className="block text-[10px] font-extrabold text-[#3da860]/75 px-6 mb-2.5 tracking-wider">ORDERS / آرڈرز</span>
+            <span className="block text-[10px] font-extrabold text-[#c5dbd0]/75 px-6 mb-2.5 tracking-wider">ORDERS / آرڈرز</span>
             <ul className="list-none flex flex-col gap-1.5">
               <li>
                 <button 
@@ -245,7 +245,7 @@ export default function Dashboard({ pharmacy, onLogout }) {
           </div>
 
           <div className="mb-5">
-            <span className="block text-[10px] font-extrabold text-[#3da860]/75 px-6 mb-2.5 tracking-wider">ACCOUNT / اکاؤنٹ</span>
+            <span className="block text-[10px] font-extrabold text-[#c5dbd0]/75 px-6 mb-2.5 tracking-wider">ACCOUNT / اکاؤنٹ</span>
             <ul className="list-none flex flex-col gap-1.5">
               <li>
                 <button 
@@ -279,15 +279,13 @@ export default function Dashboard({ pharmacy, onLogout }) {
           </div>
         </nav>
 
-        <div className="p-4 px-6 border-t border-[#0e3a22]/60">
+        <div className="p-4 border-t border-[#0e3a22]/60">
           <button 
-            className="flex items-center gap-3 px-4 py-2.5 bg-transparent border border-[#0e3a22] text-red-400 rounded-lg cursor-pointer w-full hover:bg-red-500/10 transition-all duration-200" 
+            className="flex items-center gap-3.5 mx-3 px-4 py-2.5 w-[calc(100%-24px)] text-left cursor-pointer text-sm font-bold bg-transparent border border-white/15 text-[#ff5c5c] hover:text-[#ff3333] hover:bg-red-500/10 hover:border-red-500/30 rounded-full transition-all duration-200" 
             onClick={onLogout}
           >
-            <LogOut size={16} />
-            <div className="flex flex-col items-start">
-              <span className="text-xs font-semibold">Logout / لاگ آوٹ</span>
-            </div>
+            <LogOut size={18} className="text-[#ff5c5c] shrink-0" />
+            <span>لاگ آؤٹ / Logout</span>
           </button>
         </div>
       </aside>

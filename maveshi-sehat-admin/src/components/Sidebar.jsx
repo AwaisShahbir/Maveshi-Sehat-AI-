@@ -136,10 +136,7 @@ export default function Sidebar({ onLogout }) {
       <div className="sidebar-footer">
         <button className="logout-btn" onClick={onLogout}>
           <LogOut className="logout-icon" size={18} />
-          <div className="menu-labels">
-            <span className="label-en">Logout</span>
-            <span className="label-ur">لاگ آؤٹ / Logout</span>
-          </div>
+          <span className="logout-text">لاگ آؤٹ / Logout</span>
         </button>
       </div>
     </div>
