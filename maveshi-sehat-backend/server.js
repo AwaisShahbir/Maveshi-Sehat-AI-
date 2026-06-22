@@ -450,7 +450,25 @@ app.get('/api/admin/dashboard-stats', async (req, res) => {
     const pendingVetsList = await pool.query("SELECT id, full_name, pvmc_number, status, role FROM users WHERE role = 'vet' AND status = 'pending' LIMIT 3");
     const pendingPharmaciesList = await pool.query("SELECT id, name, license_number, status FROM pharmacies WHERE status = 'pending' LIMIT 3");
 
-    
+    const trendRes = await pool.query(`
+      SELECT 
+        TO_CHAR(created_at, 'DD Mon') as day_name,
+        SUM(CASE WHEN disease = 'LSD' THEN 1 ELSE 0 END)::int as lsd_count,
+        SUM(CASE WHEN disease = 'FMD' THEN 1 ELSE 0 END)::int as fmd_count,
+        SUM(CASE WHEN disease IN ('Tick', 'Lice', 'Mites') THEN 1 ELSE 0 END)::int as tick_count,
+        DATE_TRUNC('day', created_at) as day_date
+      FROM detections
+      GROUP BY TO_CHAR(created_at, 'DD Mon'), DATE_TRUNC('day', created_at)
+      ORDER BY day_date DESC
+      LIMIT 7
+    `);
+    const trendData = trendRes.rows.reverse().map(row => ({
+      name: row.day_name,
+      LSD: row.lsd_count,
+      FMD: row.fmd_count,
+      Tick: row.tick_count
+    }));
+
     const systemStatus = [
       { name: 'Backend API', status: 'Operational', uptime: '99.8%' },
       { name: 'AI Server', status: 'Operational', uptime: '99.7%' },
@@ -470,7 +488,8 @@ app.get('/api/admin/dashboard-stats', async (req, res) => {
         vets: pendingVetsList.rows,
         pharmacies: pendingPharmaciesList.rows
       },
-      systemStatus
+      systemStatus,
+      trendData
     });
   } catch (err) {
     console.error(err);

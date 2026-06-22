@@ -89,13 +89,7 @@ export default function VetVerification() {
 
   const filteredVets = vets.filter(v => v.status === activeTab || (activeTab === 'pending' && v.status === 'info_requested'));
 
-  const displayVets = filteredVets.length > 0 ? filteredVets : (
-    activeTab === 'pending' ? [
-      { id: '1', full_name: 'Dr. Muhammad Aslam', specialization: 'Large Animal Specialist', pvmc_number: 'PVMC-2023-4521', phone_number: '0311-4567890', district: 'Lahore, Punjab', experience_years: 8, created_at: Date.now() - 259200000, status: 'pending', role_urdu: 'ڈاکٹر محمد اسلم' },
-      { id: '2', full_name: 'Dr. Sara Ahmed', specialization: 'Dairy Cattle Expert', pvmc_number: 'PVMC-2024-1102', phone_number: '0322-3456789', district: 'Karachi, Sindh', experience_years: 5, created_at: Date.now() - 432000000, status: 'pending', role_urdu: 'ڈاکٹر سارہ احمد' },
-      { id: '3', full_name: 'Dr. Hassan Ali', specialization: 'Buffalo & Goat Care', pvmc_number: 'PVMC-2023-8834', phone_number: '0333-2345678', district: 'Multan, Punjab', experience_years: 6, created_at: Date.now() - 604800000, status: 'pending', role_urdu: 'ڈاکٹر حسن علی' }
-    ] : []
-  );
+  const displayVets = filteredVets;
 
   return (
     <div className="vet-verification-view">
@@ -116,7 +110,7 @@ export default function VetVerification() {
           }}
           onClick={() => setActiveTab('pending')}
         >
-          Pending ({(vets.length !== 0) ? vets.filter(v => v.status === 'pending' || v.status === 'info_requested').length : 6})
+          Pending ({vets.filter(v => v.status === 'pending' || v.status === 'info_requested').length})
         </button>
         <button 
           className={`tab-btn ${activeTab === 'verified' ? 'active' : ''}`}
@@ -133,7 +127,7 @@ export default function VetVerification() {
           }}
           onClick={() => setActiveTab('verified')}
         >
-          Verified ({(vets.length !== 0) ? vets.filter(v => v.status === 'verified').length : 28})
+          Verified ({vets.filter(v => v.status === 'verified').length})
         </button>
         <button 
           className={`tab-btn ${activeTab === 'rejected' ? 'active' : ''}`}
@@ -150,7 +144,7 @@ export default function VetVerification() {
           }}
           onClick={() => setActiveTab('rejected')}
         >
-          Rejected ({(vets.length !== 0) ? vets.filter(v => v.status === 'rejected').length : 4})
+          Rejected ({vets.filter(v => v.status === 'rejected').length})
         </button>
       </div>
 

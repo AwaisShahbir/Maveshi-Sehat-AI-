@@ -1,42 +1,47 @@
-import React, { useState } from 'react';
-import { Eye, Download, Search, FileDown, Calendar, AlertCircle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Eye, Download, Search, FileDown, RefreshCw } from 'lucide-react';
 
 export default function HealthRecords() {
+  const [records, setRecords] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [diseaseFilter, setDiseaseFilter] = useState('all');
   const [riskFilter, setRiskFilter] = useState('all');
   const [dateFilter, setDateFilter] = useState('');
 
-  const records = [
-    { id: 'HR-1047', owner: 'Ahmad Khan', animal: 'Cow', disease: 'LSD', confidence: 87, risk: 'High', vet: 'Dr. Rahim', status: 'Resolved', date: '12 May 2025' },
-    { id: 'HR-1046', owner: 'Zahid Ali', animal: 'Buffalo', disease: 'Tick', confidence: 74, risk: 'Medium', vet: 'Pending', status: 'Pending Vet', date: '08 May 2025' },
-    { id: 'HR-1045', owner: 'Fatima Bibi', animal: 'Cow', disease: 'FMD', confidence: 91, risk: 'High', vet: 'Dr. Sara', status: 'Resolved', date: '03 May 2025' },
-    { id: 'HR-1044', owner: 'Arif Hussain', animal: 'Goat', disease: 'BCS Normal', confidence: 98, risk: 'Low', vet: '—', status: 'Active/Unresolved', date: '01 May 2025' },
-    { id: 'HR-1043', owner: 'Nasir Mehmood', animal: 'Cow', disease: 'LSD', confidence: 83, risk: 'High', vet: 'Dr. Rahim', status: 'Resolved', date: '28 Apr 2025' },
-    { id: 'HR-1042', owner: 'Hassan Ali', animal: 'Buffalo', disease: 'Mastitis', confidence: 79, risk: 'Medium', vet: 'Dr. Amjad', status: 'Resolved', date: '25 Apr 2025' },
-    { id: 'HR-1041', owner: 'Saima Bibi', animal: 'Goat', disease: 'PPR', confidence: 88, risk: 'High', vet: 'Dr. Amjad', status: 'Resolved', date: '22 Apr 2025' },
-    { id: 'HR-1040', owner: 'Khalid Mahmood', animal: 'Cow', disease: 'Healthy', confidence: 96, risk: 'Low', vet: '—', status: 'Active/Unresolved', date: '20 Apr 2025' },
-    { id: 'HR-1039', owner: 'Nadia Ahmed', animal: 'Buffalo', disease: 'FMD', confidence: 85, risk: 'High', vet: 'Dr. Hassan', status: 'Resolved', date: '18 Apr 2025' },
-    { id: 'HR-1038', owner: 'Tariq Raza', animal: 'Goat', disease: 'Tick', confidence: 72, risk: 'Medium', vet: 'Pending', status: 'Pending Vet', date: '15 Apr 2025' },
-    { id: 'HR-1037', owner: 'Ayesha Khan', animal: 'Cow', disease: 'BCS Normal', confidence: 94, risk: 'Low', vet: '—', status: 'Active/Unresolved', date: '12 Apr 2025' },
-    { id: 'HR-1036', owner: 'Haroon Siddiqui', animal: 'Buffalo', disease: 'LSD', confidence: 89, risk: 'High', vet: 'Dr. Bilal', status: 'Resolved', date: '10 Apr 2025' }
-  ];
+  const fetchRecords = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch('http://localhost:5000/api/admin/health-records');
+      if (res.ok) {
+        const data = await res.json();
+        setRecords(data);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchRecords();
+  }, []);
 
   const handleExport = () => {
     alert('Exporting health records database... / ریکارڈز برآمد ہو رہے ہیں...');
   };
 
   const filteredRecords = records.filter(rec => {
-    
     if (diseaseFilter !== 'all' && rec.disease !== diseaseFilter) return false;
-    if (riskFilter !== 'all' && rec.risk !== riskFilter) return false;
-    
-    
+    if (riskFilter !== 'all' && rec.risk_level !== riskFilter) return false;
+    if (dateFilter && new Date(rec.created_at).toISOString().split('T')[0] !== dateFilter) return false;
+
     const query = searchQuery.toLowerCase();
-    const ownerMatch = rec.owner.toLowerCase().includes(query);
-    const diseaseMatch = rec.disease.toLowerCase().includes(query);
-    const animalMatch = rec.animal.toLowerCase().includes(query);
-    const idMatch = rec.id.toLowerCase().includes(query);
+    const ownerMatch = rec.owner_name?.toLowerCase().includes(query);
+    const diseaseMatch = rec.disease?.toLowerCase().includes(query);
+    const animalMatch = rec.animal_type?.toLowerCase().includes(query);
+    const idMatch = String(rec.id).toLowerCase().includes(query);
 
     return ownerMatch || diseaseMatch || animalMatch || idMatch;
   });
@@ -61,10 +66,10 @@ export default function HealthRecords() {
   const getStatusBadge = (status) => {
     let bgColor = '#eff7f2';
     let color = '#3da860';
-    if (status === 'Pending Vet') {
+    if (status === 'Pending Vet' || status === 'Pending') {
       bgColor = '#fff3e0';
       color = '#ff9800';
-    } else if (status === 'Active/Unresolved') {
+    } else if (status === 'Active/Unresolved' || status === 'Active') {
       bgColor = '#e6f0ff';
       color = '#007aff';
     }
@@ -77,7 +82,6 @@ export default function HealthRecords() {
 
   return (
     <div className="health-records-view">
-      
       
       <div style={{
         display: 'flex',
@@ -198,87 +202,91 @@ export default function HealthRecords() {
             <h3 className="card-title">Health History Records</h3>
             <p className="card-subtitle">Showing {filteredRecords.length} records matching search filters</p>
           </div>
+          <button className="btn-icon-only" onClick={fetchRecords}>
+            <RefreshCw size={16} />
+          </button>
         </div>
 
-        <div className="table-responsive">
-          <table className="custom-table">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Owner</th>
-                <th>Animal</th>
-                <th>Disease</th>
-                <th>Confidence</th>
-                <th>Risk</th>
-                <th>Vet</th>
-                <th>Status</th>
-                <th>Date</th>
-                <th style={{ textAlign: 'center' }}>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredRecords.map((rec) => (
-                <tr key={rec.id}>
-                  <td className="font-mono" style={{ fontWeight: '600' }}>{rec.id}</td>
-                  <td style={{ fontWeight: '600' }}>{rec.owner}</td>
-                  <td>{rec.animal}</td>
-                  <td style={{ fontWeight: '600', color: '#135431' }}>{rec.disease}</td>
-                  <td>{rec.confidence}%</td>
-                  <td>{getRiskBadge(rec.risk)}</td>
-                  <td style={{ 
-                    color: rec.vet === 'Pending' ? '#ff9800' : rec.vet === '—' ? '#94a3b8' : 'inherit',
-                    fontWeight: rec.vet !== '—' && rec.vet !== 'Pending' ? '600' : 'normal'
-                  }}>
-                    {rec.vet}
-                  </td>
-                  <td>{getStatusBadge(rec.status)}</td>
-                  <td>{rec.date}</td>
-                  <td>
-                    <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
-                      <button 
-                        className="btn-icon-only" 
-                        title="View diagnosis details"
-                        onClick={() => alert(`Viewing details of diagnosis ${rec.id}`)}
-                      >
-                        <Eye size={15} />
-                      </button>
-                      <button 
-                        className="btn-icon-only" 
-                        style={{ color: '#3da860' }}
-                        title="Download PDF report"
-                        onClick={() => alert(`Downloading PDF report for ${rec.id}`)}
-                      >
-                        <Download size={15} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-              {filteredRecords.length === 0 && (
+        {loading ? (
+          <div style={{ textAlign: 'center', padding: '40px' }}>Loading health history database... / لوڈ ہو رہا ہے...</div>
+        ) : (
+          <div className="table-responsive">
+            <table className="custom-table">
+              <thead>
                 <tr>
-                  <td colSpan="10" style={{ textAlign: 'center', padding: '36px', color: '#94a3b8' }}>
-                    No diagnosis records match the selected options.
-                  </td>
+                  <th>ID</th>
+                  <th>Owner</th>
+                  <th>Animal</th>
+                  <th>Disease</th>
+                  <th>Confidence</th>
+                  <th>Risk</th>
+                  <th>Vet</th>
+                  <th>Status</th>
+                  <th>Date</th>
+                  <th style={{ textAlign: 'center' }}>Actions</th>
                 </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {filteredRecords.map((rec) => (
+                  <tr key={rec.id}>
+                    <td className="font-mono" style={{ fontWeight: '600' }}>{rec.id}</td>
+                    <td style={{ fontWeight: '600' }}>{rec.owner_name}</td>
+                    <td>{rec.animal_type}</td>
+                    <td style={{ fontWeight: '600', color: '#135431' }}>{rec.disease}</td>
+                    <td>{rec.confidence}%</td>
+                    <td>{getRiskBadge(rec.risk_level)}</td>
+                    <td style={{ 
+                      color: !rec.vet_name ? '#ff9800' : 'inherit',
+                      fontWeight: rec.vet_name ? '600' : 'normal'
+                    }}>
+                      {rec.vet_name || (rec.status === 'Active' ? 'Pending' : '—')}
+                    </td>
+                    <td>{getStatusBadge(rec.status)}</td>
+                    <td>{new Date(rec.created_at).toLocaleDateString([], { day: '2-digit', month: 'short', year: 'numeric' })}</td>
+                    <td>
+                      <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+                        <button 
+                          className="btn-icon-only" 
+                          title="View diagnosis details"
+                          onClick={() => alert(`Viewing details of diagnosis ${rec.id}`)}
+                        >
+                          <Eye size={15} />
+                        </button>
+                        <button 
+                          className="btn-icon-only" 
+                          style={{ color: '#3da860' }}
+                          title="Download PDF report"
+                          onClick={() => alert(`Downloading PDF report for ${rec.id}`)}
+                        >
+                          <Download size={15} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+                {filteredRecords.length === 0 && (
+                  <tr>
+                    <td colSpan="10" style={{ textAlign: 'center', padding: '36px', color: '#94a3b8' }}>
+                      No diagnosis records match the selected options.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
 
-        
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '24px', borderTop: '1px solid var(--border-light)', paddingTop: '16px', flexWrap: 'wrap', gap: '12px' }}>
           <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
-            Showing 1-12 of 1,847 / 1,847 میں سے 1-12
+            Showing {filteredRecords.length} record(s) / {filteredRecords.length} تشخیص
           </span>
-          <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-            <button className="btn btn-secondary" style={{ padding: '6px 10px', fontSize: '12px', borderRadius: '6px', minWidth: '32px', backgroundColor: '#ffffff', border: '1px solid var(--border-light)', cursor: 'pointer' }}>&lt;</button>
-            <button className="btn btn-primary" style={{ padding: '6px 10px', fontSize: '12px', borderRadius: '6px', backgroundColor: '#3da860', color: '#fff', minWidth: '32px', border: 'none', fontWeight: '600', cursor: 'pointer' }}>1</button>
-            <button className="btn btn-secondary" style={{ padding: '6px 10px', fontSize: '12px', borderRadius: '6px', minWidth: '32px', backgroundColor: '#ffffff', border: '1px solid var(--border-light)', cursor: 'pointer' }}>2</button>
-            <button className="btn btn-secondary" style={{ padding: '6px 10px', fontSize: '12px', borderRadius: '6px', minWidth: '32px', backgroundColor: '#ffffff', border: '1px solid var(--border-light)', cursor: 'pointer' }}>3</button>
-            <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>...</span>
-            <button className="btn btn-secondary" style={{ padding: '6px 10px', fontSize: '12px', borderRadius: '6px', minWidth: '32px', backgroundColor: '#ffffff', border: '1px solid var(--border-light)', cursor: 'pointer' }}>154</button>
-            <button className="btn btn-secondary" style={{ padding: '6px 10px', fontSize: '12px', borderRadius: '6px', minWidth: '32px', backgroundColor: '#ffffff', border: '1px solid var(--border-light)', cursor: 'pointer' }}>&gt;</button>
-          </div>
+          {filteredRecords.length > 10 && (
+            <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+              <button className="btn btn-secondary" style={{ padding: '6px 10px', fontSize: '12px', borderRadius: '6px', minWidth: '32px', backgroundColor: '#ffffff', border: '1px solid var(--border-light)', cursor: 'pointer' }}>&lt;</button>
+              <button className="btn btn-primary" style={{ padding: '6px 10px', fontSize: '12px', borderRadius: '6px', backgroundColor: '#3da860', color: '#fff', minWidth: '32px', border: 'none', fontWeight: '600', cursor: 'pointer' }}>1</button>
+              <button className="btn btn-secondary" style={{ padding: '6px 10px', fontSize: '12px', borderRadius: '6px', minWidth: '32px', backgroundColor: '#ffffff', border: '1px solid var(--border-light)', cursor: 'pointer' }}>&gt;</button>
+            </div>
+          )}
         </div>
 
       </div>

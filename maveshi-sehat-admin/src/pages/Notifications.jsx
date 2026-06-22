@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Bell, ShieldAlert, Store, ShoppingBag, CheckCircle, AlertTriangle, Send, Eye } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Bell, ShieldAlert, Store, ShoppingBag, CheckCircle, AlertTriangle, Send, Eye, RefreshCw } from 'lucide-react';
 
 export default function Notifications() {
   const [filter, setFilter] = useState('all');
@@ -9,109 +9,115 @@ export default function Notifications() {
   const [title, setTitle] = useState('');
   const [messageEn, setMessageEn] = useState('');
   const [messageUr, setMessageUr] = useState('');
+  
+  const [notifications, setNotifications] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const notifications = [
-    {
-      id: 1,
-      type: 'unread',
-      title: 'New vet application submitted',
-      desc: 'Dr. Amjad Khan submitted verification — Lahore',
-      urduDesc: 'ڈاکٹر امجد خان نے تصدیق جمع کرائی — لاہور',
-      time: '5 minutes ago',
-      color: '#3da860',
-      bgColor: '#eff7f2',
-      icon: <Bell size={18} />,
-      actionText: 'View →',
-      actionLink: '/vets'
-    },
-    {
-      id: 2,
-      type: 'alert',
-      title: 'High risk case unattended — 6 hours',
-      desc: 'FMD case by Fatima Bibi has no vet assigned',
-      urduDesc: 'فاطمہ بی بی کا ایف ایم ڈی کیس — ڈاکٹر نہیں ملا',
-      time: '1 hour ago',
-      color: '#d32f2f',
-      bgColor: '#ffebee',
-      icon: <ShieldAlert size={18} />,
-      actionText: 'Assign Vet →',
-      actionLink: '/'
-    },
-    {
-      id: 3,
-      type: 'unread',
-      title: 'New pharmacy approval request',
-      desc: 'Al-Noor Medical Store — Multan',
-      urduDesc: 'النور میڈیکل اسٹور — ملتان',
-      time: '3 hours ago',
-      color: '#ff9800',
-      bgColor: '#fff3e0',
-      icon: <Store size={18} />,
-      actionText: 'Review →',
-      actionLink: '/pharmacy-approval'
-    },
-    {
-      id: 4,
-      type: 'system',
-      title: 'Order dispatched successfully',
-      desc: 'Order #ORD-1047 dispatched to Ahmad Khan',
-      urduDesc: 'آرڈر احمد خان کو بھیج دیا گیا',
-      time: '5 hours ago',
-      color: '#007aff',
-      bgColor: '#e6f0ff',
-      icon: <ShoppingBag size={18} />,
-      actionText: '→',
-      actionLink: '/'
-    },
-    {
-      id: 5,
-      type: 'system',
-      title: 'Vet verification approved',
-      desc: 'Dr. Sara Ahmed has been verified and activated',
-      urduDesc: 'ڈاکٹر سارہ احمد کی تصدیق ہو گئی',
-      time: '1 day ago',
-      color: '#3da860',
-      bgColor: '#eff7f2',
-      icon: <CheckCircle size={18} />,
-      actionText: '→',
-      actionLink: '/vets'
-    },
-    {
-      id: 6,
-      type: 'alert',
-      title: 'Low stock alert',
-      desc: 'Deltamethrin Tick Grease — only 12 units left',
-      urduDesc: 'ٹک گریس کم ہو گئی — صرف 12 یونٹ باقی',
-      time: '1 day ago',
-      color: '#ff9800',
-      bgColor: '#fff3e0',
-      icon: <AlertTriangle size={18} />,
-      actionText: '→',
-      actionLink: '/'
+  const fetchNotificationsData = async () => {
+    setLoading(true);
+    try {
+      const resNotifs = await fetch('http://localhost:5000/api/admin/notifications');
+      const resUsers = await fetch('http://localhost:5000/api/admin/users');
+      if (resNotifs.ok) {
+        const notifs = await resNotifs.json();
+        setNotifications(notifs);
+      }
+      if (resUsers.ok) {
+        const usersData = await resUsers.json();
+        setUsers(usersData);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
 
-  const handleSendAnnouncement = (e) => {
+  useEffect(() => {
+    fetchNotificationsData();
+  }, []);
+
+  const handleSendAnnouncement = async (e) => {
     e.preventDefault();
     if (!title || !messageEn) {
       alert('Please fill out the announcement fields.');
       return;
     }
-    alert(`Announcement "${title}" sent successfully!`);
-    setTitle('');
-    setMessageEn('');
-    setMessageUr('');
-    setSendToOwners(false);
-    setSendToVets(false);
+    const targetAudience = sendToOwners && sendToVets ? 'all' : sendToOwners ? 'farmers' : sendToVets ? 'vets' : 'all';
+    try {
+      const res = await fetch('http://localhost:5000/api/admin/announcements', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          targetAudience,
+          type: notifType,
+          title,
+          messageEn,
+          messageUr
+        })
+      });
+      if (res.ok) {
+        alert(`Announcement "${title}" sent successfully!`);
+        setTitle('');
+        setMessageEn('');
+        setMessageUr('');
+        setSendToOwners(false);
+        setSendToVets(false);
+      } else {
+        alert('Failed to send announcement.');
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const getNotifDetails = (n) => {
+    let color = '#3da860';
+    let bgColor = '#eff7f2';
+    let icon = <Bell size={18} />;
+    let actionText = 'View →';
+    let actionLink = '/';
+
+    if (n.type === 'vet_application') {
+      color = '#3da860';
+      bgColor = '#eff7f2';
+      icon = <Bell size={18} />;
+      actionText = 'View →';
+      actionLink = '/vets';
+    } else if (n.type === 'high_risk_case') {
+      color = '#d32f2f';
+      bgColor = '#ffebee';
+      icon = <ShieldAlert size={18} />;
+      actionText = 'Assign Vet →';
+      actionLink = '/';
+    } else if (n.type === 'pharmacy_approval') {
+      color = '#ff9800';
+      bgColor = '#fff3e0';
+      icon = <Store size={18} />;
+      actionText = 'Review →';
+      actionLink = '/pharmacy-approval';
+    } else if (n.type === 'alert') {
+      color = '#ff9800';
+      bgColor = '#fff3e0';
+      icon = <AlertTriangle size={18} />;
+      actionText = '→';
+      actionLink = '/';
+    }
+
+    return { color, bgColor, icon, actionText, actionLink };
   };
 
   const filteredNotifs = notifications.filter(n => {
     if (filter === 'all') return true;
-    if (filter === 'unread') return n.type === 'unread';
-    if (filter === 'alert') return n.type === 'alert';
-    if (filter === 'system') return n.type === 'system';
+    if (filter === 'unread') return !n.read;
+    if (filter === 'alert') return n.type === 'high_risk_case' || n.type === 'alert';
+    if (filter === 'system') return n.type !== 'high_risk_case' && n.type !== 'pharmacy_approval' && n.type !== 'vet_application';
     return true;
   });
+
+  const ownersCount = users.filter(u => u.role === 'farmer').length;
+  const vetsCount = users.filter(u => u.role === 'vet').length;
 
   return (
     <div className="notifications-view">
@@ -121,7 +127,7 @@ export default function Notifications() {
         
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           
-          <div style={{ display: 'flex', gap: '10px', marginBottom: '4px' }}>
+          <div style={{ display: 'flex', gap: '10px', marginBottom: '4px', alignItems: 'center' }}>
             <button 
               onClick={() => setFilter('all')}
               style={{
@@ -150,7 +156,7 @@ export default function Notifications() {
                 cursor: 'pointer'
               }}
             >
-              Unread (5)
+              Unread ({notifications.filter(n => !n.read).length})
             </button>
             <button 
               onClick={() => setFilter('alert')}
@@ -182,63 +188,82 @@ export default function Notifications() {
             >
               System
             </button>
+            <button className="btn-icon-only" onClick={fetchNotificationsData} title="Refresh database" style={{ marginLeft: 'auto' }}>
+              <RefreshCw size={16} />
+            </button>
           </div>
 
           
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            {filteredNotifs.map((n) => (
-              <div 
-                key={n.id} 
-                className="card"
-                style={{ 
-                  display: 'flex', 
-                  gap: '16px', 
-                  padding: '20px', 
-                  borderRadius: '16px', 
-                  borderLeft: `5px solid ${n.color}`,
-                  borderTop: '1px solid var(--border-light)',
-                  borderRight: '1px solid var(--border-light)',
-                  borderBottom: '1px solid var(--border-light)',
-                  alignItems: 'flex-start',
-                  backgroundColor: '#ffffff'
-                }}
-              >
-                <div style={{
-                  width: '36px',
-                  height: '36px',
-                  borderRadius: '50%',
-                  backgroundColor: n.bgColor,
-                  color: n.color,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  minWidth: '36px'
-                }}>
-                  {n.icon}
+          {loading ? (
+            <div style={{ textAlign: 'center', padding: '40px' }}>Loading notifications... / لوڈ ہو رہا ہے...</div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              {filteredNotifs.map((n) => {
+                const details = getNotifDetails(n);
+                return (
+                  <div 
+                    key={n.id} 
+                    className="card"
+                    style={{ 
+                      display: 'flex', 
+                      gap: '16px', 
+                      padding: '20px', 
+                      borderRadius: '16px', 
+                      borderLeft: `5px solid ${details.color}`,
+                      borderTop: '1px solid var(--border-light)',
+                      borderRight: '1px solid var(--border-light)',
+                      borderBottom: '1px solid var(--border-light)',
+                      alignItems: 'flex-start',
+                      backgroundColor: '#ffffff'
+                    }}
+                  >
+                    <div style={{
+                      width: '36px',
+                      height: '36px',
+                      borderRadius: '50%',
+                      backgroundColor: details.bgColor,
+                      color: details.color,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      minWidth: '36px'
+                    }}>
+                      {details.icon}
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <h4 style={{ fontSize: '14px', fontWeight: '700', color: '#1f2937', margin: '0 0 2px 0' }}>
+                        {n.type.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase())}
+                      </h4>
+                      <p style={{ fontSize: '13px', color: '#4b5563', margin: '0 0 4px 0' }}>{n.message_en}</p>
+                      <p className="urdu" style={{ fontSize: '12px', color: '#6b7280', margin: '0 0 8px 0', fontWeight: '500' }}>{n.message_ur}</p>
+                      <span style={{ fontSize: '11px', color: '#9ca3af' }}>
+                        {new Date(n.created_at).toLocaleString([], { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    </div>
+                    <button 
+                      style={{
+                        alignSelf: 'center',
+                        background: 'none',
+                        border: 'none',
+                        color: '#3da860',
+                        fontSize: '13px',
+                        fontWeight: '600',
+                        cursor: 'pointer'
+                      }}
+                      onClick={() => alert(`Redirecting to details page...`)}
+                    >
+                      {details.actionText}
+                    </button>
+                  </div>
+                );
+              })}
+              {filteredNotifs.length === 0 && (
+                <div style={{ textAlign: 'center', color: '#94a3b8', padding: '40px' }} className="card">
+                  No notifications found. / کوئی اطلاع نہیں ملی۔
                 </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <h4 style={{ fontSize: '14px', fontWeight: '700', color: '#1f2937', margin: '0 0 2px 0' }}>{n.title}</h4>
-                  <p style={{ fontSize: '13px', color: '#4b5563', margin: '0 0 4px 0' }}>{n.desc}</p>
-                  <p className="urdu" style={{ fontSize: '12px', color: '#6b7280', margin: '0 0 8px 0', fontWeight: '500' }}>{n.urduDesc}</p>
-                  <span style={{ fontSize: '11px', color: '#9ca3af' }}>{n.time}</span>
-                </div>
-                <button 
-                  style={{
-                    alignSelf: 'center',
-                    background: 'none',
-                    border: 'none',
-                    color: '#3da860',
-                    fontSize: '13px',
-                    fontWeight: '600',
-                    cursor: 'pointer'
-                  }}
-                  onClick={() => alert(`Redirecting to details page...`)}
-                >
-                  {n.actionText}
-                </button>
-              </div>
-            ))}
-          </div>
+              )}
+            </div>
+          )}
 
         </div>
 
@@ -260,7 +285,7 @@ export default function Notifications() {
                     onChange={(e) => setSendToOwners(e.target.checked)}
                     style={{ accentColor: '#3da860' }}
                   />
-                  <span>All Owners (198)</span>
+                  <span>All Owners ({ownersCount})</span>
                 </label>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', cursor: 'pointer', color: '#4b5563' }}>
                   <input 
@@ -269,7 +294,7 @@ export default function Notifications() {
                     onChange={(e) => setSendToVets(e.target.checked)}
                     style={{ accentColor: '#3da860' }}
                   />
-                  <span>All Vets (34)</span>
+                  <span>All Vets ({vetsCount})</span>
                 </label>
               </div>
             </div>

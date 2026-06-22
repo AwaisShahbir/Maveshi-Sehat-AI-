@@ -52,13 +52,7 @@ export default function PharmacyApproval() {
   const filteredPharmacies = pharmacies.filter(p => p.status === activeTab);
   const approvedPharmacies = pharmacies.filter(p => p.status === 'approved');
 
-  const displayPharmacies = filteredPharmacies.length > 0 ? filteredPharmacies : (
-    activeTab === 'pending' ? [
-      { id: '1', name: 'Al-Shifa Medical Store', name_urdu: 'الشفاء میڈیکل اسٹور', license_number: 'DRAP-2024-4023', owner_name: 'Dr. Muhammad Saleem', address: 'Main Bazar, Sahiwal, Punjab', phone: '042-3561-2233', created_at: Date.now() - 172800000, medicines_count: 48, status: 'pending' },
-      { id: '2', name: 'Punjab Livestock Pharma', name_urdu: 'پنجاب لائیو سٹاک فارما', license_number: 'DRAP-2024-5512', owner_name: 'Ahmed Raza Khan', address: 'Canal Road, Multan, Punjab', phone: '061-4523-1122', created_at: Date.now() - 345600000, medicines_count: 62, status: 'pending' },
-      { id: '3', name: 'Al-Noor Medical Store', name_urdu: 'النور میڈیکل اسٹور', license_number: 'DRAP-2023-9934', owner_name: 'Tariq Mehmood', address: 'GT Road, Gujranwala, Punjab', phone: '055-3782-4455', created_at: Date.now() - 604800000, medicines_count: 35, status: 'pending' }
-    ] : []
-  );
+  const displayPharmacies = filteredPharmacies;
 
   return (
     <div className="pharmacy-approval-view">
@@ -79,7 +73,7 @@ export default function PharmacyApproval() {
           }}
           onClick={() => setActiveTab('pending')}
         >
-          Pending ({(pharmacies.length !== 0) ? pharmacies.filter(p => p.status === 'pending').length : 3})
+          Pending ({pharmacies.filter(p => p.status === 'pending').length})
         </button>
         <button 
           className={`tab-btn ${activeTab === 'approved' ? 'active' : ''}`}
@@ -96,7 +90,7 @@ export default function PharmacyApproval() {
           }}
           onClick={() => setActiveTab('approved')}
         >
-          Approved ({(pharmacies.length !== 0) ? pharmacies.filter(p => p.status === 'approved').length : 18})
+          Approved ({pharmacies.filter(p => p.status === 'approved').length})
         </button>
         <button 
           className={`tab-btn ${activeTab === 'rejected' ? 'active' : ''}`}
@@ -113,7 +107,7 @@ export default function PharmacyApproval() {
           }}
           onClick={() => setActiveTab('rejected')}
         >
-          Rejected ({(pharmacies.length !== 0) ? pharmacies.filter(p => p.status === 'rejected').length : 2})
+          Rejected ({pharmacies.filter(p => p.status === 'rejected').length})
         </button>
       </div>
 
@@ -197,7 +191,7 @@ export default function PharmacyApproval() {
           <div className="card">
             <div className="card-title-container">
               <div>
-                <h3 className="card-title">Approved Pharmacies ({(pharmacies.length !== 0) ? approvedPharmacies.length : 5})</h3>
+                <h3 className="card-title">Approved Pharmacies ({approvedPharmacies.length})</h3>
                 <p className="card-subtitle">منظور شدہ فارمیسیاں</p>
               </div>
               <span className="text-green" style={{ fontSize: '13px', fontWeight: 600, cursor: 'pointer', color: '#3da860' }}>View All →</span>
@@ -216,29 +210,31 @@ export default function PharmacyApproval() {
                   </tr>
                 </thead>
                 <tbody>
-                  {(approvedPharmacies.length > 0 ? approvedPharmacies : [
-                    { id: '10', name: 'Farooq Labs', address: 'Main Road, Lahore', license_number: 'GAMP-2023-1224', medicines_count: 87, orders_count: 156 },
-                    { id: '11', name: 'National Vet Supplies', address: 'Model Town, Karachi', license_number: 'GAMP-2023-1678', medicines_count: 124, orders_count: 243 },
-                    { id: '12', name: 'Livestock Care Pharma', address: 'Bosan Road, Multan', license_number: 'GAMP-2023-9012', medicines_count: 56, orders_count: 89 },
-                    { id: '13', name: 'Green Valley Medical', address: 'GT Road, Sialkot', license_number: 'GAMP-2024-2456', medicines_count: 81, orders_count: 67 },
-                    { id: '14', name: 'Pak Vet Store', address: 'Main Bazar, Rawalpindi', license_number: 'GAMP-2023-7890', medicines_count: 99, orders_count: 351 }
-                  ]).map(pharm => (
-                    <tr key={pharm.id}>
-                      <td style={{ fontWeight: 600 }}>{pharm.name}</td>
-                      <td>{pharm.address?.split(',')[pharm.address.split(',').length - 2]?.trim() || 'Punjab'}</td>
-                      <td className="font-mono">{pharm.license_number}</td>
-                      <td>{pharm.medicines_count || 0}</td>
-                      <td style={{ color: 'var(--color-green)', fontWeight: 600 }}>{pharm.orders_count || 0}</td>
-                      <td>
-                        <span className="badge badge-green" style={{ backgroundColor: '#eff7f2', color: '#3da860', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: '600' }}>Active</span>
-                      </td>
-                      <td>
-                        <button className="btn-secondary" style={{ padding: '6px 12px', fontSize: '12px', borderRadius: '6px', border: '1px solid #e2e8f0', cursor: 'pointer', backgroundColor: '#ffffff' }} onClick={() => setSelectedPharmacy(pharm)}>
-                          View
-                        </button>
+                  {approvedPharmacies.length === 0 ? (
+                    <tr>
+                      <td colSpan="7" style={{ textAlign: 'center', padding: '24px', color: '#94a3b8' }}>
+                        No approved pharmacies. / کوئی منظور شدہ فارمیسی نہیں ہے۔
                       </td>
                     </tr>
-                  ))}
+                  ) : (
+                    approvedPharmacies.map(pharm => (
+                      <tr key={pharm.id}>
+                        <td style={{ fontWeight: 600 }}>{pharm.name}</td>
+                        <td>{pharm.address?.split(',')[pharm.address.split(',').length - 2]?.trim() || 'Punjab'}</td>
+                        <td className="font-mono">{pharm.license_number}</td>
+                        <td>{pharm.medicines_count || 0}</td>
+                        <td style={{ color: 'var(--color-green)', fontWeight: 600 }}>{pharm.orders_count || 0}</td>
+                        <td>
+                          <span className="badge badge-green" style={{ backgroundColor: '#eff7f2', color: '#3da860', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: '600' }}>Active</span>
+                        </td>
+                        <td>
+                          <button className="btn-secondary" style={{ padding: '6px 12px', fontSize: '12px', borderRadius: '6px', border: '1px solid #e2e8f0', cursor: 'pointer', backgroundColor: '#ffffff' }} onClick={() => setSelectedPharmacy(pharm)}>
+                            View
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>

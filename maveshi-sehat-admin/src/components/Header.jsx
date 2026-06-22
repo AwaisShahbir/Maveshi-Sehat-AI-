@@ -1,11 +1,30 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { Search, Bell } from 'lucide-react';
 
 export default function Header() {
   const location = useLocation();
+  const [unreadCount, setUnreadCount] = useState(0);
 
-  
+  useEffect(() => {
+    const fetchUnreadCount = async () => {
+      try {
+        const res = await fetch('http://localhost:5000/api/admin/notifications');
+        if (res.ok) {
+          const data = await res.json();
+          const unread = data.filter(n => !n.read).length;
+          setUnreadCount(unread);
+        }
+      } catch (err) {
+        console.error('Failed to fetch notification count', err);
+      }
+    };
+
+    fetchUnreadCount();
+    const interval = setInterval(fetchUnreadCount, 10000);
+    return () => clearInterval(interval);
+  }, []);
+
   const routeTitles = {
     '/': { en: 'Dashboard', ur: 'ڈیش بورڈ' },
     '/analytics': { en: 'Platform Analytics', ur: 'پلیٹ فارم تجزیات' },
@@ -45,7 +64,9 @@ export default function Header() {
         
         <Link to="/notifications" className="header-notification-btn">
           <Bell size={20} />
-          <span className="notification-badge">5</span>
+          {unreadCount > 0 && (
+            <span className="notification-badge">{unreadCount}</span>
+          )}
         </Link>
 
         

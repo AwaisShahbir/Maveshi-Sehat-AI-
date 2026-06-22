@@ -93,7 +93,7 @@ export default function UserManagement() {
             }}
             onClick={() => setActiveFilter('all')}
           >
-            All ({(users.length !== 0) ? users.length : 248})
+            All ({users.length})
           </button>
           <button 
             className={`btn`}
@@ -109,7 +109,7 @@ export default function UserManagement() {
             }}
             onClick={() => setActiveFilter('owner')}
           >
-            Owners ({(users.length !== 0) ? users.filter(u => u.role === 'farmer').length : 198})
+            Owners ({users.filter(u => u.role === 'farmer').length})
           </button>
           <button 
             className={`btn`}
@@ -125,7 +125,7 @@ export default function UserManagement() {
             }}
             onClick={() => setActiveFilter('vet')}
           >
-            Vets ({(users.length !== 0) ? users.filter(u => u.role === 'vet').length : 34})
+            Vets ({users.filter(u => u.role === 'vet').length})
           </button>
           <button 
             className={`btn`}
@@ -141,7 +141,7 @@ export default function UserManagement() {
             }}
             onClick={() => setActiveFilter('blocked')}
           >
-            Blocked ({(users.length !== 0) ? users.filter(u => u.status === 'blocked').length : 16})
+            Blocked ({users.filter(u => u.status === 'blocked').length})
           </button>
         </div>
 
@@ -168,15 +168,15 @@ export default function UserManagement() {
       <div className="grid-3" style={{ marginBottom: '24px' }}>
         <div className="card" style={{ display: 'flex', flexDirection: 'column', padding: '20px', border: '1px solid var(--border-light)', borderRadius: '16px' }}>
           <span style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: 600 }}>Total Registered / کل رجسٹرڈ</span>
-          <span style={{ fontSize: '28px', fontWeight: '700', color: '#135431', marginTop: '6px' }}>{(users.length !== 0) ? users.length : 248}</span>
+          <span style={{ fontSize: '28px', fontWeight: '700', color: '#135431', marginTop: '6px' }}>{users.length}</span>
         </div>
         <div className="card" style={{ display: 'flex', flexDirection: 'column', padding: '20px', border: '1px solid var(--border-light)', borderRadius: '16px' }}>
           <span style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: 600 }}>Active Today / آج فعال</span>
-          <span style={{ fontSize: '28px', fontWeight: '700', color: '#135431', marginTop: '6px' }}>{(users.length !== 0) ? Math.round(users.length * 0.35) : 87}</span>
+          <span style={{ fontSize: '28px', fontWeight: '700', color: '#135431', marginTop: '6px' }}>{users.length ? Math.round(users.length * 0.35) : 0}</span>
         </div>
         <div className="card" style={{ display: 'flex', flexDirection: 'column', padding: '20px', border: '1px solid var(--border-light)', borderRadius: '16px' }}>
           <span style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: 600 }}>Blocked / معطل</span>
-          <span style={{ fontSize: '28px', fontWeight: '700', color: '#d32f2f', marginTop: '6px' }}>{(users.length !== 0) ? users.filter(u => u.status === 'blocked').length : 16}</span>
+          <span style={{ fontSize: '28px', fontWeight: '700', color: '#d32f2f', marginTop: '6px' }}>{users.filter(u => u.status === 'blocked').length}</span>
         </div>
       </div>
 
@@ -185,7 +185,7 @@ export default function UserManagement() {
         <div className="card-title-container">
           <div>
             <h3 className="card-title">User Directory</h3>
-            <p className="card-subtitle">Showing {filteredUsers.length !== 0 ? filteredUsers.length : 10} total user accounts</p>
+            <p className="card-subtitle">Showing {filteredUsers.length} total user accounts</p>
           </div>
           <button className="btn-icon-only" onClick={fetchUsers}>
             <RefreshCw size={16} />
@@ -210,64 +210,61 @@ export default function UserManagement() {
                 </tr>
               </thead>
               <tbody>
-                {(filteredUsers.length !== 0 ? filteredUsers : [
-                  { id: '1', full_name: 'Ahmad Khan', role: 'farmer', phone_number: '0311-xxxxxxx', district: 'Sahiwal', status: 'active', created_at: '2025-01-15' },
-                  { id: '2', full_name: 'Dr. Rahim Malik', role: 'vet', phone_number: '0322-xxxxxxx', district: 'Lahore', status: 'verified', created_at: '2025-02-10' },
-                  { id: '3', full_name: 'Zahid Ali', role: 'farmer', phone_number: '0333-xxxxxxx', district: 'Multan', status: 'active', created_at: '2025-03-01' },
-                  { id: '4', full_name: 'Dr. Sara Ahmed', role: 'vet', phone_number: '0344-xxxxxxx', district: 'Karachi', status: 'pending', created_at: '2025-04-12' },
-                  { id: '5', full_name: 'Fatima Bibi', role: 'farmer', phone_number: '0355-xxxxxxx', district: 'Faisalabad', status: 'blocked', created_at: '2025-01-20' },
-                  { id: '6', full_name: 'Hassan Raza', role: 'farmer', phone_number: '0388-xxxxxxx', district: 'Okara', status: 'active', created_at: '2025-03-24' },
-                  { id: '7', full_name: 'Dr. Amjad Khan', role: 'vet', phone_number: '0377-xxxxxxx', district: 'Peshawar', status: 'verified', created_at: '2025-02-18' },
-                  { id: '8', full_name: 'Asif Mahmood', role: 'farmer', phone_number: '0388-xxxxxxx', district: 'Sialkot', status: 'active', created_at: '2025-04-05' },
-                  { id: '9', full_name: 'Nadia Saleem', role: 'farmer', phone_number: '0399-xxxxxxx', district: 'Gujranwala', status: 'active', created_at: '2025-03-15' },
-                  { id: '10', full_name: 'Dr. Farhan Ali', role: 'vet', phone_number: '0310-xxxxxxx', district: 'Islamabad', status: 'verified', created_at: '2025-01-30' }
-                ]).map((user, idx) => (
-                  <tr key={user.id}>
-                    <td>{idx + 1}</td>
-                    <td style={{ fontWeight: 600 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <div style={{
-                          width: '32px',
-                          height: '32px',
-                          borderRadius: '50%',
-                          backgroundColor: user.role === 'vet' ? '#eff7f2' : '#e6f0ff',
-                          color: user.role === 'vet' ? '#3da860' : '#007aff',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontSize: '13px',
-                          fontWeight: '700',
-                          minWidth: '32px'
-                        }}>
-                          {user.full_name ? user.full_name.replace('Dr. ', '')[0].toUpperCase() : 'U'}
-                        </div>
-                        <span>{user.full_name}</span>
-                      </div>
-                    </td>
-                    <td style={{ textTransform: 'capitalize' }}>
-                      {user.role === 'farmer' ? 'Owner / مالک' : 'Vet / ڈاکٹر'}
-                    </td>
-                    <td>{user.phone_number}</td>
-                    <td>{user.district || 'Punjab'}</td>
-                    <td>{getStatusBadge(user.status)}</td>
-                    <td>{new Date(user.created_at).toLocaleDateString([], { month: 'short', year: 'numeric' })}</td>
-                    <td>
-                      <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
-                        <button className="btn-icon-only" title="View details" onClick={() => alert(`Viewing details of ${user.full_name} (${user.email || 'N/A'})`)}>
-                          <Eye size={16} />
-                        </button>
-                        <button 
-                          className="btn-icon-only" 
-                          style={{ color: user.status === 'blocked' ? 'var(--color-green)' : 'var(--color-red)' }} 
-                          title={user.status === 'blocked' ? 'Unblock user' : 'Block user'}
-                          onClick={() => handleBlockAction(user.id, user.status)}
-                        >
-                          {user.status === 'blocked' ? <ShieldCheck size={16} /> : <ShieldAlert size={16} />}
-                        </button>
-                      </div>
+                {filteredUsers.length === 0 ? (
+                  <tr>
+                    <td colSpan="8" style={{ textAlign: 'center', padding: '24px', color: 'var(--text-muted)' }}>
+                      No users found. / کوئی صارف نہیں ملا۔
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  filteredUsers.map((user, idx) => (
+                    <tr key={user.id}>
+                      <td>{idx + 1}</td>
+                      <td style={{ fontWeight: 600 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <div style={{
+                            width: '32px',
+                            height: '32px',
+                            borderRadius: '50%',
+                            backgroundColor: user.role === 'vet' ? '#eff7f2' : '#e6f0ff',
+                            color: user.role === 'vet' ? '#3da860' : '#007aff',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '13px',
+                            fontWeight: '700',
+                            minWidth: '32px'
+                          }}>
+                            {user.full_name ? user.full_name.replace('Dr. ', '')[0].toUpperCase() : 'U'}
+                          </div>
+                          <span>{user.full_name}</span>
+                        </div>
+                      </td>
+                      <td style={{ textTransform: 'capitalize' }}>
+                        {user.role === 'farmer' ? 'Owner / مالک' : 'Vet / ڈاکٹر'}
+                      </td>
+                      <td>{user.phone_number}</td>
+                      <td>{user.district || 'Punjab'}</td>
+                      <td>{getStatusBadge(user.status)}</td>
+                      <td>{new Date(user.created_at).toLocaleDateString([], { month: 'short', year: 'numeric' })}</td>
+                      <td>
+                        <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
+                          <button className="btn-icon-only" title="View details" onClick={() => alert(`Viewing details of ${user.full_name} (${user.email || 'N/A'})`)}>
+                            <Eye size={16} />
+                          </button>
+                          <button 
+                            className="btn-icon-only" 
+                            style={{ color: user.status === 'blocked' ? 'var(--color-green)' : 'var(--color-red)' }} 
+                            title={user.status === 'blocked' ? 'Unblock user' : 'Block user'}
+                            onClick={() => handleBlockAction(user.id, user.status)}
+                          >
+                            {user.status === 'blocked' ? <ShieldCheck size={16} /> : <ShieldAlert size={16} />}
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
@@ -275,17 +272,15 @@ export default function UserManagement() {
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '24px', borderTop: '1px solid var(--border-light)', paddingTop: '16px', flexWrap: 'wrap', gap: '12px' }}>
           <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
-            Showing 1-10 of {filteredUsers.length !== 0 ? filteredUsers.length : 248} / {filteredUsers.length !== 0 ? filteredUsers.length : 248} میں سے 1-10
+            Showing {filteredUsers.length} user(s) / {filteredUsers.length} صارف
           </span>
-          <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-            <button className="btn btn-secondary" style={{ padding: '6px 10px', fontSize: '12px', borderRadius: '6px', minWidth: '32px', backgroundColor: '#ffffff', border: '1px solid var(--border-light)', cursor: 'pointer' }}>&lt;</button>
-            <button className="btn btn-primary" style={{ padding: '6px 10px', fontSize: '12px', borderRadius: '6px', backgroundColor: '#3da860', color: '#fff', minWidth: '32px', border: 'none', fontWeight: '600', cursor: 'pointer' }}>1</button>
-            <button className="btn btn-secondary" style={{ padding: '6px 10px', fontSize: '12px', borderRadius: '6px', minWidth: '32px', backgroundColor: '#ffffff', border: '1px solid var(--border-light)', cursor: 'pointer' }}>2</button>
-            <button className="btn btn-secondary" style={{ padding: '6px 10px', fontSize: '12px', borderRadius: '6px', minWidth: '32px', backgroundColor: '#ffffff', border: '1px solid var(--border-light)', cursor: 'pointer' }}>3</button>
-            <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>...</span>
-            <button className="btn btn-secondary" style={{ padding: '6px 10px', fontSize: '12px', borderRadius: '6px', minWidth: '32px', backgroundColor: '#ffffff', border: '1px solid var(--border-light)', cursor: 'pointer' }}>25</button>
-            <button className="btn btn-secondary" style={{ padding: '6px 10px', fontSize: '12px', borderRadius: '6px', minWidth: '32px', backgroundColor: '#ffffff', border: '1px solid var(--border-light)', cursor: 'pointer' }}>&gt;</button>
-          </div>
+          {filteredUsers.length > 10 && (
+            <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+              <button className="btn btn-secondary" style={{ padding: '6px 10px', fontSize: '12px', borderRadius: '6px', minWidth: '32px', backgroundColor: '#ffffff', border: '1px solid var(--border-light)', cursor: 'pointer' }}>&lt;</button>
+              <button className="btn btn-primary" style={{ padding: '6px 10px', fontSize: '12px', borderRadius: '6px', backgroundColor: '#3da860', color: '#fff', minWidth: '32px', border: 'none', fontWeight: '600', cursor: 'pointer' }}>1</button>
+              <button className="btn btn-secondary" style={{ padding: '6px 10px', fontSize: '12px', borderRadius: '6px', minWidth: '32px', backgroundColor: '#ffffff', border: '1px solid var(--border-light)', cursor: 'pointer' }}>&gt;</button>
+            </div>
+          )}
         </div>
 
       </div>

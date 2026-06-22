@@ -90,15 +90,7 @@ export default function Dashboard() {
     return <div style={{ padding: '32px', textAlign: 'center' }}>Loading dashboard data... / لوڈ ہو رہا ہے...</div>;
   }
 
-  const trendData = [
-    { name: '01 May', LSD: 12, FMD: 8, Tick: 15 },
-    { name: '03 May', LSD: 15, FMD: 12, Tick: 18 },
-    { name: '05 May', LSD: 25, FMD: 10, Tick: 12 },
-    { name: '07 May', LSD: 18, FMD: 15, Tick: 20 },
-    { name: '09 May', LSD: 30, FMD: 22, Tick: 17 },
-    { name: '11 May', LSD: 22, FMD: 19, Tick: 25 },
-    { name: '12 May', LSD: 28, FMD: 24, Tick: 22 }
-  ];
+  const trendData = stats?.trendData || [];
 
   return (
     <div className="dashboard-view">
@@ -110,11 +102,11 @@ export default function Dashboard() {
             <Users size={24} />
           </div>
           <div className="kpi-details">
-            <h2 className="kpi-value" style={{ fontSize: '28px', fontWeight: '700', margin: 0, color: '#135431' }}>{stats?.totalUsers ?? 248}</h2>
+            <h2 className="kpi-value" style={{ fontSize: '28px', fontWeight: '700', margin: 0, color: '#135431' }}>{stats?.totalUsers ?? 0}</h2>
             <p className="kpi-label bilingual-label" style={{ fontSize: '13px', color: 'var(--text-muted)', margin: '2px 0 0 0' }}>
               <span style={{ fontWeight: 600, display: 'block' }}>Total Users / کل صارفین</span>
             </p>
-            <span className="kpi-trend text-green" style={{ fontSize: '11px', fontWeight: '600', color: '#3da860', marginTop: '4px', display: 'block' }}>↑ 12 this week</span>
+            <span className="kpi-trend text-green" style={{ fontSize: '11px', fontWeight: '600', color: '#3da860', marginTop: '4px', display: 'block' }}>Registered users</span>
           </div>
         </div>
 
@@ -124,11 +116,11 @@ export default function Dashboard() {
             <Stethoscope size={24} />
           </div>
           <div className="kpi-details">
-            <h2 className="kpi-value" style={{ fontSize: '28px', fontWeight: '700', margin: 0, color: '#135431' }}>{stats?.activeVets ?? 34}</h2>
+            <h2 className="kpi-value" style={{ fontSize: '28px', fontWeight: '700', margin: 0, color: '#135431' }}>{stats?.activeVets ?? 0}</h2>
             <p className="kpi-label bilingual-label" style={{ fontSize: '13px', color: 'var(--text-muted)', margin: '2px 0 0 0' }}>
               <span style={{ fontWeight: 600, display: 'block' }}>Active Vets / فعال ڈاکٹر</span>
             </p>
-            <span className="kpi-trend text-orange" style={{ fontSize: '11px', fontWeight: '600', color: '#ff9800', marginTop: '4px', display: 'block' }}>{stats?.pendingVetsCount ?? 6} pending approval</span>
+            <span className="kpi-trend text-orange" style={{ fontSize: '11px', fontWeight: '600', color: '#ff9800', marginTop: '4px', display: 'block' }}>{stats?.pendingVetsCount ?? 0} pending approval</span>
           </div>
         </div>
 
@@ -138,11 +130,11 @@ export default function Dashboard() {
             <Brain size={24} />
           </div>
           <div className="kpi-details">
-            <h2 className="kpi-value" style={{ fontSize: '28px', fontWeight: '700', margin: 0, color: '#135431' }}>{stats?.scansCount ?? 127}</h2>
+            <h2 className="kpi-value" style={{ fontSize: '28px', fontWeight: '700', margin: 0, color: '#135431' }}>{stats?.scansCount ?? 0}</h2>
             <p className="kpi-label bilingual-label" style={{ fontSize: '13px', color: 'var(--text-muted)', margin: '2px 0 0 0' }}>
               <span style={{ fontWeight: 600, display: 'block' }}>AI Scans Today / آج کے اسکین</span>
             </p>
-            <span className="kpi-trend text-green" style={{ fontSize: '11px', fontWeight: '600', color: '#3da860', marginTop: '4px', display: 'block' }}>↑ 23% vs yesterday</span>
+            <span className="kpi-trend text-green" style={{ fontSize: '11px', fontWeight: '600', color: '#3da860', marginTop: '4px', display: 'block' }}>All AI scans</span>
           </div>
         </div>
 
@@ -152,11 +144,11 @@ export default function Dashboard() {
             <ShoppingCart size={24} />
           </div>
           <div className="kpi-details">
-            <h2 className="kpi-value" style={{ fontSize: '28px', fontWeight: '700', margin: 0, color: '#135431' }}>{stats?.activeOrders ?? 12}</h2>
+            <h2 className="kpi-value" style={{ fontSize: '28px', fontWeight: '700', margin: 0, color: '#135431' }}>{stats?.activeOrders ?? 0}</h2>
             <p className="kpi-label bilingual-label" style={{ fontSize: '13px', color: 'var(--text-muted)', margin: '2px 0 0 0' }}>
               <span style={{ fontWeight: 600, display: 'block' }}>Active Orders / فعال آرڈر</span>
             </p>
-            <span className="kpi-trend text-red" style={{ fontSize: '11px', fontWeight: '600', color: '#d32f2f', marginTop: '4px', display: 'block' }}>3 awaiting dispatch</span>
+            <span className="kpi-trend text-red" style={{ fontSize: '11px', fontWeight: '600', color: '#d32f2f', marginTop: '4px', display: 'block' }}>Pending fulfillment</span>
           </div>
         </div>
       </div>
@@ -196,13 +188,9 @@ export default function Dashboard() {
           </div>
 
           <div className="pending-section" style={{ borderBottom: '1px solid var(--border-light)', paddingBottom: '20px' }}>
-            <h4 className="pending-sec-title" style={{ fontSize: '12px', fontWeight: '700', color: '#64748b', textTransform: 'uppercase', marginBottom: '12px' }}>Vets ({(stats?.pendingActions?.vets?.length !== undefined) ? stats.pendingActions.vets.length : 3} pending)</h4>
+            <h4 className="pending-sec-title" style={{ fontSize: '12px', fontWeight: '700', color: '#64748b', textTransform: 'uppercase', marginBottom: '12px' }}>Vets ({stats?.pendingActions?.vets?.length || 0} pending)</h4>
             <div className="pending-list" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {(stats?.pendingActions?.vets || [
-                { id: '1', full_name: 'Dr. Muhammad Aslam', pvmc_number: 'PVMC-2023-4521' },
-                { id: '2', full_name: 'Dr. Sara Ahmed', pvmc_number: 'PVMC-2024-1102' },
-                { id: '3', full_name: 'Dr. Hassan Ali', pvmc_number: 'PVMC-2023-8834' }
-              ]).map((vet) => (
+              {(stats?.pendingActions?.vets || []).map((vet) => (
                 <div className="pending-item" key={vet.id} style={{ display: 'flex', alignItems: 'center', gap: '12px', backgroundColor: '#f8fafc', padding: '12px 14px', borderRadius: '12px', border: '1px solid #f1f5f9' }}>
                   <div className="pending-avatar" style={{ width: '36px', height: '36px', borderRadius: '50%', backgroundColor: '#eff7f2', color: '#3da860', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '700', fontSize: '13px', minWidth: '36px' }}>
                     {getInitials(vet.full_name)}
@@ -225,12 +213,9 @@ export default function Dashboard() {
           </div>
 
           <div className="pending-section">
-            <h4 className="pending-sec-title" style={{ fontSize: '12px', fontWeight: '700', color: '#64748b', textTransform: 'uppercase', marginBottom: '12px' }}>Pharmacies ({(stats?.pendingActions?.pharmacies?.length !== undefined) ? stats.pendingActions.pharmacies.length : 2} pending)</h4>
+            <h4 className="pending-sec-title" style={{ fontSize: '12px', fontWeight: '700', color: '#64748b', textTransform: 'uppercase', marginBottom: '12px' }}>Pharmacies ({stats?.pendingActions?.pharmacies?.length || 0} pending)</h4>
             <div className="pending-list" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {(stats?.pendingActions?.pharmacies || [
-                { id: '4', name: 'Al-Shifa Medical Store', license_number: 'Sahiwal' },
-                { id: '5', name: 'Punjab Livestock Pharma', license_number: 'Multan' }
-              ]).map((ph) => (
+              {(stats?.pendingActions?.pharmacies || []).map((ph) => (
                 <div className="pending-item" key={ph.id} style={{ display: 'flex', alignItems: 'center', gap: '12px', backgroundColor: '#f8fafc', padding: '12px 14px', borderRadius: '12px', border: '1px solid #f1f5f9' }}>
                   <div className="pending-avatar pharmacy" style={{ width: '36px', height: '36px', borderRadius: '50%', backgroundColor: '#fff3e0', color: '#ff9800', display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: '36px' }}>
                     <Store size={16} />
@@ -277,44 +262,44 @@ export default function Dashboard() {
                 </tr>
               </thead>
               <tbody>
-                {(stats?.recentDetections || [
-                  { id: '10', owner_name: 'Ahmad Khan', disease: 'LSD', confidence: 87, risk_level: 'High', vet_name: 'Dr. Rahim', created_at: Date.now() - 7200000 },
-                  { id: '11', owner_name: 'Zahid Ali', disease: 'Tick', confidence: 74, risk_level: 'Medium', vet_name: null, created_at: Date.now() - 18000000 },
-                  { id: '12', owner_name: 'Fatima Bibi', disease: 'FMD', confidence: 91, risk_level: 'High', vet_name: 'Dr. Sara', created_at: Date.now() - 86400000 },
-                  { id: '13', owner_name: 'Arif Hussain', disease: 'BCS', confidence: 98, risk_level: 'Low', vet_name: '—', created_at: Date.now() - 86400000 },
-                  { id: '14', owner_name: 'Nasir Mehmood', disease: 'LSD', confidence: 83, risk_level: 'High', vet_name: 'Dr. Rahim', created_at: Date.now() - 172800000 }
-                ]).map((det) => (
-                  <tr key={det.id}>
-                    <td style={{ fontWeight: 600 }}>{det.owner_name}</td>
-                    <td>{det.disease}</td>
-                    <td>{det.confidence}%</td>
-                    <td>
-                      <span className={`badge`} style={{
-                        color: '#ffffff',
-                        backgroundColor: det.risk_level === 'High' ? '#d32f2f' : det.risk_level === 'Medium' ? '#ff9800' : '#3da860',
-                        padding: '4px 10px',
-                        borderRadius: '30px',
-                        fontSize: '11px',
-                        fontWeight: '600',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                      }}>
-                        {det.risk_level}
-                      </span>
-                    </td>
-                    <td style={{ color: det.vet_name && det.vet_name !== '—' ? 'inherit' : '#e59a18', fontWeight: det.vet_name ? '500' : 'normal' }}>
-                      {det.vet_name || 'Pending'}
-                    </td>
-                    <td style={{ color: '#777' }}>
-                      {det.created_at ? (
-                        typeof det.created_at === 'number' ? 
-                        (det.id === '10' ? '2h ago' : det.id === '11' ? '5h ago' : det.id === '12' ? '1d ago' : det.id === '13' ? '1d ago' : '2d ago') :
-                        new Date(det.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                      ) : '—'}
+                {(stats?.recentDetections || []).length === 0 ? (
+                  <tr>
+                    <td colSpan="6" style={{ textAlign: 'center', padding: '24px', color: '#94a3b8' }}>
+                      No recent scans. / کوئی حالیہ تشخیص نہیں ملا۔
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  (stats?.recentDetections || []).map((det) => (
+                    <tr key={det.id}>
+                      <td style={{ fontWeight: 600 }}>{det.owner_name}</td>
+                      <td>{det.disease}</td>
+                      <td>{det.confidence}%</td>
+                      <td>
+                        <span className={`badge`} style={{
+                          color: '#ffffff',
+                          backgroundColor: det.risk_level === 'High' ? '#d32f2f' : det.risk_level === 'Medium' ? '#ff9800' : '#3da860',
+                          padding: '4px 10px',
+                          borderRadius: '30px',
+                          fontSize: '11px',
+                          fontWeight: '600',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}>
+                          {det.risk_level}
+                        </span>
+                      </td>
+                      <td style={{ color: det.vet_name && det.vet_name !== '—' ? 'inherit' : '#e59a18', fontWeight: det.vet_name ? '500' : 'normal' }}>
+                        {det.vet_name || 'Pending'}
+                      </td>
+                      <td style={{ color: '#777' }}>
+                        {det.created_at ? (
+                          new Date(det.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                        ) : '—'}
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
@@ -329,12 +314,7 @@ export default function Dashboard() {
             </div>
           </div>
           <div className="status-list">
-            {(stats?.systemStatus || [
-              { name: 'Backend API', status: 'Operational', uptime: '99.9%' },
-              { name: 'AI Server', status: 'Operational', uptime: '99.7%' },
-              { name: 'Database', status: 'Operational', uptime: '100%' },
-              { name: 'Payment Gateway', status: 'Degraded', uptime: '94.2%' }
-            ]).map((sys, idx) => (
+            {(stats?.systemStatus || []).map((sys, idx) => (
               <div className="status-item" key={idx}>
                 <div className="status-item-name">
                   <div className={`status-dot ${sys.status === 'Operational' ? 'green' : 'orange'}`}></div>
