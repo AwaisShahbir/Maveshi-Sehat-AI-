@@ -126,8 +126,7 @@ export default function ProfileScreen() {
         
         <View style={styles.header}>
           <Text style={styles.headerTitle}>{t('Profile & Settings', 'پروفائل اور ترتیبات')}</Text>
-          <Text style={styles.headerUrdu}>پروفائل اور ترتیبات</Text>
-        </View>
+                  </View>
 
         <View style={styles.profileCard}>
           <View style={styles.cardTopRow}>
@@ -137,10 +136,9 @@ export default function ProfileScreen() {
 
             <View style={styles.userInfo}>
               <Text style={styles.userName}>{profile.userName}</Text>
-              <Text style={styles.userNameUrdu}>{profile.userNameUrdu}</Text>
-              <View style={styles.roleBadge}>
+                            <View style={styles.roleBadge}>
                 <Feather name="user" size={12} color="#58D66D" style={{ marginRight: 4 }} />
-                <Text style={styles.roleText}>{t('Farmer / کسان', 'کسان')}</Text>
+                <Text style={styles.roleText}>{t(t('Farmer', 'کسان'), 'کسان')}</Text>
               </View>
             </View>
 
@@ -154,18 +152,15 @@ export default function ProfileScreen() {
             <View style={styles.statItem}>
               <Text style={styles.statValue}>{uniqueAnimals}</Text>
               <Text style={styles.statLabel}>{t('Livestock', 'مویشی')}</Text>
-              <Text style={styles.statUrdu}>مویشی</Text>
-            </View>
+                          </View>
             <View style={styles.statItem}>
               <Text style={styles.statValue}>{totalScans}</Text>
               <Text style={styles.statLabel}>{t('AI Scans', 'اسکین')}</Text>
-              <Text style={styles.statUrdu}>اسکین</Text>
-            </View>
+                          </View>
             <View style={styles.statItem}>
               <Text style={styles.statValue}>{profile.consultationsCount}</Text>
               <Text style={styles.statLabel}>{t('Consultations', 'مشاورت')}</Text>
-              <Text style={styles.statUrdu}>مشاورت</Text>
-            </View>
+                          </View>
           </View>
         </View>
 
@@ -177,7 +172,6 @@ export default function ProfileScreen() {
             </View>
             <View style={styles.itemDetails}>
               <Text style={styles.itemTitle}>{t('Edit Profile', 'پروفائل ایڈیٹ کریں')}</Text>
-              <Text style={styles.itemSubtitle}>پروفائل ایڈیٹ کریں</Text>
             </View>
             <Feather name="chevron-right" size={18} color="#888" />
           </TouchableOpacity>
@@ -188,7 +182,6 @@ export default function ProfileScreen() {
             </View>
             <View style={styles.itemDetails}>
               <Text style={styles.itemTitle}>{t('Phone Number', 'فون نمبر')}</Text>
-              <Text style={styles.itemSubtitle}>فون نمبر</Text>
               <Text style={styles.itemVal}>{profile.phone}</Text>
             </View>
             <Feather name="chevron-right" size={18} color="#888" />
@@ -200,7 +193,6 @@ export default function ProfileScreen() {
             </View>
             <View style={styles.itemDetails}>
               <Text style={styles.itemTitle}>{t('Location', 'مقام / پتہ')}</Text>
-              <Text style={styles.itemSubtitle}>مقام</Text>
               <Text style={styles.itemVal}>{profile.location}</Text>
             </View>
             <Feather name="chevron-right" size={18} color="#888" />
@@ -215,9 +207,8 @@ export default function ProfileScreen() {
             </View>
             <View style={styles.itemDetails}>
               <Text style={styles.itemTitle}>{t('Language', 'زبان')}</Text>
-              <Text style={styles.itemSubtitle}>زبان</Text>
               <Text style={styles.itemVal}>
-                {profile.language === 'English' ? 'English / اردو' : (profile.language === 'Urdu' ? 'اردو' : 'English / اردو')}
+                {profile.language === 'English' ? 'English / اردو' : (profile.language === 'Urdu' ? 'اردو' :t('English', 'اردو'))}
               </Text>
             </View>
             <Feather name="chevron-right" size={18} color="#888" />
@@ -229,7 +220,6 @@ export default function ProfileScreen() {
             </View>
             <View style={styles.itemDetails}>
               <Text style={styles.itemTitle}>{t('Notifications', 'اطلاعات')}</Text>
-              <Text style={styles.itemSubtitle}>اطلاعات</Text>
             </View>
             <Switch
               value={profile.notificationsEnabled}
@@ -245,7 +235,6 @@ export default function ProfileScreen() {
             </View>
             <View style={styles.itemDetails}>
               <Text style={styles.itemTitle}>{t('Dark Mode', 'ڈارک موڈ')}</Text>
-              <Text style={styles.itemSubtitle}>ڈارک موڈ</Text>
             </View>
             <Switch
               value={isDarkMode}
@@ -264,7 +253,6 @@ export default function ProfileScreen() {
             </View>
             <View style={styles.itemDetails}>
               <Text style={styles.itemTitle}>{t('Privacy Policy', 'رازداری کی پالیسی')}</Text>
-              <Text style={styles.itemSubtitle}>رازداری کی پالیسی</Text>
             </View>
             <Feather name="chevron-right" size={18} color="#888" />
           </TouchableOpacity>
@@ -275,7 +263,6 @@ export default function ProfileScreen() {
             </View>
             <View style={styles.itemDetails}>
               <Text style={styles.itemTitle}>{t('Help & Support', 'مدد اور معاونت')}</Text>
-              <Text style={styles.itemSubtitle}>مدد اور معاونت</Text>
             </View>
             <Feather name="chevron-right" size={18} color="#888" />
           </TouchableOpacity>
@@ -283,7 +270,7 @@ export default function ProfileScreen() {
 
         <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
           <Feather name="log-out" size={18} color="#FF3B30" style={{ transform: [{ scaleX: -1 }], marginRight: 8 }} />
-          <Text style={styles.logoutBtnText}>{t('Logout / لاگ آؤٹ', 'لاگ آؤٹ')}</Text>
+          <Text style={styles.logoutBtnText}>{t(t('Logout', 'لاگ آؤٹ'), 'لاگ آؤٹ')}</Text>
         </TouchableOpacity>
 
       </ScrollView>

@@ -135,66 +135,7 @@ export default function MarketplaceScreen() {
 
         
         <View style={styles.cardBody}>
-          <Text style={styles.medNameEn} numberOfLines={1}>{item.name}</Text>
-          {item.name_urdu && (
-            <Text style={styles.medNameUr} numberOfLines={1} className="urdu">
-              {item.name_urdu}
-            </Text>
-          )}
-
-          
-          <View style={styles.medMetaRow}>
-            <Text style={styles.ratingText}>★ {rating}</Text>
-            <Text style={styles.metaDivider}>•</Text>
-            <Text style={styles.strengthText} numberOfLines={1}>{item.strength || 'dose'}</Text>
-          </View>
-
-          
-          <View style={styles.priceRow}>
-            <Text style={styles.priceText}>Rs. {Math.round(item.price)}</Text>
-            <View style={[
-              styles.stockBadge, 
-              { backgroundColor: isOutOfStock ? 'rgba(239, 68, 68, 0.1)' : 'rgba(16, 185, 129, 0.1)' }
-            ]}>
-              <Text style={[
-                styles.stockBadgeText, 
-                { color: isOutOfStock ? '#ef4444' : '#10b981' }
-              ]}>
-                {isOutOfStock ? t('Out Stock', 'ختم') : t('In Stock', 'دستیاب')}
-              </Text>
-            </View>
-          </View>
-
-          
-          <TouchableOpacity 
-            style={[styles.addBtn, isOutOfStock && styles.addBtnDisabled]} 
-            onPress={() => !isOutOfStock && addToCart(item)}
-            disabled={isOutOfStock}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.addBtnText}>{t('Add to Cart', 'کارٹ میں شامل کریں')}</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    );
-  };
-
-  const lang = profile.language || 'English';
-
-  return (
-    <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor="#58D66D" />
-
-      
-      <View style={styles.header}>
-        <View style={styles.headerTop}>
-          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-            <Feather name="chevron-left" size={26} color="#FFF" />
-          </TouchableOpacity>
-          <View style={styles.headerTitleBlock}>
-            <Text style={styles.headerTitle}>Marketplace</Text>
-            <Text style={styles.headerSubtitle} className="urdu">دوا خانہ</Text>
-          </View>
+                    </View>
           
           
           <TouchableOpacity 

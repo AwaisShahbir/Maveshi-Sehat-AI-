@@ -186,14 +186,13 @@ export default function RegisterScreen() {
               <Text style={styles.backText}>Back</Text>
             </TouchableOpacity>
             <Text style={styles.mainTitle}>Create Account</Text>
-            <Text style={styles.urduTitle}>اکاؤنٹ بنائیں</Text>
           </View>
 
           
           <View style={styles.cardContainer}>
             
             
-            <Text style={styles.label}>Full Name / نام</Text>
+            <Text style={styles.label}>{t('Full Name', 'نام')}</Text>
             <View style={styles.inputContainer}>
               <Feather name="user" size={20} color="#4CB85C" style={styles.inputIcon} />
               <TextInput 
@@ -206,7 +205,7 @@ export default function RegisterScreen() {
             </View>
 
             
-            <Text style={styles.label}>Email Address / ای میل</Text>
+            <Text style={styles.label}>{t('Email Address', 'ای میل')}</Text>
             <View style={styles.inputContainer}>
               <Feather name="mail" size={20} color="#4CB85C" style={styles.inputIcon} />
               <TextInput 
@@ -221,7 +220,7 @@ export default function RegisterScreen() {
             </View>
 
             
-            <Text style={styles.label}>Phone Number / فون نمبر</Text>
+            <Text style={styles.label}>{t('Phone Number', 'فون نمبر')}</Text>
             <View style={styles.inputContainer}>
               <Feather name="phone" size={20} color="#4CB85C" style={styles.inputIcon} />
               <TextInput 
@@ -235,7 +234,7 @@ export default function RegisterScreen() {
             </View>
 
             
-            <Text style={styles.label}>District / ضلع</Text>
+            <Text style={styles.label}>{t('District', 'ضلع')}</Text>
             <TouchableOpacity style={styles.inputContainer} activeOpacity={0.8} onPress={() => setDistrictModalVisible(true)}>
               <Feather name="map-pin" size={20} color="#4CB85C" style={styles.inputIcon} />
               <Text style={[styles.input, { height: 'auto', paddingTop: 0, color: district ? '#333' : '#999' }]}>
@@ -245,28 +244,26 @@ export default function RegisterScreen() {
             </TouchableOpacity>
 
             
-            <Text style={styles.label}>Role / کردار</Text>
+            <Text style={styles.label}>{t('Role', 'کردار')}</Text>
             <View style={styles.roleContainer}>
               <TouchableOpacity 
                 style={[styles.roleButton, role === 'farmer' && styles.roleButtonActive]}
                 onPress={() => setRole('farmer')}
                 activeOpacity={0.8}
               >
-                <Text style={[styles.roleText, role === 'farmer' && styles.roleTextActive]}>کسان / Farmer</Text>
               </TouchableOpacity>
               <TouchableOpacity 
                 style={[styles.roleButton, role === 'vet' && styles.roleButtonActive]}
                 onPress={() => setRole('vet')}
                 activeOpacity={0.8}
               >
-                <Text style={[styles.roleText, role === 'vet' && styles.roleTextActive]}>ویٹرنری / Vet</Text>
               </TouchableOpacity>
             </View>
 
             {role === 'vet' && (
               <>
                 
-                <Text style={styles.label}>License Number (PVMC) / لائسنس نمبر</Text>
+                <Text style={styles.label}>{t('License Number (PVMC)', 'لائسنس نمبر')}</Text>
                 <View style={styles.inputContainer}>
                   <Feather name="file-text" size={20} color="#4CB85C" style={styles.inputIcon} />
                   <TextInput 
@@ -279,7 +276,7 @@ export default function RegisterScreen() {
                 </View>
 
                 
-                <Text style={styles.label}>Specialization / مہارت</Text>
+                <Text style={styles.label}>{t('Specialization', 'مہارت')}</Text>
                 <View style={styles.inputContainer}>
                   <Feather name="award" size={20} color="#4CB85C" style={styles.inputIcon} />
                   <TextInput 
@@ -292,7 +289,6 @@ export default function RegisterScreen() {
                 </View>
 
                 
-                <Text style={styles.label}>Years of Experience / تجربہ (سال)</Text>
                 <View style={styles.inputContainer}>
                   <Feather name="clock" size={20} color="#4CB85C" style={styles.inputIcon} />
                   <TextInput 
@@ -306,7 +302,6 @@ export default function RegisterScreen() {
                 </View>
 
                 
-                <Text style={styles.label}>License Document (Image/PDF) / لائسنس کی دستاویز</Text>
                 <TouchableOpacity 
                   style={[styles.inputContainer, { justifyContent: 'center', backgroundColor: '#E8F8EA', borderColor: '#4CB85C', borderStyle: 'dashed' }]}
                   activeOpacity={0.8}
@@ -321,7 +316,7 @@ export default function RegisterScreen() {
                 >
                   <Feather name={uploading ? "loader" : "upload-cloud"} size={22} color="#4CB85C" style={{ marginRight: 8 }} />
                   <Text style={{ color: '#4CB85C', fontWeight: 'bold', fontSize: 14 }}>
-                    {uploading ? 'Uploading / اپ لوڈ ہو رہا ہے...' : (licenseFileName ? `Selected: ${licenseFileName}` : 'Upload Document / دستاویز اپ لوڈ کریں')}
+                    {uploading ? 'Uploading / اپ لوڈ ہو رہا ہے...' : (licenseFileName ? `Selected: ${licenseFileName}` :t('Upload Document', 'دستاویز اپ لوڈ کریں'))}
                   </Text>
                   {Platform.OS === 'web' && (
                     <input 
@@ -337,7 +332,7 @@ export default function RegisterScreen() {
             )}
 
             
-            <Text style={styles.label}>Password / پاس ورڈ</Text>
+            <Text style={styles.label}>{t('Password', 'پاس ورڈ')}</Text>
             <View style={styles.inputContainer}>
               <Feather name="lock" size={20} color="#4CB85C" style={styles.inputIcon} />
               <TextInput 
@@ -351,7 +346,7 @@ export default function RegisterScreen() {
             </View>
 
             
-            <Text style={styles.label}>Confirm Password / پاس ورڈ کی تصدیق</Text>
+            <Text style={styles.label}>{t('Confirm Password', 'پاس ورڈ کی تصدیق')}</Text>
             <View style={styles.inputContainer}>
               <Feather name="lock" size={20} color="#4CB85C" style={styles.inputIcon} />
               <TextInput 
@@ -379,14 +374,13 @@ export default function RegisterScreen() {
               onPress={handleRegister}
               disabled={loading}
             >
-              <Text style={styles.registerBtnText}>{loading ? 'Registering...' : 'رجسٹر / Register'}</Text>
             </TouchableOpacity>
 
             
             <View style={styles.loginContainer}>
               <Text style={styles.loginText}>Already have an account? </Text>
               <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-                <Text style={styles.loginLink}>Login / لاگ ان</Text>
+                <Text style={styles.loginLink}>{t('Login', 'لاگ ان')}</Text>
               </TouchableOpacity>
             </View>
 
@@ -425,14 +419,14 @@ export default function RegisterScreen() {
       <Modal visible={isUploadModalVisible} transparent={true} animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Upload License / لائسنس اپ لوڈ کریں</Text>
+            <Text style={styles.modalTitle}>{t('Upload License', 'لائسنس اپ لوڈ کریں')}</Text>
             
             <TouchableOpacity 
               style={styles.modalUploadItem}
               onPress={() => handleMockUploadMobile('camera')}
             >
               <Feather name="camera" size={20} color="#4CB85C" style={{ marginRight: 12 }} />
-              <Text style={[styles.modalItemText, { textAlign: 'left' }]}>Scan Card (Camera) / کیمرہ</Text>
+              <Text style={[styles.modalItemText, { textAlign: 'left' }]}>{t('Scan Card (Camera)', 'کیمرہ')}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity 
@@ -440,7 +434,7 @@ export default function RegisterScreen() {
               onPress={() => handleMockUploadMobile('gallery')}
             >
               <Feather name="image" size={20} color="#4CB85C" style={{ marginRight: 12 }} />
-              <Text style={[styles.modalItemText, { textAlign: 'left' }]}>Choose from Gallery / گیلری</Text>
+              <Text style={[styles.modalItemText, { textAlign: 'left' }]}>{t('Choose from Gallery', 'گیلری')}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity 
@@ -448,11 +442,11 @@ export default function RegisterScreen() {
               onPress={() => handleMockUploadMobile('pdf')}
             >
               <Feather name="file-text" size={20} color="#4CB85C" style={{ marginRight: 12 }} />
-              <Text style={[styles.modalItemText, { textAlign: 'left' }]}>Select PDF File / پی ڈی ایف دستاویز</Text>
+              <Text style={[styles.modalItemText, { textAlign: 'left' }]}>{t('Select PDF File', 'پی ڈی ایف دستاویز')}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.modalCloseBtn} onPress={() => setUploadModalVisible(false)}>
-              <Text style={styles.modalCloseText}>Cancel / منسوخ کریں۔</Text>
+              <Text style={styles.modalCloseText}>{t('Cancel', 'منسوخ کریں۔')}</Text>
             </TouchableOpacity>
           </View>
         </View>

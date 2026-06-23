@@ -157,62 +157,7 @@ export default function CartScreen() {
 
         
         <View style={styles.itemDetails}>
-          <Text style={styles.itemNameText}>{item.name}</Text>
-          {item.nameUrdu ? (
-            <Text style={styles.itemNameUrdu} className="urdu">{item.nameUrdu}</Text>
-          ) : null}
-          <Text style={styles.itemStrengthText}>{item.strength}</Text>
-          <Text style={styles.itemPriceText}>Rs. {Math.round(item.price * item.quantity)}</Text>
-        </View>
-
-        
-        <View style={styles.itemControls}>
-          <View style={styles.counterRow}>
-            <TouchableOpacity 
-              style={styles.counterBtn} 
-              onPress={() => handleDecrement(item)}
-              activeOpacity={0.7}
-            >
-              <Feather name="minus" size={14} color="#64748B" />
-            </TouchableOpacity>
-            
-            <Text style={styles.counterVal}>{item.quantity}</Text>
-            
-            <TouchableOpacity 
-              style={styles.counterBtn} 
-              onPress={() => handleIncrement(item)}
-              activeOpacity={0.7}
-            >
-              <Feather name="plus" size={14} color="#64748B" />
-            </TouchableOpacity>
-          </View>
-
-          
-          <TouchableOpacity 
-            style={styles.deleteBtn}
-            onPress={() => removeFromCart(item.id)}
-            activeOpacity={0.7}
-          >
-            <Feather name="trash-2" size={16} color="#FF5252" />
-          </TouchableOpacity>
-        </View>
-      </View>
-    );
-  };
-
-  return (
-    <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor="#58D66D" />
-
-      
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-          <Feather name="chevron-left" size={26} color="#FFF" />
-        </TouchableOpacity>
-        <View style={styles.headerTitleBlock}>
-          <Text style={styles.headerTitle}>Shopping Cart</Text>
-          <Text style={styles.headerSubtitle} className="urdu">خریداری کی ٹوکری</Text>
-        </View>
+                  </View>
         <View style={{ width: 26 }} />
       </View>
 

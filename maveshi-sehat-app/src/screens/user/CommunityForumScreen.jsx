@@ -320,11 +320,10 @@ export default function CommunityForumScreen() {
         <View style={styles.headerTop}>
           <View>
             {lang === 'English' && <Text style={styles.headerTitle}>Community Forum</Text>}
-            {lang === 'Urdu' && <Text style={styles.headerTitle}>کمیونٹی فورم</Text>}
+            
             {lang === 'Both' && (
               <>
                 <Text style={styles.headerTitle}>Community Forum</Text>
-                <Text style={styles.headerSubtitle}>کمیونٹی فورم</Text>
               </>
             )}
           </View>

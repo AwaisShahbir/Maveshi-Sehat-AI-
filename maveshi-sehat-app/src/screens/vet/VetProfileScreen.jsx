@@ -40,7 +40,7 @@ export default function VetProfileScreen() {
         <View style={styles.menuIconBox}>
           <Feather name={icon} size={20} color="#58D66D" />
         </View>
-        <Text style={styles.menuTitle}>{title}</Text>
+        <Text style={styles.menuTitle}>{t(title, subtitle)}</Text>
       </View>
       <View style={styles.menuRight}>
         {rightElement || (
@@ -78,36 +78,34 @@ export default function VetProfileScreen() {
             </View>
             
             <Text style={styles.profileName}>{userName}</Text>
-            <Text style={styles.profileNameUrdu}>ڈاکٹر</Text>
-            <Text style={styles.specializationText}>{profile.specialization || 'Livestock Disease Specialist'}</Text>
-            <Text style={styles.specializationUrduText}>مویشیوں کی بیماریوں کا ماہر</Text>
-
+                        <Text style={styles.specializationText}>{profile.specialization || 'Livestock Disease Specialist'}</Text>
+            
             <View style={styles.verifiedBadge}>
               <MaterialCommunityIcons name="check-decagram" size={16} color="#58D66D" style={{ marginRight: 6 }} />
-              <Text style={styles.verifiedText}>Verified Vet / تصدیق شدہ</Text>
+              <Text style={styles.verifiedText}>{t('Verified Vet', 'تصدیق شدہ')}</Text>
             </View>
           </View>
 
           <View style={styles.statsContainer}>
             <View style={styles.statBox}>
               <Text style={styles.statValue}>47</Text>
-              <Text style={styles.statLabel}>Cases / کیسز</Text>
+              <Text style={styles.statLabel}>{t('Cases', 'کیسز')}</Text>
             </View>
             <View style={styles.statDivider} />
             <View style={styles.statBox}>
               <Text style={styles.statValue}>18</Text>
-              <Text style={styles.statLabel}>Prescriptions / نسخہ جات</Text>
+              <Text style={styles.statLabel}>{t('Prescriptions', 'نسخہ جات')}</Text>
             </View>
             <View style={styles.statDivider} />
             <View style={styles.statBox}>
               <Text style={[styles.statValue, { color: '#F5B041' }]}>4.9★</Text>
-              <Text style={styles.statLabel}>Rating / ریٹنگ</Text>
+              <Text style={styles.statLabel}>{t('Rating', 'ریٹنگ')}</Text>
             </View>
           </View>
         </View>
 
         <View style={styles.contentSection}>
-          <Text style={styles.sectionHeading}>Account / اکاؤنٹ</Text>
+          <Text style={styles.sectionHeading}>{t('Account', 'اکاؤنٹ')}</Text>
           <View style={styles.menuCard}>
             {renderMenuItem('user', 'Edit Profile', 'پروفائل ترمیم کریں', null, () => setActiveModal('editProfile'))}
             <View style={styles.menuDivider} />
@@ -118,9 +116,8 @@ export default function VetProfileScreen() {
             {renderMenuItem('calendar', 'Availability Schedule', 'دستیابی شیڈول', null, () => setActiveModal('availability'))}
           </View>
 
-          <Text style={styles.sectionHeading}>Preferences / ترجیحات</Text>
+          <Text style={styles.sectionHeading}>{t('Preferences', 'ترجیحات')}</Text>
           <View style={styles.menuCard}>
-            {renderMenuItem('globe', 'Language', 'زبان', <Text style={styles.menuSubtitleActive}>EN | UR</Text>)}
             <View style={styles.menuDivider} />
             {renderMenuItem('bell', 'Notifications', 'اطلاعات', 
               <Switch
@@ -132,10 +129,9 @@ export default function VetProfileScreen() {
               />
             )}
             <View style={styles.menuDivider} />
-            {renderMenuItem('message-circle', 'Consultation Mode', 'مشاورت کا طریقہ', <Text style={styles.menuSubtitleActive}>Chat + Video</Text>)}
           </View>
 
-          <Text style={styles.sectionHeading}>Support / مدد</Text>
+          <Text style={styles.sectionHeading}>{t('Support', 'مدد')}</Text>
           <View style={styles.menuCard}>
             {renderMenuItem('help-circle', 'Help Center', 'مدد مرکز')}
             <View style={styles.menuDivider} />
@@ -146,7 +142,7 @@ export default function VetProfileScreen() {
 
           <TouchableOpacity style={styles.logoutBtn} onPress={() => navigation.reset({ index: 0, routes: [{ name: 'Welcome' }] })}>
             <Feather name="log-out" size={20} color="#FF3B30" style={{ marginRight: 8 }} />
-            <Text style={styles.logoutText}>Logout / لاگ آؤٹ</Text>
+            <Text style={styles.logoutText}>{t('Logout', 'لاگ آؤٹ')}</Text>
           </TouchableOpacity>
         </View>
 

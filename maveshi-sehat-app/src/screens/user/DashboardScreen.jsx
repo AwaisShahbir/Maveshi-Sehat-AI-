@@ -142,79 +142,70 @@ export default function DashboardScreen() {
             <View style={styles.statItem}>
               <Text style={styles.statValue}>{stats.livestock}</Text>
               <Text style={styles.statLabel}>{t('Livestock', 'مویشی')}</Text>
-              <Text style={styles.statUrdu}>مویشی</Text>
-            </View>
+                          </View>
             <View style={styles.statItem}>
               <Text style={styles.statValue}>{stats.aiScans}</Text>
               <Text style={styles.statLabel}>{t('AI Scans', 'اسکین')}</Text>
-              <Text style={styles.statUrdu}>اسکین</Text>
-            </View>
+                          </View>
             <View style={styles.statItem}>
               <Text style={styles.statValue}>{stats.healthy}%</Text>
               <Text style={styles.statLabel}>{t('Healthy', 'صحت مند')}</Text>
-              <Text style={styles.statUrdu}>صحت مند</Text>
-            </View>
+                          </View>
           </View>
         </LinearGradient>
 
         
         <View style={[styles.cardContainer, styles.overlapCard]}>
-          <Text style={styles.sectionTitle}>{t('Quick Actions / فوری اعمال', 'فوری اعمال')}</Text>
+          <Text style={styles.sectionTitle}>{t(t('Quick Actions', 'فوری اعمال'), 'فوری اعمال')}</Text>
           <View style={styles.actionGrid}>
             <TouchableOpacity style={styles.actionItem} onPress={() => navigation.navigate('AiScan', { userName, userId })}>
               <View style={[styles.iconBox, { backgroundColor: '#E8F8EA' }]}>
                 <MaterialCommunityIcons name="line-scan" size={28} color="#4CB85C" />
               </View>
               <Text style={styles.actionText}>{t('AI Scan', 'اسکین')}</Text>
-              <Text style={styles.actionUrdu}>اسکین</Text>
-            </TouchableOpacity>
+                          </TouchableOpacity>
             
             <TouchableOpacity style={styles.actionItem} onPress={() => navigation.navigate('Vaccination')}>
               <View style={[styles.iconBox, { backgroundColor: '#FFF5E5' }]}>
                 <MaterialCommunityIcons name="needle" size={28} color="#F5B041" />
               </View>
               <Text style={styles.actionText}>{t('Vaccination', 'ویکسین')}</Text>
-              <Text style={styles.actionUrdu}>ویکسین</Text>
-            </TouchableOpacity>
+                          </TouchableOpacity>
 
             <TouchableOpacity style={styles.actionItem} onPress={() => navigation.navigate('VeterinariansList', { userName, userId })}>
               <View style={[styles.iconBox, { backgroundColor: '#E8F8EA' }]}>
                 <Feather name="users" size={26} color="#4CB85C" />
               </View>
               <Text style={styles.actionText}>{t('Veterinarians', 'ڈاکٹرز')}</Text>
-              <Text style={styles.actionUrdu}>ڈاکٹر</Text>
-            </TouchableOpacity>
+                          </TouchableOpacity>
 
             <TouchableOpacity style={styles.actionItem} onPress={() => navigation.navigate('MyConsultations')}>
               <View style={[styles.iconBox, { backgroundColor: '#E8F8EA' }]}>
                 <Feather name="calendar" size={26} color="#4CB85C" />
               </View>
               <Text style={styles.actionText}>{t('Consultations', 'مشاورت')}</Text>
-              <Text style={styles.actionUrdu}>مشاورت</Text>
-            </TouchableOpacity>
+                          </TouchableOpacity>
 
             <TouchableOpacity style={styles.actionItem} onPress={() => navigation.navigate('HeatAlert', { userName, userId })}>
               <View style={[styles.iconBox, { backgroundColor: '#FFF5E5' }]}>
                 <Feather name="thermometer" size={28} color="#F5B041" />
               </View>
               <Text style={styles.actionText}>{t('Heat Alert', 'گرمی')}</Text>
-              <Text style={styles.actionUrdu}>گرمی</Text>
-            </TouchableOpacity>
+                          </TouchableOpacity>
 
             <TouchableOpacity style={styles.actionItem} onPress={() => navigation.navigate('Marketplace', { userName, userId })}>
               <View style={[styles.iconBox, { backgroundColor: '#E8F8EA' }]}>
                 <Feather name="shopping-bag" size={26} color="#4CB85C" />
               </View>
               <Text style={styles.actionText}>{t('Marketplace', 'مارکیٹ')}</Text>
-              <Text style={styles.actionUrdu}>مارکیٹ</Text>
-            </TouchableOpacity>
+                          </TouchableOpacity>
           </View>
         </View>
 
         
         <View style={styles.cardContainer}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>{t('Recent AI Scans / حالیہ اسکین', 'حالیہ اسکین')}</Text>
+            <Text style={styles.sectionTitle}>{t(t('Recent AI Scans', 'حالیہ اسکین'), 'حالیہ اسکین')}</Text>
             <TouchableOpacity onPress={() => navigation.navigate('HealthRecords', { userName, userId })}>
               <Text style={styles.viewAll}>{t('View All', 'سب دیکھیں')}</Text>
             </TouchableOpacity>

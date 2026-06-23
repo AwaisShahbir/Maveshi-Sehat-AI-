@@ -88,8 +88,7 @@ export default function VetHealthRecordsScreen() {
           </View>
         </View>
 
-        <Text style={styles.diseaseUrduText}>بیماری کی تشخیص</Text>
-
+        
         <View style={styles.infoRow}>
           <Feather name="user" size={14} color="#888" style={{ marginRight: 4 }} />
           <Text style={styles.infoText}>{item.farmer_name || 'Farmer'}</Text>
@@ -108,7 +107,7 @@ export default function VetHealthRecordsScreen() {
 
         <View style={styles.confidenceSection}>
           <View style={styles.confidenceHeader}>
-            <Text style={styles.confidenceLabel}>Confidence / اعتماد</Text>
+            <Text style={styles.confidenceLabel}>{t('Confidence', 'اعتماد')}</Text>
             <Text style={[styles.confidenceValue, { color: riskColor }]}>{confidence}%</Text>
           </View>
           <View style={styles.progressBarBg}>
@@ -120,7 +119,6 @@ export default function VetHealthRecordsScreen() {
           style={styles.cardFooter}
           onPress={() => navigation.navigate('VetConsultations', { userName: params.userName, userId })}
         >
-          <Text style={styles.viewFullText}>View Full Record / مکمل ریکارڈ دیکھیں →</Text>
         </TouchableOpacity>
       </View>
     );
@@ -137,7 +135,6 @@ export default function VetHealthRecordsScreen() {
           </TouchableOpacity>
           <View style={styles.titleContainer}>
             <Text style={styles.headerTitle}>Health Records</Text>
-            <Text style={styles.headerSubtitle}>صحت کی ریکارڈ</Text>
           </View>
           <TouchableOpacity style={styles.downloadBtn}>
             <Feather name="download" size={22} color="#FFF" />

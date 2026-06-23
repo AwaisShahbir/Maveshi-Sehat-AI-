@@ -79,33 +79,28 @@ export default function LoginScreen() {
               <Text style={styles.backText}>Back</Text>
             </TouchableOpacity>
             <Text style={styles.mainTitle}>Welcome Back</Text>
-            <Text style={styles.urduTitle}>خوش آمدید</Text>
           </View>
 
           
           <View style={styles.cardContainer}>
             
             
-            <Text style={styles.label}>لاگ ان بطور / Login As</Text>
             <View style={styles.roleContainer}>
               <TouchableOpacity 
                 style={[styles.roleButton, role === 'owner' && styles.roleButtonActive]}
                 onPress={() => setRole('owner')}
                 activeOpacity={0.8}
               >
-                <Text style={[styles.roleText, role === 'owner' && styles.roleTextActive]}>مالک / Owner</Text>
               </TouchableOpacity>
               <TouchableOpacity 
                 style={[styles.roleButton, role === 'vet' && styles.roleButtonActive]}
                 onPress={() => setRole('vet')}
                 activeOpacity={0.8}
               >
-                <Text style={[styles.roleText, role === 'vet' && styles.roleTextActive]}>ڈاکٹر / Vet</Text>
               </TouchableOpacity>
             </View>
 
             
-            <Text style={styles.label}>فون نمبر / Phone Number</Text>
             <View style={styles.inputContainer}>
               <Feather name="phone" size={20} color="#4CB85C" style={styles.inputIcon} />
               <TextInput 
@@ -119,7 +114,6 @@ export default function LoginScreen() {
             </View>
 
             
-            <Text style={styles.label}>پاس ورڈ / Password</Text>
             <View style={styles.inputContainer}>
               <Feather name="lock" size={20} color="#4CB85C" style={styles.inputIcon} />
               <TextInput 
@@ -137,7 +131,6 @@ export default function LoginScreen() {
 
             
             <TouchableOpacity>
-              <Text style={styles.forgotPassword}>پاس ورڈ بھول گئے؟ / Forgot Password?</Text>
             </TouchableOpacity>
 
             
@@ -164,7 +157,7 @@ export default function LoginScreen() {
             <View style={styles.registerContainer}>
               <Text style={styles.registerText}>Don't have an account? </Text>
               <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-                <Text style={styles.registerLink}>Register / رجسٹر</Text>
+                <Text style={styles.registerLink}>{t('Register', 'رجسٹر')}</Text>
               </TouchableOpacity>
             </View>
 

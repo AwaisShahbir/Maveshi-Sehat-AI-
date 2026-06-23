@@ -389,11 +389,10 @@ export default function ForumPostDetailScreen() {
         </TouchableOpacity>
         <View style={styles.headerTitleContainer}>
           {lang === 'English' && <Text style={styles.headerTitle}>Discussion</Text>}
-          {lang === 'Urdu' && <Text style={styles.headerTitle}>گفتگو کی تفصیل</Text>}
+          
           {lang === 'Both' && (
             <>
               <Text style={styles.headerTitle}>Discussion</Text>
-              <Text style={styles.headerSubtitle}>گفتگو کی تفصیل</Text>
             </>
           )}
         </View>

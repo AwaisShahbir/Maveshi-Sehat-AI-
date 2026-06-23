@@ -29,7 +29,6 @@ export default function SplashScreen() {
           <Image source={logoImg} style={styles.logoImage} resizeMode="cover" />
         </View>
         <Text style={styles.mainTitle}>Maveshi Sehat AI</Text>
-        <Text style={styles.urduTitle}>مویشی صحت اے آئی</Text>
       </View>
 
       <View style={styles.footer}>

@@ -150,8 +150,7 @@ export default function VetConsultationsScreen() {
             </View>
             <View>
               <Text style={styles.farmerName}>{item.farmer_name}</Text>
-              <Text style={styles.farmerNameUrdu}>{item.farmer_name}</Text>
-            </View>
+                          </View>
           </View>
           <Text style={styles.timeText}>{timeText}</Text>
         </View>
@@ -199,7 +198,6 @@ export default function VetConsultationsScreen() {
           </TouchableOpacity>
           <View style={styles.titleContainer}>
             <Text style={styles.headerTitle}>Consultations</Text>
-            <Text style={styles.headerSubtitle}>مشاورتیں</Text>
           </View>
           <TouchableOpacity style={styles.filterBtn}>
             <Feather name="filter" size={22} color="#FFF" />

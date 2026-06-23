@@ -115,8 +115,7 @@ export default function HealthRecordsScreen() {
         
         <View style={styles.header}>
           <Text style={styles.headerTitle}>{t('Health Records', 'صحت کے ریکارڈ')}</Text>
-          <Text style={styles.headerUrdu}>صحت کے ریکارڈ</Text>
-          
+                    
           
           <View style={styles.searchBarRow}>
             <View style={styles.searchContainer}>

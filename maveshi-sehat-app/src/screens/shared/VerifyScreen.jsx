@@ -86,7 +86,6 @@ export default function VerifyScreen() {
             </View>
             
             <Text style={styles.mainTitle}>Verify Phone</Text>
-            <Text style={styles.urduTitle}>فون کی تصدیق کریں</Text>
           </View>
 
           
@@ -116,7 +115,7 @@ export default function VerifyScreen() {
             </Text>
             
             <TouchableOpacity>
-              <Text style={styles.resendLink}>Resend OTP / دوبارہ بھیجیں</Text>
+              <Text style={styles.resendLink}>{t('Resend OTP', 'دوبارہ بھیجیں')}</Text>
             </TouchableOpacity>
 
             
@@ -126,7 +125,6 @@ export default function VerifyScreen() {
               onPress={handleVerify}
               disabled={loading}
             >
-              <Text style={styles.verifyBtnText}>{loading ? 'Verifying...' : 'تصدیق کریں / Verify'}</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>

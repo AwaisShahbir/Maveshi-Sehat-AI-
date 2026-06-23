@@ -137,12 +137,11 @@ export default function HeatAlertScreen() {
             <Feather name="arrow-left" size={24} color="#FFF" />
           </TouchableOpacity>
           {lang === 'English' && <Text style={styles.headerTitle}>Heat Stress Alert</Text>}
-          {lang === 'Urdu' && <Text style={styles.headerTitle}>گرمی کی تنبیہ</Text>}
+          
           {lang === 'Both' && (
             <>
               <Text style={styles.headerTitle}>Heat Stress Alert</Text>
-              <Text style={styles.headerUrdu}>گرمی کی تنبیہ</Text>
-            </>
+                          </>
           )}
         </View>
 

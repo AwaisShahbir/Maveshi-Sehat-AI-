@@ -60,8 +60,7 @@ export default function VaccinationScreen() {
         </View>
         <View style={styles.detailsContainer}>
           <Text style={styles.vaccineTitle}>{data.vaccineName}</Text>
-          <Text style={styles.vaccineUrdu}>Prescribed by: {item.vet_name || 'Vet'}</Text>
-          <View style={styles.metaRow}>
+                    <View style={styles.metaRow}>
             <Feather name="calendar" size={12} color="#888" style={{ marginRight: 4 }} />
             <Text style={styles.metaText}>{data.vaccineDate}</Text>
             <Text style={styles.metaDivider}>  •  </Text>
@@ -96,7 +95,7 @@ export default function VaccinationScreen() {
             onPress={() => setActiveTab('Upcoming')}
           >
             <Text style={[styles.tabText, activeTab === 'Upcoming' && styles.activeTabText]}>
-              {t('Upcoming / آنے والے', 'آنے والے')}
+              {t(t('Upcoming', 'آنے والے'), 'آنے والے')}
             </Text>
           </TouchableOpacity>
 
@@ -105,7 +104,7 @@ export default function VaccinationScreen() {
             onPress={() => setActiveTab('Completed')}
           >
             <Text style={[styles.tabText, activeTab === 'Completed' && styles.activeTabText]}>
-              {t('Completed / مکمل', 'مکمل')}
+              {t(t('Completed', 'مکمل'), 'مکمل')}
             </Text>
           </TouchableOpacity>
         </View>

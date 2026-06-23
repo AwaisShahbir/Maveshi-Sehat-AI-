@@ -46,11 +46,9 @@ export default function WelcomeScreen() {
 
           {/* App name */}
           <Text style={styles.mainTitle}>Maveshi Sehat AI</Text>
-          <Text style={styles.urduTitle}>مویشی صحت اے آئی</Text>
 
           {/* Tagline */}
           <Text style={styles.englishSub}>AI-Powered Livestock Healthcare</Text>
-          <Text style={styles.urduSub}>مویشیوں کی صحت کی دیکھ بھال</Text>
         </View>
 
         {/* ── Bottom Buttons ── */}
@@ -60,7 +58,7 @@ export default function WelcomeScreen() {
             onPress={() => navigation.navigate('Login')}
             activeOpacity={0.85}
           >
-            <Text style={styles.loginText}>Login / لاگ اِن</Text>
+            <Text style={styles.loginText}>{t('Login', 'لاگ اِن')}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -68,7 +66,7 @@ export default function WelcomeScreen() {
             onPress={() => navigation.navigate('Register')}
             activeOpacity={0.85}
           >
-            <Text style={styles.registerText}>Register / رجسٹر کریں</Text>
+            <Text style={styles.registerText}>{t('Register', 'رجسٹر کریں')}</Text>
           </TouchableOpacity>
 
           <Text style={styles.trustText}>

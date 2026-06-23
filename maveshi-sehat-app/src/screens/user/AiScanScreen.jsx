@@ -151,8 +151,7 @@ export default function AiScanScreen() {
 
   const handleTakePhoto = () => {
     if (!animalType) {
-      Alert.alert(
-        'Select Animal / جانور منتخب کریں', 
+      Alert.alert(t('Select Animal', 'جانور منتخب کریں'), 
         'Please select an animal type first.\nبراہ کرم پہلے جانور کی قسم منتخب کریں۔'
       );
       return;
@@ -192,8 +191,7 @@ export default function AiScanScreen() {
 
   const handleChooseFromGallery = () => {
     if (!animalType) {
-      Alert.alert(
-        'Select Animal / جانور منتخب کریں', 
+      Alert.alert(t('Select Animal', 'جانور منتخب کریں'), 
         'Please select an animal type first.\nبراہ کرم پہلے جانور کی قسم منتخب کریں۔'
       );
       return;
@@ -378,8 +376,7 @@ export default function AiScanScreen() {
             <Text style={styles.backText}>{t('Back', 'پیچھے')}</Text>
           </TouchableOpacity>
           <Text style={styles.headerTitle}>{t('AI Disease Detection', 'بیماری کی تشخیص')}</Text>
-          <Text style={styles.headerUrdu}>بیماری کی تشخیص</Text>
-        </View>
+                  </View>
 
         
         <View style={styles.mainCard}>
@@ -403,13 +400,11 @@ export default function AiScanScreen() {
                 style={styles.dropdownItem} 
                 onPress={() => handleSelectAnimal('Cow')}
               >
-                <Text style={styles.dropdownItemText}>Cow / گائے 🐄</Text>
               </TouchableOpacity>
               <TouchableOpacity 
                 style={[styles.dropdownItem, { borderBottomWidth: 0 }]} 
                 onPress={() => handleSelectAnimal('Buffalo')}
               >
-                <Text style={styles.dropdownItemText}>Buffalo / بھینس 🐃</Text>
               </TouchableOpacity>
             </View>
           )}
@@ -422,16 +417,14 @@ export default function AiScanScreen() {
                   <Feather name="camera" size={28} color="#4CB85C" />
                 </View>
                 <Text style={[styles.uploadTitle, { color: '#333' }]}>{t('Take Photo', 'تصویر لیں')}</Text>
-                <Text style={styles.uploadUrdu}>تصویر لیں</Text>
-              </TouchableOpacity>
+                              </TouchableOpacity>
 
               <TouchableOpacity style={[styles.uploadCard, { borderColor: '#F5B041' }]} onPress={handleChooseFromGallery}>
                 <View style={[styles.uploadIconBg, { backgroundColor: '#FFF5E5' }]}>
                   <Feather name="image" size={28} color="#F5B041" />
                 </View>
                 <Text style={[styles.uploadTitle, { color: '#333' }]}>{t('From Gallery', 'گیلری سے')}</Text>
-                <Text style={styles.uploadUrdu}>گیلری سے</Text>
-              </TouchableOpacity>
+                              </TouchableOpacity>
             </View>
           ) : (
             
@@ -534,7 +527,7 @@ export default function AiScanScreen() {
             <Text style={styles.tipText}>• Ensure good lighting</Text>
             <Text style={styles.tipText}>• Capture affected area clearly</Text>
             <Text style={styles.tipText}>• Keep camera steady</Text>
-            <Text style={[styles.tipText, { marginTop: 8, fontWeight: 'bold' }]}>• روشنی اچھی ہو / واضح تصویر لیں</Text>
+            <Text style={[styles.tipText, { marginTop: 8, fontWeight: 'bold' }]}>{t('• روشنی اچھی ہو', 'واضح تصویر لیں')}</Text>
           </View>
         </View>
 
@@ -552,7 +545,7 @@ export default function AiScanScreen() {
         <View style={styles.modalBg}>
           <View style={styles.modalContainer}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Choose Sample Photo / تصویر منتخب کریں</Text>
+              <Text style={styles.modalTitle}>{t('Choose Sample Photo', 'تصویر منتخب کریں')}</Text>
               <TouchableOpacity onPress={() => setPickerModalVisible(false)}>
                 <Feather name="x" size={24} color="#333" />
               </TouchableOpacity>
@@ -572,8 +565,7 @@ export default function AiScanScreen() {
                   <Image source={{ uri: img.uri }} style={styles.sampleImg} />
                   <View style={styles.sampleDetails}>
                     <Text style={styles.sampleStatus}>{img.status}</Text>
-                    <Text style={styles.sampleStatusUrdu}>{img.statusUrdu}</Text>
-                    <View style={[styles.sampleBadge, { backgroundColor: img.severityBg }]}>
+                                        <View style={[styles.sampleBadge, { backgroundColor: img.severityBg }]}>
                       <Text style={[styles.sampleBadgeText, { color: img.severityColor }]}>
                         {img.severity}
                       </Text>

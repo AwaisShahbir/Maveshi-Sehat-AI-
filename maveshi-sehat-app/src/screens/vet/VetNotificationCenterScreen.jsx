@@ -50,8 +50,7 @@ export default function VetNotificationCenterScreen() {
         </View>
 
         <Text style={styles.notificationMessage}>{item.message}</Text>
-        <Text style={styles.notificationUrdu}>{item.urduMessage}</Text>
-
+        
         <View style={styles.cardFooter}>
           <View style={[styles.typeBadge, { borderColor: iconColor }]}>
             <Text style={[styles.typeBadgeText, { color: iconColor }]}>
@@ -80,7 +79,6 @@ export default function VetNotificationCenterScreen() {
           </TouchableOpacity>
           <View style={styles.titleContainer}>
             <Text style={styles.headerTitle}>Notification Center</Text>
-            <Text style={styles.headerSubtitle}>نوٹیفکیشن سینٹر</Text>
           </View>
           <TouchableOpacity style={styles.settingsBtn}>
             <Feather name="settings" size={22} color="#FFF" />

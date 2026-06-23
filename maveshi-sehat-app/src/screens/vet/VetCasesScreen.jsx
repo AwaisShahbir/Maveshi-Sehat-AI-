@@ -82,8 +82,7 @@ export default function VetCasesScreen() {
             </View>
             <View>
               <Text style={styles.farmerName}>{item.farmer_name}</Text>
-              <Text style={styles.farmerNameUrdu}>{item.farmer_name}</Text>
-            </View>
+                          </View>
           </View>
           <View style={[styles.statusBadge, { backgroundColor: statusColor }]}>
             <Text style={styles.statusText}>{statusLabel}</Text>
@@ -91,12 +90,11 @@ export default function VetCasesScreen() {
         </View>
 
         <Text style={styles.diseaseText}>{diseaseName}</Text>
-        <Text style={styles.diseaseUrduText}>بیماری</Text>
-
+        
         {confidence && (
           <View style={styles.confidenceSection}>
             <View style={styles.confidenceHeader}>
-              <Text style={styles.confidenceLabel}>Confidence / اعتماد</Text>
+              <Text style={styles.confidenceLabel}>{t('Confidence', 'اعتماد')}</Text>
               <Text style={styles.confidenceValue}>{confidence}%</Text>
             </View>
             <View style={styles.progressBarBg}>
@@ -132,7 +130,6 @@ export default function VetCasesScreen() {
           </TouchableOpacity>
           <View style={styles.titleContainer}>
             <Text style={styles.headerTitle}>Submitted Cases</Text>
-            <Text style={styles.headerSubtitle}>جمع کردہ کیسز</Text>
           </View>
           <TouchableOpacity style={styles.filterBtn}>
             <Feather name="filter" size={22} color="#FFF" />
@@ -147,9 +144,8 @@ export default function VetCasesScreen() {
                 style={[styles.tabBtn, activeTab === tab && styles.tabBtnActive]}
                 onPress={() => setActiveTab(tab)}
               >
-                {tab === 'All' && <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>سب / All</Text>}
-                {tab === 'Pending' && <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>Pending / زیر</Text>}
-                {tab === 'Urgent' && <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}><View style={styles.dotUrgent}/> Urgent / فوری</Text>}
+                {tab === 'Pending' && <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>{t('Pending', 'زیر')}</Text>}
+                {tab === 'Urgent' && <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}><View style={styles.dotUrgent}/>{t('Urgent', 'فوری')}</Text>}
                 {tab === 'Resolved' && <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}><View style={styles.dotResolved}/> Resolved</Text>}
               </TouchableOpacity>
             ))}

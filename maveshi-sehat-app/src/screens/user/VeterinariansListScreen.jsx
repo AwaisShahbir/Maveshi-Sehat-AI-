@@ -106,8 +106,7 @@ export default function VeterinariansListScreen() {
       setAppointmentDate('');
       setAppointmentTime('');
       
-      Alert.alert(
-        'Request Sent / درخواست بھیج دی گئی',
+      Alert.alert(t('Request Sent', 'درخواست بھیج دی گئی'),
         'Your request has been sent to the vet. You can track its status in your Consultations dashboard.',
         [{ text: 'OK', onPress: () => navigation.navigate('Dashboard') }]
       );
@@ -155,8 +154,7 @@ export default function VeterinariansListScreen() {
               <Text style={styles.vetName}>{item.full_name}</Text>
               <MaterialCommunityIcons name="check-decagram" size={16} color="#58D66D" style={{ marginLeft: 4 }} />
             </View>
-            <Text style={styles.vetNameUrdu}>ڈاکٹر {item.full_name.replace('Dr. ', '')}</Text>
-            <Text style={styles.vetSpecialization}>
+                        <Text style={styles.vetSpecialization}>
               {item.specialization || 'Generalist'}
             </Text>
             
@@ -210,7 +208,6 @@ export default function VeterinariansListScreen() {
 
         <View style={styles.headerTitleContainer}>
           <Text style={styles.headerTitle}>Veterinarians</Text>
-          <Text style={styles.headerSubtitle}>ڈاکٹرز کی فہرست</Text>
         </View>
 
         <View style={styles.searchContainer}>
