@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, Sta
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import { getProfile, updateProfile } from '../../utils/profileStore';
+import { getProfile, updateProfile, subscribeProfile } from '../../utils/profileStore';
 import { t } from '../../utils/translate';
 
 export default function VetProfileScreen() {
@@ -13,6 +13,14 @@ export default function VetProfileScreen() {
 
   const [profile, setProfile] = useState(getProfile());
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const [langModalVisible, setLangModalVisible] = useState(false);
+
+  useEffect(() => {
+    const unsubscribe = subscribeProfile((updatedProfile) => {
+      setProfile(updatedProfile);
+    });
+    return () => unsubscribe();
+  }, []);
 
   // Modals state
   const [activeModal, setActiveModal] = useState(null); // 'editProfile' | 'license' | 'specialization' | 'availability' | null
@@ -35,24 +43,41 @@ export default function VetProfileScreen() {
     Alert.alert('Success', 'Profile updated successfully!');
   };
 
-  const renderMenuItem = (icon, title, subtitle, rightElement, onPress) => (
-    <TouchableOpacity style={styles.menuItem} onPress={onPress}>
-      <View style={styles.menuLeft}>
-        <View style={styles.menuIconBox}>
-          <Feather name={icon} size={20} color="#58D66D" />
+  const renderMenuItem = (icon, title, subtitle, rightElement, onPress) => {
+    const profile = getProfile();
+    const lang = profile.language || 'English';
+    
+    let leftText = title;
+    let rightText = '';
+    
+    if (lang === 'Urdu') {
+      leftText = subtitle || title;
+    } else if (lang === 'English') {
+      leftText = title;
+    } else if (lang === 'Both') {
+      leftText = title;
+      rightText = subtitle;
+    }
+
+    return (
+      <TouchableOpacity style={styles.menuItem} onPress={onPress}>
+        <View style={styles.menuLeft}>
+          <View style={styles.menuIconBox}>
+            <Feather name={icon} size={20} color="#58D66D" />
+          </View>
+          <Text style={styles.menuTitle}>{leftText}</Text>
         </View>
-        <Text style={styles.menuTitle}>{t(title, subtitle)}</Text>
-      </View>
-      <View style={styles.menuRight}>
-        {rightElement || (
-          <>
-            {subtitle && <Text style={styles.menuSubtitle}>{subtitle}</Text>}
-            <Feather name="chevron-right" size={20} color="#CCC" />
-          </>
-        )}
-      </View>
-    </TouchableOpacity>
-  );
+        <View style={styles.menuRight}>
+          {rightElement || (
+            <>
+              {rightText ? <Text style={styles.menuSubtitle}>{rightText}</Text> : null}
+              <Feather name="chevron-right" size={20} color="#CCC" />
+            </>
+          )}
+        </View>
+      </TouchableOpacity>
+    );
+  };
 
   const userName = profile.userName || 'Dr. Rahim Malik';
   const initial = userName.charAt(0).toUpperCase();
@@ -119,6 +144,12 @@ export default function VetProfileScreen() {
 
           <Text style={styles.sectionHeading}>{t('Preferences', 'ترجیحات')}</Text>
           <View style={styles.menuCard}>
+            {renderMenuItem('globe', 'Language', 'زبان', 
+              <Text style={styles.menuSubtitleActive}>
+                {profile.language === 'English' ? 'English' : (profile.language === 'Urdu' ? 'Urdu' : 'Both')}
+              </Text>, 
+              () => setLangModalVisible(true)
+            )}
             <View style={styles.menuDivider} />
             {renderMenuItem('bell', 'Notifications', 'اطلاعات', 
               <Switch
@@ -130,6 +161,9 @@ export default function VetProfileScreen() {
               />
             )}
             <View style={styles.menuDivider} />
+            {renderMenuItem('message-circle', 'Consultation Mode', 'مشاورت کا طریقہ', 
+              <Text style={styles.menuSubtitleActive}>Chat + Video</Text>
+            )}
           </View>
 
           <Text style={styles.sectionHeading}>{t('Support', 'مدد')}</Text>
@@ -198,6 +232,64 @@ export default function VetProfileScreen() {
             </TouchableOpacity>
           </View>
         </KeyboardAvoidingView>
+      </Modal>
+
+      {/* Language Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={langModalVisible}
+        onRequestClose={() => setLangModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>{t('Select Language', 'زبان کا انتخاب کریں')}</Text>
+              <TouchableOpacity onPress={() => setLangModalVisible(false)}>
+                <Feather name="x" size={24} color="#333" />
+              </TouchableOpacity>
+            </View>
+            
+            <TouchableOpacity 
+              style={[styles.langOption, profile.language === 'English' && styles.langOptionSelected]}
+              onPress={() => {
+                updateProfile({ language: 'English' });
+                setLangModalVisible(false);
+              }}
+            >
+              <Text style={[styles.langOptionText, profile.language === 'English' && styles.langOptionTextSelected]}>
+                🇬🇧 English
+              </Text>
+              {profile.language === 'English' && <Feather name="check" size={18} color="#58D66D" />}
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={[styles.langOption, profile.language === 'Urdu' && styles.langOptionSelected]}
+              onPress={() => {
+                updateProfile({ language: 'Urdu' });
+                setLangModalVisible(false);
+              }}
+            >
+              <Text style={[styles.langOptionText, profile.language === 'Urdu' && styles.langOptionTextSelected]}>
+                🇵🇰 Urdu (اردو)
+              </Text>
+              {profile.language === 'Urdu' && <Feather name="check" size={18} color="#58D66D" />}
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={[styles.langOption, profile.language === 'Both' && styles.langOptionSelected]}
+              onPress={() => {
+                updateProfile({ language: 'Both' });
+                setLangModalVisible(false);
+              }}
+            >
+              <Text style={[styles.langOptionText, profile.language === 'Both' && styles.langOptionTextSelected]}>
+                🔄 Both (English / اردو)
+              </Text>
+              {profile.language === 'Both' && <Feather name="check" size={18} color="#58D66D" />}
+            </TouchableOpacity>
+          </View>
+        </View>
       </Modal>
 
       <View style={styles.bottomNav}>
@@ -279,5 +371,30 @@ const styles = StyleSheet.create({
   inputLabel: { fontSize: 14, color: '#666', marginBottom: 8, fontWeight: '500' },
   input: { backgroundColor: '#F4F7F5', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 12, fontSize: 16, color: '#333', borderWidth: 1, borderColor: '#EAEAEA' },
   saveBtn: { backgroundColor: '#58D66D', borderRadius: 12, paddingVertical: 16, alignItems: 'center', marginTop: 10 },
-  saveBtnText: { color: '#FFF', fontSize: 16, fontWeight: 'bold' }
+  saveBtnText: { color: '#FFF', fontSize: 16, fontWeight: 'bold' },
+  langOption: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E2E6E4',
+    marginBottom: 12,
+    backgroundColor: '#F7F9F8'
+  },
+  langOptionSelected: {
+    borderColor: '#58D66D',
+    backgroundColor: '#E8F8EA'
+  },
+  langOptionText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#333'
+  },
+  langOptionTextSelected: {
+    color: '#58D66D',
+    fontWeight: 'bold'
+  }
 });
