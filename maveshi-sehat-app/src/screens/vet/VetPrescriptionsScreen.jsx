@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, StatusBar, TextInput, Platform, ActivityIndicator } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { getProfile } from '../../utils/profileStore';
+import { getProfile, subscribeProfile } from '../../utils/profileStore';
 import { t } from '../../utils/translate';
 import Feather from 'react-native-vector-icons/Feather';
 
@@ -14,6 +14,12 @@ export default function VetPrescriptionsScreen() {
 
   const [activeTab, setActiveTab] = useState('History'); 
   const [searchQuery, setSearchQuery] = useState('');
+
+  const [, forceUpdate] = useState(0);
+  useEffect(() => {
+    const unsubscribe = subscribeProfile(() => forceUpdate(n => n + 1));
+    return () => unsubscribe();
+  }, []);
   
   
   const [prescriptions, setPrescriptions] = useState([]);

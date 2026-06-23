@@ -3,6 +3,8 @@ import { View, Text, StyleSheet, SafeAreaView, FlatList, TouchableOpacity, Statu
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { t } from '../../utils/translate';
+import { subscribeProfile } from '../../utils/profileStore';
 
 export default function VetConsultationsScreen() {
   const navigation = useNavigation();
@@ -16,6 +18,12 @@ export default function VetConsultationsScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState('All'); 
   const [searchQuery, setSearchQuery] = useState('');
+
+  const [, forceUpdate] = useState(0);
+  useEffect(() => {
+    const unsubscribe = subscribeProfile(() => forceUpdate(n => n + 1));
+    return () => unsubscribe();
+  }, []);
 
   const fetchConsultations = async () => {
     try {
@@ -224,7 +232,7 @@ export default function VetConsultationsScreen() {
             onPress={() => setActiveTab(tab)}
           >
             <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>
-              {tab === 'All' ? 'سب / All' : tab}
+              {tab === 'All' ? t('All', 'سب') : tab === 'Pending' ? t('Pending', 'زیر التواء') : tab === 'Active' ? t('Active', 'فعال') : t('Resolved', 'حل شدہ')}
             </Text>
           </TouchableOpacity>
         ))}

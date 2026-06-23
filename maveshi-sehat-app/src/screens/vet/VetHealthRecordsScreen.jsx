@@ -4,6 +4,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { t } from '../../utils/translate';
+import { subscribeProfile } from '../../utils/profileStore';
 
 
 export default function VetHealthRecordsScreen() {
@@ -11,6 +12,12 @@ export default function VetHealthRecordsScreen() {
   const route = useRoute();
   const params = route.params || {};
   const userId = params.user?.id || params.userId || 1;
+
+  const [, forceUpdate] = useState(0);
+  useEffect(() => {
+    const unsubscribe = subscribeProfile(() => forceUpdate(n => n + 1));
+    return () => unsubscribe();
+  }, []);
 
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);

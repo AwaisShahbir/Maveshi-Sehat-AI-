@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, Sta
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import { getProfile } from '../../utils/profileStore';
+import { getProfile, subscribeProfile } from '../../utils/profileStore';
 import { t } from '../../utils/translate';
 
 
@@ -15,6 +15,14 @@ export default function VetDashboardScreen() {
   const [profile, setProfile] = useState(getProfile());
   const [userName, setUserName] = useState(profile.userName || params.userName || 'Vet');
   const userId = profile.userId || params.userId || 1;
+
+  useEffect(() => {
+    const unsubscribe = subscribeProfile((updatedProfile) => {
+      setProfile(updatedProfile);
+      setUserName(updatedProfile.userName || params.userName || 'Vet');
+    });
+    return () => unsubscribe();
+  }, []);
 
   const [isAvailable, setIsAvailable] = useState(true);
   const [loading, setLoading] = useState(true);
