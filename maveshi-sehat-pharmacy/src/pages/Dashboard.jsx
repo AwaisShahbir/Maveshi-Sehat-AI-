@@ -9,7 +9,7 @@ import Profile from './Profile';
 import Analytics from './Analytics';
 import AddMedicine from './AddMedicine';
 import StockAlerts from './StockAlerts';
-import Settings from './Settings';
+import SettingsPage from './Settings';
 import logoImg from '../assets/logo.png';
 
 export default function Dashboard({ pharmacy, onLogout }) {
@@ -661,7 +661,7 @@ export default function Dashboard({ pharmacy, onLogout }) {
           )}
 
           {currentView === 'settings' && (
-            <Settings pharmacy={pharmacy} />
+            <SettingsPage pharmacy={pharmacy} />
           )}
         </div>
       </main>
