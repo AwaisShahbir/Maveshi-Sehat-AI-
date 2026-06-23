@@ -253,14 +253,21 @@ export default function RegisterScreen() {
                 onPress={() => setRole('farmer')}
                 activeOpacity={0.8}
               >
+                <Text style={[styles.roleText, role === 'farmer' && styles.roleTextActive]}>
+                  {t('Farmer', 'کسان/مالک')}
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity 
                 style={[styles.roleButton, role === 'vet' && styles.roleButtonActive]}
                 onPress={() => setRole('vet')}
                 activeOpacity={0.8}
               >
+                <Text style={[styles.roleText, role === 'vet' && styles.roleTextActive]}>
+                  {t('Vet', 'ڈاکٹر')}
+                </Text>
               </TouchableOpacity>
             </View>
+
 
             {role === 'vet' && (
               <>

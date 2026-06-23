@@ -86,23 +86,29 @@ export default function LoginScreen() {
           
           <View style={styles.cardContainer}>
             
-            
+            <Text style={styles.label}>{t('Login As', 'لاگ ان بطور')}</Text>
             <View style={styles.roleContainer}>
               <TouchableOpacity 
                 style={[styles.roleButton, role === 'owner' && styles.roleButtonActive]}
                 onPress={() => setRole('owner')}
                 activeOpacity={0.8}
               >
+                <Text style={[styles.roleText, role === 'owner' && styles.roleTextActive]}>
+                  {t('Owner', 'مالک')}
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity 
                 style={[styles.roleButton, role === 'vet' && styles.roleButtonActive]}
                 onPress={() => setRole('vet')}
                 activeOpacity={0.8}
               >
+                <Text style={[styles.roleText, role === 'vet' && styles.roleTextActive]}>
+                  {t('Vet', 'ڈاکٹر')}
+                </Text>
               </TouchableOpacity>
             </View>
 
-            
+            <Text style={styles.label}>{t('Phone Number', 'فون نمبر')}</Text>
             <View style={styles.inputContainer}>
               <Feather name="phone" size={20} color="#4CB85C" style={styles.inputIcon} />
               <TextInput 
@@ -115,7 +121,7 @@ export default function LoginScreen() {
               />
             </View>
 
-            
+            <Text style={styles.label}>{t('Password', 'پاس ورڈ')}</Text>
             <View style={styles.inputContainer}>
               <Feather name="lock" size={20} color="#4CB85C" style={styles.inputIcon} />
               <TextInput 
@@ -131,9 +137,12 @@ export default function LoginScreen() {
               </TouchableOpacity>
             </View>
 
-            
             <TouchableOpacity>
+              <Text style={styles.forgotPassword}>
+                {t('Forgot Password?', 'پاس ورڈ بھول گئے؟')}
+              </Text>
             </TouchableOpacity>
+
 
             
             {errorMsg ? (

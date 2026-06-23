@@ -36,7 +36,7 @@ export const TranslationProvider = ({ children }) => {
     const batch = translationQueue.splice(0, 20);
     
     try {
-      const response = await fetch(\\/api/translate\, {
+      const response = await fetch(`${baseUrl}/api/translate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text: batch, targetLang: 'ur' })
@@ -63,7 +63,7 @@ export const TranslationProvider = ({ children }) => {
     if (!text || typeof text !== 'string') return text || '';
     if (targetLang === 'en') return text;
     if (translations[text] && translations[text] !== text) {
-      return targetLang === 'both' ? \\ / \\ : translations[text];
+      return targetLang === 'both' ? `${text} / ${translations[text]}` : translations[text];
     }
     if (translations[text] === undefined && !translationQueue.includes(text)) {
       setTranslations(prev => ({ ...prev, [text]: text }));
