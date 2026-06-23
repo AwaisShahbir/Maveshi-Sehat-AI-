@@ -7,7 +7,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { getProfile } from '../../utils/profileStore';
-import { t } from '../../utils/translate';
+import { useTranslation } from '../../utils/translate';
 import { addToCart, getCartCount, subscribeCart } from '../../utils/cartStore';
 
 const getImageUrl = (url) => {
@@ -19,6 +19,7 @@ const getImageUrl = (url) => {
 };
 
 export default function MarketplaceScreen() {
+  const { t } = useTranslation();
   const navigation = useNavigation();
   const route = useRoute();
   const params = route.params || {};
@@ -135,7 +136,61 @@ export default function MarketplaceScreen() {
 
         
         <View style={styles.cardBody}>
-                    </View>
+          <Text style={styles.medName} numberOfLines={2}>
+          {t(item.name, item.name_urdu || item.name)}
+        </Text>  
+
+          
+          <View style={styles.medMetaRow}>
+            <Text style={styles.ratingText}>★ {rating}</Text>
+            <Text style={styles.metaDivider}>•</Text>
+            <Text style={styles.strengthText} numberOfLines={1}>{item.strength || 'dose'}</Text>
+          </View>
+
+          
+          <View style={styles.priceRow}>
+            <Text style={styles.priceText}>Rs. {Math.round(item.price)}</Text>
+            <View style={[
+              styles.stockBadge, 
+              { backgroundColor: isOutOfStock ? 'rgba(239, 68, 68, 0.1)' : 'rgba(16, 185, 129, 0.1)' }
+            ]}>
+              <Text style={[
+                styles.stockBadgeText, 
+                { color: isOutOfStock ? '#ef4444' : '#10b981' }
+              ]}>
+                {isOutOfStock ? t('Out of Stock', '????? ??? ??') : t('In Stock', '?????? ??')}
+              </Text>
+            </View>
+          </View>
+
+          
+          <TouchableOpacity 
+            style={[styles.addBtn, isOutOfStock && styles.addBtnDisabled]} 
+            onPress={() => !isOutOfStock && addToCart(item)}
+            disabled={isOutOfStock}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.addBtnText}>{t('Add to Cart', '????? ??? ???? ????')}</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  };
+
+  return (
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar barStyle="light-content" backgroundColor="#58D66D" />
+
+      
+      <View style={styles.header}>
+        <View style={styles.headerTop}>
+          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+            <Feather name="chevron-left" size={26} color="#FFF" />
+          </TouchableOpacity>
+          <View style={styles.headerTitleBlock}>
+            <Text style={styles.headerTitle}>Marketplace</Text>
+            
+          </View>
           
           
           <TouchableOpacity 
@@ -156,7 +211,7 @@ export default function MarketplaceScreen() {
           <Feather name="search" size={18} color="#888" style={styles.searchIcon} />
           <TextInput
             style={styles.searchInput}
-            placeholder={t('Search medicines...', 'دوائیں تلاش کریں...')}
+            placeholder={t('Search medicines...', '?????? ???? ????...')}
             placeholderTextColor="#888"
             value={searchQuery}
             onChangeText={setSearchQuery}
@@ -181,19 +236,13 @@ export default function MarketplaceScreen() {
             const isActive = selectedCategory === item;
             
             
-            let urduLabel = '';
-            if (item === 'All') urduLabel = 'سب';
-            else if (item === 'Medicines') urduLabel = 'دوائیں';
-            else if (item === 'Vaccines') urduLabel = 'ویکسین';
-            else if (item === 'Supplements') urduLabel = 'سپلیمنٹس';
-
             return (
               <TouchableOpacity
                 style={isActive ? styles.catPillActive : styles.catPill}
                 onPress={() => setSelectedCategory(item)}
               >
                 <Text style={isActive ? styles.catPillTextActive : styles.catPillText}>
-                  {lang === 'Urdu' ? urduLabel : (lang === 'Both' ? `${item} / ${urduLabel}` : item)}
+                  {t(item)}
                 </Text>
               </TouchableOpacity>
             );
@@ -205,7 +254,7 @@ export default function MarketplaceScreen() {
       {loading && !refreshing ? (
         <View style={styles.loaderContainer}>
           <ActivityIndicator size="large" color="#58D66D" />
-          <Text style={styles.loadingText}>{t('Loading medicines...', 'دوائیں لوڈ کی جا رہی ہیں...')}</Text>
+          <Text style={styles.loadingText}>{t('Loading medicines...', '?????? ??? ?? ??? ???...')}</Text>
         </View>
       ) : filteredMedicines.length > 0 ? (
         <FlatList
@@ -222,7 +271,7 @@ export default function MarketplaceScreen() {
       ) : (
         <View style={styles.emptyContainer}>
           <MaterialCommunityIcons name="pill-off" size={64} color="#CCC" />
-          <Text style={styles.emptyText}>{t('No medicines found', 'کوئی دوا نہیں ملی')}</Text>
+          <Text style={styles.emptyText}>{t('No medicines found', '???? ?????? ???? ????')}</Text>
         </View>
       )}
 
@@ -230,23 +279,23 @@ export default function MarketplaceScreen() {
       <View style={styles.bottomNav}>
         <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Dashboard')}>
           <Feather name="home" size={22} color="#A3E6B2" />
-          <Text style={[styles.navText, { color: '#A3E6B2' }]}>{t('Home', 'ہوم')}</Text>
+          <Text style={[styles.navText, { color: '#A3E6B2' }]}>{t('Home')}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('AiScan')}>
           <MaterialCommunityIcons name="line-scan" size={22} color="#A3E6B2" />
-          <Text style={[styles.navText, { color: '#A3E6B2' }]}>{t('AI Scan', 'اسکین')}</Text>
+          <Text style={[styles.navText, { color: '#A3E6B2' }]}>{t('AI Scan')}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('HealthRecords')}>
           <Feather name="file-text" size={22} color="#A3E6B2" />
-          <Text style={[styles.navText, { color: '#A3E6B2' }]}>{t('Records', 'ریکارڈز')}</Text>
+          <Text style={[styles.navText, { color: '#A3E6B2' }]}>{t('Records')}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('CommunityForum')}>
           <Feather name="message-square" size={22} color="#A3E6B2" />
-          <Text style={[styles.navText, { color: '#A3E6B2' }]}>{t('Forum', 'فورم')}</Text>
+          <Text style={[styles.navText, { color: '#A3E6B2' }]}>{t('Forum')}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Profile')}>
           <Feather name="user" size={22} color="#A3E6B2" />
-          <Text style={[styles.navText, { color: '#A3E6B2' }]}>{t('Profile', 'پروفائل')}</Text>
+          <Text style={[styles.navText, { color: '#A3E6B2' }]}>{t('Profile')}</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>

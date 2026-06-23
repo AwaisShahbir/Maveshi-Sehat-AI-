@@ -7,7 +7,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { getProfile, updateProfile } from '../../utils/profileStore';
-import { t } from '../../utils/translate';
+import { useTranslation } from '../../utils/translate';
 import { 
   getCart, getCartTotal, updateQuantity, removeFromCart, clearCart, subscribeCart 
 } from '../../utils/cartStore';
@@ -21,6 +21,7 @@ const getImageUrl = (url) => {
 };
 
 export default function CartScreen() {
+  const { t } = useTranslation();
   const navigation = useNavigation();
   const route = useRoute();
   const params = route.params || {};
@@ -66,7 +67,7 @@ export default function CartScreen() {
 
   const handlePlaceOrder = async () => {
     if (cartItems.length === 0) {
-      Alert.alert(t('Empty Cart', 'خالی ٹوکری'), t('Please add medicines to place an order.', 'براہ کرم آرڈر کرنے کے لیے دوائیں شامل کریں۔'));
+      Alert.alert(t('Empty Cart'), t('Please add medicines to place an order.'));
       return;
     }
 
@@ -102,7 +103,7 @@ export default function CartScreen() {
       }
 
       Alert.alert(
-        t('Success', 'کامیابی'), 
+        t('Success'), 
         t(`Order ${data.id} placed successfully!`, `آرڈر ${data.id} کامیابی سے موصول ہو گیا ہے!`),
         [
           { 
@@ -116,7 +117,7 @@ export default function CartScreen() {
       );
     } catch (error) {
       console.error('Error placing order:', error);
-      Alert.alert(t('Error', 'خرابی'), t('Failed to place order. Check connection.', 'آرڈر دینے میں ناکامی۔ انٹرنیٹ چیک کریں۔'));
+      Alert.alert(t('Error'), t('Failed to place order. Check connection.'));
     } finally {
       setLoading(false);
     }
@@ -157,7 +158,58 @@ export default function CartScreen() {
 
         
         <View style={styles.itemDetails}>
-                  </View>
+          <Text style={styles.itemNameText}>{t(item.name, item.nameUrdu || item.name)}</Text>
+          <Text style={styles.itemStrengthText}>{item.strength}</Text>
+          <Text style={styles.itemPriceText}>Rs. {Math.round(item.price * item.quantity)}</Text>
+        </View>
+
+        
+        <View style={styles.itemControls}>
+          <View style={styles.counterRow}>
+            <TouchableOpacity 
+              style={styles.counterBtn} 
+              onPress={() => handleDecrement(item)}
+              activeOpacity={0.7}
+            >
+              <Feather name="minus" size={14} color="#64748B" />
+            </TouchableOpacity>
+            
+            <Text style={styles.counterVal}>{item.quantity}</Text>
+            
+            <TouchableOpacity 
+              style={styles.counterBtn} 
+              onPress={() => handleIncrement(item)}
+              activeOpacity={0.7}
+            >
+              <Feather name="plus" size={14} color="#64748B" />
+            </TouchableOpacity>
+          </View>
+
+          
+          <TouchableOpacity 
+            style={styles.deleteBtn}
+            onPress={() => removeFromCart(item.id)}
+            activeOpacity={0.7}
+          >
+            <Feather name="trash-2" size={16} color="#FF5252" />
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  };
+
+  return (
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar barStyle="light-content" backgroundColor="#58D66D" />
+
+      
+      <View style={styles.header}>
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+          <Feather name="chevron-left" size={26} color="#FFF" />
+        </TouchableOpacity>
+        <View style={styles.headerTitleBlock}>
+          <Text style={styles.headerTitle}>{t('Shopping Cart', 'خریداری کی ٹوکری')}</Text>
+        </View>
         <View style={{ width: 26 }} />
       </View>
 
@@ -167,12 +219,12 @@ export default function CartScreen() {
         {cartItems.length === 0 ? (
           <View style={styles.emptyContainer}>
             <Feather name="shopping-bag" size={64} color="#CBD5E1" />
-            <Text style={styles.emptyText}>{t('Your cart is empty', 'آپ کی ٹوکری خالی ہے')}</Text>
+            <Text style={styles.emptyText}>{t('Your cart is empty')}</Text>
             <TouchableOpacity 
               style={styles.shopNowBtn}
               onPress={() => navigation.navigate('Marketplace')}
             >
-              <Text style={styles.shopNowBtnText}>{t('Shop Now', 'خریداری کریں')}</Text>
+              <Text style={styles.shopNowBtnText}>{t('Shop Now')}</Text>
             </TouchableOpacity>
           </View>
         ) : (
@@ -191,7 +243,7 @@ export default function CartScreen() {
             <View style={styles.cardContainer}>
               <View style={styles.cardHeaderRow}>
                 <Feather name="map-pin" size={16} color="#4CB85C" />
-                <Text style={styles.cardHeaderTitle}>{t('Delivery Address', 'ڈیلیوری ایڈریس')}</Text>
+                <Text style={styles.cardHeaderTitle}>{t('Delivery Address')}</Text>
               </View>
 
               <View style={styles.addressBody}>
@@ -207,7 +259,7 @@ export default function CartScreen() {
                 <Text style={styles.phoneText}>{profile.phone}</Text>
 
                 <TouchableOpacity style={styles.changeAddressLink}>
-                  <Text style={styles.changeAddressLinkText}>{t('Change Address', 'پتہ تبدیل کریں')}</Text>
+                  <Text style={styles.changeAddressLinkText}>{t('Change Address')}</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -216,21 +268,21 @@ export default function CartScreen() {
             <View style={styles.cardContainer}>
               <View style={styles.cardHeaderRow}>
                 <Feather name="file-text" size={16} color="#4CB85C" />
-                <Text style={styles.cardHeaderTitle}>{t('Order Summary', 'آرڈر کی تفصیل')}</Text>
+                <Text style={styles.cardHeaderTitle}>{t('Order Summary')}</Text>
               </View>
 
               <View style={styles.summaryTable}>
                 <View style={styles.summaryRow}>
-                  <Text style={styles.summaryLabel}>{t('Subtotal', 'ذیلی کل')}</Text>
+                  <Text style={styles.summaryLabel}>{t('Subtotal')}</Text>
                   <Text style={styles.summaryValue}>Rs. {Math.round(subtotal)}</Text>
                 </View>
                 <View style={styles.summaryRow}>
-                  <Text style={styles.summaryLabel}>{t('Delivery Charges', 'ڈیلیوری چارجز')}</Text>
+                  <Text style={styles.summaryLabel}>{t('Delivery Charges')}</Text>
                   <Text style={styles.summaryValue}>Rs. {deliveryCharges}</Text>
                 </View>
                 <View style={styles.divider} />
                 <View style={styles.summaryRowTotal}>
-                  <Text style={styles.totalLabel}>{t('Total', 'کل رقم')}</Text>
+                  <Text style={styles.totalLabel}>{t('Total')}</Text>
                   <Text style={styles.totalValue}>Rs. {Math.round(total)}</Text>
                 </View>
               </View>
@@ -240,7 +292,7 @@ export default function CartScreen() {
             <View style={styles.cardContainer}>
               <View style={styles.cardHeaderRow}>
                 <Feather name="credit-card" size={16} color="#4CB85C" />
-                <Text style={styles.cardHeaderTitle}>{t('Payment Method', 'ادائیگی کا طریقہ')}</Text>
+                <Text style={styles.cardHeaderTitle}>{t('Payment Method')}</Text>
               </View>
 
               <View style={styles.paymentOptions}>
@@ -254,8 +306,8 @@ export default function CartScreen() {
                     {paymentMethod === 'COD' && <View style={styles.radioDotInner} />}
                   </View>
                   <View style={styles.paymentInfo}>
-                    <Text style={styles.paymentName}>{t('Cash on Delivery', 'کیش آن ڈیلیوری')}</Text>
-                    <Text style={styles.paymentDesc}>{t('Pay when you receive', 'پہنچنے پر نقد رقم ادا کریں')}</Text>
+                    <Text style={styles.paymentName}>{t('Cash on Delivery')}</Text>
+                    <Text style={styles.paymentDesc}>{t('Pay when you receive')}</Text>
                   </View>
                 </TouchableOpacity>
 
@@ -269,8 +321,8 @@ export default function CartScreen() {
                     {paymentMethod === 'Online' && <View style={styles.radioDotInner} />}
                   </View>
                   <View style={styles.paymentInfo}>
-                    <Text style={styles.paymentName}>{t('JazzCash / EasyPaisa', 'جاز کیش / ایزی پیسہ')}</Text>
-                    <Text style={styles.paymentDesc}>{t('Pay online securely', 'آن لائن ادائیگی کریں')}</Text>
+                    <Text style={styles.paymentName}>{t('JazzCash / EasyPaisa')}</Text>
+                    <Text style={styles.paymentDesc}>{t('Pay online securely')}</Text>
                   </View>
                 </TouchableOpacity>
               </View>
@@ -285,8 +337,8 @@ export default function CartScreen() {
             >
               <Text style={styles.placeOrderBtnText}>
                 {loading 
-                  ? t('Processing...', 'عمل ہو رہا ہے...') 
-                  : `${t('Place Order', 'آرڈر کریں')} - Rs. ${Math.round(total)}`
+                  ? t('Processing...') 
+                  : `${t('Place Order')} - Rs. ${Math.round(total)}`
                 }
               </Text>
             </TouchableOpacity>
