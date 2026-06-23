@@ -9,7 +9,6 @@ export default function SplashScreen() {
   const navigation = useNavigation();
 
   useEffect(() => {
-    // Navigate to Welcome screen after 2.5 seconds
     const timer = setTimeout(() => {
       navigation.replace('Welcome');
     }, 2500);
@@ -24,7 +23,7 @@ export default function SplashScreen() {
       style={styles.root}
     >
       <StatusBar barStyle="light-content" backgroundColor="#071C0F" hidden />
-      
+
       <View style={styles.content}>
         <View style={styles.logoCircle}>
           <Image source={logoImg} style={styles.logoImage} resizeMode="cover" />
@@ -32,7 +31,7 @@ export default function SplashScreen() {
         <Text style={styles.mainTitle}>Maveshi Sehat AI</Text>
         <Text style={styles.urduTitle}>مویشی صحت اے آئی</Text>
       </View>
-      
+
       <View style={styles.footer}>
         <Text style={styles.footerText}>Pakistan's #1 Livestock AI</Text>
       </View>

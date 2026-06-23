@@ -29,7 +29,8 @@ export default function LoginScreen() {
       
       const mappedRole = role === 'owner' ? 'farmer' : 'vet';
       
-      const response = await fetch('http://localhost:5000/login', {
+      const baseUrl = Platform.OS === 'android' ? 'http://10.0.2.2:5000' : 'http://localhost:5000';
+      const response = await fetch(`${baseUrl}/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phoneNumber, password, role: mappedRole })

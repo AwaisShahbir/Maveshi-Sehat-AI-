@@ -39,7 +39,7 @@ export default function VeterinariansListScreen() {
 
   const fetchVets = async () => {
     try {
-      const baseUrl = Platform.OS === 'android' ? 'http://localhost:5000' : 'http://localhost:5000';
+      const baseUrl = Platform.OS === 'android' ? 'http://10.0.2.2:5000' : 'http://localhost:5000';
       const url = `${baseUrl}/api/vets?ownerName=${encodeURIComponent(userName)}`;
       const response = await fetch(url);
       if (!response.ok) {
@@ -82,7 +82,7 @@ export default function VeterinariansListScreen() {
 
     try {
       setLoading(true);
-      const baseUrl = Platform.OS === 'android' ? 'http://localhost:5000' : 'http://localhost:5000';
+      const baseUrl = Platform.OS === 'android' ? 'http://10.0.2.2:5000' : 'http://localhost:5000';
       const response = await fetch(`${baseUrl}/api/consultations`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

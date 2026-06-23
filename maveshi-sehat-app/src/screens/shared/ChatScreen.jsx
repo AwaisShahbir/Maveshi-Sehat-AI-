@@ -53,9 +53,15 @@ export default function ChatScreen() {
   const [prescriptionMedicines, setPrescriptionMedicines] = useState([{ name: '', dosage: '', duration: '' }]);
   const [instructions, setInstructions] = useState('');
 
+  const [vaccinationModalVisible, setVaccinationModalVisible] = useState(false);
+  const [vaccineName, setVaccineName] = useState('');
+  const [vaccineDate, setVaccineDate] = useState('');
+  const [nextDueDate, setNextDueDate] = useState('');
+  const [vaccineNotes, setVaccineNotes] = useState('');
+
   const socketRef = useRef(null);
   const flatListRef = useRef(null);
-  const baseUrl = Platform.OS === 'android' ? 'http://localhost:5000' : 'http://localhost:5000';
+  const baseUrl = Platform.OS === 'android' ? 'http://10.0.2.2:5000' : 'http://localhost:5000';
 
   useEffect(() => {
     
@@ -142,9 +148,9 @@ export default function ChatScreen() {
     }
   }, [params.initialRecord]);
 
-  const handleSendMessage = (text = '', imageUrl = null, isPrescription = false, prescriptionData = null) => {
+  const handleSendMessage = (text = '', imageUrl = null, isPrescription = false, prescriptionData = null, isVaccination = false, vaccinationData = null) => {
     const finalMsg = text.trim();
-    if (!finalMsg && !imageUrl && !isPrescription && !selectedAttachmentUri) return;
+    if (!finalMsg && !imageUrl && !isPrescription && !selectedAttachmentUri && !isVaccination) return;
 
     if (socketRef.current && ourUserId) {
       socketRef.current.emit('send_message', {
@@ -153,14 +159,38 @@ export default function ChatScreen() {
         message: finalMsg || null,
         imageUrl: imageUrl || selectedAttachmentUri || null,
         isPrescription,
-        prescriptionData
+        prescriptionData,
+        isVaccination,
+        vaccinationData
       });
       setInputText('');
       setSelectedAttachmentUri(null);
+    } else {
+        alert('Failed to send prescription');
     }
   };
 
   const handleSendText = () => {
+    handleSendMessage(inputText);
+  };
+
+  const handleSendVaccination = () => {
+    if (!vaccineName.trim()) {
+      alert('Please enter vaccine name / ویکسین کا نام لکھیں');
+      return;
+    }
+    const vaccinationData = {
+      vaccineName: vaccineName.trim(),
+      vaccineDate: vaccineDate.trim() || new Date().toISOString().split('T')[0],
+      nextDueDate: nextDueDate.trim(),
+      notes: vaccineNotes.trim()
+    };
+    handleSendMessage('', null, false, null, true, vaccinationData);
+    setVaccinationModalVisible(false);
+    setVaccineName(''); setVaccineDate(''); setNextDueDate(''); setVaccineNotes('');
+  };
+
+  const handleResolve = () => {
     handleSendMessage(inputText);
   };
 
@@ -350,6 +380,49 @@ export default function ChatScreen() {
       );
     }
 
+    if (item.is_vaccination) {
+      const data = typeof item.vaccination_data === 'string'
+        ? JSON.parse(item.vaccination_data)
+        : item.vaccination_data;
+
+      return (
+        <View style={[styles.prescriptionWrapper, isMe ? styles.alignRight : styles.alignLeft]}>
+          <View style={styles.prescriptionCard}>
+            <View style={[styles.prescriptionHeader, { backgroundColor: '#3B82F6' }]}>
+              <MaterialCommunityIcons name="needle" size={24} color="#FFF" />
+              <View style={{ marginLeft: 8 }}>
+                <Text style={styles.prescriptionHeaderTitle}>Vaccination Schedule / ویکسین</Text>
+                <Text style={styles.prescriptionHeaderSubtitle}>Maveshi Sehat Vet Advice</Text>
+              </View>
+            </View>
+
+            <View style={styles.prescriptionBody}>
+              <Text style={styles.prescriptionLabel}>Vaccine / ویکسین کا نام:</Text>
+              <Text style={styles.prescriptionValue}>{data.vaccineName}</Text>
+
+              <Text style={[styles.prescriptionLabel, { marginTop: 12 }]}>Date Administered / تاریخ:</Text>
+              <Text style={styles.prescriptionValue}>{data.vaccineDate}</Text>
+
+              {data.nextDueDate ? (
+                <>
+                  <Text style={[styles.prescriptionLabel, { marginTop: 12, color: '#FF3B30' }]}>Next Due Date / اگلی تاریخ:</Text>
+                  <Text style={[styles.prescriptionValue, { color: '#FF3B30', fontWeight: 'bold' }]}>{data.nextDueDate}</Text>
+                </>
+              ) : null}
+
+              {data.notes ? (
+                <>
+                  <Text style={[styles.prescriptionLabel, { marginTop: 12 }]}>Notes / ہدایات:</Text>
+                  <Text style={styles.prescriptionValue}>{data.notes}</Text>
+                </>
+              ) : null}
+            </View>
+          </View>
+          <Text style={styles.messageTime}>{timeText}</Text>
+        </View>
+      );
+    }
+
     return (
       <View style={[styles.bubbleWrapper, isMe ? styles.alignRight : styles.alignLeft]}>
         <View style={[
@@ -363,6 +436,7 @@ export default function ChatScreen() {
               resizeMode="cover"
             />
           )}
+
           {!!item.message && (
             <Text style={[styles.messageText, isMe ? styles.messageTextMe : styles.messageTextPartner]}>
               {item.message}
@@ -442,6 +516,34 @@ export default function ChatScreen() {
                   </TouchableOpacity>
                 </View>
               )}
+
+              {userRole === 'vet' && conversationStatus === 'active' && (
+                <View style={styles.vetActionRow}>
+                  <TouchableOpacity 
+                    style={styles.vetActionBtnOutline} 
+                    onPress={() => setPrescriptionModalVisible(true)}
+                  >
+                    <MaterialCommunityIcons name="pill" size={18} color="#58D66D" />
+                    <Text style={styles.vetActionBtnTextOutline}>Rx</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity 
+                    style={[styles.vetActionBtnOutline, { borderColor: '#3B82F6', flex: 0.8 }]} 
+                    onPress={() => setVaccinationModalVisible(true)}
+                  >
+                    <MaterialCommunityIcons name="needle" size={18} color="#3B82F6" />
+                    <Text style={[styles.vetActionBtnTextOutline, { color: '#3B82F6' }]}>Vaccine</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity 
+                    style={styles.vetActionBtnSolid} 
+                    onPress={handleResolveConversation}
+                  >
+                    <Text style={styles.vetActionBtnSolidText}>✓ Mark Resolved</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+
               <View style={styles.inputContainer}>
                 <TouchableOpacity 
                   style={styles.iconButton} 
@@ -450,12 +552,12 @@ export default function ChatScreen() {
                   <Feather name="paperclip" size={22} color="#4CB85C" style={{ transform: [{ rotate: '-45deg' }] }} />
                 </TouchableOpacity>
 
-              {userRole === 'vet' && (
+              {userRole === 'farmer' && (
                 <TouchableOpacity 
                   style={styles.iconButton} 
-                  onPress={() => setPrescriptionModalVisible(true)}
+                  onPress={() => {}}
                 >
-                  <MaterialCommunityIcons name="file-document-edit-outline" size={24} color="#4CB85C" />
+                  <MaterialCommunityIcons name="microphone" size={24} color="#4CB85C" />
                 </TouchableOpacity>
               )}
 
@@ -612,6 +714,41 @@ export default function ChatScreen() {
                 </TouchableOpacity>
               </ScrollView>
             </View>
+          </KeyboardAvoidingView>
+        </View>
+      </Modal>
+
+      {/* Vaccination Modal */}
+      <Modal visible={vaccinationModalVisible} animationType="slide" transparent={true}>
+        <View style={styles.modalOverlay}>
+          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Schedule Vaccination</Text>
+              <TouchableOpacity onPress={() => setVaccinationModalVisible(false)}>
+                <Feather name="x" size={24} color="#333" />
+              </TouchableOpacity>
+            </View>
+            <ScrollView showsVerticalScrollIndicator={false}>
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>Vaccine Name / ویکسین کا نام</Text>
+                <TextInput style={styles.input} placeholder="e.g. FMD Vaccine" value={vaccineName} onChangeText={setVaccineName} />
+              </View>
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>Date Administered / تاریخ</Text>
+                <TextInput style={styles.input} placeholder="YYYY-MM-DD" value={vaccineDate} onChangeText={setVaccineDate} />
+              </View>
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>Next Due Date / اگلی تاریخ</Text>
+                <TextInput style={styles.input} placeholder="YYYY-MM-DD" value={nextDueDate} onChangeText={setNextDueDate} />
+              </View>
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>Notes / ہدایات</Text>
+                <TextInput style={[styles.input, { height: 80, textAlignVertical: 'top' }]} multiline placeholder="Any special instructions..." value={vaccineNotes} onChangeText={setVaccineNotes} />
+              </View>
+              <TouchableOpacity style={[styles.submitPrescriptionButton, { backgroundColor: '#3B82F6' }]} onPress={handleSendVaccination}>
+                <Text style={styles.submitPrescriptionButtonText}>Send Schedule</Text>
+              </TouchableOpacity>
+            </ScrollView>
           </KeyboardAvoidingView>
         </View>
       </Modal>
@@ -1013,15 +1150,10 @@ const styles = StyleSheet.create({
     height: 60,
     borderRadius: 8,
   },
-  attachmentRemoveBtn: {
-    position: 'absolute',
-    top: 5,
-    left: 60,
-    backgroundColor: '#FF3B30',
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
+  attachmentRemoveBtn: { position: 'absolute', top: 5, right: 5, backgroundColor: 'rgba(0,0,0,0.6)', borderRadius: 12, padding: 4 },
+  vetActionRow: { flexDirection: 'row', paddingHorizontal: 15, paddingVertical: 10, justifyContent: 'space-between', backgroundColor: '#F8FAF9' },
+  vetActionBtnOutline: { flex: 1, borderWidth: 1, borderColor: '#58D66D', borderRadius: 25, paddingVertical: 10, alignItems: 'center', marginRight: 8, backgroundColor: '#FFF' },
+  vetActionBtnOutlineText: { color: '#58D66D', fontWeight: 'bold', fontSize: 13 },
+  vetActionBtnSolid: { flex: 1, backgroundColor: '#58D66D', borderRadius: 25, paddingVertical: 10, alignItems: 'center', marginLeft: 8 },
+  vetActionBtnSolidText: { color: '#FFF', fontWeight: 'bold', fontSize: 13 },
 });

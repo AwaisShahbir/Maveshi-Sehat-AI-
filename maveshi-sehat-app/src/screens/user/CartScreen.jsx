@@ -72,7 +72,7 @@ export default function CartScreen() {
 
     try {
       setLoading(true);
-      const baseUrl = Platform.OS === 'android' ? 'http://localhost:5000' : 'http://localhost:5000';
+      const baseUrl = Platform.OS === 'android' ? 'http://10.0.2.2:5000' : 'http://localhost:5000';
       
       
       const primaryPharmacyId = cartItems[0].pharmacyId;

@@ -1,60 +1,131 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, StatusBar, Alert, Switch, Platform } from 'react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, StatusBar, Alert, Switch, Platform, ActivityIndicator } from 'react-native';
+import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { getProfile } from '../../utils/profileStore';
 
 export default function VetDashboardScreen() {
   const navigation = useNavigation();
   const route = useRoute();
   const params = route.params || {};
 
-  
-  const [userName, setUserName] = useState(params.userName || 'Dr. Rahim');
+  const [profile, setProfile] = useState(getProfile());
+  const [userName, setUserName] = useState(profile.userName || params.userName || 'Vet');
+  const userId = profile.userId || params.userId || 1;
+
   const [isAvailable, setIsAvailable] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const [cases, setCases] = useState([]);
 
   const [stats, setStats] = useState({
-    cases: 12,
-    pending: 4,
-    resolved: 7,
+    cases: 0,
+    pending: 0,
+    resolved: 0,
     rating: 4.9
   });
 
-  const [newCases, setNewCases] = useState([
-    { 
-      id: 1, 
-      initials: 'AK', 
-      name: 'Ahmad Khan', 
-      nameUrdu: 'احمد خان',
-      disease: 'Lumpy Skin Disease (LSD)', 
-      diseaseUrdu: 'گانٹھ دار جلد کی بیماری',
-      confidence: 87, 
-      status: 'URGENT', 
-      statusUrdu: 'فوری',
-      time: '2 hours ago', 
-      color: '#FF3B30', 
-      bg: '#FFEBEB',
-      avatarBg: '#58D66D'
-    },
-    { 
-      id: 2, 
-      initials: 'ZA', 
-      name: 'Zahid Ali', 
-      nameUrdu: 'زاہد علی',
-      disease: 'Tick Infestation', 
-      diseaseUrdu: 'چیچڑ کا حملہ',
-      confidence: 74, 
-      status: 'PENDING', 
-      statusUrdu: 'زیر التواء',
-      time: '5 hours ago', 
-      color: '#FFB020', 
-      bg: '#FFF5E5',
-      avatarBg: '#A3E6B2'
-    },
-  ]);
+  const fetchCases = async () => {
+    try {
+      const baseUrl = Platform.OS === 'android' ? 'http://10.0.2.2:5000' : 'http://localhost:5000';
+      const url = `${baseUrl}/api/consultations/vet/${userId}`;
+      const response = await fetch(url);
+      if (!response.ok) throw new Error('Failed to fetch cases');
+      const data = await response.json();
+      
+      const fetchedCases = data.consultations || [];
+      setCases(fetchedCases);
+
+      const pendingCount = fetchedCases.filter(c => c.status === 'pending').length;
+      const resolvedCount = fetchedCases.filter(c => c.status === 'resolved').length;
+
+      setStats({
+        cases: fetchedCases.length,
+        pending: pendingCount,
+        resolved: resolvedCount,
+        rating: 4.9
+      });
+    } catch (error) {
+      console.error('Error fetching dashboard cases:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchCases();
+    }, [userId])
+  );
 
   const handleComingSoon = () => {
     Alert.alert('Coming Soon', 'Stay tuned for it!');
+  };
+
+  const renderCaseCard = (item) => {
+    const timeText = new Date(item.created_at).toLocaleDateString(undefined, {
+      month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+    });
+
+    const aiData = item.ai_record_data ? (typeof item.ai_record_data === 'string' ? JSON.parse(item.ai_record_data) : item.ai_record_data) : null;
+    const diseaseName = aiData?.disease || item.reason || 'General Consultation';
+    const confidence = aiData?.confidence ? parseInt(aiData.confidence) : null;
+
+    const isUrgent = item.reason && item.reason.toLowerCase().includes('urgent');
+    const isPending = item.status === 'pending';
+
+    const statusLabel = isUrgent ? 'URGENT' : isPending ? 'PENDING' : item.status.toUpperCase();
+    const statusColor = isUrgent ? '#FF3B30' : isPending ? '#FFB020' : '#888';
+    const statusBg = isUrgent ? '#FF3B30' : isPending ? '#FFB020' : '#EEE';
+
+    return (
+      <View key={item.id} style={[styles.caseCard, { borderLeftColor: statusBg, borderLeftWidth: 4 }]}>
+        <View style={styles.cardHeader}>
+          <View style={styles.userInfoRow}>
+            <View style={styles.avatar}>
+              <Text style={styles.avatarText}>{item.farmer_name ? item.farmer_name.trim().charAt(0).toUpperCase() : 'F'}</Text>
+            </View>
+            <View>
+              <Text style={styles.farmerName}>{item.farmer_name}</Text>
+              <Text style={styles.farmerNameUrdu}>{item.farmer_name}</Text>
+            </View>
+          </View>
+        </View>
+
+        <Text style={styles.diseaseText}>{diseaseName}</Text>
+        <Text style={styles.diseaseUrduText}>بیماری</Text>
+
+        <View style={styles.cardFooter}>
+          {confidence ? (
+            <View style={styles.confidenceSection}>
+              <View style={[styles.statusBadge, { backgroundColor: statusColor }]}>
+                <Text style={styles.statusText}>{statusLabel} / {isUrgent ? 'فوری' : 'زیر التواء'}</Text>
+              </View>
+              <View style={styles.confidenceRow}>
+                <Text style={styles.confidenceValue}>{confidence}%</Text>
+                <View style={styles.progressBarBg}>
+                  <View style={[styles.progressBarFill, { width: `${confidence}%`, backgroundColor: confidence > 80 ? '#FF3B30' : '#FFB020' }]} />
+                </View>
+              </View>
+            </View>
+          ) : (
+            <View style={[styles.statusBadge, { backgroundColor: statusColor, alignSelf: 'flex-start', marginBottom: 10 }]}>
+              <Text style={styles.statusText}>{statusLabel}</Text>
+            </View>
+          )}
+
+          <View style={styles.cardFooterBottom}>
+            <Text style={styles.timeText}>{timeText}</Text>
+            <TouchableOpacity 
+              style={styles.reviewBtn}
+              onPress={() => navigation.navigate('VetConsultations', { userName, userId })}
+            >
+              <Text style={styles.reviewBtnText}>Review Case / کیس دیکھیں</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    );
   };
 
   return (
@@ -63,7 +134,7 @@ export default function VetDashboardScreen() {
       
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         
-        <View style={styles.header}>
+        <View style={styles.headerBg}>
           <View style={styles.headerTop}>
             <TouchableOpacity onPress={handleComingSoon} style={{ zIndex: 1 }}>
               <Feather name="menu" size={24} color="#FFF" />
@@ -75,390 +146,219 @@ export default function VetDashboardScreen() {
             </View>
 
             <View style={styles.headerRight}>
-              <TouchableOpacity style={styles.notificationBtn} onPress={handleComingSoon}>
+              <TouchableOpacity 
+                style={styles.notificationBtn} 
+                onPress={() => navigation.navigate('VetNotificationCenter')}
+                hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+              >
                 <Feather name="bell" size={20} color="#FFF" />
                 <View style={styles.badge}>
-                  <Text style={styles.badgeText}>4</Text>
+                  <Text style={styles.badgeText}>3</Text>
                 </View>
               </TouchableOpacity>
               
-              <TouchableOpacity style={styles.profileAvatar} onPress={handleComingSoon}>
+              <TouchableOpacity style={styles.profileAvatar} onPress={() => navigation.navigate('VetProfile')}>
                 <Text style={styles.profileAvatarText}>DR</Text>
               </TouchableOpacity>
             </View>
           </View>
 
-          
           <View style={styles.welcomeCard}>
             <View style={styles.welcomeLeft}>
               <Text style={styles.welcomeTitle}>Good Morning, {userName}</Text>
-              <Text style={styles.welcomeUrdu}>السلام علیکم ڈاکٹر</Text>
-              <Text style={styles.welcomeSub}>4 new cases today / آج 4 نئے کیس ہیں</Text>
+              <Text style={styles.welcomeUrdu}>السلام علیکم {userName}</Text>
+              <Text style={styles.welcomeSub}>{stats.pending} new cases today / آج {stats.pending} نئے کیس ہیں</Text>
             </View>
             <View style={styles.availableToggle}>
               <Text style={styles.availableText}>دستیاب / Available</Text>
               <Switch
-                trackColor={{ false: "#ccc", true: "#FFD700" }}
-                thumbColor={"#FFF"}
-                ios_backgroundColor="#ccc"
+                trackColor={{ false: '#767577', true: '#FFF' }}
+                thumbColor={isAvailable ? '#F5B041' : '#f4f3f4'}
+                ios_backgroundColor="#3e3e3e"
                 onValueChange={() => setIsAvailable(!isAvailable)}
                 value={isAvailable}
-                style={{ transform: [{ scaleX: 0.8 }, { scaleY: 0.8 }] }}
               />
             </View>
           </View>
         </View>
 
-        
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.statsScrollContainer}>
-          <View style={styles.statBox}>
-            <View style={styles.statTop}>
-              <Text style={[styles.statValue, { color: '#58D66D' }]}>{stats.cases}</Text>
-              <Feather name="clipboard" size={16} color="#58D66D" />
+        <View style={styles.statsContainer}>
+          <View style={styles.statCard}>
+            <View style={styles.statIconRow}>
+              <MaterialCommunityIcons name="clipboard-text-outline" size={24} color="#58D66D" />
             </View>
+            <Text style={styles.statValue}>{loading ? '-' : stats.cases}</Text>
             <Text style={styles.statLabel}>Cases / کیسز</Text>
           </View>
-
-          <View style={styles.statBox}>
-            <View style={styles.statTop}>
-              <Text style={[styles.statValue, { color: '#FFB020' }]}>{stats.pending}</Text>
-              <Feather name="clock" size={16} color="#FFB020" />
+          <View style={styles.statCard}>
+            <View style={styles.statIconRow}>
+              <Feather name="clock" size={24} color="#F5B041" />
             </View>
+            <Text style={[styles.statValue, { color: '#F5B041' }]}>{loading ? '-' : stats.pending}</Text>
             <Text style={styles.statLabel}>Pending / زیر التواء</Text>
           </View>
-
-          <View style={styles.statBox}>
-            <View style={styles.statTop}>
-              <Text style={[styles.statValue, { color: '#4CB85C' }]}>{stats.resolved}</Text>
-              <Feather name="check-circle" size={16} color="#4CB85C" />
+          <View style={styles.statCard}>
+            <View style={styles.statIconRow}>
+              <Feather name="check-circle" size={24} color="#58D66D" />
             </View>
+            <Text style={styles.statValue}>{loading ? '-' : stats.resolved}</Text>
             <Text style={styles.statLabel}>Resolved / حل شدہ</Text>
           </View>
-
-          <View style={styles.statBox}>
-            <View style={styles.statTop}>
-              <Text style={[styles.statValue, { color: '#FFB020' }]}>{stats.rating}</Text>
-              <Feather name="star" size={16} color="#FFB020" />
+          <View style={styles.statCard}>
+            <View style={styles.statIconRow}>
+              <Feather name="star" size={24} color="#F5B041" />
             </View>
-            <Text style={styles.statLabel}>Rating / ریٹنگ</Text>
+            <Text style={[styles.statValue, { color: '#F5B041' }]}>{stats.rating}</Text>
+            <Text style={styles.statLabel}>Rating / درجہ بندی</Text>
           </View>
-        </ScrollView>
-
-        
-        <View style={styles.casesSection}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>New Cases / نئے کیسز</Text>
-            <TouchableOpacity onPress={handleComingSoon}>
-              <Text style={styles.viewAll}>View All <Feather name="arrow-right" size={12} /></Text>
-            </TouchableOpacity>
-          </View>
-
-          {newCases.map((item) => (
-            <View key={item.id} style={[styles.caseCard, { borderLeftColor: item.color }]}>
-              <View style={styles.caseHeader}>
-                <View style={[styles.caseAvatar, { backgroundColor: item.avatarBg }]}>
-                  <Text style={styles.caseAvatarText}>{item.initials}</Text>
-                </View>
-                <View style={styles.caseUserInfo}>
-                  <Text style={styles.caseUserName}>{item.name}</Text>
-                  <Text style={styles.caseUserUrdu}>{item.nameUrdu}</Text>
-                </View>
-              </View>
-
-              <Text style={styles.diseaseName}>{item.disease}</Text>
-              <Text style={styles.diseaseUrdu}>{item.diseaseUrdu}</Text>
-
-              <View style={styles.badgesContainer}>
-                <View style={[styles.badgeItem, { backgroundColor: item.color }]}>
-                  <Text style={styles.badgeItemText}>{item.confidence}%</Text>
-                </View>
-                <View style={[styles.badgeItem, { backgroundColor: item.color, marginLeft: 8 }]}>
-                  <Text style={styles.badgeItemText}>{item.status} / {item.statusUrdu}</Text>
-                </View>
-              </View>
-
-              <View style={styles.caseFooter}>
-                <Text style={styles.timeText}>{item.time}</Text>
-                <TouchableOpacity style={styles.reviewBtn} onPress={handleComingSoon}>
-                  <Text style={styles.reviewBtnText}>Review Case / کیس دیکھیں</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          ))}
         </View>
 
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>New Cases / نئے کیسز</Text>
+          <TouchableOpacity onPress={() => navigation.navigate('VetCases')}>
+            <Text style={styles.viewAllBtn}>View All →</Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.casesContainer}>
+          {loading ? (
+            <ActivityIndicator size="large" color="#58D66D" />
+          ) : cases.length > 0 ? (
+            cases.slice(0, 2).map(renderCaseCard)
+          ) : (
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyText}>No new cases today.</Text>
+            </View>
+          )}
+        </View>
+
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Quick Actions / فوری اعمال</Text>
+        </View>
+
+        <View style={styles.quickActionsGrid}>
+          <TouchableOpacity style={styles.actionCard} onPress={() => navigation.navigate('VetCases')}>
+            <View style={[styles.actionIconBox, { backgroundColor: '#E8F8EA' }]}>
+              <Feather name="clipboard" size={28} color="#4CB85C" />
+            </View>
+            <Text style={styles.actionTitle}>All Cases</Text>
+            <Text style={styles.actionSub}>تمام کیسز</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity style={styles.actionCard} onPress={() => navigation.navigate('VetConsultations', { userName, userId })}>
+            <View style={[styles.actionIconBox, { backgroundColor: '#E8F8EA' }]}>
+              <Feather name="message-square" size={28} color="#4CB85C" />
+            </View>
+            <Text style={styles.actionTitle}>Consultations</Text>
+            <Text style={styles.actionSub}>مشاورتیں</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.actionCard} onPress={() => navigation.navigate('VetPrescriptions', { userName, userId })}>
+            <View style={[styles.actionIconBox, { backgroundColor: '#FFF5E5' }]}>
+              <Feather name="file-text" size={28} color="#F5B041" />
+            </View>
+            <Text style={styles.actionTitle}>Prescriptions</Text>
+            <Text style={styles.actionSub}>نسخہ جات</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.actionCard} onPress={() => navigation.navigate('VetHealthRecords')}>
+            <View style={[styles.actionIconBox, { backgroundColor: '#F0E6FF' }]}>
+              <Feather name="activity" size={28} color="#9B51E0" />
+            </View>
+            <Text style={styles.actionTitle}>Health Records</Text>
+            <Text style={styles.actionSub}>صحت ریکارڈ</Text>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
 
-      
-      <View style={styles.bottomNavContainer}>
-        <View style={styles.bottomNavHeader}>
-          <Text style={styles.quickActionsTitle}>Quick Actions / فوری اعمال</Text>
-        </View>
-        <View style={styles.bottomNav}>
-          <TouchableOpacity style={styles.navItem}>
-            <Feather name="clipboard" size={24} color="#58D66D" />
-            <Text style={[styles.navText, { color: '#58D66D' }]}>Home</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.navItem} onPress={handleComingSoon}>
-            <Feather name="file-text" size={24} color="#A3A3A3" />
-            <Text style={styles.navText}>Cases</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('VetConsultations', { userName, user: params.user, userId: params.userId || params.user?.id })}>
-            <Feather name="message-square" size={24} color="#A3A3A3" />
-            <Text style={styles.navText}>Consult</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.navItem} onPress={handleComingSoon}>
-            <MaterialCommunityIcons name="heart-pulse" size={24} color="#A3A3A3" />
-            <Text style={styles.navText}>Records</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.navItem} onPress={() => {
-            Alert.alert(
-              "Profile Options",
-              "Do you want to logout?",
-              [
-                { text: "Cancel", style: "cancel" },
-                { text: "Logout", style: "destructive", onPress: () => navigation.replace('Welcome') }
-              ]
-            )
-          }}>
-            <View style={styles.navAvatar}>
-              <Text style={styles.navAvatarText}>DR</Text>
-            </View>
-            <Text style={styles.navText}>Profile</Text>
-          </TouchableOpacity>
-        </View>
+      <View style={styles.bottomNav}>
+        <TouchableOpacity style={styles.navItem} onPress={() => {}}>
+          <MaterialCommunityIcons name="home-variant" size={26} color="#58D66D" />
+          <Text style={[styles.navText, { color: '#58D66D' }]}>Home</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('VetCases')}>
+          <MaterialCommunityIcons name="clipboard-text-outline" size={26} color="#999" />
+          <Text style={styles.navText}>Cases</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('VetConsultations', { userName, userId })}>
+          <MaterialCommunityIcons name="message-text-outline" size={26} color="#999" />
+          <Text style={styles.navText}>Consult</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('VetHealthRecords')}>
+          <MaterialCommunityIcons name="pulse" size={26} color="#999" />
+          <Text style={styles.navText}>Records</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('VetProfile')}>
+          <View style={styles.navProfile}>
+            <Text style={styles.navProfileText}>DR</Text>
+          </View>
+          <Text style={styles.navText}>Profile</Text>
+        </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#F8FAF9' },
-  scrollContent: { paddingBottom: 120 },
-  
-  header: {
-    backgroundColor: '#58D66D',
-    paddingHorizontal: 20,
-    paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 0) + 16 : 16,
-    paddingBottom: 20,
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
-  },
-  headerTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
-    position: 'relative',
-  },
-  titleContainer: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    alignItems: 'center',
-    zIndex: 0,
-  },
-  headerTitle: { fontSize: 20, fontWeight: 'bold', color: '#FFF' },
-  headerSubtitle: { fontSize: 12, color: '#E8F8EA' },
-  headerRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  notificationBtn: {
-    position: 'relative',
-    marginRight: 16,
-  },
-  badge: {
-    position: 'absolute',
-    top: -4,
-    right: -6,
-    backgroundColor: '#FFD700',
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  badgeText: { color: '#333', fontSize: 9, fontWeight: 'bold' },
-  profileAvatar: {
-    width: 32,
-    height: 32,
-    backgroundColor: '#A3E6B2',
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  profileAvatarText: { color: '#FFF', fontSize: 12, fontWeight: 'bold' },
-
-  welcomeCard: {
-    backgroundColor: '#61E076',
-    borderRadius: 16,
-    padding: 16,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start', 
-    gap: 12, 
-  },
-  welcomeLeft: {
-    flex: 1, 
-  },
-  welcomeTitle: { color: '#FFF', fontSize: 16, fontWeight: 'bold', marginBottom: 2 },
-  welcomeUrdu: { color: '#FFF', fontSize: 12, marginBottom: 8 },
-  welcomeSub: { color: '#E8F8EA', fontSize: 11 },
-  availableToggle: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 20,
-    flexShrink: 0, 
-  },
-  availableText: { color: '#FFF', fontSize: 10, marginRight: 4, fontWeight: '600' },
-
-  statsScrollContainer: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 10,
-    gap: 12,
-  },
-  statBox: {
-    backgroundColor: '#FFF',
-    padding: 16,
-    borderRadius: 16,
-    width: 90,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 5,
-    elevation: 2,
-  },
-  statTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  statValue: {
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-  statLabel: {
-    fontSize: 10,
-    color: '#666',
-  },
-
-  casesSection: {
-    paddingHorizontal: 20,
-    marginTop: 10,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  sectionTitle: { fontSize: 15, fontWeight: 'bold', color: '#333' },
-  viewAll: { fontSize: 12, color: '#4CB85C', fontWeight: 'bold' },
-
-  caseCard: {
-    backgroundColor: '#FFF',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 16,
-    borderLeftWidth: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 5,
-    elevation: 2,
-  },
-  caseHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  caseAvatar: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  caseAvatarText: { color: '#FFF', fontWeight: 'bold', fontSize: 14 },
-  caseUserInfo: { flex: 1 },
-  caseUserName: { fontSize: 14, fontWeight: 'bold', color: '#333' },
-  caseUserUrdu: { fontSize: 11, color: '#666' },
-
-  diseaseName: { fontSize: 15, fontWeight: 'bold', color: '#333', marginBottom: 2 },
-  diseaseUrdu: { fontSize: 11, color: '#666', marginBottom: 12 },
-
-  badgesContainer: {
-    flexDirection: 'row',
-    marginBottom: 16,
-  },
-  badgeItem: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  badgeItemText: { color: '#FFF', fontSize: 10, fontWeight: 'bold' },
-
-  caseFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  timeText: { fontSize: 11, color: '#999' },
-  reviewBtn: {
-    borderWidth: 1,
-    borderColor: '#4CB85C',
-    borderRadius: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 6,
-  },
-  reviewBtnText: { color: '#4CB85C', fontSize: 11, fontWeight: 'bold' },
-
-  bottomNavContainer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: '#FFF',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 5,
-    elevation: 10,
-  },
-  bottomNavHeader: {
-    paddingHorizontal: 20,
-    paddingTop: 12,
-    paddingBottom: 4,
-  },
-  quickActionsTitle: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    color: '#333',
-  },
-  bottomNav: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingVertical: 12,
-    paddingBottom: 24, 
-  },
+  safeArea: { flex: 1, backgroundColor: '#F4F7F5' },
+  headerBg: { backgroundColor: '#58D66D', paddingBottom: 50 }, 
+  headerTop: { backgroundColor: '#58D66D', paddingHorizontal: 20, paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight + 10 : 20, paddingBottom: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  titleContainer: { alignItems: 'center' },
+  headerTitle: { fontSize: 20, fontWeight: '700', color: '#FFF' },
+  headerSubtitle: { fontSize: 14, color: 'rgba(255,255,255,0.8)' },
+  headerRight: { flexDirection: 'row', alignItems: 'center' },
+  notificationBtn: { marginRight: 15, position: 'relative' },
+  badge: { position: 'absolute', top: -5, right: -5, backgroundColor: '#F5B041', borderRadius: 10, minWidth: 18, height: 18, justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: '#58D66D' },
+  badgeText: { color: '#FFF', fontSize: 10, fontWeight: 'bold' },
+  profileAvatar: { width: 32, height: 32, borderRadius: 16, backgroundColor: '#FFF', justifyContent: 'center', alignItems: 'center' },
+  profileAvatarText: { color: '#58D66D', fontWeight: 'bold', fontSize: 12 },
+  welcomeCard: { backgroundColor: '#6CE581', marginHorizontal: 20, marginTop: -15, borderRadius: 16, padding: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  welcomeLeft: { flex: 1 },
+  welcomeTitle: { color: '#FFF', fontSize: 18, fontWeight: 'bold' },
+  welcomeUrdu: { color: 'rgba(255,255,255,0.9)', fontSize: 14, marginTop: 4 },
+  welcomeSub: { color: 'rgba(255,255,255,0.8)', fontSize: 12, marginTop: 8 },
+  availableToggle: { alignItems: 'flex-end' },
+  availableText: { color: '#FFF', fontSize: 12, marginBottom: 5 },
+  statsContainer: { flexDirection: 'row', paddingHorizontal: 15, marginTop: -30, justifyContent: 'space-between' },
+  statCard: { backgroundColor: '#FFF', borderRadius: 12, padding: 12, flex: 1, marginHorizontal: 5, elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, alignItems: 'center' },
+  statIconRow: { marginBottom: 8 },
+  statValue: { fontSize: 20, fontWeight: 'bold', color: '#58D66D' },
+  statLabel: { fontSize: 10, color: '#888', textAlign: 'center', marginTop: 2 },
+  sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, marginTop: 25, marginBottom: 15 },
+  sectionTitle: { fontSize: 18, fontWeight: '700', color: '#333' },
+  viewAllBtn: { fontSize: 14, color: '#58D66D', fontWeight: '600' },
+  casesContainer: { paddingHorizontal: 20 },
+  caseCard: { backgroundColor: '#FFF', borderRadius: 16, padding: 16, marginBottom: 15, elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 3 },
+  cardHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 },
+  userInfoRow: { flexDirection: 'row', alignItems: 'center' },
+  avatar: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#A3E6B2', justifyContent: 'center', alignItems: 'center', marginRight: 12 },
+  avatarText: { fontSize: 16, fontWeight: 'bold', color: '#FFF' },
+  farmerName: { fontSize: 16, fontWeight: '700', color: '#333' },
+  farmerNameUrdu: { fontSize: 12, color: '#888', marginTop: 2 },
+  diseaseText: { fontSize: 16, fontWeight: '600', color: '#333', marginTop: 4 },
+  diseaseUrduText: { fontSize: 12, color: '#888', marginTop: 2, marginBottom: 12 },
+  cardFooter: { borderTopWidth: 1, borderTopColor: '#F0F0F0', paddingTop: 12 },
+  confidenceSection: { marginBottom: 12 },
+  confidenceRow: { flexDirection: 'row', alignItems: 'center' },
+  statusBadge: { paddingHorizontal: 12, paddingVertical: 4, borderRadius: 12, alignSelf: 'flex-start', marginBottom: 10 },
+  statusText: { fontSize: 10, fontWeight: 'bold', color: '#FFF' },
+  confidenceValue: { width: 35, fontSize: 12, fontWeight: 'bold', color: '#FF3B30' },
+  progressBarBg: { flex: 1, height: 6, backgroundColor: '#EEE', borderRadius: 3, overflow: 'hidden', marginLeft: 8 },
+  progressBarFill: { height: '100%', borderRadius: 3 },
+  cardFooterBottom: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  timeText: { fontSize: 12, color: '#888' },
+  reviewBtn: { borderWidth: 1, borderColor: '#58D66D', borderRadius: 20, paddingVertical: 6, paddingHorizontal: 16 },
+  reviewBtnText: { color: '#58D66D', fontSize: 12, fontWeight: '600' },
+  quickActionsGrid: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 15, justifyContent: 'space-between', paddingBottom: 20 },
+  actionCard: { backgroundColor: '#FFF', width: '47%', borderRadius: 16, padding: 20, marginBottom: 15, alignItems: 'center', elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 3 },
+  actionIconBox: { width: 50, height: 50, borderRadius: 25, justifyContent: 'center', alignItems: 'center', marginBottom: 12 },
+  actionTitle: { fontSize: 15, fontWeight: '600', color: '#333', textAlign: 'center' },
+  actionSub: { fontSize: 12, color: '#888', marginTop: 4 },
+  emptyContainer: { alignItems: 'center', paddingVertical: 30 },
+  emptyText: { color: '#888', fontSize: 14 },
+  bottomNav: { flexDirection: 'row', backgroundColor: '#FFF', paddingVertical: 12, paddingHorizontal: 20, justifyContent: 'space-between', borderTopWidth: 1, borderTopColor: '#EEE', elevation: 10 },
   navItem: { alignItems: 'center' },
-  navText: { fontSize: 10, color: '#A3A3A3', marginTop: 4, fontWeight: '600' },
-  navAvatar: {
-    width: 24,
-    height: 24,
-    backgroundColor: '#E0E0E0',
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  navAvatarText: { fontSize: 9, fontWeight: 'bold', color: '#666' }
+  navText: { fontSize: 10, color: '#999', marginTop: 4, fontWeight: '500' },
+  navProfile: { width: 24, height: 24, borderRadius: 12, backgroundColor: '#E0E0E0', justifyContent: 'center', alignItems: 'center' },
+  navProfileText: { fontSize: 10, fontWeight: 'bold', color: '#888' }
 });

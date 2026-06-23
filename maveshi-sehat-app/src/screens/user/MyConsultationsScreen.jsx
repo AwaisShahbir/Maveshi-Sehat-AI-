@@ -13,8 +13,8 @@ export default function MyConsultationsScreen() {
   const fetchConsultations = async () => {
     try {
       setLoading(true);
-      const baseUrl = Platform.OS === 'android' ? 'http://localhost:5000' : 'http://localhost:5000';
-      const response = await fetch(`${baseUrl}/api/consultations/farmer/${profile.userId || 2}`); 
+      const baseUrl = Platform.OS === 'android' ? 'http://10.0.2.2:5000' : 'http://localhost:5000';
+      const response = await fetch(`${baseUrl}/api/consultations/farmer/${profile.userId || 2}`);
       const data = await response.json();
       if (response.ok) {
         setConsultations(data.consultations || []);
@@ -38,7 +38,7 @@ export default function MyConsultationsScreen() {
 
   const handleStartChat = async (consult) => {
     try {
-      const baseUrl = Platform.OS === 'android' ? 'http://localhost:5000' : 'http://localhost:5000';
+      const baseUrl = Platform.OS === 'android' ? 'http://10.0.2.2:5000' : 'http://localhost:5000';
       const response = await fetch(`${baseUrl}/api/chat/conversation`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -59,7 +59,7 @@ export default function MyConsultationsScreen() {
         userName: profile.userName || 'Farmer',
         userRole: 'farmer',
         vetId: consult.vet_id,
-        initialRecord: consult.ai_record_data ? (typeof consult.ai_record_data === 'string' ? JSON.parse(consult.ai_record_data) : consult.ai_record_data) : null
+        initialRecord: consult.ai_record_data ? JSON.parse(consult.ai_record_data) : null
       });
     } catch (error) {
       Alert.alert('Error', 'Could not start chat.');
@@ -79,7 +79,7 @@ export default function MyConsultationsScreen() {
           </Text>
         </View>
       </View>
-      
+
       <Text style={styles.reasonText}>Reason: {item.reason}</Text>
       {item.appointment_date && <Text style={styles.dateText}>Date: {new Date(item.appointment_date).toLocaleString()}</Text>}
 

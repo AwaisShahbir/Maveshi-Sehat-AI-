@@ -112,6 +112,9 @@ pool.connect((err, client, release) => {
         quantity INT NOT NULL,
         price DECIMAL(10, 2) NOT NULL
       );
+
+      ALTER TABLE messages ADD COLUMN IF NOT EXISTS is_vaccination BOOLEAN DEFAULT FALSE;
+      ALTER TABLE messages ADD COLUMN IF NOT EXISTS vaccination_data JSONB;
     `, (migrationErr) => {
       release();
       if (migrationErr) {
@@ -1875,13 +1878,21 @@ io.on('connection', (socket) => {
   
   socket.on('send_message', async (data) => {
     try {
-      const { conversationId, senderId, message, imageUrl, isPrescription, prescriptionData } = data;
-      
+      const { conversationId, senderId, message, imageUrl, isPrescription, prescriptionData, isVaccination, vaccinationData } = data;
       
       const result = await pool.query(
-        `INSERT INTO messages (conversation_id, sender_id, message, image_url, is_prescription, prescription_data)
-         VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
-        [conversationId, senderId, message || null, imageUrl || null, isPrescription || false, prescriptionData ? JSON.stringify(prescriptionData) : null]
+        `INSERT INTO messages (conversation_id, sender_id, message, image_url, is_prescription, prescription_data, is_vaccination, vaccination_data)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
+        [
+          conversationId, 
+          senderId, 
+          message || null, 
+          imageUrl || null, 
+          isPrescription || false, 
+          prescriptionData ? JSON.stringify(prescriptionData) : null,
+          isVaccination || false,
+          vaccinationData ? JSON.stringify(vaccinationData) : null
+        ]
       );
       
       const savedMessage = result.rows[0];
@@ -1973,6 +1984,62 @@ app.put('/api/consultations/:id/status', async (req, res) => {
   } catch (err) {
     console.error('Error updating consultation status:', err);
     res.status(500).json({ error: 'Failed to update consultation' });
+  }
+});
+
+app.get('/api/vet/prescriptions', async (req, res) => {
+  try {
+    const { vetId, vetName } = req.query;
+    let query = `
+      SELECT m.*, u.full_name as farmer_name
+      FROM messages m
+      JOIN conversations c ON m.conversation_id = c.id
+      JOIN users u ON c.farmer_id = u.id
+      WHERE m.is_prescription = true
+    `;
+    const params = [];
+    if (vetId) {
+      query += ` AND c.vet_id = $1`;
+      params.push(vetId);
+    } else if (vetName) {
+      const vetRes = await pool.query("SELECT id FROM users WHERE full_name ILIKE $1 AND role = 'vet'", [vetName]);
+      if (vetRes.rows.length === 0) return res.status(200).json([]);
+      query += ` AND c.vet_id = $1`;
+      params.push(vetRes.rows[0].id);
+    }
+    query += ` ORDER BY m.created_at DESC`;
+    const result = await pool.query(query, params);
+    res.status(200).json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: 'Server error fetching prescriptions' });
+  }
+});
+
+app.get('/api/farmer/vaccinations', async (req, res) => {
+  try {
+    const { farmerId, farmerName } = req.query;
+    let query = `
+      SELECT m.*, u.full_name as vet_name
+      FROM messages m
+      JOIN conversations c ON m.conversation_id = c.id
+      JOIN users u ON c.vet_id = u.id
+      WHERE m.is_vaccination = true
+    `;
+    const params = [];
+    if (farmerId) {
+      query += ` AND c.farmer_id = $1`;
+      params.push(farmerId);
+    } else if (farmerName) {
+      const fRes = await pool.query("SELECT id FROM users WHERE full_name ILIKE $1 AND role = 'farmer'", [farmerName]);
+      if (fRes.rows.length === 0) return res.status(200).json([]);
+      query += ` AND c.farmer_id = $1`;
+      params.push(fRes.rows[0].id);
+    }
+    query += ` ORDER BY m.created_at DESC`;
+    const result = await pool.query(query, params);
+    res.status(200).json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: 'Server error fetching vaccinations' });
   }
 });
 

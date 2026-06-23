@@ -9,9 +9,14 @@ import RegisterScreen from './src/screens/shared/RegisterScreen';
 import VerifyScreen from './src/screens/shared/VerifyScreen';
 import DashboardScreen from './src/screens/user/DashboardScreen';
 import VetDashboardScreen from './src/screens/vet/VetDashboardScreen';
+import VetConsultationsScreen from './src/screens/vet/VetConsultationsScreen';
+import VetCasesScreen from './src/screens/vet/VetCasesScreen';
+import VetPrescriptionsScreen from './src/screens/vet/VetPrescriptionsScreen';
+import VetHealthRecordsScreen from './src/screens/vet/VetHealthRecordsScreen';
+import VetProfileScreen from './src/screens/vet/VetProfileScreen';
+import VetNotificationCenterScreen from './src/screens/vet/VetNotificationCenterScreen';
 import HeatAlertScreen from './src/screens/user/HeatAlertScreen';
 import VeterinariansListScreen from './src/screens/user/VeterinariansListScreen';
-import VetConsultationsScreen from './src/screens/vet/VetConsultationsScreen';
 import MyConsultationsScreen from './src/screens/user/MyConsultationsScreen';
 import ChatScreen from './src/screens/shared/ChatScreen';
 import CommunityForumScreen from './src/screens/user/CommunityForumScreen';
@@ -45,6 +50,11 @@ export default function App() {
         <Stack.Screen name="HeatAlert" component={HeatAlertScreen} />
         <Stack.Screen name="VeterinariansList" component={VeterinariansListScreen} />
         <Stack.Screen name="VetConsultations" component={VetConsultationsScreen} />
+        <Stack.Screen name="VetCases" component={VetCasesScreen} />
+        <Stack.Screen name="VetPrescriptions" component={VetPrescriptionsScreen} />
+        <Stack.Screen name="VetHealthRecords" component={VetHealthRecordsScreen} />
+        <Stack.Screen name="VetProfile" component={VetProfileScreen} />
+        <Stack.Screen name="VetNotificationCenter" component={VetNotificationCenterScreen} />
         <Stack.Screen name="MyConsultations" component={MyConsultationsScreen} />
         <Stack.Screen name="Chat" component={ChatScreen} />
         <Stack.Screen name="CommunityForum" component={CommunityForumScreen} />

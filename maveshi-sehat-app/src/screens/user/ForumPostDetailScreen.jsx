@@ -21,7 +21,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getProfile, subscribeProfile } from '../../utils/profileStore';
 import { t } from '../../utils/translate';
 
-const BASE_URL = Platform.OS === 'android' ? 'http://localhost:5000' : 'http://localhost:5000';
+const BASE_URL = Platform.OS === 'android' ? 'http://10.0.2.2:5000' : 'http://localhost:5000';
 
 export default function ForumPostDetailScreen() {
   const navigation = useNavigation();

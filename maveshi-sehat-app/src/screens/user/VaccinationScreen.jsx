@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   StatusBar,
   Platform,
+  ActivityIndicator,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
@@ -26,27 +27,49 @@ export default function VaccinationScreen() {
   const insets = useSafeAreaInsets();
 
   const [activeTab, setActiveTab] = useState('Upcoming');
+  const [vaccinations, setVaccinations] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const baseUrl = Platform.OS === 'android' ? 'http://10.0.2.2:5000' : 'http://localhost:5000';
 
-  const filteredVaccines = MOCK_VACCINES.filter(v => v.status === activeTab);
+  useEffect(() => {
+    const fetchVaccinations = async () => {
+      try {
+        const response = await fetch(`${baseUrl}/api/farmer/vaccinations?farmerName=${encodeURIComponent(userName)}`);
+        const data = await response.json();
+        if (response.ok) {
+          setVaccinations(data);
+        }
+      } catch (err) {
+        console.error('Error fetching vaccinations:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchVaccinations();
+  }, [userName]);
+
+  const filteredVaccines = vaccinations;
 
   const renderVaccineItem = ({ item }) => {
+    const data = typeof item.vaccination_data === 'string' ? JSON.parse(item.vaccination_data) : item.vaccination_data;
+    if (!data) return null;
     return (
       <View style={styles.card}>
         <View style={styles.iconContainer}>
           <Feather name="check-circle" size={24} color="#4CB85C" />
         </View>
         <View style={styles.detailsContainer}>
-          <Text style={styles.vaccineTitle}>{item.name}</Text>
-          <Text style={styles.vaccineUrdu}>{item.nameUrdu}</Text>
+          <Text style={styles.vaccineTitle}>{data.vaccineName}</Text>
+          <Text style={styles.vaccineUrdu}>Prescribed by: {item.vet_name || 'Vet'}</Text>
           <View style={styles.metaRow}>
             <Feather name="calendar" size={12} color="#888" style={{ marginRight: 4 }} />
-            <Text style={styles.metaText}>{item.date}</Text>
+            <Text style={styles.metaText}>{data.vaccineDate}</Text>
             <Text style={styles.metaDivider}>  •  </Text>
-            <Text style={styles.metaText}>{item.animal}</Text>
+            <Text style={styles.metaText}>Next: {data.nextDueDate || 'N/A'}</Text>
           </View>
         </View>
         <View style={styles.statusBadge}>
-          <Text style={styles.statusText}>{item.status === 'Completed' ? 'Done' : 'Pending'}</Text>
+          <Text style={styles.statusText}>Upcoming</Text>
         </View>
       </View>
     );
@@ -88,11 +111,13 @@ export default function VaccinationScreen() {
         </View>
       </View>
 
-      {filteredVaccines.length > 0 ? (
+      {loading ? (
+        <ActivityIndicator size="large" color="#F5B041" style={{ marginTop: 60 }} />
+      ) : filteredVaccines.length > 0 ? (
         <FlatList
           data={filteredVaccines}
           renderItem={renderVaccineItem}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item, index) => index.toString()}
           contentContainerStyle={[
             styles.listContainer,
             { paddingBottom: Math.max(insets.bottom, 12) + 90 },
