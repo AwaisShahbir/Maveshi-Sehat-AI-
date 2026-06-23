@@ -4,6 +4,8 @@ import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/nativ
 import Feather from 'react-native-vector-icons/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { getProfile } from '../../utils/profileStore';
+import { t } from '../../utils/translate';
+
 
 export default function VetDashboardScreen() {
   const navigation = useNavigation();

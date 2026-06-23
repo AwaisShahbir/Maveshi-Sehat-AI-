@@ -18,6 +18,10 @@ export const t = (en, ur) => {
   return en || ur || '';
 };
 
+export const useTranslation = () => {
+  return { t };
+};
+
 
 export const getLocalizedDescription = (disease, defaultDesc) => {
   const profile = getProfile();

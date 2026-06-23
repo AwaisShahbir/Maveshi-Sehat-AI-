@@ -3,6 +3,8 @@ import { View, Text, StyleSheet, SafeAreaView, FlatList, TouchableOpacity, Statu
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { t } from '../../utils/translate';
+
 
 export default function VetCasesScreen() {
   const navigation = useNavigation();

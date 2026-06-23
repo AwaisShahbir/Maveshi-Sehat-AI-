@@ -10,6 +10,8 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import LinearGradient from 'react-native-linear-gradient';
+import { t } from '../../utils/translate';
+
 
 // Path: src/screens/shared/ → ../../../assets/images/
 const logoImg = require('../../../assets/images/maveshi_sehat_logo.png');

@@ -2,6 +2,8 @@ import React, { useState, useRef } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, SafeAreaView, StatusBar, KeyboardAvoidingView, Platform, ScrollView, Alert } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
+import { t } from '../../utils/translate';
+
 
 export default function VerifyScreen() {
   const navigation = useNavigation();

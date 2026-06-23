@@ -22,6 +22,8 @@ import Feather from 'react-native-vector-icons/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import io from 'socket.io-client';
 import { pick, types, isCancel } from '@react-native-documents/picker';
+import { t } from '../../utils/translate';
+
 
 
 const MOCK_SYMPTOM_IMAGES = [

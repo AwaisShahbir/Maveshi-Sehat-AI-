@@ -3,6 +3,8 @@ import { View, Text, StyleSheet, TextInput, TouchableOpacity, SafeAreaView, Stat
 import { useNavigation } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
 import { updateProfile } from '../../utils/profileStore';
+import { t } from '../../utils/translate';
+
 
 export default function LoginScreen() {
   const navigation = useNavigation();
