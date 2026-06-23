@@ -9,6 +9,7 @@ import Profile from './Profile';
 import Analytics from './Analytics';
 import AddMedicine from './AddMedicine';
 import StockAlerts from './StockAlerts';
+import Settings from './Settings';
 import logoImg from '../assets/logo.png';
 
 export default function Dashboard({ pharmacy, onLogout }) {
@@ -294,8 +295,12 @@ export default function Dashboard({ pharmacy, onLogout }) {
               </li>
               <li>
                 <button 
-                  onClick={() => setCurrentView('profile')}
-                  className="flex items-center gap-3.5 mx-3 px-3.5 py-2.5 w-[calc(100%-24px)] text-left cursor-pointer text-sm text-[#c5dbd0] bg-transparent border-none hover:text-white hover:bg-white/5 rounded-xl transition-all duration-200"
+                  onClick={() => setCurrentView('settings')}
+                  className={`flex items-center gap-3.5 mx-3 px-3.5 py-2.5 w-[calc(100%-24px)] text-left cursor-pointer text-sm rounded-xl transition-all duration-200 ${
+                    currentView === 'settings' 
+                      ? 'text-white bg-[#3da860] font-bold shadow-md shadow-emerald-950/20' 
+                      : 'text-[#c5dbd0] bg-transparent border-none hover:text-white hover:bg-white/5'
+                  }`}
                 >
                   <Settings size={18} />
                   <div className="flex flex-col">
@@ -331,6 +336,7 @@ export default function Dashboard({ pharmacy, onLogout }) {
               {currentView === 'profile' && 'Pharmacy Profile'}
               {currentView === 'add-medicine' && 'Add Medicine'}
               {currentView === 'stock-alerts' && 'Stock Alerts'}
+              {currentView === 'settings' && 'Settings'}
             </h2>
             <span className="text-xs text-[#3da860] font-semibold mt-0.5 urdu">
               {currentView === 'dashboard' && 'ڈیش بورڈ'}
@@ -340,6 +346,7 @@ export default function Dashboard({ pharmacy, onLogout }) {
               {currentView === 'profile' && 'فارمیسی پروفائل'}
               {currentView === 'add-medicine' && 'دوا شامل کریں'}
               {currentView === 'stock-alerts' && 'اسٹاک الرٹ'}
+              {currentView === 'settings' && 'ترتیبات'}
             </span>
           </div>
 
@@ -651,6 +658,10 @@ export default function Dashboard({ pharmacy, onLogout }) {
 
           {currentView === 'profile' && (
             <Profile pharmacy={pharmacy} onProfileUpdate={(updated) => Object.assign(pharmacy, updated)} />
+          )}
+
+          {currentView === 'settings' && (
+            <Settings pharmacy={pharmacy} />
           )}
         </div>
       </main>
