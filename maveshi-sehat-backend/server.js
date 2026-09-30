@@ -43,7 +43,7 @@ const storage = multer.diskStorage({
   }
 });
 
-const upload = multer({ 
+const upload = multer({
   storage: storage,
   fileFilter: (req, file, cb) => {
     const filetypes = /jpeg|jpg|png|pdf/;
@@ -71,7 +71,7 @@ pool.connect((err, client, release) => {
     console.error('Error connecting to PostgreSQL:', err.message);
   } else {
     console.log('✅ Successfully connected to PostgreSQL Database!');
-    
+
     client.query(`
       ALTER TABLE detections ADD COLUMN IF NOT EXISTS image_url VARCHAR(255);
       ALTER TABLE detections ADD COLUMN IF NOT EXISTS description TEXT;
@@ -131,6 +131,24 @@ app.get('/', (req, res) => {
   res.send('Maveshi Sehat AI API is running!');
 });
 
+// Translation API endpoint powered by Google Translate
+app.post('/api/translate', async (req, res) => {
+  try {
+    const { text, targetLang = 'ur', sourceLang = 'en' } = req.body;
+    if (!text || typeof text !== 'string') {
+      return res.status(400).json({ error: 'Text is required for translation.' });
+    }
+    const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${sourceLang}&tl=${targetLang}&dt=t&q=${encodeURIComponent(text.trim())}`;
+    const response = await fetch(url);
+    const data = await response.json();
+    const translatedText = data && data[0] ? data[0].map(s => s[0]).join('') : text;
+    res.json({ translatedText, sourceText: text, targetLang });
+  } catch (err) {
+    console.error('Translation endpoint error:', err);
+    res.status(500).json({ error: 'Translation failed', details: err.message });
+  }
+});
+
 
 app.post('/upload', upload.single('license'), (req, res) => {
   try {
@@ -138,8 +156,8 @@ app.post('/upload', upload.single('license'), (req, res) => {
       return res.status(400).json({ error: 'Please select a file to upload.' });
     }
     const fileUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
-    res.status(200).json({ 
-      message: 'File uploaded successfully!', 
+    res.status(200).json({
+      message: 'File uploaded successfully!',
       fileUrl: fileUrl,
       filename: req.file.filename
     });
@@ -151,25 +169,25 @@ app.post('/upload', upload.single('license'), (req, res) => {
 
 app.post('/register', async (req, res) => {
   try {
-    const { 
+    const {
       fullName, phoneNumber, email, district, role, password,
-      pvmcNumber, specialization, experienceYears, licenseDocumentUrl 
+      pvmcNumber, specialization, experienceYears, licenseDocumentUrl
     } = req.body;
 
-    
+
     const userExists = await pool.query('SELECT * FROM users WHERE phone_number = $1 OR email = $2', [phoneNumber, email]);
     if (userExists.rows.length > 0) {
       return res.status(400).json({ error: 'User with this phone or email already exists!' });
     }
 
-    
+
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    
+
     const status = role === 'vet' ? 'pending' : 'approved';
 
-    
+
     const newUser = await pool.query(
       `INSERT INTO users (
         full_name, phone_number, email, district, role, password, status, 
@@ -181,16 +199,16 @@ app.post('/register', async (req, res) => {
       ]
     );
 
-    
+
     if (role === 'vet') {
-      
+
       await pool.query(
         `INSERT INTO admin_notifications (type, message_en, message_ur) 
          VALUES ('vet_application', $1, $2)`,
         [`New vet application submitted - ${fullName}`, `${fullName} نے تصدیق جمع کرائی — ${district}`]
       );
 
-      
+
       try {
         await transporter.sendMail({
           from: `"Maveshi Sehat AI" <${process.env.EMAIL_USER}>`,
@@ -203,17 +221,17 @@ app.post('/register', async (req, res) => {
         console.error('Email failed to send. Check your Gmail credentials.');
       }
 
-      return res.status(201).json({ 
-        message: 'Registration successful! Pending admin approval.', 
+      return res.status(201).json({
+        message: 'Registration successful! Pending admin approval.',
         email: newUser.rows[0].email,
         role: 'vet'
       });
     } else {
-      
+
       const otp = Math.floor(1000 + Math.random() * 9000).toString();
       await pool.query('INSERT INTO otps (email, otp) VALUES ($1, $2)', [email, otp]);
 
-      
+
       try {
         await transporter.sendMail({
           from: `"Maveshi Sehat AI" <${process.env.EMAIL_USER}>`,
@@ -224,11 +242,11 @@ app.post('/register', async (req, res) => {
         console.log(`OTP ${otp} sent to ${email}`);
       } catch (mailErr) {
         console.error('Email failed to send. Check your Gmail credentials.');
-        console.log(`[DEV MODE] Your OTP for ${email} is: ${otp}`); 
+        console.log(`[DEV MODE] Your OTP for ${email} is: ${otp}`);
       }
 
-      return res.status(201).json({ 
-        message: 'User registered successfully! OTP sent.', 
+      return res.status(201).json({
+        message: 'User registered successfully! OTP sent.',
         email: newUser.rows[0].email,
         role: 'farmer'
       });
@@ -244,11 +262,11 @@ app.post('/verify-otp', async (req, res) => {
   try {
     const { email, otp } = req.body;
     const record = await pool.query('SELECT * FROM otps WHERE email = $1 ORDER BY created_at DESC LIMIT 1', [email]);
-    
+
     if (record.rows.length === 0) return res.status(400).json({ error: 'No OTP found for this email.' });
     if (record.rows[0].otp !== otp) return res.status(400).json({ error: 'Invalid OTP!' });
 
-    
+
     await pool.query('DELETE FROM otps WHERE email = $1', [email]);
 
     res.status(200).json({ message: 'OTP verified successfully!' });
@@ -262,21 +280,21 @@ app.post('/login', async (req, res) => {
   try {
     const { phoneNumber, email, password, role } = req.body;
 
-    
+
     let userResult;
     if (email) {
       userResult = await pool.query('SELECT * FROM users WHERE email = $1 AND role = $2', [email, role]);
     } else {
       userResult = await pool.query('SELECT * FROM users WHERE phone_number = $1 AND role = $2', [phoneNumber, role]);
     }
-    
+
     if (userResult.rows.length === 0) {
       return res.status(400).json({ error: 'Invalid phone number or role.' });
     }
 
     const user = userResult.rows[0];
 
-    
+
     if (user.status === 'pending') {
       return res.status(403).json({ error: 'Your vet account is pending admin approval.' });
     }
@@ -290,14 +308,14 @@ app.post('/login', async (req, res) => {
       return res.status(403).json({ error: 'Additional information is requested by the administrator. Please check your email for details.' });
     }
 
-    
+
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(400).json({ error: 'Invalid password.' });
     }
 
-    
-    res.status(200).json({ 
+
+    res.status(200).json({
       message: 'Login successful!',
       user: {
         id: user.id,
@@ -340,37 +358,37 @@ app.get('/api/dashboard-stats', async (req, res) => {
       return res.status(400).json({ error: 'ownerName parameter is required' });
     }
 
-    
+
     const totalScansRes = await pool.query(
       'SELECT COUNT(*) FROM detections WHERE owner_name ILIKE $1',
       [ownerName]
     );
     const aiScans = parseInt(totalScansRes.rows[0].count) || 0;
 
-    
+
     const healthyScansRes = await pool.query(
       "SELECT COUNT(*) FROM detections WHERE owner_name ILIKE $1 AND disease IN ('Healthy', 'BCS Normal')",
       [ownerName]
     );
     const healthyCount = parseInt(healthyScansRes.rows[0].count) || 0;
 
-    
+
     const healthyPercentage = aiScans > 0 ? Math.round((healthyCount / aiScans) * 100) : 0;
 
-    
+
     const distinctAnimalsRes = await pool.query(
       'SELECT COUNT(DISTINCT animal_type) FROM detections WHERE owner_name ILIKE $1',
       [ownerName]
     );
     const livestock = parseInt(distinctAnimalsRes.rows[0].count) || 0;
 
-    
+
     const recentScansRes = await pool.query(
       'SELECT * FROM detections WHERE owner_name ILIKE $1 ORDER BY created_at DESC LIMIT 5',
       [ownerName]
     );
 
-    
+
     const recentScans = recentScansRes.rows.map((row) => {
       let severity = 'Low';
       let icon = 'check-circle';
@@ -389,7 +407,7 @@ app.get('/api/dashboard-stats', async (req, res) => {
         bg = '#FFF5E5';
       }
 
-      
+
       let displayTitle = row.disease;
       if (row.disease === 'LSD') displayTitle = 'Lumpy Skin Disease';
       else if (row.disease === 'FMD') displayTitle = 'Foot & Mouth Disease';
@@ -430,18 +448,18 @@ app.get('/api/dashboard-stats', async (req, res) => {
 
 app.get('/api/admin/dashboard-stats', async (req, res) => {
   try {
-    
+
     const totalUsersRes = await pool.query("SELECT COUNT(*) FROM users WHERE role != 'admin'");
     const activeVetsRes = await pool.query("SELECT COUNT(*) FROM users WHERE role = 'vet' AND status = 'verified'");
     const pendingVetsRes = await pool.query("SELECT COUNT(*) FROM users WHERE role = 'vet' AND status = 'pending'");
     const scansRes = await pool.query("SELECT COUNT(*) FROM detections");
     const activeOrdersRes = await pool.query("SELECT COUNT(*) FROM orders WHERE status NOT IN ('delivered', 'cancelled')");
-    
-    
+
+
     const unreadNotifsRes = await pool.query("SELECT COUNT(*) FROM admin_notifications WHERE read = FALSE");
     const unreadNotificationsCount = parseInt(unreadNotifsRes.rows[0].count) || 0;
 
-    
+
     const recentDetectionsRes = await pool.query(`
       SELECT d.*, u.full_name as vet_name 
       FROM detections d 
@@ -449,7 +467,7 @@ app.get('/api/admin/dashboard-stats', async (req, res) => {
       ORDER BY d.created_at DESC LIMIT 5
     `);
 
-    
+
     const pendingVetsList = await pool.query("SELECT id, full_name, pvmc_number, status, role FROM users WHERE role = 'vet' AND status = 'pending' LIMIT 3");
     const pendingPharmaciesList = await pool.query("SELECT id, name, license_number, status FROM pharmacies WHERE status = 'pending' LIMIT 3");
 
@@ -512,7 +530,7 @@ app.get('/api/admin/users', async (req, res) => {
 
 app.post('/api/admin/users/action', async (req, res) => {
   try {
-    const { userId, action, message } = req.body; 
+    const { userId, action, message } = req.body;
     let newStatus = 'approved';
     if (action === 'approve') newStatus = 'verified';
     else if (action === 'reject') newStatus = 'rejected';
@@ -522,7 +540,7 @@ app.post('/api/admin/users/action', async (req, res) => {
 
     await pool.query("UPDATE users SET status = $1 WHERE id = $2", [newStatus, userId]);
 
-    
+
     if (action === 'request_info') {
       const userRes = await pool.query("SELECT full_name, email FROM users WHERE id = $1", [userId]);
       if (userRes.rows.length > 0) {
@@ -565,7 +583,7 @@ app.get('/api/admin/pharmacies', async (req, res) => {
 
 app.post('/api/admin/pharmacies/approve', async (req, res) => {
   try {
-    const { pharmacyId, action } = req.body; 
+    const { pharmacyId, action } = req.body;
     const status = action === 'approve' ? 'approved' : 'rejected';
     await pool.query("UPDATE pharmacies SET status = $1 WHERE id = $2", [status, pharmacyId]);
     res.status(200).json({ message: `Pharmacy ${status} successfully.` });
@@ -638,6 +656,24 @@ app.get('/api/admin/health-records', async (req, res) => {
   }
 });
 
+app.patch('/api/admin/health-records/:id/status', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+    const result = await pool.query(
+      'UPDATE detections SET status = $1 WHERE id = $2 RETURNING *',
+      [status, id]
+    );
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Record not found' });
+    }
+    res.status(200).json(result.rows[0]);
+  } catch (err) {
+    console.error('Error updating health record status:', err);
+    res.status(500).json({ error: 'Failed to update health record status' });
+  }
+});
+
 
 app.get('/api/detections', async (req, res) => {
   try {
@@ -649,8 +685,8 @@ app.get('/api/detections', async (req, res) => {
       'SELECT * FROM detections WHERE owner_name ILIKE $1 ORDER BY created_at DESC',
       [ownerName]
     );
-    
-    
+
+
     const records = result.rows.map(row => {
       const isHealthy = row.disease === 'Healthy' || row.disease === 'BCS Normal';
       let severityColor = '#4CB85C';
@@ -692,16 +728,16 @@ app.get('/api/detections', async (req, res) => {
 
 app.post('/api/detections', async (req, res) => {
   try {
-    const { 
-      id, ownerName, animalType, disease, diseaseUrdu, confidence, 
-      riskLevel, imageUrl, description, firstAid, province 
+    const {
+      id, ownerName, animalType, disease, diseaseUrdu, confidence,
+      riskLevel, imageUrl, description, firstAid, province
     } = req.body;
 
     if (!id || !ownerName || !animalType || !disease) {
       return res.status(400).json({ error: 'Missing required parameters (id, ownerName, animalType, disease)' });
     }
 
-    
+
     const existing = await pool.query('SELECT * FROM detections WHERE id = $1', [id]);
     if (existing.rows.length > 0) {
       return res.status(200).json({ message: 'Record already exists', record: existing.rows[0] });
@@ -771,7 +807,7 @@ app.post('/api/pharmacy/register', async (req, res) => {
       province, city, businessHours, description
     } = req.body;
 
-    
+
     const exists = await pool.query(
       'SELECT * FROM pharmacies WHERE email = $1 OR license_number = $2 OR phone = $3',
       [email, licenseNumber, phone]
@@ -780,11 +816,11 @@ app.post('/api/pharmacy/register', async (req, res) => {
       return res.status(400).json({ error: 'Pharmacy with this email, phone, or license number already exists!' });
     }
 
-    
+
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    
+
     const result = await pool.query(
       `INSERT INTO pharmacies (
         name, name_urdu, license_number, license_expiry, owner_name,
@@ -798,7 +834,7 @@ app.post('/api/pharmacy/register', async (req, res) => {
       ]
     );
 
-    
+
     await pool.query(
       `INSERT INTO admin_notifications (type, message_en, message_ur) 
        VALUES ('pharmacy_approval', $1, $2)`,
@@ -820,7 +856,7 @@ app.post('/api/pharmacy/login', async (req, res) => {
   try {
     const { emailOrPhone, password } = req.body;
 
-    
+
     const result = await pool.query(
       'SELECT * FROM pharmacies WHERE email = $1 OR phone = $1',
       [emailOrPhone]
@@ -832,7 +868,7 @@ app.post('/api/pharmacy/login', async (req, res) => {
 
     const pharmacy = result.rows[0];
 
-    
+
     if (pharmacy.status === 'pending') {
       return res.status(403).json({ error: 'Your pharmacy portal account is pending admin approval.' });
     }
@@ -840,7 +876,7 @@ app.post('/api/pharmacy/login', async (req, res) => {
       return res.status(403).json({ error: 'Your pharmacy registration request was rejected by admin.' });
     }
 
-    
+
     const isMatch = await bcrypt.compare(password, pharmacy.password);
     if (!isMatch) {
       return res.status(400).json({ error: 'Invalid password.' });
@@ -867,124 +903,124 @@ app.post('/api/pharmacy/login', async (req, res) => {
 async function simulateOrdersIfEmpty(pharmacyId) {
   return; // Disabled simulation to allow fully blank, functional portal state.
   try {
-    
+
     const orderCheck = await pool.query("SELECT COUNT(*) FROM orders WHERE pharmacy_id = $1", [pharmacyId]);
     const orderCount = parseInt(orderCheck.rows[0].count);
-    if (orderCount > 0) return; 
+    if (orderCount > 0) return;
 
-    
+
     const medRes = await pool.query("SELECT * FROM medicines WHERE pharmacy_id = $1", [pharmacyId]);
     const medicines = medRes.rows;
     if (medicines.length === 0) {
       console.log(`No medicines found for pharmacy ${pharmacyId}. Seeding initial medicines...`);
       const defaultMeds = [
-        { 
-          name: 'Tetracycline 500mg', 
-          name_urdu: 'ٹیٹراسائیکلین', 
-          manufacturer: 'Novartis Pakistan', 
+        {
+          name: 'Tetracycline 500mg',
+          name_urdu: 'ٹیٹراسائیکلین',
+          manufacturer: 'Novartis Pakistan',
           dosage_form: 'Tablet',
           strength: '500mg',
-          category: 'Antibiotic', 
-          price: 850, 
-          stock: 12, 
-          min_stock: 20, 
+          category: 'Antibiotic',
+          price: 850,
+          stock: 12,
+          min_stock: 20,
           max_stock: 100,
           batch_number: 'BAT-2024-001',
           expiry_date: '2026-12-31',
           active_ingredients: 'Tetracycline Hydrochloride',
           description: 'Broad-spectrum antibiotic for bacterial infections.',
           prescription_required: true,
-          status: 'active' 
+          status: 'active'
         },
-        { 
-          name: 'Ivermectin Injection', 
-          name_urdu: 'آئیورمیکٹن', 
-          manufacturer: 'Ferozsons Laboratories', 
+        {
+          name: 'Ivermectin Injection',
+          name_urdu: 'آئیورمیکٹن',
+          manufacturer: 'Ferozsons Laboratories',
           dosage_form: 'Injection',
           strength: '10ml',
-          category: 'Antiparasitic', 
-          price: 1200, 
-          stock: 5, 
-          min_stock: 15, 
+          category: 'Antiparasitic',
+          price: 1200,
+          stock: 5,
+          min_stock: 15,
           max_stock: 80,
           batch_number: 'BAT-2024-002',
           expiry_date: '2027-06-30',
           active_ingredients: 'Ivermectin',
           description: 'Antiparasitic medication for livestock.',
           prescription_required: true,
-          status: 'active' 
+          status: 'active'
         },
-        { 
-          name: 'Vitamin B-Complex', 
-          name_urdu: 'وٹامن بی کمپلیکس', 
-          manufacturer: 'Abbott Laboratories', 
+        {
+          name: 'Vitamin B-Complex',
+          name_urdu: 'وٹامن بی کمپلیکس',
+          manufacturer: 'Abbott Laboratories',
           dosage_form: 'Injection',
           strength: '100ml',
-          category: 'Vitamin', 
-          price: 450, 
-          stock: 8, 
-          min_stock: 10, 
+          category: 'Vitamin',
+          price: 450,
+          stock: 8,
+          min_stock: 10,
           max_stock: 80,
           batch_number: 'BAT-2024-003',
           expiry_date: '2027-09-30',
           active_ingredients: 'Thiamine, Riboflavin, Niacinamide',
           description: 'Vitamin B supplement to boost health.',
           prescription_required: false,
-          status: 'active' 
+          status: 'active'
         },
-        { 
-          name: 'Calcium Supplement', 
-          name_urdu: 'کیلشیم سپلیمنٹ', 
-          manufacturer: 'GlaxoSmithKline', 
+        {
+          name: 'Calcium Supplement',
+          name_urdu: 'کیلشیم سپلیمنٹ',
+          manufacturer: 'GlaxoSmithKline',
           dosage_form: 'Suspension',
           strength: '1 Litre',
-          category: 'Vitamin', 
-          price: 650, 
-          stock: 25, 
-          min_stock: 15, 
+          category: 'Vitamin',
+          price: 650,
+          stock: 25,
+          min_stock: 15,
           max_stock: 70,
           batch_number: 'BAT-2024-004',
           expiry_date: '2026-10-31',
           active_ingredients: 'Calcium Gluconate, Vitamin D3',
           description: 'Liquid calcium for milk fever prevention and bones.',
           prescription_required: false,
-          status: 'active' 
+          status: 'active'
         },
-        { 
-          name: 'Deworming Tablets', 
-          name_urdu: 'ڈی ورمونگ ٹیبلٹس', 
-          manufacturer: 'Highnoon Laboratories', 
+        {
+          name: 'Deworming Tablets',
+          name_urdu: 'ڈی ورمونگ ٹیبلٹس',
+          manufacturer: 'Highnoon Laboratories',
           dosage_form: 'Bolus',
           strength: '1000mg',
-          category: 'Antiparasitic', 
-          price: 320, 
-          stock: 30, 
-          min_stock: 20, 
+          category: 'Antiparasitic',
+          price: 320,
+          stock: 30,
+          min_stock: 20,
           max_stock: 100,
           batch_number: 'BAT-2024-005',
           expiry_date: '2028-03-31',
           active_ingredients: 'Albendazole',
           description: 'Broad-spectrum dewormer for roundworms and flukes.',
           prescription_required: false,
-          status: 'active' 
+          status: 'active'
         },
-        { 
-          name: 'Multivitamin Injection', 
-          name_urdu: 'ملٹی وٹامن انجکشن', 
-          manufacturer: 'Bosch Pharmaceuticals', 
+        {
+          name: 'Multivitamin Injection',
+          name_urdu: 'ملٹی وٹامن انجکشن',
+          manufacturer: 'Bosch Pharmaceuticals',
           dosage_form: 'Injection',
           strength: '50ml',
-          category: 'Vitamin', 
-          price: 980, 
-          stock: 18, 
-          min_stock: 15, 
+          category: 'Vitamin',
+          price: 980,
+          stock: 18,
+          min_stock: 15,
           max_stock: 90,
           batch_number: 'BAT-2024-006',
           expiry_date: '2027-04-30',
           active_ingredients: 'Vitamin A, D3, E',
           description: 'Essential multivitamin injection.',
           prescription_required: false,
-          status: 'active' 
+          status: 'active'
         }
       ];
 
@@ -996,14 +1032,14 @@ async function simulateOrdersIfEmpty(pharmacyId) {
             expiry_date, active_ingredients, description, prescription_required, status
           ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)`,
           [
-            m.name, m.name_urdu, m.manufacturer, m.dosage_form, m.strength, m.category, 
-            pharmacyId, m.price, m.stock, m.min_stock, m.max_stock, m.batch_number, 
+            m.name, m.name_urdu, m.manufacturer, m.dosage_form, m.strength, m.category,
+            pharmacyId, m.price, m.stock, m.min_stock, m.max_stock, m.batch_number,
             m.expiry_date, m.active_ingredients, m.description, m.prescription_required, m.status
           ]
         );
       }
-      
-      
+
+
       const reMedRes = await pool.query("SELECT * FROM medicines WHERE pharmacy_id = $1", [pharmacyId]);
       medicines.push(...reMedRes.rows);
     }
@@ -1021,7 +1057,7 @@ async function simulateOrdersIfEmpty(pharmacyId) {
       { name: 'Amanat Ali', name_urdu: 'امانت علی' },
       { name: 'Zafar Iqbal', name_urdu: 'ظفر اقبال' }
     ];
-    
+
     const payMethods = ['Easypaisa', 'JazzCash', 'COD', 'Bank Transfer'];
     const statuses = ['completed', 'completed', 'completed', 'dispatched', 'processing', 'pending'];
 
@@ -1031,16 +1067,16 @@ async function simulateOrdersIfEmpty(pharmacyId) {
       const buyer = buyers[Math.floor(Math.random() * buyers.length)];
       const payMethod = payMethods[Math.floor(Math.random() * payMethods.length)];
       const status = statuses[Math.floor(Math.random() * statuses.length)];
-      
+
       const orderDate = new Date();
       orderDate.setMonth(now.getMonth() - Math.floor(Math.random() * 6));
       orderDate.setDate(Math.floor(Math.random() * 28) + 1);
       orderDate.setHours(Math.floor(Math.random() * 12) + 8);
-      
+
       const numItems = Math.floor(Math.random() * 3) + 1;
       let totalPrice = 0;
       let totalQty = 0;
-      
+
       const orderItemsToInsert = [];
       const usedMedIds = new Set();
 
@@ -1048,12 +1084,12 @@ async function simulateOrdersIfEmpty(pharmacyId) {
         const med = medicines[Math.floor(Math.random() * medicines.length)];
         if (usedMedIds.has(med.id)) continue;
         usedMedIds.add(med.id);
-        
+
         const qty = Math.floor(Math.random() * 3) + 1;
         const itemPrice = parseFloat(med.price);
         totalPrice += qty * itemPrice;
         totalQty += qty;
-        
+
         orderItemsToInsert.push({
           medicine_id: med.id,
           quantity: qty,
@@ -1061,14 +1097,14 @@ async function simulateOrdersIfEmpty(pharmacyId) {
         });
       }
 
-      
+
       await pool.query(
         `INSERT INTO orders (id, buyer_name, buyer_name_urdu, pharmacy_id, items_count, total_price, payment_method, status, created_at)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
         [orderId, buyer.name, buyer.name_urdu, pharmacyId, totalQty, totalPrice, payMethod, status, orderDate]
       );
 
-      
+
       for (const item of orderItemsToInsert) {
         await pool.query(
           `INSERT INTO order_items (order_id, medicine_id, quantity, price)
@@ -1077,7 +1113,7 @@ async function simulateOrdersIfEmpty(pharmacyId) {
         );
       }
     }
-    
+
     console.log(`✅ Simulation completed for pharmacy ${pharmacyId}!`);
   } catch (err) {
     console.error('Error in simulateOrdersIfEmpty:', err.message);
@@ -1092,45 +1128,45 @@ app.get('/api/pharmacy/dashboard-stats', async (req, res) => {
     }
 
     const pId = parseInt(pharmacyId);
-    
-    
+
+
     await simulateOrdersIfEmpty(pId);
 
-    
+
     const revRes = await pool.query(
       "SELECT SUM(total_price) FROM orders WHERE pharmacy_id = $1 AND status IN ('delivered', 'completed')",
       [pId]
     );
     const totalRevenue = parseFloat(revRes.rows[0].sum) || 0.00;
 
-    
+
     const actRes = await pool.query(
       "SELECT COUNT(*) FROM orders WHERE pharmacy_id = $1 AND status NOT IN ('delivered', 'completed', 'cancelled')",
       [pId]
     );
     const activeOrdersCount = parseInt(actRes.rows[0].count) || 0;
 
-    
+
     const medRes = await pool.query(
       "SELECT COUNT(*) FROM medicines WHERE pharmacy_id = $1",
       [pId]
     );
     const medicineListingsCount = parseInt(medRes.rows[0].count) || 0;
 
-    
+
     const alertRes = await pool.query(
       "SELECT COUNT(*) FROM medicines WHERE pharmacy_id = $1 AND (stock < min_stock OR status = 'out_of_stock')",
       [pId]
     );
     const stockAlertsCount = parseInt(alertRes.rows[0].count) || 0;
 
-    
+
     const recentOrdersRes = await pool.query(
       "SELECT * FROM orders WHERE pharmacy_id = $1 ORDER BY created_at DESC LIMIT 5",
       [pId]
     );
 
-    
+
     const stockAlertsRes = await pool.query(
       "SELECT * FROM medicines WHERE pharmacy_id = $1 AND stock < min_stock ORDER BY stock ASC LIMIT 5",
       [pId]
@@ -1171,12 +1207,12 @@ app.get('/api/pharmacy/medicines', async (req, res) => {
 
 app.post('/api/pharmacy/medicines', async (req, res) => {
   try {
-    const { 
-      name, nameUrdu, manufacturer, dosageForm, strength, category, 
-      price, stock, minStock, maxStock, batchNumber, expiryDate, 
-      activeIngredients, description, prescriptionRequired, imageUrl 
+    const {
+      name, nameUrdu, manufacturer, dosageForm, strength, category,
+      price, stock, minStock, maxStock, batchNumber, expiryDate,
+      activeIngredients, description, prescriptionRequired, imageUrl
     } = req.body;
-    
+
     const pharmacyId = parseInt(req.body.pharmacyId);
     const mStock = minStock !== undefined ? parseInt(minStock) : 10;
     const mxStock = maxStock !== undefined ? parseInt(maxStock) : 100;
@@ -1206,13 +1242,13 @@ app.post('/api/pharmacy/medicines', async (req, res) => {
 app.put('/api/pharmacy/medicines/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { 
-      name, nameUrdu, manufacturer, dosageForm, strength, category, 
-      price, stock, minStock, maxStock, batchNumber, expiryDate, 
-      activeIngredients, description, prescriptionRequired, imageUrl, status 
+    const {
+      name, nameUrdu, manufacturer, dosageForm, strength, category,
+      price, stock, minStock, maxStock, batchNumber, expiryDate,
+      activeIngredients, description, prescriptionRequired, imageUrl, status
     } = req.body;
-    
-    
+
+
     if (status !== undefined && name === undefined) {
       const result = await pool.query(
         "UPDATE medicines SET status = $1 WHERE id = $2 RETURNING *",
@@ -1271,7 +1307,7 @@ app.get('/api/pharmacy/analytics', async (req, res) => {
     const pId = parseInt(pharmacyId);
     await simulateOrdersIfEmpty(pId);
 
-    
+
     const revRes = await pool.query(
       "SELECT SUM(total_price) FROM orders WHERE pharmacy_id = $1 AND status IN ('delivered', 'completed')",
       [pId]
@@ -1296,7 +1332,7 @@ app.get('/api/pharmacy/analytics', async (req, res) => {
     );
     const avgOrderValue = parseFloat(avgRes.rows[0].avg) || 0.00;
 
-    
+
     const monthlyRes = await pool.query(
       `SELECT 
          TO_CHAR(created_at, 'Mon') as month_name,
@@ -1309,7 +1345,7 @@ app.get('/api/pharmacy/analytics', async (req, res) => {
        ORDER BY month_date ASC`,
       [pId]
     );
-    
+
     let monthlyData = monthlyRes.rows.map(row => ({
       name: row.month_name,
       Revenue: row.revenue,
@@ -1321,7 +1357,7 @@ app.get('/api/pharmacy/analytics', async (req, res) => {
       monthlyData = months.map(m => ({ name: m, Revenue: 0, Orders: 0 }));
     }
 
-    
+
     const topMedsRes = await pool.query(
       `SELECT 
          m.id,
@@ -1337,7 +1373,7 @@ app.get('/api/pharmacy/analytics', async (req, res) => {
        LIMIT 5`,
       [pId]
     );
-    
+
     const topMedicines = topMedsRes.rows.map(row => ({
       name: row.name,
       nameUrdu: row.name_urdu || '',
@@ -1345,17 +1381,17 @@ app.get('/api/pharmacy/analytics', async (req, res) => {
       sales: row.total_sales
     }));
 
-    
+
     const distRes = await pool.query(
       `SELECT status, COUNT(*)::int as count FROM orders WHERE pharmacy_id = $1 GROUP BY status`,
       [pId]
     );
-    
+
     let completedCount = 0;
     let processingCount = 0;
     let cancelledCount = 0;
     let totalDist = 0;
-    
+
     distRes.rows.forEach(r => {
       const cnt = r.count;
       totalDist += cnt;
@@ -1374,7 +1410,7 @@ app.get('/api/pharmacy/analytics', async (req, res) => {
       cancelled: totalDist > 0 ? Math.round((cancelledCount / totalDist) * 100) : 0
     };
 
-    
+
     const repeatBuyersRes = await pool.query(
       `WITH buyer_counts AS (
          SELECT buyer_name, COUNT(*) as ord_cnt FROM orders WHERE pharmacy_id = $1 GROUP BY buyer_name
@@ -1385,7 +1421,7 @@ app.get('/api/pharmacy/analytics', async (req, res) => {
        FROM buyer_counts`,
       [pId]
     );
-    
+
     const totalBuyers = parseFloat(repeatBuyersRes.rows[0].total_buyers) || 0;
     const repeatBuyers = parseFloat(repeatBuyersRes.rows[0].repeat_buyers) || 0;
     const customerRetention = totalBuyers > 0 ? Math.round((repeatBuyers / totalBuyers) * 100) : 0;
@@ -1465,8 +1501,8 @@ app.post('/api/pharmacy/orders', async (req, res) => {
     }
 
     const pId = parseInt(pharmacyId);
-    
-    
+
+
     const countRes = await pool.query("SELECT COUNT(*) FROM orders");
     const count = parseInt(countRes.rows[0].count) || 0;
     const orderId = `ORD-${1000 + count + Math.floor(Math.random() * 100)}`;
@@ -1476,14 +1512,14 @@ app.post('/api/pharmacy/orders', async (req, res) => {
       totalQty += parseInt(item.quantity);
     });
 
-    
+
     const orderResult = await pool.query(
       `INSERT INTO orders (id, buyer_name, buyer_name_urdu, pharmacy_id, items_count, total_price, payment_method, status, created_at)
        VALUES ($1, $2, $3, $4, $5, $6, $7, 'pending', CURRENT_TIMESTAMP) RETURNING *`,
       [orderId, buyerName, buyerNameUrdu || null, pId, totalQty, parseFloat(totalPrice), paymentMethod]
     );
 
-    
+
     for (const item of items) {
       await pool.query(
         `INSERT INTO order_items (order_id, medicine_id, quantity, price)
@@ -1491,7 +1527,7 @@ app.post('/api/pharmacy/orders', async (req, res) => {
         [orderId, parseInt(item.medicineId), parseInt(item.quantity), parseFloat(item.price)]
       );
 
-      
+
       await pool.query(
         `UPDATE medicines SET 
            stock = GREATEST(0, stock - $1),
@@ -1563,19 +1599,19 @@ app.get('/api/vets', async (req, res) => {
     const { district, ownerName } = req.query;
     let query = "SELECT id, full_name, district, specialization, experience_years, status FROM users WHERE role = 'vet' AND status = 'verified'";
     const params = [];
-    
+
     if (district) {
       query += " AND district ILIKE $1";
       params.push(district);
     } else if (ownerName) {
-      
+
       const ownerRes = await pool.query("SELECT district FROM users WHERE full_name ILIKE $1 AND role = 'farmer'", [ownerName]);
       if (ownerRes.rows.length > 0 && ownerRes.rows[0].district) {
         query += " AND district ILIKE $1";
         params.push(ownerRes.rows[0].district);
       }
     }
-    
+
     const result = await pool.query(query, params);
     res.status(200).json(result.rows);
   } catch (err) {
@@ -1591,7 +1627,7 @@ app.post('/api/chat/conversation', async (req, res) => {
     if ((!farmerId && !farmerName) || !vetId) {
       return res.status(400).json({ error: 'farmerId/farmerName and vetId are required' });
     }
-    
+
     let fId = farmerId;
     if (!fId) {
       const farmerRes = await pool.query('SELECT id FROM users WHERE full_name ILIKE $1 AND role = \'farmer\'', [farmerName]);
@@ -1600,21 +1636,21 @@ app.post('/api/chat/conversation', async (req, res) => {
       }
       fId = farmerRes.rows[0].id;
     }
-    
-    
+
+
     let convRes = await pool.query(
       'SELECT * FROM conversations WHERE farmer_id = $1 AND vet_id = $2',
       [fId, vetId]
     );
-    
+
     if (convRes.rows.length === 0) {
-      
+
       convRes = await pool.query(
         'INSERT INTO conversations (farmer_id, vet_id, status) VALUES ($1, $2, \'active\') RETURNING *',
         [fId, vetId]
       );
     }
-    
+
     res.status(200).json(convRes.rows[0]);
   } catch (err) {
     console.error('Error creating conversation:', err.message);
@@ -1647,19 +1683,19 @@ app.get('/api/chat/conversations/vet', async (req, res) => {
     if (!vetId && !vetName) {
       return res.status(400).json({ error: 'vetId or vetName is required' });
     }
-    
+
     let query = `
       SELECT c.*, u.full_name as farmer_name, u.district as farmer_district, u.phone_number as farmer_phone
       FROM conversations c
       JOIN users u ON c.farmer_id = u.id
     `;
     const params = [];
-    
+
     if (vetId) {
       query += ` WHERE c.vet_id = $1`;
       params.push(vetId);
     } else {
-      
+
       const vetRes = await pool.query('SELECT id FROM users WHERE full_name ILIKE $1 AND role = \'vet\'', [vetName]);
       if (vetRes.rows.length === 0) {
         return res.status(200).json([]);
@@ -1667,9 +1703,9 @@ app.get('/api/chat/conversations/vet', async (req, res) => {
       query += ` WHERE c.vet_id = $1`;
       params.push(vetRes.rows[0].id);
     }
-    
+
     query += ` ORDER BY c.created_at DESC`;
-    
+
     const result = await pool.query(query, params);
     res.status(200).json(result.rows);
   } catch (err) {
@@ -1869,35 +1905,35 @@ app.post('/api/forum/posts/:id/like', async (req, res) => {
 io.on('connection', (socket) => {
   console.log('🔌 User connected to WebSocket:', socket.id);
 
-  
+
   socket.on('join_room', (room) => {
     socket.join(room);
     console.log(`👤 Socket ${socket.id} joined room: ${room}`);
   });
 
-  
+
   socket.on('send_message', async (data) => {
     try {
       const { conversationId, senderId, message, imageUrl, isPrescription, prescriptionData, isVaccination, vaccinationData } = data;
-      
+
       const result = await pool.query(
         `INSERT INTO messages (conversation_id, sender_id, message, image_url, is_prescription, prescription_data, is_vaccination, vaccination_data)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
         [
-          conversationId, 
-          senderId, 
-          message || null, 
-          imageUrl || null, 
-          isPrescription || false, 
+          conversationId,
+          senderId,
+          message || null,
+          imageUrl || null,
+          isPrescription || false,
           prescriptionData ? JSON.stringify(prescriptionData) : null,
           isVaccination || false,
           vaccinationData ? JSON.stringify(vaccinationData) : null
         ]
       );
-      
+
       const savedMessage = result.rows[0];
-      
-      
+
+
       io.to(conversationId.toString()).emit('receive_message', savedMessage);
     } catch (err) {
       console.error('Socket error sending message:', err.message);
@@ -1914,7 +1950,7 @@ io.on('connection', (socket) => {
 app.post('/api/consultations', async (req, res) => {
   try {
     const { farmer_id, vet_id, type, ai_record_data, appointment_date, reason } = req.body;
-    
+
     if (!farmer_id || !vet_id || !type) {
       return res.status(400).json({ error: 'farmer_id, vet_id, and type are required' });
     }
