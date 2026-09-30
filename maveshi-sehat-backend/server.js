@@ -320,6 +320,7 @@ app.post('/login', async (req, res) => {
       user: {
         id: user.id,
         fullName: user.full_name,
+        full_name: user.full_name,
         email: user.email,
         phoneNumber: user.phone_number,
         role: user.role
@@ -329,6 +330,57 @@ app.post('/login', async (req, res) => {
   } catch (err) {
     console.error('Login Error:', err.message);
     res.status(500).json({ error: 'Server error during login.' });
+  }
+});
+
+app.post(['/api/auth/login', '/api/admin/login'], async (req, res) => {
+  try {
+    const { email, phoneNumber, password } = req.body;
+
+    if ((!email && !phoneNumber) || !password) {
+      return res.status(400).json({ error: 'Email/phone and password are required.' });
+    }
+
+    let userResult;
+    if (email) {
+      userResult = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+    } else {
+      userResult = await pool.query('SELECT * FROM users WHERE phone_number = $1', [phoneNumber]);
+    }
+
+    if (userResult.rows.length === 0) {
+      return res.status(401).json({ error: 'Invalid email or password.' });
+    }
+
+    const user = userResult.rows[0];
+
+    if (user.role !== 'admin' && user.role !== 'superadmin' && user.role !== 'super_admin') {
+      return res.status(403).json({ error: 'Access denied. You do not have administrator permissions.' });
+    }
+
+    if (user.status === 'blocked') {
+      return res.status(403).json({ error: 'Your account has been blocked by the administrator.' });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ error: 'Invalid password.' });
+    }
+
+    res.status(200).json({
+      message: 'Login successful!',
+      user: {
+        id: user.id,
+        fullName: user.full_name,
+        full_name: user.full_name,
+        email: user.email,
+        phoneNumber: user.phone_number,
+        role: user.role
+      }
+    });
+  } catch (err) {
+    console.error('Admin Auth Login Error:', err.message);
+    res.status(500).json({ error: 'Server error during administrator login.' });
   }
 });
 

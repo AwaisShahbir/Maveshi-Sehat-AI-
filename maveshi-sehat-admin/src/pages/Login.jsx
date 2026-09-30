@@ -26,10 +26,16 @@ export default function Login({ onLoginSuccess }) {
       const res = await fetch('http://localhost:5000/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify({ email: email.trim(), password })
       });
 
-      const data = await res.json();
+      let data;
+      const text = await res.text();
+      try {
+        data = JSON.parse(text);
+      } catch {
+        throw new Error('Backend server returned an invalid response. Please verify the backend is running.');
+      }
 
       if (!res.ok) {
         throw new Error(data.error || 'Invalid credentials or unauthorized access');
