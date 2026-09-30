@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { User, Lock, Bell, Settings as SettingsIcon } from 'lucide-react';
+import './Settings.css';
 
 export default function Settings() {
   const [subTab, setSubTab] = useState('profile');
@@ -73,10 +74,10 @@ export default function Settings() {
 
   return (
     <div className="settings-view">
-      <div className="grid-2-1" style={{ display: 'grid', gridTemplateColumns: '260px 1fr', gap: '24px' }}>
+      <div className="settings-layout">
         
         {/* Navigation Sidebar */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        <div className="settings-nav">
           {[
             { id: 'profile', label: 'Profile & Account', icon: <User size={18} /> },
             { id: 'security', label: 'Security', icon: <Lock size={18} /> },
@@ -86,21 +87,7 @@ export default function Settings() {
             <button
               key={tab.id}
               onClick={() => setSubTab(tab.id)}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '12px',
-                padding: '14px 18px',
-                borderRadius: '12px',
-                border: 'none',
-                fontSize: '14px',
-                fontWeight: '600',
-                cursor: 'pointer',
-                textAlign: 'left',
-                backgroundColor: subTab === tab.id ? '#eff7f2' : 'transparent',
-                color: subTab === tab.id ? '#3da860' : 'var(--text-muted)',
-                transition: 'all 0.2s'
-              }}
+              className={`settings-nav-item ${subTab === tab.id ? 'active' : ''}`}
             >
               {tab.icon}
               <span>{tab.label}</span>
@@ -109,98 +96,73 @@ export default function Settings() {
         </div>
 
         {/* Content Box */}
-        <div className="card" style={{ padding: '32px', borderRadius: '16px', backgroundColor: '#ffffff' }}>
+        <div className="card settings-content-card">
           
           {subTab === 'profile' && (
             <form onSubmit={handleProfileSave}>
-              <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#135431', marginBottom: '2px' }}>Admin Profile</h3>
-              <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '24px' }}>Account & Personal Information</p>
+              <h3 className="settings-heading">Admin Profile</h3>
+              <p className="settings-subheading">Account & Personal Information</p>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '32px' }}>
-                <div style={{
-                  width: '64px',
-                  height: '64px',
-                  borderRadius: '50%',
-                  backgroundColor: '#135431',
-                  color: '#ffffff',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '24px',
-                  fontWeight: '700'
-                }}>
+              <div className="settings-avatar-row">
+                <div className="settings-avatar-circle">
                   SA
                 </div>
                 <div>
-                  <button type="button" className="btn btn-secondary" style={{ fontSize: '12px', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', border: '1px solid #cbd5e1', backgroundColor: '#f8fafc' }}>
+                  <button type="button" className="btn btn-secondary settings-avatar-btn">
                     Upload New Avatar
                   </button>
-                  <span style={{ display: 'block', fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>
+                  <span className="settings-avatar-hint">
                     JPG, PNG max 2MB
                   </span>
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '24px' }}>
-                <div className="form-group" style={{ margin: 0 }}>
-                  <label className="form-label" style={{ fontSize: '12px', fontWeight: '700' }}>Full Name</label>
+              <div className="settings-form-grid">
+                <div className="form-group">
+                  <label className="form-label settings-label">Full Name</label>
                   <input
                     type="text"
-                    className="form-control"
+                    className="form-control settings-input"
                     value={profileName}
                     onChange={(e) => setProfileName(e.target.value)}
-                    style={{ height: '42px', borderRadius: '8px' }}
                   />
                 </div>
 
-                <div className="form-group" style={{ margin: 0 }}>
-                  <label className="form-label" style={{ fontSize: '12px', fontWeight: '700' }}>Email Address</label>
+                <div className="form-group">
+                  <label className="form-label settings-label">Email Address</label>
                   <input
                     type="email"
-                    className="form-control"
+                    className="form-control settings-input"
                     value={profileEmail}
                     onChange={(e) => setProfileEmail(e.target.value)}
-                    style={{ height: '42px', borderRadius: '8px' }}
                   />
                 </div>
 
-                <div className="form-group" style={{ margin: 0 }}>
-                  <label className="form-label" style={{ fontSize: '12px', fontWeight: '700' }}>Phone Number</label>
+                <div className="form-group">
+                  <label className="form-label settings-label">Phone Number</label>
                   <input
                     type="text"
-                    className="form-control"
+                    className="form-control settings-input"
                     value={profilePhone}
                     onChange={(e) => setProfilePhone(e.target.value)}
-                    style={{ height: '42px', borderRadius: '8px' }}
                   />
                 </div>
 
-                <div className="form-group" style={{ margin: 0 }}>
-                  <label className="form-label" style={{ fontSize: '12px', fontWeight: '700' }}>Role</label>
+                <div className="form-group">
+                  <label className="form-label settings-label">Role</label>
                   <input
                     type="text"
-                    className="form-control"
+                    className="form-control settings-input-disabled"
                     value="Super Administrator"
                     disabled
-                    style={{ height: '42px', borderRadius: '8px', backgroundColor: '#f1f5f9', cursor: 'not-allowed' }}
                   />
                 </div>
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', borderTop: '1px solid var(--border-light)', paddingTop: '20px' }}>
+              <div className="settings-form-footer">
                 <button
                   type="submit"
-                  className="btn btn-primary"
-                  style={{
-                    backgroundColor: '#3da860',
-                    color: '#ffffff',
-                    border: 'none',
-                    borderRadius: '8px',
-                    padding: '10px 24px',
-                    fontSize: '13px',
-                    fontWeight: '600',
-                    cursor: 'pointer'
-                  }}
+                  className="btn btn-primary settings-save-btn"
                 >
                   Save Changes
                 </button>
@@ -210,61 +172,48 @@ export default function Settings() {
 
           {subTab === 'security' && (
             <form onSubmit={handlePasswordUpdate}>
-              <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#135431', marginBottom: '2px' }}>Security Settings</h3>
-              <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '24px' }}>Password & Authentication</p>
+              <h3 className="settings-heading">Security Settings</h3>
+              <p className="settings-subheading">Password & Authentication</p>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', maxWidth: '400px', marginBottom: '24px' }}>
-                <div className="form-group" style={{ margin: 0 }}>
-                  <label className="form-label" style={{ fontSize: '12px', fontWeight: '700' }}>Current Password</label>
+              <div className="settings-security-form">
+                <div className="form-group">
+                  <label className="form-label settings-label">Current Password</label>
                   <input
                     type="password"
-                    className="form-control"
+                    className="form-control settings-input"
                     placeholder="Enter current password"
                     value={currentPwd}
                     onChange={(e) => setCurrentPwd(e.target.value)}
-                    style={{ height: '42px', borderRadius: '8px' }}
                   />
                 </div>
 
-                <div className="form-group" style={{ margin: 0 }}>
-                  <label className="form-label" style={{ fontSize: '12px', fontWeight: '700' }}>New Password</label>
+                <div className="form-group">
+                  <label className="form-label settings-label">New Password</label>
                   <input
                     type="password"
-                    className="form-control"
+                    className="form-control settings-input"
                     placeholder="At least 8 characters"
                     value={newPwd}
                     onChange={(e) => setNewPwd(e.target.value)}
-                    style={{ height: '42px', borderRadius: '8px' }}
                   />
                 </div>
 
-                <div className="form-group" style={{ margin: 0 }}>
-                  <label className="form-label" style={{ fontSize: '12px', fontWeight: '700' }}>Confirm New Password</label>
+                <div className="form-group">
+                  <label className="form-label settings-label">Confirm New Password</label>
                   <input
                     type="password"
-                    className="form-control"
+                    className="form-control settings-input"
                     placeholder="Re-enter new password"
                     value={confirmPwd}
                     onChange={(e) => setConfirmPwd(e.target.value)}
-                    style={{ height: '42px', borderRadius: '8px' }}
                   />
                 </div>
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', borderTop: '1px solid var(--border-light)', paddingTop: '20px' }}>
+              <div className="settings-form-footer">
                 <button
                   type="submit"
-                  className="btn btn-primary"
-                  style={{
-                    backgroundColor: '#3da860',
-                    color: '#ffffff',
-                    border: 'none',
-                    borderRadius: '8px',
-                    padding: '10px 24px',
-                    fontSize: '13px',
-                    fontWeight: '600',
-                    cursor: 'pointer'
-                  }}
+                  className="btn btn-primary settings-save-btn"
                 >
                   Update Password
                 </button>
@@ -274,10 +223,10 @@ export default function Settings() {
 
           {subTab === 'notifications' && (
             <div>
-              <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#135431', marginBottom: '2px' }}>Notification Preferences</h3>
-              <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '24px' }}>System Alert Channels</p>
+              <h3 className="settings-heading">Notification Preferences</h3>
+              <p className="settings-subheading">System Alert Channels</p>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '32px' }}>
+              <div className="settings-notif-list">
                 {[
                   { id: 'email', label: 'Email Notifications', desc: 'Receive urgent security alerts via email', val: emailNotif, set: setEmailNotif },
                   { id: 'sms', label: 'SMS Notifications', desc: 'Critical outbreak alerts sent via SMS gateway', val: smsNotif, set: setSmsNotif },
@@ -285,57 +234,31 @@ export default function Settings() {
                   { id: 'reg', label: 'New User Registration', desc: 'Summary of new farmer sign-ups', val: newUserReg, set: setNewUserReg },
                   { id: 'vet', label: 'Vet Verification Requests', desc: 'Alerts when doctors submit PVMC license documents', val: vetReq, set: setVetReq }
                 ].map((item) => (
-                  <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '12px', borderBottom: '1px solid #f1f5f9' }}>
+                  <div key={item.id} className="settings-notif-item">
                     <div>
-                      <span style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-main)', display: 'block' }}>{item.label}</span>
-                      <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{item.desc}</span>
+                      <span className="settings-notif-title">{item.label}</span>
+                      <span className="settings-notif-desc">{item.desc}</span>
                     </div>
-                    <label style={{ position: 'relative', display: 'inline-block', width: '40px', height: '22px' }}>
+                    <label className="settings-toggle">
                       <input
                         type="checkbox"
                         checked={item.val}
                         onChange={(e) => item.set(e.target.checked)}
-                        style={{ opacity: 0, width: 0, height: 0 }}
+                        className="settings-toggle-checkbox"
                       />
-                      <span style={{
-                        position: 'absolute',
-                        cursor: 'pointer',
-                        top: 0, left: 0, right: 0, bottom: 0,
-                        backgroundColor: item.val ? '#3da860' : '#cbd5e1',
-                        borderRadius: '22px',
-                        transition: '0.2s'
-                      }}>
-                        <span style={{
-                          position: 'absolute',
-                          height: '16px',
-                          width: '16px',
-                          left: item.val ? '21px' : '3px',
-                          bottom: '3px',
-                          backgroundColor: '#ffffff',
-                          borderRadius: '50%',
-                          transition: '0.2s'
-                        }} />
+                      <span className={`settings-toggle-slider ${item.val ? 'active' : ''}`}>
+                        <span className={`settings-toggle-knob ${item.val ? 'active' : ''}`} />
                       </span>
                     </label>
                   </div>
                 ))}
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', borderTop: '1px solid var(--border-light)', paddingTop: '20px' }}>
+              <div className="settings-form-footer">
                 <button
                   type="button"
                   onClick={handleNotifSave}
-                  className="btn btn-primary"
-                  style={{
-                    backgroundColor: '#3da860',
-                    color: '#ffffff',
-                    border: 'none',
-                    borderRadius: '8px',
-                    padding: '10px 24px',
-                    fontSize: '13px',
-                    fontWeight: '600',
-                    cursor: 'pointer'
-                  }}
+                  className="btn btn-primary settings-save-btn"
                 >
                   Save Preferences
                 </button>
@@ -345,16 +268,16 @@ export default function Settings() {
 
           {subTab === 'system' && (
             <div>
-              <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#135431', marginBottom: '2px' }}>Settings & Configuration</h3>
-              <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '24px' }}>AI Model and System Parameters</p>
+              <h3 className="settings-heading">Settings & Configuration</h3>
+              <p className="settings-subheading">AI Model and System Parameters</p>
 
-              <div style={{ marginBottom: '28px' }}>
-                <h4 style={{ fontSize: '14px', fontWeight: '700', color: '#1f2937', marginBottom: '12px' }}>AI Model Configuration</h4>
+              <div className="settings-ai-section">
+                <h4 className="settings-ai-title">AI Model Configuration</h4>
                 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxWidth: '400px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
-                    <span style={{ fontWeight: '600', color: 'var(--text-main)' }}>Minimum Confidence Threshold</span>
-                    <strong style={{ color: '#3da860' }}>{threshold}%</strong>
+                <div className="settings-slider-wrap">
+                  <div className="settings-slider-header">
+                    <span>Minimum Confidence Threshold</span>
+                    <strong className="settings-slider-accent">{threshold}%</strong>
                   </div>
                   <input
                     type="range"
@@ -362,34 +285,32 @@ export default function Settings() {
                     max="95"
                     value={threshold}
                     onChange={(e) => setThreshold(e.target.value)}
-                    style={{ accentColor: '#3da860', width: '100%', cursor: 'pointer' }}
+                    className="settings-slider-input"
                   />
-                  <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+                  <span className="settings-slider-hint">
                     Detections with confidence below this threshold will automatically require veterinary validation.
                   </span>
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '32px' }}>
+              <div className="settings-grid-options">
                 <div>
-                  <span style={{ display: 'block', fontSize: '12px', fontWeight: '700', color: 'var(--text-main)', marginBottom: '6px' }}>Interface Language</span>
+                  <span className="settings-select-label">Interface Language</span>
                   <select
                     value={language}
                     onChange={(e) => setLanguage(e.target.value)}
-                    className="form-control"
-                    style={{ height: '42px', borderRadius: '8px' }}
+                    className="form-control settings-input"
                   >
                     <option value="en">English (US)</option>
                   </select>
                 </div>
 
                 <div>
-                  <span style={{ display: 'block', fontSize: '12px', fontWeight: '700', color: 'var(--text-main)', marginBottom: '6px' }}>System Timezone</span>
+                  <span className="settings-select-label">System Timezone</span>
                   <select
                     value={timezone}
                     onChange={(e) => setTimezone(e.target.value)}
-                    className="form-control"
-                    style={{ height: '42px', borderRadius: '8px' }}
+                    className="form-control settings-input"
                   >
                     <option value="utc-5">Asia/Karachi (PKT, UTC+5)</option>
                     <option value="utc">UTC (Universal Time)</option>
@@ -397,21 +318,11 @@ export default function Settings() {
                 </div>
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', borderTop: '1px solid var(--border-light)', paddingTop: '20px' }}>
+              <div className="settings-form-footer">
                 <button
                   type="button"
                   onClick={handleSystemSave}
-                  className="btn btn-primary"
-                  style={{
-                    backgroundColor: '#3da860',
-                    color: '#ffffff',
-                    border: 'none',
-                    borderRadius: '8px',
-                    padding: '10px 24px',
-                    fontSize: '13px',
-                    fontWeight: '600',
-                    cursor: 'pointer'
-                  }}
+                  className="btn btn-primary settings-save-btn"
                 >
                   Apply System Settings
                 </button>

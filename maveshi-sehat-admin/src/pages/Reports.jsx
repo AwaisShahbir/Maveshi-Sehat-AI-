@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Download, Calendar, HardDrive, FileSpreadsheet } from 'lucide-react';
+import './Reports.css';
 
 export default function Reports() {
   const [activeTab, setActiveTab] = useState('available');
@@ -12,8 +13,7 @@ export default function Reports() {
       date: 'Live Database',
       size: 'Dynamic',
       format: 'CSV',
-      iconColor: '#e6f0ff',
-      textColor: '#007aff'
+      colorClass: 'icon-blue'
     },
     {
       id: 2,
@@ -22,8 +22,7 @@ export default function Reports() {
       date: 'Live Database',
       size: 'Dynamic',
       format: 'CSV',
-      iconColor: '#e6f0ff',
-      textColor: '#007aff'
+      colorClass: 'icon-blue'
     },
     {
       id: 3,
@@ -32,8 +31,7 @@ export default function Reports() {
       date: 'Live Database',
       size: 'Dynamic',
       format: 'CSV',
-      iconColor: '#e6f0ff',
-      textColor: '#007aff'
+      colorClass: 'icon-blue'
     },
     {
       id: 4,
@@ -42,8 +40,7 @@ export default function Reports() {
       date: 'Live Database',
       size: 'Dynamic',
       format: 'CSV',
-      iconColor: '#fff3e0',
-      textColor: '#ff9800'
+      colorClass: 'icon-orange'
     },
     {
       id: 5,
@@ -52,8 +49,7 @@ export default function Reports() {
       date: 'Live Database',
       size: 'Dynamic',
       format: 'CSV',
-      iconColor: '#e6f0ff',
-      textColor: '#007aff'
+      colorClass: 'icon-blue'
     },
     {
       id: 6,
@@ -62,8 +58,7 @@ export default function Reports() {
       date: 'Live Database',
       size: 'Dynamic',
       format: 'CSV',
-      iconColor: '#e6f0ff',
-      textColor: '#007aff'
+      colorClass: 'icon-blue'
     }
   ];
 
@@ -220,54 +215,21 @@ export default function Reports() {
     <div className="reports-view">
       
       {/* Header Tabs */}
-      <div className="tabs-container" style={{ display: 'flex', gap: '24px', borderBottom: '1px solid var(--border-light)', marginBottom: '24px' }}>
+      <div className="reports-tabs">
         <button 
-          className={`tab-btn ${activeTab === 'available' ? 'active' : ''}`}
-          style={{
-            padding: '12px 4px',
-            fontSize: '15px',
-            fontWeight: '600',
-            backgroundColor: 'transparent',
-            border: 'none',
-            borderBottom: '2px solid',
-            borderBottomColor: activeTab === 'available' ? '#3da860' : 'transparent',
-            color: activeTab === 'available' ? '#3da860' : 'var(--text-muted)',
-            cursor: 'pointer'
-          }}
+          className={`reports-tab-btn ${activeTab === 'available' ? 'active' : ''}`}
           onClick={() => setActiveTab('available')}
         >
           Available Reports
         </button>
         <button 
-          className={`tab-btn ${activeTab === 'scheduled' ? 'active' : ''}`}
-          style={{
-            padding: '12px 4px',
-            fontSize: '15px',
-            fontWeight: '600',
-            backgroundColor: 'transparent',
-            border: 'none',
-            borderBottom: '2px solid',
-            borderBottomColor: activeTab === 'scheduled' ? '#3da860' : 'transparent',
-            color: activeTab === 'scheduled' ? '#3da860' : 'var(--text-muted)',
-            cursor: 'pointer'
-          }}
+          className={`reports-tab-btn ${activeTab === 'scheduled' ? 'active' : ''}`}
           onClick={() => setActiveTab('scheduled')}
         >
           Scheduled Reports
         </button>
         <button 
-          className={`tab-btn ${activeTab === 'history' ? 'active' : ''}`}
-          style={{
-            padding: '12px 4px',
-            fontSize: '15px',
-            fontWeight: '600',
-            backgroundColor: 'transparent',
-            border: 'none',
-            borderBottom: '2px solid',
-            borderBottomColor: activeTab === 'history' ? '#3da860' : 'transparent',
-            color: activeTab === 'history' ? '#3da860' : 'var(--text-muted)',
-            cursor: 'pointer'
-          }}
+          className={`reports-tab-btn ${activeTab === 'history' ? 'active' : ''}`}
           onClick={() => setActiveTab('history')}
         >
           Download History
@@ -275,61 +237,31 @@ export default function Reports() {
       </div>
 
       {activeTab === 'available' ? (
-        <div className="grid-2-1" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+        <div className="reports-grid">
           {availableReports.map((report) => (
-            <div className="card" key={report.id} style={{ display: 'flex', gap: '20px', alignItems: 'flex-start', padding: '24px', borderRadius: '16px', border: '1px solid var(--border-light)', backgroundColor: '#ffffff' }}>
-              <div style={{
-                width: '48px',
-                height: '48px',
-                borderRadius: '12px',
-                backgroundColor: report.iconColor,
-                color: report.textColor,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                minWidth: '48px'
-              }}>
+            <div className="reports-card" key={report.id}>
+              <div className={`reports-icon-wrap ${report.colorClass}`}>
                 <FileSpreadsheet size={24} />
               </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <h4 style={{ fontSize: '15px', fontWeight: '700', color: '#1f2937', margin: '0 0 6px 0' }}>{report.title}</h4>
-                <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: '0 0 16px 0', lineHeight: 1.4 }}>{report.desc}</p>
+              <div className="reports-card-content">
+                <h4 className="reports-card-title">{report.title}</h4>
+                <p className="reports-card-desc">{report.desc}</p>
                 
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
-                  <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: 'var(--text-muted)' }}>
+                <div className="reports-card-footer">
+                  <div className="reports-meta-wrap">
+                    <span className="reports-meta-item">
                       <Calendar size={12} />
                       Live Data
                     </span>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: 'var(--text-muted)' }}>
+                    <span className="reports-meta-item">
                       <HardDrive size={12} />
                       Calculated
                     </span>
-                    <span style={{
-                      fontSize: '10px',
-                      fontWeight: '700',
-                      padding: '2px 8px',
-                      borderRadius: '4px',
-                      backgroundColor: '#fff3e0',
-                      color: '#ff9800'
-                    }}>{report.format}</span>
+                    <span className="reports-format-badge">{report.format}</span>
                   </div>
 
                   <button 
-                    className="btn btn-primary"
-                    style={{
-                      padding: '6px 14px',
-                      fontSize: '12px',
-                      backgroundColor: '#3da860',
-                      color: '#ffffff',
-                      border: 'none',
-                      borderRadius: '8px',
-                      fontWeight: '600',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '4px',
-                      cursor: 'pointer'
-                    }}
+                    className="reports-download-btn"
                     onClick={() => handleDownload(report.id, report.title)}
                   >
                     <Download size={12} />
@@ -341,17 +273,17 @@ export default function Reports() {
           ))}
         </div>
       ) : activeTab === 'scheduled' ? (
-        <div className="card" style={{ padding: '40px', textAlign: 'center' }}>
-          <h4 style={{ fontSize: '16px', fontWeight: '700', color: '#1f2937', marginBottom: '8px' }}>Automated Scheduled Exports</h4>
-          <p style={{ fontSize: '13px', color: '#64748b', maxWidth: '460px', margin: '0 auto 20px' }}>
+        <div className="card reports-scheduled-card">
+          <h4 className="reports-scheduled-title">Automated Scheduled Exports</h4>
+          <p className="reports-scheduled-desc">
             Periodic summaries are delivered automatically on the 1st of every month to the registered system administrator.
           </p>
-          <span className="badge" style={{ backgroundColor: '#eff7f2', color: '#3da860', padding: '6px 16px', borderRadius: '20px', fontSize: '12px', fontWeight: '600' }}>
+          <span className="reports-cron-badge">
             Cron Schedule: Active
           </span>
         </div>
       ) : (
-        <div className="card" style={{ padding: '40px', textAlign: 'center', color: '#94a3b8' }}>
+        <div className="card reports-empty-card">
           No manual archive downloads in current session.
         </div>
       )}

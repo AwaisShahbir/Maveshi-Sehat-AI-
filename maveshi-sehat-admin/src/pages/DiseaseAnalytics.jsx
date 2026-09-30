@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { AreaChart, Area, PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import { FileDown, RefreshCw } from 'lucide-react';
+import './DiseaseAnalytics.css';
 
 export default function DiseaseAnalytics() {
   const [timeRange, setTimeRange] = useState('30days');
@@ -152,35 +153,34 @@ export default function DiseaseAnalytics() {
   return (
     <div className="disease-analytics-view">
       
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
-        <div style={{ display: 'flex', gap: '8px', backgroundColor: '#ffffff', padding: '4px', borderRadius: '12px', border: '1px solid var(--border-light)' }}>
+      <div className="da-top-controls">
+        <div className="da-timerange-group">
           <button 
             onClick={() => setTimeRange('7days')}
-            style={{ padding: '6px 12px', fontSize: '13px', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', backgroundColor: timeRange === '7days' ? '#3da860' : 'transparent', color: timeRange === '7days' ? '#ffffff' : 'var(--text-muted)' }}
+            className={`da-timerange-btn ${timeRange === '7days' ? 'active' : ''}`}
           >
             Last 7 days
           </button>
           <button 
             onClick={() => setTimeRange('30days')}
-            style={{ padding: '6px 12px', fontSize: '13px', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', backgroundColor: timeRange === '30days' ? '#3da860' : 'transparent', color: timeRange === '30days' ? '#ffffff' : 'var(--text-muted)' }}
+            className={`da-timerange-btn ${timeRange === '30days' ? 'active' : ''}`}
           >
             Last 30 days
           </button>
           <button 
             onClick={() => setTimeRange('3months')}
-            style={{ padding: '6px 12px', fontSize: '13px', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', backgroundColor: timeRange === '3months' ? '#3da860' : 'transparent', color: timeRange === '3months' ? '#ffffff' : 'var(--text-muted)' }}
+            className={`da-timerange-btn ${timeRange === '3months' ? 'active' : ''}`}
           >
             Last 3 months
           </button>
         </div>
 
-        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+        <div className="da-action-group">
           <button className="btn-icon-only" onClick={fetchRecords} title="Refresh database">
             <RefreshCw size={16} />
           </button>
           <button 
-            className="btn btn-primary"
-            style={{ padding: '10px 18px', backgroundColor: '#3da860', color: '#ffffff', border: 'none', borderRadius: '12px', cursor: 'pointer', fontWeight: '600', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
+            className="btn btn-primary da-export-btn"
             onClick={handleExportReport}
           >
             <FileDown size={14} />
@@ -190,38 +190,38 @@ export default function DiseaseAnalytics() {
       </div>
 
       {loading ? (
-        <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>Loading disease analytics database...</div>
+        <div className="da-loading-state">Loading disease analytics database...</div>
       ) : (
         <>
-          <div className="grid-4" style={{ marginBottom: '24px' }}>
-            <div className="card" style={{ padding: '20px', borderRadius: '16px' }}>
-              <span style={{ fontSize: '28px', fontWeight: '700', color: '#1f2937', display: 'block', lineHeight: 1.2 }}>{stats.total.toLocaleString()}</span>
-              <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: 600 }}>Total Detections</span>
+          <div className="grid-4">
+            <div className="card da-stat-card">
+              <span className="da-stat-num total">{stats.total.toLocaleString()}</span>
+              <span className="da-stat-label">Total Detections</span>
             </div>
-            <div className="card" style={{ padding: '20px', borderRadius: '16px' }}>
-              <span style={{ fontSize: '28px', fontWeight: '700', color: '#3da860', display: 'block', lineHeight: 1.2 }}>{stats.lsd}</span>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '2px' }}>
-                <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: 600 }}>LSD Cases</span>
-                <span style={{ fontSize: '11px', color: '#3da860', fontWeight: '700' }}>{stats.lsdPct} of total</span>
+            <div className="card da-stat-card">
+              <span className="da-stat-num lsd">{stats.lsd}</span>
+              <div className="da-stat-subrow">
+                <span className="da-stat-label">LSD Cases</span>
+                <span className="da-stat-pct lsd">{stats.lsdPct} of total</span>
               </div>
             </div>
-            <div className="card" style={{ padding: '20px', borderRadius: '16px' }}>
-              <span style={{ fontSize: '28px', fontWeight: '700', color: '#ff9800', display: 'block', lineHeight: 1.2 }}>{stats.fmd}</span>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '2px' }}>
-                <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: 600 }}>FMD Cases</span>
-                <span style={{ fontSize: '11px', color: '#ff9800', fontWeight: '700' }}>{stats.fmdPct} of total</span>
+            <div className="card da-stat-card">
+              <span className="da-stat-num fmd">{stats.fmd}</span>
+              <div className="da-stat-subrow">
+                <span className="da-stat-label">FMD Cases</span>
+                <span className="da-stat-pct fmd">{stats.fmdPct} of total</span>
               </div>
             </div>
-            <div className="card" style={{ padding: '20px', borderRadius: '16px' }}>
-              <span style={{ fontSize: '28px', fontWeight: '700', color: '#d32f2f', display: 'block', lineHeight: 1.2 }}>{stats.tick}</span>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '2px' }}>
-                <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: 600 }}>Tick Cases</span>
-                <span style={{ fontSize: '11px', color: '#d32f2f', fontWeight: '700' }}>{stats.tickPct} of total</span>
+            <div className="card da-stat-card">
+              <span className="da-stat-num tick">{stats.tick}</span>
+              <div className="da-stat-subrow">
+                <span className="da-stat-label">Tick Cases</span>
+                <span className="da-stat-pct tick">{stats.tickPct} of total</span>
               </div>
             </div>
           </div>
 
-          <div className="grid-2-1" style={{ marginBottom: '24px' }}>
+          <div className="grid-2-1">
             <div className="card">
               <div className="card-title-container">
                 <div>
@@ -229,7 +229,7 @@ export default function DiseaseAnalytics() {
                   <p className="card-subtitle">Last 6 months trend analysis</p>
                 </div>
               </div>
-              <div style={{ width: '100%', height: 260 }}>
+              <div className="da-chart-area-box">
                 <ResponsiveContainer>
                   <AreaChart data={areaData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                     <defs>
@@ -254,13 +254,13 @@ export default function DiseaseAnalytics() {
               </div>
             </div>
 
-            <div className="card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative' }}>
-              <div style={{ alignSelf: 'flex-start', width: '100%' }}>
+            <div className="card da-donut-card">
+              <div className="da-donut-card-header">
                 <h3 className="card-title">Disease Distribution</h3>
                 <p className="card-subtitle">Breakdown by condition</p>
               </div>
               
-              <div style={{ width: '100%', height: 200, position: 'relative' }}>
+              <div className="da-donut-chart-box">
                 <ResponsiveContainer>
                   <PieChart>
                     <Pie
@@ -280,32 +280,25 @@ export default function DiseaseAnalytics() {
                   </PieChart>
                 </ResponsiveContainer>
                 
-                <div style={{
-                  position: 'absolute',
-                  top: '50%',
-                  left: '50%',
-                  transform: 'translate(-50%, -50%)',
-                  textAlign: 'center',
-                  pointerEvents: 'none'
-                }}>
-                  <span style={{ fontSize: '20px', fontWeight: '700', color: '#135431', display: 'block' }}>{stats.total}</span>
-                  <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600 }}>Total</span>
+                <div className="da-donut-center">
+                  <span className="da-donut-center-total">{stats.total}</span>
+                  <span className="da-donut-center-label">Total</span>
                 </div>
               </div>
 
-              <div style={{ width: '100%', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px 16px', fontSize: '12px', marginTop: '16px', maxHeight: '120px', overflowY: 'auto' }}>
+              <div className="da-donut-legend-grid">
                 {donutData.map((item, idx) => (
-                  <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: item.color }} />
-                    <span style={{ color: '#4b5563', fontWeight: '500', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '80px' }} title={item.name}>{item.name}:</span>
-                    <strong style={{ color: '#1f2937' }}>{item.pct} ({item.value})</strong>
+                  <div key={idx} className="da-donut-legend-item">
+                    <div className="da-legend-color-dot" style={{ backgroundColor: item.color }} />
+                    <span className="da-legend-name" title={item.name}>{item.name}:</span>
+                    <strong className="da-legend-val">{item.pct} ({item.value})</strong>
                   </div>
                 ))}
               </div>
             </div>
           </div>
 
-          <div className="grid-2-1" style={{ marginBottom: '24px' }}>
+          <div className="grid-2-1">
             <div className="card">
               <div className="card-title-container">
                 <div>
@@ -313,23 +306,23 @@ export default function DiseaseAnalytics() {
                   <p className="card-subtitle">Geographic distribution of scans</p>
                 </div>
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div className="da-progress-list">
                 {provinceData.map((item, idx) => {
                   const percentage = (item.cases / item.max) * 100;
                   return (
-                    <div key={idx} style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
-                        <span style={{ fontWeight: '600', color: 'var(--text-main)' }}>{item.name}</span>
-                        <strong style={{ color: '#135431' }}>{item.cases}</strong>
+                    <div key={idx} className="da-progress-item">
+                      <div className="da-progress-header">
+                        <span className="da-progress-label">{item.name}</span>
+                        <strong className="da-progress-count">{item.cases}</strong>
                       </div>
-                      <div style={{ width: '100%', height: '8px', backgroundColor: '#e2e8f0', borderRadius: '4px', overflow: 'hidden' }}>
-                        <div style={{ width: `${percentage}%`, height: '100%', backgroundColor: '#3da860', borderRadius: '4px' }} />
+                      <div className="da-progress-bar-bg">
+                        <div className="da-progress-bar-fill" style={{ width: `${percentage}%` }} />
                       </div>
                     </div>
                   );
                 })}
                 {provinceData.length === 0 && (
-                  <div style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px', padding: '20px' }}>No province cases recorded.</div>
+                  <div className="da-empty-state-text">No province cases recorded.</div>
                 )}
               </div>
             </div>
@@ -341,16 +334,16 @@ export default function DiseaseAnalytics() {
                   <p className="card-subtitle">Cases below 70% flagged for vet review</p>
                 </div>
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div className="da-conf-list">
                 {confidenceData.map((item, idx) => {
                   return (
-                    <div key={idx} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
-                        <span style={{ fontWeight: '500', color: 'var(--text-main)' }}>{item.range}</span>
+                    <div key={idx} className="da-conf-item">
+                      <div className="da-conf-header">
+                        <span className="da-conf-range">{item.range}</span>
                         <strong style={{ color: item.color }}>{item.count}</strong>
                       </div>
-                      <div style={{ width: '100%', height: '8px', backgroundColor: '#e2e8f0', borderRadius: '4px', overflow: 'hidden' }}>
-                        <div style={{ width: `${item.pct}%`, height: '100%', backgroundColor: item.color, borderRadius: '4px' }} />
+                      <div className="da-progress-bar-bg">
+                        <div className="da-progress-bar-fill" style={{ width: `${item.pct}%`, backgroundColor: item.color }} />
                       </div>
                     </div>
                   );
@@ -359,7 +352,7 @@ export default function DiseaseAnalytics() {
             </div>
           </div>
 
-          <div className="card" style={{ marginBottom: '24px' }}>
+          <div className="card da-model-card">
             <div className="card-title-container">
               <div>
                 <h3 className="card-title">AI Model Architecture & Accuracy</h3>
@@ -381,13 +374,13 @@ export default function DiseaseAnalytics() {
                 <tbody>
                   {modelPerformance.map((item, idx) => (
                     <tr key={idx}>
-                      <td style={{ fontWeight: '600' }}>{item.model}</td>
-                      <td style={{ fontWeight: '600', color: '#135431' }}>{item.disease}</td>
+                      <td className="da-progress-label">{item.model}</td>
+                      <td className="da-model-disease">{item.disease}</td>
                       <td>{item.accuracy}</td>
                       <td>{item.precision}</td>
                       <td>{item.recall}</td>
                       <td>
-                        <span className="badge" style={{ backgroundColor: '#eff7f2', color: '#3da860', fontWeight: '700', borderRadius: '12px', padding: '2px 8px' }}>
+                        <span className="badge da-model-runs-badge">
                           {item.runs}
                         </span>
                       </td>

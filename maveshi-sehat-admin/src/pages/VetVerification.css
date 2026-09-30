@@ -1,0 +1,360 @@
+/* VetVerification.css - Doctor License Verification & Review */
+
+.vet-verification-view {
+  display: flex;
+  flex-direction: column;
+}
+
+.vet-tabs-container {
+  display: flex;
+  gap: 24px;
+  border-bottom: 1px solid var(--border-light);
+  margin-bottom: 24px;
+}
+
+.vet-tab-btn {
+  padding: 12px 4px;
+  font-size: 15px;
+  font-weight: 600;
+  background-color: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.vet-tab-btn:hover {
+  color: var(--text-main);
+}
+
+.vet-tab-btn.active {
+  border-bottom-color: #3da860;
+  color: #3da860;
+}
+
+.vet-loading-msg {
+  text-align: center;
+  padding: 40px;
+  color: var(--text-muted);
+}
+
+.vet-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 24px;
+  border-radius: 16px;
+  border: 1px solid var(--border-light);
+  background-color: #ffffff;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.vet-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.05);
+}
+
+.vet-card-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 16px;
+  width: 100%;
+}
+
+.vet-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background-color: #eff7f2;
+  color: #3da860;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.vet-name {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin: 0;
+}
+
+.vet-spec-badge {
+  background-color: #eff7f2;
+  color: #3da860;
+  border: 1px solid rgba(61, 168, 96, 0.2);
+  padding: 4px 12px;
+  border-radius: 30px;
+  font-size: 11px;
+  font-weight: 600;
+  margin-top: 8px;
+}
+
+.badge-info-req {
+  margin-top: 8px;
+  background-color: #ffebea;
+  color: #ff3b30;
+  border: 1px solid #ffc7c4;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+}
+
+.vet-details-list {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 13px;
+  border-top: 1px solid var(--border-light);
+  padding-top: 12px;
+  margin-bottom: 16px;
+  text-align: left;
+}
+
+.vet-detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.vet-detail-label {
+  color: var(--text-muted);
+}
+
+.vet-license-box {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 600;
+  font-family: monospace;
+}
+
+.vet-copy-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #9ca3af;
+  display: flex;
+  align-items: center;
+  padding: 2px;
+}
+
+.vet-detail-value {
+  font-weight: 600;
+}
+
+.vet-joined-date {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.vet-doc-box {
+  width: 100%;
+  background-color: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.vet-doc-icon {
+  color: #94a3b8;
+}
+
+.vet-doc-link {
+  font-size: 12px;
+  color: #3da860;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.vet-doc-link:hover {
+  text-decoration: underline;
+}
+
+.vet-exp-box {
+  width: 100%;
+  background-color: #e6f0ff;
+  color: #007aff;
+  border-radius: 12px;
+  padding: 12px;
+  font-size: 12px;
+  text-align: left;
+  margin-bottom: 16px;
+}
+
+.vet-action-block {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.vet-btn-row {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+}
+
+.vet-btn-approve {
+  flex: 1;
+  padding: 8px;
+  background-color: #3da860;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  transition: background-color 0.2s;
+}
+
+.vet-btn-approve:hover {
+  background-color: #2e8b4e;
+}
+
+.vet-btn-reject {
+  flex: 1;
+  padding: 8px;
+  background-color: transparent;
+  color: var(--color-red);
+  border: 1px solid var(--color-red);
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  transition: all 0.2s;
+}
+
+.vet-btn-reject:hover {
+  background-color: #ffebee;
+}
+
+.vet-btn-req-info {
+  width: 100%;
+  padding: 8px;
+  background-color: #f1f5f9;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  transition: background-color 0.2s;
+}
+
+.vet-btn-req-info:hover {
+  background-color: #e2e8f0;
+}
+
+.vet-empty-state {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 40px;
+  color: #94a3b8;
+}
+
+/* Info Request Modal */
+.vet-modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(4px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.vet-modal-content {
+  width: 90%;
+  max-width: 500px;
+  padding: 24px;
+  background-color: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+  border: none;
+}
+
+.vet-modal-title {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: #0f172a;
+}
+
+.vet-modal-subtitle {
+  font-size: 13px;
+  color: #64748b;
+  margin-bottom: 16px;
+}
+
+.vet-modal-textarea {
+  width: 100%;
+  height: 120px;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  margin-bottom: 20px;
+  font-family: inherit;
+  font-size: 13px;
+  resize: none;
+}
+
+.vet-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.vet-cancel-btn {
+  padding: 8px 16px;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  cursor: pointer;
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+.vet-submit-req-btn {
+  padding: 8px 16px;
+  background-color: #ff9800;
+  cursor: pointer;
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.vet-submit-req-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

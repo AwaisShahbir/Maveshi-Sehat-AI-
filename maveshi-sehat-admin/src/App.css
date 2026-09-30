@@ -1,0 +1,35 @@
+/* App.css - Global Application Shell Layout */
+
+.placeholder-page-card {
+  padding: 60px 40px;
+  text-align: center;
+  margin: 20px auto;
+  maxWidth: 600px;
+}
+
+.placeholder-icon-circle {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background-color: var(--color-green-light);
+  color: var(--color-green);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 24px;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.placeholder-title {
+  font-family: var(--font-heading);
+  font-size: 24px;
+  margin-bottom: 8px;
+  color: var(--text-main);
+}
+
+.placeholder-desc {
+  color: var(--text-muted);
+  font-size: 14px;
+  line-height: 1.6;
+}

@@ -5,6 +5,7 @@ import {
   CheckCircle2, Printer, ExternalLink, 
   FileText, Check, Image as ImageIcon
 } from 'lucide-react';
+import './HealthRecords.css';
 
 export default function HealthRecords() {
   const [records, setRecords] = useState([]);
@@ -268,72 +269,29 @@ Document generated from Maveshi Sehat AI Administrative Console.
   });
 
   const getRiskBadge = (risk) => {
-    let bgColor = '#eff7f2';
-    let color = '#3da860';
-    if (risk === 'High') {
-      bgColor = '#ffebee';
-      color = '#d32f2f';
-    } else if (risk === 'Medium') {
-      bgColor = '#fff3e0';
-      color = '#ff9800';
-    }
-    return (
-      <span className="badge" style={{ backgroundColor: bgColor, color: color, padding: '4px 12px', borderRadius: '30px', fontSize: '11px', fontWeight: '600' }}>
-        {risk}
-      </span>
-    );
+    if (risk === 'High') return <span className="badge badge-red">{risk}</span>;
+    if (risk === 'Medium') return <span className="badge badge-orange">{risk}</span>;
+    return <span className="badge badge-green">{risk || 'Low'}</span>;
   };
 
   const getStatusBadge = (status) => {
-    let bgColor = '#eff7f2';
-    let color = '#3da860';
-    if (status === 'Pending Vet' || status === 'Pending') {
-      bgColor = '#fff3e0';
-      color = '#ff9800';
-    } else if (status === 'Active/Unresolved' || status === 'Active') {
-      bgColor = '#e6f0ff';
-      color = '#007aff';
-    } else if (status === 'Reviewed') {
-      bgColor = '#f3e8ff';
-      color = '#7e22ce';
-    } else if (status === 'Resolved' || status === 'Healthy') {
-      bgColor = '#eff7f2';
-      color = '#3da860';
-    }
-    return (
-      <span className="badge" style={{ backgroundColor: bgColor, color: color, padding: '4px 12px', borderRadius: '30px', fontSize: '11px', fontWeight: '600' }}>
-        {status}
-      </span>
-    );
+    if (status === 'Pending Vet' || status === 'Pending') return <span className="badge badge-orange">{status}</span>;
+    if (status === 'Active/Unresolved' || status === 'Active') return <span className="badge badge-blue">{status}</span>;
+    if (status === 'Reviewed') return <span className="badge badge-blue">{status}</span>;
+    return <span className="badge badge-green">{status || 'Active'}</span>;
   };
 
   return (
     <div className="health-records-view">
       
       {/* Top Filter and Search Bar */}
-      <div style={{
-        display: 'flex',
-        gap: '12px',
-        alignItems: 'center',
-        marginBottom: '24px',
-        flexWrap: 'wrap',
-        justifyContent: 'space-between'
-      }}>
+      <div className="hr-top-bar">
         
-        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+        <div className="hr-filter-group">
           <select 
             value={diseaseFilter} 
             onChange={(e) => setDiseaseFilter(e.target.value)}
-            style={{
-              padding: '8px 16px',
-              borderRadius: '12px',
-              border: '1px solid var(--border-light)',
-              backgroundColor: '#ffffff',
-              fontSize: '13px',
-              fontWeight: '600',
-              color: 'var(--text-main)',
-              cursor: 'pointer'
-            }}
+            className="hr-filter-select"
           >
             <option value="all">All diseases</option>
             <option value="LSD">LSD</option>
@@ -348,16 +306,7 @@ Document generated from Maveshi Sehat AI Administrative Console.
           <select 
             value={riskFilter} 
             onChange={(e) => setRiskFilter(e.target.value)}
-            style={{
-              padding: '8px 16px',
-              borderRadius: '12px',
-              border: '1px solid var(--border-light)',
-              backgroundColor: '#ffffff',
-              fontSize: '13px',
-              fontWeight: '600',
-              color: 'var(--text-main)',
-              cursor: 'pointer'
-            }}
+            className="hr-filter-select"
           >
             <option value="all">All Risk levels</option>
             <option value="High">High</option>
@@ -365,27 +314,18 @@ Document generated from Maveshi Sehat AI Administrative Console.
             <option value="Low">Low</option>
           </select>
 
-          <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+          <div className="hr-date-wrapper">
             <input 
               type="date"
               value={dateFilter}
               onChange={(e) => setDateFilter(e.target.value)}
-              style={{
-                padding: '8px 16px',
-                borderRadius: '12px',
-                border: '1px solid var(--border-light)',
-                backgroundColor: '#ffffff',
-                fontSize: '13px',
-                fontWeight: '600',
-                color: 'var(--text-main)',
-                cursor: 'pointer'
-              }}
+              className="hr-date-input"
             />
           </div>
         </div>
 
-        <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
-          <div className="header-search-container" style={{ width: '260px', backgroundColor: '#ffffff', border: '1px solid var(--border-light)' }}>
+        <div className="hr-search-export">
+          <div className="header-search-container hr-search-wrapper">
             <Search size={16} className="search-icon" />
             <input 
               type="text" 
@@ -397,20 +337,7 @@ Document generated from Maveshi Sehat AI Administrative Console.
           </div>
 
           <button 
-            className="btn btn-primary" 
-            style={{ 
-              backgroundColor: '#3da860', 
-              color: '#ffffff', 
-              border: 'none', 
-              borderRadius: '12px', 
-              padding: '10px 18px', 
-              fontSize: '13px', 
-              fontWeight: '600', 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: '6px',
-              cursor: 'pointer'
-            }}
+            className="btn btn-primary hr-export-btn" 
             onClick={handleExport}
             title="Export filtered records to CSV"
           >
@@ -433,7 +360,7 @@ Document generated from Maveshi Sehat AI Administrative Console.
         </div>
 
         {loading ? (
-          <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
+          <div className="hr-loading-msg">
             Loading health history records...
           </div>
         ) : (
@@ -450,49 +377,34 @@ Document generated from Maveshi Sehat AI Administrative Console.
                   <th>Vet</th>
                   <th>Status</th>
                   <th>Date</th>
-                  <th style={{ textAlign: 'center' }}>Actions</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredRecords.map((rec) => (
                   <tr key={rec.id}>
-                    <td className="font-mono" style={{ fontWeight: '600' }}>{rec.id}</td>
-                    <td style={{ fontWeight: '600' }}>{rec.owner_name}</td>
+                    <td className="font-mono hr-record-id">{rec.id}</td>
+                    <td className="hr-record-id">{rec.owner_name}</td>
                     <td>{rec.animal_type}</td>
-                    <td style={{ fontWeight: '600', color: '#135431' }}>{rec.disease}</td>
+                    <td className="hr-disease-name">{rec.disease}</td>
                     <td>{rec.confidence}%</td>
                     <td>{getRiskBadge(rec.risk_level)}</td>
-                    <td style={{ 
-                      color: !rec.vet_name ? '#ff9800' : 'inherit',
-                      fontWeight: rec.vet_name ? '600' : 'normal'
-                    }}>
+                    <td className={!rec.vet_name ? 'hr-vet-pending' : ''}>
                       {rec.vet_name || (rec.status === 'Active' ? 'Pending' : '—')}
                     </td>
                     <td>{getStatusBadge(rec.status)}</td>
                     <td>{new Date(rec.created_at).toLocaleDateString([], { day: '2-digit', month: 'short', year: 'numeric' })}</td>
                     <td>
-                      <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+                      <div className="hr-action-btns">
                         <button 
-                          className="btn-icon-only" 
+                          className="btn-icon-only btn-action-view" 
                           title="View complete health record details"
-                          style={{
-                            backgroundColor: '#eff7f2',
-                            color: '#135431',
-                            padding: '6px',
-                            borderRadius: '8px'
-                          }}
                           onClick={() => handleOpenDetails(rec)}
                         >
                           <Eye size={16} />
                         </button>
                         <button 
-                          className="btn-icon-only" 
-                          style={{ 
-                            color: '#3da860',
-                            backgroundColor: '#f0fdf4',
-                            padding: '6px',
-                            borderRadius: '8px'
-                          }}
+                          className="btn-icon-only btn-action-download" 
                           title="Download medical report (.txt)"
                           onClick={() => handleDownloadRecord(rec)}
                         >
@@ -504,7 +416,7 @@ Document generated from Maveshi Sehat AI Administrative Console.
                 ))}
                 {filteredRecords.length === 0 && (
                   <tr>
-                    <td colSpan="10" style={{ textAlign: 'center', padding: '36px', color: '#94a3b8' }}>
+                    <td colSpan="10" className="hr-empty-table-msg">
                       No diagnosis records match the selected options.
                     </td>
                   </tr>
@@ -514,8 +426,8 @@ Document generated from Maveshi Sehat AI Administrative Console.
           </div>
         )}
 
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '24px', borderTop: '1px solid var(--border-light)', paddingTop: '16px', flexWrap: 'wrap', gap: '12px' }}>
-          <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
+        <div className="table-footer-count">
+          <span className="table-footer-text">
             Showing {filteredRecords.length} record(s)
           </span>
         </div>
@@ -525,90 +437,35 @@ Document generated from Maveshi Sehat AI Administrative Console.
       {/* HEALTH RECORD DETAILS MODAL */}
       {selectedRecord && (
         <div 
-          className="modal-backdrop" 
+          className="hr-modal-backdrop" 
           onClick={() => setSelectedRecord(null)}
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(15, 23, 42, 0.65)',
-            backdropFilter: 'blur(4px)',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            zIndex: 1000,
-            padding: '20px'
-          }}
         >
           <div 
-            className="modal-content card" 
+            className="hr-modal-content card" 
             onClick={(e) => e.stopPropagation()}
-            style={{
-              width: '100%',
-              maxWidth: '780px',
-              maxHeight: '92vh',
-              padding: '0',
-              backgroundColor: '#ffffff',
-              borderRadius: '20px',
-              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-              border: '1px solid #e2e8f0',
-              display: 'flex',
-              flexDirection: 'column',
-              overflow: 'hidden'
-            }}
           >
             {/* Modal Header */}
-            <div style={{
-              padding: '20px 24px',
-              borderBottom: '1px solid #f1f5f9',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              backgroundColor: '#fafbfc'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <span style={{
-                  fontFamily: 'monospace',
-                  fontSize: '12px',
-                  fontWeight: '700',
-                  padding: '4px 10px',
-                  borderRadius: '8px',
-                  backgroundColor: '#135431',
-                  color: '#ffffff',
-                  letterSpacing: '0.5px'
-                }}>
+            <div className="hr-modal-header">
+              <div className="hr-modal-header-left">
+                <span className="hr-modal-id-badge">
                   {selectedRecord.id}
                 </span>
                 <div>
-                  <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#0f172a', margin: 0 }}>
+                  <h3 className="hr-modal-title">
                     Diagnosis & Clinical Report
                   </h3>
-                  <p style={{ fontSize: '12px', color: '#64748b', margin: 0 }}>
+                  <p className="hr-modal-subtitle">
                     Complete veterinary case documentation
                   </p>
                 </div>
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div className="hr-modal-header-actions">
                 {getRiskBadge(selectedRecord.risk_level)}
                 {getStatusBadge(selectedRecord.status)}
                 <button 
                   onClick={() => setSelectedRecord(null)}
-                  style={{
-                    border: 'none',
-                    background: '#f1f5f9',
-                    borderRadius: '50%',
-                    width: '32px',
-                    height: '32px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    cursor: 'pointer',
-                    color: '#64748b',
-                    marginLeft: '8px'
-                  }}
+                  className="hr-modal-close-icon"
                   title="Close modal"
                 >
                   <X size={18} />
@@ -617,179 +474,111 @@ Document generated from Maveshi Sehat AI Administrative Console.
             </div>
 
             {/* Modal Body */}
-            <div style={{
-              padding: '24px',
-              overflowY: 'auto',
-              flex: 1,
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '20px'
-            }}>
+            <div className="hr-modal-body">
               
               {/* Top Highlights Grid */}
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
-                gap: '12px'
-              }}>
-                <div style={{
-                  backgroundColor: '#f8fafc',
-                  padding: '14px',
-                  borderRadius: '12px',
-                  border: '1px solid #e2e8f0'
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#64748b', fontWeight: '600' }}>
+              <div className="hr-highlights-grid">
+                <div className="hr-highlight-card">
+                  <div className="hr-highlight-header">
                     <Activity size={14} color="#3da860" />
                     <span>Animal Specie</span>
                   </div>
-                  <div style={{ fontSize: '16px', fontWeight: '700', color: '#0f172a', marginTop: '6px' }}>
+                  <div className="hr-highlight-title">
                     {selectedRecord.animal_type || 'N/A'}
                   </div>
-                  <div style={{ fontSize: '11px', color: '#94a3b8' }}>
+                  <div className="hr-highlight-sub">
                     {selectedRecord.province || 'Punjab, Pakistan'}
                   </div>
                 </div>
 
-                <div style={{
-                  backgroundColor: '#f8fafc',
-                  padding: '14px',
-                  borderRadius: '12px',
-                  border: '1px solid #e2e8f0'
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#64748b', fontWeight: '600' }}>
+                <div className="hr-highlight-card">
+                  <div className="hr-highlight-header">
                     <User size={14} color="#007aff" />
                     <span>Farmer / Owner</span>
                   </div>
-                  <div style={{ fontSize: '16px', fontWeight: '700', color: '#0f172a', marginTop: '6px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <div className="hr-highlight-title">
                     {selectedRecord.owner_name || 'N/A'}
                   </div>
-                  <div style={{ fontSize: '11px', color: '#94a3b8' }}>Registered User</div>
+                  <div className="hr-highlight-sub">Registered User</div>
                 </div>
 
-                <div style={{
-                  backgroundColor: '#f8fafc',
-                  padding: '14px',
-                  borderRadius: '12px',
-                  border: '1px solid #e2e8f0'
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#64748b', fontWeight: '600' }}>
+                <div className="hr-highlight-card">
+                  <div className="hr-highlight-header">
                     <Stethoscope size={14} color="#7e22ce" />
                     <span>Attending Vet</span>
                   </div>
-                  <div style={{ fontSize: '15px', fontWeight: '700', color: selectedRecord.vet_name ? '#0f172a' : '#ff9800', marginTop: '6px' }}>
+                  <div className={`hr-highlight-title ${!selectedRecord.vet_name ? 'hr-vet-pending' : ''}`}>
                     {selectedRecord.vet_name || 'Pending Review'}
                   </div>
-                  <div style={{ fontSize: '11px', color: '#94a3b8' }}>
+                  <div className="hr-highlight-sub">
                     {selectedRecord.vet_name ? 'Doctor Assigned' : 'Awaiting Review'}
                   </div>
                 </div>
 
-                <div style={{
-                  backgroundColor: '#f8fafc',
-                  padding: '14px',
-                  borderRadius: '12px',
-                  border: '1px solid #e2e8f0'
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#64748b', fontWeight: '600' }}>
+                <div className="hr-highlight-card">
+                  <div className="hr-highlight-header">
                     <Calendar size={14} color="#ea580c" />
                     <span>Date Diagnosed</span>
                   </div>
-                  <div style={{ fontSize: '14px', fontWeight: '700', color: '#0f172a', marginTop: '6px' }}>
+                  <div className="hr-highlight-title">
                     {new Date(selectedRecord.created_at).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })}
                   </div>
-                  <div style={{ fontSize: '11px', color: '#94a3b8' }}>
+                  <div className="hr-highlight-sub">
                     {new Date(selectedRecord.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </div>
                 </div>
               </div>
 
               {/* Diagnosis Main Banner */}
-              <div style={{
-                background: 'linear-gradient(135deg, #eff7f2 0%, #ffffff 100%)',
-                border: '1px solid #c5dbd0',
-                borderRadius: '14px',
-                padding: '18px 20px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                flexWrap: 'wrap',
-                gap: '16px'
-              }}>
+              <div className="hr-diagnosis-banner">
                 <div>
-                  <div style={{ fontSize: '12px', fontWeight: '700', textTransform: 'uppercase', color: '#135431', letterSpacing: '0.5px' }}>
+                  <div className="hr-diagnosis-label">
                     Primary AI Diagnosis
                   </div>
-                  <div style={{ fontSize: '22px', fontWeight: '800', color: '#135431', marginTop: '2px' }}>
+                  <div className="hr-diagnosis-name">
                     {selectedRecord.disease}
                   </div>
                 </div>
 
-                <div style={{ minWidth: '180px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', fontWeight: '700', marginBottom: '4px', color: '#334155' }}>
+                <div className="hr-confidence-box">
+                  <div className="hr-confidence-labels">
                     <span>AI Confidence</span>
                     <span>{selectedRecord.confidence}%</span>
                   </div>
-                  <div style={{ width: '100%', height: '8px', backgroundColor: '#e2e8f0', borderRadius: '4px', overflow: 'hidden' }}>
-                    <div style={{
-                      width: `${Math.min(100, parseFloat(selectedRecord.confidence) || 0)}%`,
-                      height: '100%',
-                      backgroundColor: parseFloat(selectedRecord.confidence) >= 80 ? '#3da860' : (parseFloat(selectedRecord.confidence) >= 60 ? '#ff9800' : '#ef4444'),
-                      borderRadius: '4px'
-                    }} />
+                  <div className="hr-confidence-bar-bg">
+                    <div 
+                      className="hr-confidence-bar-fill"
+                      style={{
+                        width: `${Math.min(100, parseFloat(selectedRecord.confidence) || 0)}%`,
+                        backgroundColor: parseFloat(selectedRecord.confidence) >= 80 ? '#3da860' : (parseFloat(selectedRecord.confidence) >= 60 ? '#ff9800' : '#ef4444')
+                      }} 
+                    />
                   </div>
                 </div>
               </div>
 
               {/* Two Column Layout: Scan Image & Clinical Details */}
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: selectedRecord.image_url ? '240px 1fr' : '1fr',
-                gap: '20px'
-              }}>
+              <div className={`hr-details-grid ${selectedRecord.image_url ? 'has-image' : ''}`}>
                 {selectedRecord.image_url && (
                   <div>
-                    <div style={{ fontSize: '13px', fontWeight: '700', color: '#0f172a', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <div className="hr-section-header">
                       <ImageIcon size={15} color="#3da860" />
                       <span>Clinical Scan Photo</span>
                     </div>
-                    <div style={{
-                      position: 'relative',
-                      borderRadius: '12px',
-                      overflow: 'hidden',
-                      border: '1px solid #cbd5e1',
-                      backgroundColor: '#f1f5f9',
-                      height: '200px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center'
-                    }}>
+                    <div className="hr-scan-img-box">
                       <img 
                         src={selectedRecord.image_url.replace('10.0.2.2', 'localhost')} 
                         alt="Diagnosis Scan"
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        className="hr-scan-img"
                         onError={(e) => {
                           e.target.style.display = 'none';
-                          e.target.parentElement.innerHTML = '<div style="padding: 20px; text-align: center; color: #94a3b8; font-size: 12px;">Image preview unavailable</div>';
                         }}
                       />
                       <a 
                         href={selectedRecord.image_url.replace('10.0.2.2', 'localhost')} 
                         target="_blank" 
                         rel="noreferrer"
-                        style={{
-                          position: 'absolute',
-                          bottom: '8px',
-                          right: '8px',
-                          backgroundColor: 'rgba(0,0,0,0.65)',
-                          color: '#fff',
-                          borderRadius: '6px',
-                          padding: '4px 8px',
-                          fontSize: '11px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '4px',
-                          textDecoration: 'none'
-                        }}
+                        className="hr-scan-zoom-link"
                       >
                         <ExternalLink size={12} />
                         <span>Zoom</span>
@@ -799,20 +588,11 @@ Document generated from Maveshi Sehat AI Administrative Console.
                 )}
 
                 <div>
-                  <div style={{ fontSize: '13px', fontWeight: '700', color: '#0f172a', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <div className="hr-section-header">
                     <FileText size={15} color="#007aff" />
                     <span>Clinical Symptoms & Observations</span>
                   </div>
-                  <div style={{
-                    backgroundColor: '#f8fafc',
-                    border: '1px solid #e2e8f0',
-                    borderRadius: '12px',
-                    padding: '14px 16px',
-                    fontSize: '13px',
-                    lineHeight: '1.6',
-                    color: '#334155',
-                    minHeight: selectedRecord.image_url ? '170px' : 'auto'
-                  }}>
+                  <div className="hr-symptoms-box">
                     {selectedRecord.description || 'No descriptive symptoms or additional comments were recorded for this detection.'}
                   </div>
                 </div>
@@ -820,87 +600,44 @@ Document generated from Maveshi Sehat AI Administrative Console.
 
               {/* Treatment Protocol */}
               <div>
-                <div style={{ fontSize: '14px', fontWeight: '700', color: '#0f172a', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <div className="hr-section-header">
                   <CheckCircle2 size={16} color="#3da860" />
                   <span>First Aid & Medical Protocol</span>
                 </div>
                 {Array.isArray(selectedRecord.first_aid) && selectedRecord.first_aid.length > 0 ? (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <div className="hr-first-aid-list">
                     {selectedRecord.first_aid.map((step, idx) => (
-                      <div 
-                        key={idx} 
-                        style={{
-                          display: 'flex',
-                          alignItems: 'flex-start',
-                          gap: '10px',
-                          backgroundColor: '#fdfdfd',
-                          border: '1px solid #eef2f6',
-                          borderRadius: '10px',
-                          padding: '10px 14px',
-                          fontSize: '13px',
-                          color: '#1e293b'
-                        }}
-                      >
-                        <span style={{
-                          backgroundColor: '#eff7f2',
-                          color: '#135431',
-                          fontWeight: '700',
-                          fontSize: '11px',
-                          minWidth: '22px',
-                          height: '22px',
-                          borderRadius: '50%',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          marginTop: '1px'
-                        }}>
+                      <div key={idx} className="hr-first-aid-step">
+                        <span className="hr-step-number">
                           {idx + 1}
                         </span>
-                        <span style={{ flex: 1, lineHeight: '1.5' }}>{step}</span>
+                        <span className="hr-step-text">{step}</span>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <div style={{ padding: '16px', backgroundColor: '#f8fafc', borderRadius: '10px', fontSize: '13px', color: '#64748b' }}>
+                  <div className="hr-first-aid-empty">
                     No specific first-aid steps recorded. Standard veterinary consult is recommended.
                   </div>
                 )}
               </div>
 
               {/* Case Status Management */}
-              <div style={{
-                backgroundColor: '#f8fafc',
-                border: '1px solid #e2e8f0',
-                borderRadius: '12px',
-                padding: '14px 18px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                flexWrap: 'wrap',
-                gap: '12px'
-              }}>
+              <div className="hr-status-updater">
                 <div>
-                  <div style={{ fontSize: '13px', fontWeight: '700', color: '#0f172a' }}>
+                  <div className="hr-status-title">
                     Update Case Status
                   </div>
-                  <div style={{ fontSize: '12px', color: '#64748b' }}>
+                  <div className="hr-status-sub">
                     Current status: <strong>{selectedRecord.status}</strong>
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div className="hr-status-actions">
                   <select
                     value={newStatusValue}
                     onChange={(e) => setNewStatusValue(e.target.value)}
-                    style={{
-                      padding: '8px 14px',
-                      borderRadius: '8px',
-                      border: '1px solid #cbd5e1',
-                      backgroundColor: '#ffffff',
-                      fontSize: '13px',
-                      fontWeight: '600',
-                      cursor: 'pointer'
-                    }}
+                    className="hr-status-select"
                   >
                     <option value="Active">Active</option>
                     <option value="Pending Vet">Pending Vet</option>
@@ -912,16 +649,7 @@ Document generated from Maveshi Sehat AI Administrative Console.
                   <button
                     onClick={handleStatusUpdate}
                     disabled={isUpdatingStatus || newStatusValue === selectedRecord.status}
-                    style={{
-                      backgroundColor: newStatusValue === selectedRecord.status ? '#e2e8f0' : '#135431',
-                      color: newStatusValue === selectedRecord.status ? '#94a3b8' : '#ffffff',
-                      border: 'none',
-                      borderRadius: '8px',
-                      padding: '8px 16px',
-                      fontSize: '13px',
-                      fontWeight: '600',
-                      cursor: newStatusValue === selectedRecord.status ? 'not-allowed' : 'pointer'
-                    }}
+                    className="hr-status-btn"
                   >
                     {isUpdatingStatus ? 'Saving...' : 'Update Status'}
                   </button>
@@ -929,17 +657,7 @@ Document generated from Maveshi Sehat AI Administrative Console.
               </div>
 
               {statusSuccessMsg && (
-                <div style={{
-                  padding: '10px 14px',
-                  backgroundColor: '#eff7f2',
-                  color: '#135431',
-                  borderRadius: '8px',
-                  fontSize: '13px',
-                  fontWeight: '600',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px'
-                }}>
+                <div className="hr-status-success">
                   <Check size={16} />
                   <span>{statusSuccessMsg}</span>
                 </div>
@@ -948,32 +666,11 @@ Document generated from Maveshi Sehat AI Administrative Console.
             </div>
 
             {/* Modal Footer */}
-            <div style={{
-              padding: '16px 24px',
-              borderTop: '1px solid #f1f5f9',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              backgroundColor: '#fafbfc',
-              flexWrap: 'wrap',
-              gap: '10px'
-            }}>
-              <div style={{ display: 'flex', gap: '10px' }}>
+            <div className="hr-modal-footer">
+              <div className="hr-footer-actions-left">
                 <button
                   onClick={() => handlePrintRecord(selectedRecord)}
-                  style={{
-                    backgroundColor: '#ffffff',
-                    color: '#334155',
-                    border: '1px solid #cbd5e1',
-                    borderRadius: '8px',
-                    padding: '8px 14px',
-                    fontSize: '13px',
-                    fontWeight: '600',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    cursor: 'pointer'
-                  }}
+                  className="hr-secondary-btn"
                   title="Print diagnostic report"
                 >
                   <Printer size={15} />
@@ -982,19 +679,7 @@ Document generated from Maveshi Sehat AI Administrative Console.
 
                 <button
                   onClick={() => handleDownloadRecord(selectedRecord)}
-                  style={{
-                    backgroundColor: '#ffffff',
-                    color: '#135431',
-                    border: '1px solid #c5dbd0',
-                    borderRadius: '8px',
-                    padding: '8px 14px',
-                    fontSize: '13px',
-                    fontWeight: '600',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    cursor: 'pointer'
-                  }}
+                  className="hr-secondary-btn"
                   title="Download report text file"
                 >
                   <Download size={15} />
@@ -1004,16 +689,7 @@ Document generated from Maveshi Sehat AI Administrative Console.
 
               <button
                 onClick={() => setSelectedRecord(null)}
-                style={{
-                  backgroundColor: '#3da860',
-                  color: '#ffffff',
-                  border: 'none',
-                  borderRadius: '8px',
-                  padding: '8px 20px',
-                  fontSize: '13px',
-                  fontWeight: '600',
-                  cursor: 'pointer'
-                }}
+                className="hr-close-btn-main"
               >
                 Close
               </button>

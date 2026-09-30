@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Store, Check, X, ExternalLink } from 'lucide-react';
+import './PharmacyApproval.css';
 
 export default function PharmacyApproval() {
   const [pharmacies, setPharmacies] = useState([]);
@@ -53,54 +54,21 @@ export default function PharmacyApproval() {
     <div className="pharmacy-approval-view">
       
       {/* Tabs */}
-      <div className="tabs-container" style={{ display: 'flex', gap: '24px', borderBottom: '1px solid var(--border-light)', marginBottom: '24px' }}>
+      <div className="pharmacy-tabs-container">
         <button 
-          className={`tab-btn ${activeTab === 'pending' ? 'active' : ''}`}
-          style={{
-            padding: '12px 4px',
-            fontSize: '15px',
-            fontWeight: '600',
-            backgroundColor: 'transparent',
-            border: 'none',
-            borderBottom: '2px solid',
-            borderBottomColor: activeTab === 'pending' ? '#3da860' : 'transparent',
-            color: activeTab === 'pending' ? '#3da860' : 'var(--text-muted)',
-            cursor: 'pointer'
-          }}
+          className={`pharmacy-tab-btn ${activeTab === 'pending' ? 'active' : ''}`}
           onClick={() => setActiveTab('pending')}
         >
           Pending Approvals ({pharmacies.filter(p => p.status === 'pending').length})
         </button>
         <button 
-          className={`tab-btn ${activeTab === 'approved' ? 'active' : ''}`}
-          style={{
-            padding: '12px 4px',
-            fontSize: '15px',
-            fontWeight: '600',
-            backgroundColor: 'transparent',
-            border: 'none',
-            borderBottom: '2px solid',
-            borderBottomColor: activeTab === 'approved' ? '#3da860' : 'transparent',
-            color: activeTab === 'approved' ? '#3da860' : 'var(--text-muted)',
-            cursor: 'pointer'
-          }}
+          className={`pharmacy-tab-btn ${activeTab === 'approved' ? 'active' : ''}`}
           onClick={() => setActiveTab('approved')}
         >
           Approved Pharmacies ({pharmacies.filter(p => p.status === 'approved').length})
         </button>
         <button 
-          className={`tab-btn ${activeTab === 'rejected' ? 'active' : ''}`}
-          style={{
-            padding: '12px 4px',
-            fontSize: '15px',
-            fontWeight: '600',
-            backgroundColor: 'transparent',
-            border: 'none',
-            borderBottom: '2px solid',
-            borderBottomColor: activeTab === 'rejected' ? '#3da860' : 'transparent',
-            color: activeTab === 'rejected' ? '#3da860' : 'var(--text-muted)',
-            cursor: 'pointer'
-          }}
+          className={`pharmacy-tab-btn ${activeTab === 'rejected' ? 'active' : ''}`}
           onClick={() => setActiveTab('rejected')}
         >
           Rejected Applications ({pharmacies.filter(p => p.status === 'rejected').length})
@@ -108,57 +76,50 @@ export default function PharmacyApproval() {
       </div>
 
       {loading ? (
-        <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>Loading pharmacy records...</div>
+        <div className="pharmacy-loading-msg">Loading pharmacy records...</div>
       ) : (
         <div className="pharmacy-layout">
           
-          <div className="pharmacy-cards-container" style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginBottom: '32px' }}>
+          <div className="pharmacy-cards-container">
             {displayPharmacies.map(pharm => (
-              <div className="pharmacy-card card" key={pharm.id} style={{ borderLeft: '4px solid var(--color-orange)', padding: '24px', borderRadius: '16px', backgroundColor: '#ffffff' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '20px' }}>
+              <div className="pharmacy-card-item card" key={pharm.id}>
+                <div className="pharmacy-card-layout">
                   
-                  <div style={{ display: 'flex', gap: '16px', flex: 1, minWidth: '280px' }}>
-                    <div className="p-avatar-box" style={{ width: '48px', height: '48px', backgroundColor: '#fff3e0', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '12px' }}>
-                      <Store size={24} style={{ color: 'var(--color-orange)' }} />
+                  <div className="pharmacy-card-left">
+                    <div className="p-avatar-box">
+                      <Store size={24} className="p-avatar-icon" />
                     </div>
                     <div>
-                      <h3 style={{ fontSize: '18px', fontWeight: 700, margin: '0 0 8px 0', color: 'var(--text-main)' }}>{pharm.name}</h3>
+                      <h3 className="pharmacy-title">{pharm.name}</h3>
                       
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '10px 20px', fontSize: '13px' }}>
-                        <div><strong style={{ color: 'var(--text-muted)' }}>License:</strong> <span className="font-mono" style={{ fontWeight: 600 }}>{pharm.license_number}</span></div>
-                        <div><strong style={{ color: 'var(--text-muted)' }}>Owner:</strong> <span style={{ fontWeight: 600 }}>{pharm.owner_name}</span></div>
-                        <div><strong style={{ color: 'var(--text-muted)' }}>Address:</strong> <span style={{ fontWeight: 600 }}>{pharm.address}</span></div>
-                        <div><strong style={{ color: 'var(--text-muted)' }}>Phone:</strong> <span style={{ fontWeight: 600 }}>{pharm.phone}</span></div>
-                        <div><strong style={{ color: 'var(--text-muted)' }}>Submitted:</strong> <span style={{ fontWeight: 600 }}>{pharm.created_at ? new Date(pharm.created_at).toLocaleDateString([], { day: 'numeric', month: 'short' }) : 'N/A'}</span></div>
-                        <div><strong style={{ color: 'var(--text-muted)' }}>Catalogue:</strong> <span style={{ fontWeight: 600 }}>{pharm.medicines_count || 0} medicines listed</span></div>
+                      <div className="pharmacy-meta-grid">
+                        <div><strong className="pharmacy-meta-label">License:</strong> <span className="font-mono pharmacy-meta-val">{pharm.license_number}</span></div>
+                        <div><strong className="pharmacy-meta-label">Owner:</strong> <span className="pharmacy-meta-val">{pharm.owner_name}</span></div>
+                        <div><strong className="pharmacy-meta-label">Address:</strong> <span className="pharmacy-meta-val">{pharm.address}</span></div>
+                        <div><strong className="pharmacy-meta-label">Phone:</strong> <span className="pharmacy-meta-val">{pharm.phone}</span></div>
+                        <div><strong className="pharmacy-meta-label">Submitted:</strong> <span className="pharmacy-meta-val">{pharm.created_at ? new Date(pharm.created_at).toLocaleDateString([], { day: 'numeric', month: 'short' }) : 'N/A'}</span></div>
+                        <div><strong className="pharmacy-meta-label">Catalogue:</strong> <span className="pharmacy-meta-val">{pharm.medicines_count || 0} medicines listed</span></div>
                       </div>
                     </div>
                   </div>
 
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', alignItems: 'flex-end', justifyContent: 'center' }}>
-                    <span className="badge" style={{
-                      backgroundColor: '#fff3e0',
-                      color: '#ff9800',
-                      padding: '4px 12px',
-                      borderRadius: '30px',
-                      fontSize: '11px',
-                      fontWeight: '600'
-                    }}>
+                  <div className="pharmacy-card-right">
+                    <span className="badge badge-orange">
                       {pharm.status.toUpperCase()}
                     </span>
                     
-                    <button style={{ fontSize: '13px', display: 'flex', alignItems: 'center', gap: '4px', background: 'none', border: 'none', color: '#007aff', cursor: 'pointer', fontWeight: '600' }} onClick={() => setSelectedPharmacy(pharm)}>
+                    <button className="pharmacy-view-profile-btn" onClick={() => setSelectedPharmacy(pharm)}>
                       <span>View Full Profile</span>
                       <ExternalLink size={12} />
                     </button>
 
                     {pharm.status === 'pending' && (
-                      <div style={{ display: 'flex', gap: '10px', marginTop: '12px' }}>
-                        <button style={{ padding: '8px 16px', fontSize: '13px', backgroundColor: '#3da860', color: '#ffffff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '4px' }} onClick={() => handleAction(pharm.id, 'approve')}>
+                      <div className="pharmacy-action-btns">
+                        <button className="pharmacy-approve-btn" onClick={() => handleAction(pharm.id, 'approve')}>
                           <Check size={14} />
                           <span>Approve</span>
                         </button>
-                        <button style={{ padding: '8px 16px', fontSize: '13px', backgroundColor: 'transparent', color: 'var(--color-red)', border: '1px solid var(--color-red)', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '4px' }} onClick={() => handleAction(pharm.id, 'reject')}>
+                        <button className="pharmacy-reject-btn" onClick={() => handleAction(pharm.id, 'reject')}>
                           <X size={14} />
                           <span>Reject</span>
                         </button>
@@ -171,7 +132,7 @@ export default function PharmacyApproval() {
             ))}
 
             {displayPharmacies.length === 0 && (
-              <div className="card" style={{ padding: '40px', textAlign: 'center', color: '#94a3b8' }}>
+              <div className="card pharmacy-empty-card">
                 No pharmacies found in this status category.
               </div>
             )}
@@ -202,13 +163,13 @@ export default function PharmacyApproval() {
                   <tbody>
                     {pharmacies.filter(p => p.status === 'approved').slice(0, 5).map(p => (
                       <tr key={p.id}>
-                        <td style={{ fontWeight: 600 }}>{p.name}</td>
+                        <td className="pharmacy-meta-val">{p.name}</td>
                         <td className="font-mono">{p.license_number}</td>
                         <td>{p.owner_name}</td>
                         <td>{p.address}</td>
                         <td>{p.medicines_count || 0}</td>
                         <td>
-                          <span className="badge" style={{ backgroundColor: '#eff7f2', color: '#3da860', padding: '4px 10px', borderRadius: '30px', fontSize: '11px', fontWeight: '600' }}>
+                          <span className="badge badge-green">
                             Approved
                           </span>
                         </td>
@@ -216,7 +177,7 @@ export default function PharmacyApproval() {
                     ))}
                     {pharmacies.filter(p => p.status === 'approved').length === 0 && (
                       <tr>
-                        <td colSpan="6" style={{ textAlign: 'center', padding: '24px', color: '#94a3b8' }}>
+                        <td colSpan="6" className="pharmacy-empty-card">
                           No approved pharmacies found.
                         </td>
                       </tr>
@@ -233,81 +194,59 @@ export default function PharmacyApproval() {
       {/* Pharmacy Details Modal */}
       {selectedPharmacy && (
         <div 
-          className="modal-backdrop"
+          className="pharmacy-modal-backdrop"
           onClick={() => setSelectedPharmacy(null)}
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(15, 23, 42, 0.65)',
-            backdropFilter: 'blur(4px)',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            zIndex: 1000,
-            padding: '20px'
-          }}
         >
           <div 
-            className="modal-content card"
+            className="pharmacy-modal-content card"
             onClick={(e) => e.stopPropagation()}
-            style={{
-              width: '100%',
-              maxWidth: '600px',
-              padding: '28px',
-              borderRadius: '16px',
-              backgroundColor: '#ffffff',
-              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.2)'
-            }}
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
+            <div className="pharmacy-modal-header">
               <div>
-                <h3 style={{ fontSize: '20px', fontWeight: '700', color: '#0f172a', margin: '0 0 4px 0' }}>{selectedPharmacy.name}</h3>
-                <span className="font-mono" style={{ fontSize: '12px', color: '#64748b' }}>License: {selectedPharmacy.license_number}</span>
+                <h3 className="pharmacy-modal-title">{selectedPharmacy.name}</h3>
+                <span className="font-mono pharmacy-modal-lic">License: {selectedPharmacy.license_number}</span>
               </div>
               <button 
                 onClick={() => setSelectedPharmacy(null)}
-                style={{ background: '#f1f5f9', border: 'none', borderRadius: '50%', width: '32px', height: '32px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                className="pharmacy-modal-close-icon"
               >
                 <X size={16} />
               </button>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', fontSize: '13px', marginBottom: '24px' }}>
-              <div style={{ backgroundColor: '#f8fafc', padding: '12px', borderRadius: '10px' }}>
-                <span style={{ color: '#64748b', fontSize: '11px', display: 'block' }}>Proprietor</span>
-                <strong style={{ color: '#0f172a' }}>{selectedPharmacy.owner_name}</strong>
+            <div className="pharmacy-modal-grid">
+              <div className="pharmacy-modal-box">
+                <span className="pharmacy-modal-label">Proprietor</span>
+                <strong className="pharmacy-modal-val">{selectedPharmacy.owner_name}</strong>
               </div>
-              <div style={{ backgroundColor: '#f8fafc', padding: '12px', borderRadius: '10px' }}>
-                <span style={{ color: '#64748b', fontSize: '11px', display: 'block' }}>Contact Phone</span>
-                <strong style={{ color: '#0f172a' }}>{selectedPharmacy.phone}</strong>
+              <div className="pharmacy-modal-box">
+                <span className="pharmacy-modal-label">Contact Phone</span>
+                <strong className="pharmacy-modal-val">{selectedPharmacy.phone}</strong>
               </div>
-              <div style={{ backgroundColor: '#f8fafc', padding: '12px', borderRadius: '10px' }}>
-                <span style={{ color: '#64748b', fontSize: '11px', display: 'block' }}>Location / Address</span>
-                <strong style={{ color: '#0f172a' }}>{selectedPharmacy.address}</strong>
+              <div className="pharmacy-modal-box">
+                <span className="pharmacy-modal-label">Location / Address</span>
+                <strong className="pharmacy-modal-val">{selectedPharmacy.address}</strong>
               </div>
-              <div style={{ backgroundColor: '#f8fafc', padding: '12px', borderRadius: '10px' }}>
-                <span style={{ color: '#64748b', fontSize: '11px', display: 'block' }}>Current Status</span>
-                <strong style={{ color: selectedPharmacy.status === 'approved' ? '#3da860' : '#ff9800', textTransform: 'capitalize' }}>
+              <div className="pharmacy-modal-box">
+                <span className="pharmacy-modal-label">Current Status</span>
+                <strong className={selectedPharmacy.status === 'approved' ? 'text-green' : 'text-orange'}>
                   {selectedPharmacy.status}
                 </strong>
               </div>
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+            <div className="pharmacy-modal-actions">
               {selectedPharmacy.status === 'pending' && (
                 <>
                   <button 
                     onClick={() => handleAction(selectedPharmacy.id, 'reject')}
-                    style={{ padding: '10px 18px', backgroundColor: 'transparent', color: 'var(--color-red)', border: '1px solid var(--color-red)', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', fontSize: '13px' }}
+                    className="pharmacy-modal-reject-btn"
                   >
                     Reject Application
                   </button>
                   <button 
                     onClick={() => handleAction(selectedPharmacy.id, 'approve')}
-                    style={{ padding: '10px 18px', backgroundColor: '#3da860', color: '#ffffff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', fontSize: '13px' }}
+                    className="pharmacy-modal-approve-btn"
                   >
                     Approve Pharmacy
                   </button>
@@ -316,7 +255,7 @@ export default function PharmacyApproval() {
               {selectedPharmacy.status !== 'pending' && (
                 <button 
                   onClick={() => setSelectedPharmacy(null)}
-                  style={{ padding: '10px 18px', backgroundColor: '#3da860', color: '#ffffff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', fontSize: '13px' }}
+                  className="pharmacy-modal-close-btn-main"
                 >
                   Close
                 </button>

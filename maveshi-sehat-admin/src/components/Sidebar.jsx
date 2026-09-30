@@ -14,6 +14,7 @@ import {
   Activity
 } from 'lucide-react';
 import logoImg from '../assets/logo.png';
+import './Sidebar.css';
 
 export default function Sidebar({ onLogout }) {
   const [stats, setStats] = useState(null);
@@ -83,7 +84,7 @@ export default function Sidebar({ onLogout }) {
         <img 
           src={logoImg} 
           alt="Maveshi Sehat AI Logo" 
-          style={{ width: '38px', height: '38px', borderRadius: '50%', objectFit: 'cover', border: '2px solid rgba(255,255,255,0.2)' }} 
+          className="sidebar-brand-logo" 
         />
         <div className="brand-info">
           <h2 className="brand-name">Maveshi Sehat AI</h2>

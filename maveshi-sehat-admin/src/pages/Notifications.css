@@ -1,0 +1,275 @@
+/* Notifications Page Styles */
+
+.notifications-view {
+  display: flex;
+  flex-direction: column;
+}
+
+.notifications-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 24px;
+}
+
+@media (max-width: 960px) {
+  .notifications-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.notifications-tabs {
+  display: flex;
+  gap: 12px;
+  border-bottom: 1px solid var(--border-light);
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.notifications-tab-btn {
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  background-color: transparent;
+  color: var(--text-muted);
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.notifications-tab-btn.active {
+  background-color: #eff7f2;
+  color: #3da860;
+}
+
+.notifications-refresh-btn {
+  margin-left: auto;
+}
+
+.notifications-loading {
+  text-align: center;
+  padding: 40px;
+  color: var(--text-muted);
+}
+
+.notifications-empty {
+  text-align: center;
+  color: #94a3b8;
+  padding: 40px;
+}
+
+.notifications-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.notifications-card-item {
+  display: flex;
+  gap: 16px;
+  padding: 20px;
+  border-radius: 16px;
+  border: 1px solid var(--border-light);
+  border-left-width: 5px;
+  border-left-style: solid;
+  align-items: flex-start;
+  background-color: #ffffff;
+}
+
+.notifications-card-item.type-vet {
+  border-left-color: #ff9800;
+}
+
+.notifications-card-item.type-outbreak {
+  border-left-color: #d32f2f;
+}
+
+.notifications-card-item.type-pharmacy {
+  border-left-color: #007aff;
+}
+
+.notifications-card-item.type-general {
+  border-left-color: #3da860;
+}
+
+.notifications-icon-box {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+}
+
+.notifications-icon-box.icon-vet {
+  background-color: #fff3e0;
+  color: #ff9800;
+}
+
+.notifications-icon-box.icon-outbreak {
+  background-color: #ffebee;
+  color: #d32f2f;
+}
+
+.notifications-icon-box.icon-pharmacy {
+  background-color: #e6f0ff;
+  color: #007aff;
+}
+
+.notifications-icon-box.icon-general {
+  background-color: #eff7f2;
+  color: #3da860;
+}
+
+.notifications-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.notifications-title {
+  font-size: 14px;
+  fontWeight: 700;
+  color: #1f2937;
+  margin: 0 0 4px 0;
+}
+
+.notifications-text {
+  font-size: 13px;
+  color: #4b5563;
+  margin: 0 0 6px 0;
+}
+
+.notifications-timestamp {
+  font-size: 11px;
+  color: #9ca3af;
+}
+
+/* Announcement Form Section */
+.announcement-card {
+  padding: 24px;
+  border-radius: 16px;
+  height: fit-content;
+  background-color: #ffffff;
+}
+
+.announcement-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #135431;
+  margin-bottom: 2px;
+}
+
+.announcement-subtitle {
+  margin-bottom: 20px;
+}
+
+.announcement-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.announcement-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-main);
+  display: block;
+  margin-bottom: 8px;
+}
+
+.announcement-check-group {
+  display: flex;
+  gap: 20px;
+}
+
+.announcement-check-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  color: #4b5563;
+}
+
+.announcement-check-input {
+  accent-color: #3da860;
+}
+
+.announcement-radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.announcement-radio-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  color: #374151;
+}
+
+.announcement-radio-input {
+  accent-color: #3da860;
+}
+
+.announcement-input {
+  height: 42px;
+  border-radius: 10px;
+}
+
+.announcement-textarea {
+  height: 110px;
+  border-radius: 10px;
+  resize: none;
+}
+
+.announcement-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.announcement-preview-btn {
+  flex: 1;
+  height: 42px;
+  border: 1px solid var(--border-light);
+  background-color: #ffffff;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.announcement-preview-btn:hover {
+  background-color: #f8fafc;
+}
+
+.announcement-submit-btn {
+  flex: 1.2;
+  height: 42px;
+  background-color: #3da860;
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: opacity 0.2s ease;
+}
+
+.announcement-submit-btn:hover {
+  opacity: 0.9;
+}

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Lock, Mail, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import logoImg from '../assets/logo.png';
+import './Login.css';
 
 export default function Login({ onLoginSuccess }) {
   const [email, setEmail] = useState('');
@@ -47,135 +48,42 @@ export default function Login({ onLoginSuccess }) {
   };
 
   return (
-    <div className="login-page-container" style={{
-      minHeight: '100vh',
-      display: 'flex',
-      flexDirection: 'column',
-      justifyContent: 'center',
-      alignItems: 'center',
-      backgroundColor: '#f1f5f9',
-      padding: '24px'
-    }}>
+    <div className="login-page-container">
       
-      <div className="login-card" style={{
-        width: '100%',
-        maxWidth: '440px',
-        backgroundColor: '#ffffff',
-        borderRadius: '24px',
-        padding: '40px',
-        boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01)',
-        border: '1px solid #e2e8f0',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center'
-      }}>
+      <div className="login-card">
         
         {/* Brand Header */}
-        <div style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          marginBottom: '32px',
-          textAlign: 'center'
-        }}>
+        <div className="login-brand-header">
           <img 
             src={logoImg} 
             alt="Maveshi Sehat AI" 
-            style={{
-              width: '64px',
-              height: '64px',
-              borderRadius: '50%',
-              marginBottom: '16px',
-              boxShadow: '0 4px 12px rgba(19, 84, 49, 0.15)'
-            }}
+            className="login-logo-img"
           />
-          <h2 style={{
-            fontSize: '24px',
-            fontWeight: '700',
-            color: '#135431',
-            fontFamily: 'var(--font-heading)',
-            margin: 0
-          }}>Maveshi Sehat AI</h2>
-          <span style={{
-            fontSize: '11px',
-            fontWeight: '600',
-            color: '#3da860',
-            backgroundColor: '#eff7f2',
-            padding: '4px 12px',
-            borderRadius: '12px',
-            marginTop: '8px',
-            display: 'inline-block',
-            border: '1px solid rgba(61, 168, 96, 0.2)'
-          }}>Admin Panel</span>
+          <h2 className="login-brand-name">Maveshi Sehat AI</h2>
+          <span className="login-brand-badge">Admin Panel</span>
         </div>
 
-        <div style={{ width: '100%', marginBottom: '20px' }}>
-          <h3 style={{
-            fontSize: '18px',
-            fontWeight: '700',
-            color: '#1f2937',
-            marginBottom: '4px',
-            textAlign: 'left'
-          }}>Administrator Login</h3>
-          <p style={{
-            fontSize: '13px',
-            color: '#6b7280',
-            margin: 0,
-            textAlign: 'left'
-          }}>Enter your credentials to access the console</p>
+        <div className="login-header-text">
+          <h3 className="login-title">Administrator Login</h3>
+          <p className="login-subtitle">Enter your credentials to access the console</p>
         </div>
 
         {errorMsg && (
-          <div className="login-error-container" style={{
-            width: '100%',
-            backgroundColor: 'var(--color-red-light)',
-            color: 'var(--color-red)',
-            padding: '12px 16px',
-            borderRadius: '12px',
-            fontSize: '13px',
-            fontWeight: '600',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '10px',
-            marginBottom: '20px'
-          }}>
+          <div className="login-error-container">
             <AlertCircle size={16} />
             <span>{errorMsg}</span>
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="login-form" style={{ width: '100%' }}>
+        <form onSubmit={handleSubmit} className="login-form">
           
-          <div className="form-group" style={{ marginBottom: '16px' }}>
-            <label className="form-label" style={{
-              fontSize: '12px',
-              fontWeight: '600',
-              color: '#374151',
-              marginBottom: '6px',
-              display: 'block'
-            }}>Email Address</label>
-            <div className="login-input-wrapper" style={{ position: 'relative' }}>
-              <Mail size={18} style={{
-                position: 'absolute',
-                left: '14px',
-                top: '50%',
-                transform: 'translateY(-50%)',
-                color: '#9ca3af',
-                pointerEvents: 'none'
-              }} />
+          <div className="form-group">
+            <label className="form-label">Email Address</label>
+            <div className="login-input-wrapper">
+              <Mail size={18} className="login-input-icon" />
               <input 
                 type="email" 
-                className="form-control"
-                style={{
-                  width: '100%',
-                  height: '46px',
-                  paddingLeft: '44px',
-                  paddingRight: '14px',
-                  borderRadius: '12px',
-                  border: '1px solid #e2e8f0',
-                  backgroundColor: '#f9fafb',
-                  fontSize: '14px'
-                }}
+                className="form-control login-form-input"
                 placeholder="admin@maveshisehat.pk"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -184,36 +92,13 @@ export default function Login({ onLoginSuccess }) {
             </div>
           </div>
 
-          <div className="form-group" style={{ marginBottom: '16px' }}>
-            <label className="form-label" style={{
-              fontSize: '12px',
-              fontWeight: '600',
-              color: '#374151',
-              marginBottom: '6px',
-              display: 'block'
-            }}>Password</label>
-            <div className="login-input-wrapper" style={{ position: 'relative' }}>
-              <Lock size={18} style={{
-                position: 'absolute',
-                left: '14px',
-                top: '50%',
-                transform: 'translateY(-50%)',
-                color: '#9ca3af',
-                pointerEvents: 'none'
-              }} />
+          <div className="form-group">
+            <label className="form-label">Password</label>
+            <div className="login-input-wrapper">
+              <Lock size={18} className="login-input-icon" />
               <input 
                 type={showPassword ? "text" : "password"} 
-                className="form-control"
-                style={{
-                  width: '100%',
-                  height: '46px',
-                  paddingLeft: '44px',
-                  paddingRight: '44px',
-                  borderRadius: '12px',
-                  border: '1px solid #e2e8f0',
-                  backgroundColor: '#f9fafb',
-                  fontSize: '14px'
-                }}
+                className="form-control login-form-input password-input"
                 placeholder="Enter admin password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -222,100 +107,51 @@ export default function Login({ onLoginSuccess }) {
               <button 
                 type="button" 
                 onClick={() => setShowPassword(!showPassword)}
-                style={{
-                  position: 'absolute',
-                  right: '14px',
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  color: '#9ca3af',
-                  display: 'flex',
-                  alignItems: 'center',
-                  padding: 0
-                }}
+                className="login-toggle-password"
+                aria-label={showPassword ? "Hide password" : "Show password"}
               >
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
           </div>
 
-          <div style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            fontSize: '12px',
-            marginBottom: '24px',
-            width: '100%'
-          }}>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#4b5563', cursor: 'pointer' }}>
+          <div className="login-options-row">
+            <label className="login-remember-label">
               <input 
                 type="checkbox" 
                 checked={rememberMe} 
                 onChange={(e) => setRememberMe(e.target.checked)}
-                style={{
-                  accentColor: '#3da860',
-                  width: '14px',
-                  height: '14px',
-                  cursor: 'pointer'
-                }}
+                className="login-remember-input"
               />
               <span>Remember me</span>
             </label>
-            <a href="#forgot" onClick={(e) => { e.preventDefault(); alert("Please contact system administrator to reset password."); }} style={{
-              color: '#3da860',
-              fontWeight: '600',
-              textDecoration: 'none'
-            }}>Forgot Password?</a>
+            <a 
+              href="#forgot" 
+              onClick={(e) => { e.preventDefault(); alert("Please contact system administrator to reset password."); }} 
+              className="login-forgot-link"
+            >
+              Forgot Password?
+            </a>
           </div>
 
           <button 
             type="submit" 
-            className="btn btn-primary"
-            style={{
-              width: '100%',
-              height: '48px',
-              fontSize: '15px',
-              fontWeight: '600',
-              backgroundColor: '#3da860',
-              borderColor: '#3da860',
-              color: '#ffffff',
-              borderRadius: '12px',
-              cursor: 'pointer',
-              boxShadow: '0 4px 12px rgba(61, 168, 96, 0.2)'
-            }}
+            className="btn btn-primary login-submit-button"
             disabled={loading}
           >
             {loading ? 'Signing in...' : 'Sign In to Dashboard'}
           </button>
         </form>
 
-        <div style={{
-          marginTop: '20px',
-          fontSize: '11px',
-          color: '#9ca3af',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: '2px'
-        }}>
-          <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-            🔒 Secure administrator portal access
-          </span>
+        <div className="login-security-notice">
+          <span>🔒 Secure administrator portal access</span>
         </div>
 
       </div>
 
-      <div style={{
-        marginTop: '24px',
-        textAlign: 'center',
-        fontSize: '12px',
-        color: '#6b7280',
-        lineHeight: '1.6'
-      }}>
+      <div className="login-footer-text">
         <div>Maveshi Sehat AI Admin Panel</div>
-        <div style={{ opacity: 0.8 }}>© 2025 Riphah International University</div>
+        <div>© 2025 Riphah International University</div>
       </div>
 
     </div>

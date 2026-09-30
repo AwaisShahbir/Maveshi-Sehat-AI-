@@ -13,29 +13,18 @@ import HealthRecords from './pages/HealthRecords';
 import DiseaseAnalytics from './pages/DiseaseAnalytics';
 import Notifications from './pages/Notifications';
 import Settings from './pages/Settings';
+import './App.css';
 
 function PlaceholderPage({ name }) {
   return (
-    <div className="card" style={{ padding: '60px 40px', textAlign: 'center', margin: '20px auto', maxWidth: '600px' }}>
-      <div style={{ 
-        width: '80px', 
-        height: '80px', 
-        borderRadius: '50%', 
-        backgroundColor: 'var(--color-green-light)', 
-        color: 'var(--color-green)', 
-        display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: 'center',
-        margin: '0 auto 24px',
-        fontSize: '28px',
-        fontWeight: 'bold'
-      }}>
+    <div className="card placeholder-page-card">
+      <div className="placeholder-icon-circle">
         ✓
       </div>
-      <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '24px', marginBottom: '8px', color: 'var(--text-main)' }}>
+      <h2 className="placeholder-title">
         {name}
       </h2>
-      <p style={{ color: 'var(--text-muted)', fontSize: '14px', lineHeight: '1.6' }}>
+      <p className="placeholder-desc">
         This module is operational and configured with the backend services.
       </p>
     </div>

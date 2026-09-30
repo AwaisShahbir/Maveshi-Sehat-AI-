@@ -17,6 +17,7 @@ import {
   Legend, 
   ResponsiveContainer 
 } from 'recharts';
+import './Dashboard.css';
 
 export default function Dashboard() {
   const [stats, setStats] = useState(null);
@@ -85,7 +86,7 @@ export default function Dashboard() {
   };
 
   if (loading) {
-    return <div style={{ padding: '32px', textAlign: 'center', color: 'var(--text-muted)' }}>Loading dashboard metrics...</div>;
+    return <div className="dashboard-loading">Loading dashboard metrics...</div>;
   }
 
   const trendData = stats?.trendData || [];
@@ -96,55 +97,47 @@ export default function Dashboard() {
       {/* 4 Primary KPIs */}
       <div className="grid-4">
         
-        <div className="card kpi-card" style={{ display: 'flex', alignItems: 'center', gap: '20px', padding: '24px', border: '1px solid var(--border-light)', borderRadius: '16px' }}>
-          <div className="kpi-icon-container" style={{ width: '56px', height: '56px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#e6f0ff', color: '#007aff' }}>
+        <div className="card dashboard-kpi-card">
+          <div className="kpi-icon-wrapper blue">
             <Users size={24} />
           </div>
-          <div className="kpi-details">
-            <h2 className="kpi-value" style={{ fontSize: '28px', fontWeight: '700', margin: 0, color: '#135431' }}>{stats?.totalUsers ?? 0}</h2>
-            <p className="kpi-label" style={{ fontSize: '13px', color: 'var(--text-muted)', margin: '2px 0 0 0' }}>
-              <span style={{ fontWeight: 600, display: 'block' }}>Total Users</span>
-            </p>
-            <span className="kpi-trend text-green" style={{ fontSize: '11px', fontWeight: '600', color: '#3da860', marginTop: '4px', display: 'block' }}>Registered user accounts</span>
+          <div className="kpi-card-details">
+            <h2 className="kpi-card-value">{stats?.totalUsers ?? 0}</h2>
+            <p className="kpi-card-label">Total Users</p>
+            <span className="kpi-card-trend trend-green">Registered user accounts</span>
           </div>
         </div>
 
-        <div className="card kpi-card" style={{ display: 'flex', alignItems: 'center', gap: '20px', padding: '24px', border: '1px solid var(--border-light)', borderRadius: '16px' }}>
-          <div className="kpi-icon-container" style={{ width: '56px', height: '56px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#eff7f2', color: '#3da860' }}>
+        <div className="card dashboard-kpi-card">
+          <div className="kpi-icon-wrapper green">
             <Stethoscope size={24} />
           </div>
-          <div className="kpi-details">
-            <h2 className="kpi-value" style={{ fontSize: '28px', fontWeight: '700', margin: 0, color: '#135431' }}>{stats?.activeVets ?? 0}</h2>
-            <p className="kpi-label" style={{ fontSize: '13px', color: 'var(--text-muted)', margin: '2px 0 0 0' }}>
-              <span style={{ fontWeight: 600, display: 'block' }}>Active Veterinarians</span>
-            </p>
-            <span className="kpi-trend text-orange" style={{ fontSize: '11px', fontWeight: '600', color: '#ff9800', marginTop: '4px', display: 'block' }}>{stats?.pendingVetsCount ?? 0} pending review</span>
+          <div className="kpi-card-details">
+            <h2 className="kpi-card-value">{stats?.activeVets ?? 0}</h2>
+            <p className="kpi-card-label">Active Veterinarians</p>
+            <span className="kpi-card-trend trend-orange">{stats?.pendingVetsCount ?? 0} pending review</span>
           </div>
         </div>
 
-        <div className="card kpi-card" style={{ display: 'flex', alignItems: 'center', gap: '20px', padding: '24px', border: '1px solid var(--border-light)', borderRadius: '16px' }}>
-          <div className="kpi-icon-container" style={{ width: '56px', height: '56px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#fff3e0', color: '#ff9800' }}>
+        <div className="card dashboard-kpi-card">
+          <div className="kpi-icon-wrapper orange">
             <Brain size={24} />
           </div>
-          <div className="kpi-details">
-            <h2 className="kpi-value" style={{ fontSize: '28px', fontWeight: '700', margin: 0, color: '#135431' }}>{stats?.scansCount ?? 0}</h2>
-            <p className="kpi-label" style={{ fontSize: '13px', color: 'var(--text-muted)', margin: '2px 0 0 0' }}>
-              <span style={{ fontWeight: 600, display: 'block' }}>Total AI Scans</span>
-            </p>
-            <span className="kpi-trend text-green" style={{ fontSize: '11px', fontWeight: '600', color: '#3da860', marginTop: '4px', display: 'block' }}>Clinical diagnoses run</span>
+          <div className="kpi-card-details">
+            <h2 className="kpi-card-value">{stats?.scansCount ?? 0}</h2>
+            <p className="kpi-card-label">Total AI Scans</p>
+            <span className="kpi-card-trend trend-green">Clinical diagnoses run</span>
           </div>
         </div>
 
-        <div className="card kpi-card" style={{ display: 'flex', alignItems: 'center', gap: '20px', padding: '24px', border: '1px solid var(--border-light)', borderRadius: '16px' }}>
-          <div className="kpi-icon-container" style={{ width: '56px', height: '56px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#ffebee', color: '#d32f2f' }}>
+        <div className="card dashboard-kpi-card">
+          <div className="kpi-icon-wrapper red">
             <ShoppingCart size={24} />
           </div>
-          <div className="kpi-details">
-            <h2 className="kpi-value" style={{ fontSize: '28px', fontWeight: '700', margin: 0, color: '#135431' }}>{stats?.activeOrders ?? 0}</h2>
-            <p className="kpi-label" style={{ fontSize: '13px', color: 'var(--text-muted)', margin: '2px 0 0 0' }}>
-              <span style={{ fontWeight: 600, display: 'block' }}>Active Pharmacy Orders</span>
-            </p>
-            <span className="kpi-trend text-red" style={{ fontSize: '11px', fontWeight: '600', color: '#d32f2f', marginTop: '4px', display: 'block' }}>Orders in progress</span>
+          <div className="kpi-card-details">
+            <h2 className="kpi-card-value">{stats?.activeOrders ?? 0}</h2>
+            <p className="kpi-card-label">Active Pharmacy Orders</p>
+            <span className="kpi-card-trend trend-red">Orders in progress</span>
           </div>
         </div>
       </div>
@@ -160,7 +153,7 @@ export default function Dashboard() {
             </div>
             <Activity className="text-muted" size={20} />
           </div>
-          <div style={{ width: '100%', height: 300 }}>
+          <div className="chart-container-300">
             <ResponsiveContainer>
               <LineChart data={trendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
@@ -176,38 +169,38 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <div className="card pending-actions-card">
           <div>
             <h3 className="card-title">Pending Actions</h3>
             <p className="card-subtitle">Approvals requiring administrator review</p>
           </div>
 
-          <div className="pending-section" style={{ borderBottom: '1px solid var(--border-light)', paddingBottom: '20px' }}>
-            <h4 className="pending-sec-title" style={{ fontSize: '12px', fontWeight: '700', color: '#64748b', textTransform: 'uppercase', marginBottom: '12px' }}>
+          <div className="pending-section bordered">
+            <h4 className="pending-sec-title">
               Veterinarians ({stats?.pendingActions?.vets?.length || 0} pending)
             </h4>
-            <div className="pending-list" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div className="pending-list">
               {(stats?.pendingActions?.vets || []).map((vet) => (
-                <div className="pending-item" key={vet.id} style={{ display: 'flex', alignItems: 'center', gap: '12px', backgroundColor: '#f8fafc', padding: '12px 14px', borderRadius: '12px', border: '1px solid #f1f5f9' }}>
-                  <div className="pending-avatar" style={{ width: '36px', height: '36px', borderRadius: '50%', backgroundColor: '#eff7f2', color: '#3da860', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '700', fontSize: '13px', minWidth: '36px' }}>
+                <div className="pending-item" key={vet.id}>
+                  <div className="pending-avatar">
                     {getInitials(vet.full_name)}
                   </div>
-                  <div className="pending-info" style={{ flex: 1, minWidth: 0 }}>
-                    <p className="pending-name" style={{ fontSize: '13px', fontWeight: '600', color: '#1f2937', margin: 0 }}>{vet.full_name}</p>
-                    <span className="pending-desc" style={{ fontSize: '11px', color: '#64748b', display: 'block' }}>{vet.pvmc_number || 'PVMC Verified'}</span>
+                  <div className="pending-info">
+                    <p className="pending-name">{vet.full_name}</p>
+                    <span className="pending-desc">{vet.pvmc_number || 'PVMC Verified'}</span>
                   </div>
-                  <div className="pending-btns" style={{ display: 'flex', gap: '6px' }}>
-                    <button className="p-btn-rect-approve" style={{ backgroundColor: '#3da860', color: '#ffffff', padding: '6px 12px', borderRadius: '8px', fontSize: '11px', fontWeight: '600', border: 'none', cursor: 'pointer' }} onClick={() => handleUserAction(vet.id, 'approve')}>
+                  <div className="pending-btns">
+                    <button className="p-btn-rect-approve" onClick={() => handleUserAction(vet.id, 'approve')}>
                       Approve
                     </button>
-                    <button className="p-btn-rect-reject" style={{ backgroundColor: '#d32f2f', color: '#ffffff', padding: '6px 12px', borderRadius: '8px', fontSize: '11px', fontWeight: '600', border: 'none', cursor: 'pointer' }} onClick={() => handleUserAction(vet.id, 'reject')}>
+                    <button className="p-btn-rect-reject" onClick={() => handleUserAction(vet.id, 'reject')}>
                       Reject
                     </button>
                   </div>
                 </div>
               ))}
               {(stats?.pendingActions?.vets || []).length === 0 && (
-                <div style={{ fontSize: '12px', color: '#94a3b8', textAlign: 'center', padding: '8px' }}>
+                <div className="pending-empty-msg">
                   No pending veterinarian applications.
                 </div>
               )}
@@ -215,31 +208,31 @@ export default function Dashboard() {
           </div>
 
           <div className="pending-section">
-            <h4 className="pending-sec-title" style={{ fontSize: '12px', fontWeight: '700', color: '#64748b', textTransform: 'uppercase', marginBottom: '12px' }}>
+            <h4 className="pending-sec-title">
               Pharmacies ({stats?.pendingActions?.pharmacies?.length || 0} pending)
             </h4>
-            <div className="pending-list" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div className="pending-list">
               {(stats?.pendingActions?.pharmacies || []).map((ph) => (
-                <div className="pending-item" key={ph.id} style={{ display: 'flex', alignItems: 'center', gap: '12px', backgroundColor: '#f8fafc', padding: '12px 14px', borderRadius: '12px', border: '1px solid #f1f5f9' }}>
-                  <div className="pending-avatar pharmacy" style={{ width: '36px', height: '36px', borderRadius: '50%', backgroundColor: '#fff3e0', color: '#ff9800', display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: '36px' }}>
+                <div className="pending-item" key={ph.id}>
+                  <div className="pending-avatar pharmacy">
                     <Store size={16} />
                   </div>
-                  <div className="pending-info" style={{ flex: 1, minWidth: 0 }}>
-                    <p className="pending-name" style={{ fontSize: '13px', fontWeight: '600', color: '#1f2937', margin: 0 }}>{ph.name}</p>
-                    <span className="pending-desc" style={{ fontSize: '11px', color: '#64748b', display: 'block' }}>{ph.license_number}</span>
+                  <div className="pending-info">
+                    <p className="pending-name">{ph.name}</p>
+                    <span className="pending-desc">{ph.license_number}</span>
                   </div>
-                  <div className="pending-btns" style={{ display: 'flex', gap: '6px' }}>
-                    <button className="p-btn-rect-approve" style={{ backgroundColor: '#3da860', color: '#ffffff', padding: '6px 12px', borderRadius: '8px', fontSize: '11px', fontWeight: '600', border: 'none', cursor: 'pointer' }} onClick={() => handlePharmacyAction(ph.id, 'approve')}>
+                  <div className="pending-btns">
+                    <button className="p-btn-rect-approve" onClick={() => handlePharmacyAction(ph.id, 'approve')}>
                       Approve
                     </button>
-                    <button className="p-btn-rect-reject" style={{ backgroundColor: '#d32f2f', color: '#ffffff', padding: '6px 12px', borderRadius: '8px', fontSize: '11px', fontWeight: '600', border: 'none', cursor: 'pointer' }} onClick={() => handlePharmacyAction(ph.id, 'reject')}>
+                    <button className="p-btn-rect-reject" onClick={() => handlePharmacyAction(ph.id, 'reject')}>
                       Reject
                     </button>
                   </div>
                 </div>
               ))}
               {(stats?.pendingActions?.pharmacies || []).length === 0 && (
-                <div style={{ fontSize: '12px', color: '#94a3b8', textAlign: 'center', padding: '8px' }}>
+                <div className="pending-empty-msg">
                   No pending pharmacy applications.
                 </div>
               )}
@@ -273,35 +266,25 @@ export default function Dashboard() {
               <tbody>
                 {(stats?.recentDetections || []).length === 0 ? (
                   <tr>
-                    <td colSpan="6" style={{ textAlign: 'center', padding: '24px', color: '#94a3b8' }}>
+                    <td colSpan="6" className="table-empty-row">
                       No recent scans recorded.
                     </td>
                   </tr>
                 ) : (
                   (stats?.recentDetections || []).map((det) => (
                     <tr key={det.id}>
-                      <td style={{ fontWeight: 600 }}>{det.owner_name}</td>
+                      <td className="table-owner-name">{det.owner_name}</td>
                       <td>{det.disease}</td>
                       <td>{det.confidence}%</td>
                       <td>
-                        <span className="badge" style={{
-                          color: '#ffffff',
-                          backgroundColor: det.risk_level === 'High' ? '#d32f2f' : det.risk_level === 'Medium' ? '#ff9800' : '#3da860',
-                          padding: '4px 10px',
-                          borderRadius: '30px',
-                          fontSize: '11px',
-                          fontWeight: '600',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          justifyContent: 'center'
-                        }}>
+                        <span className={`badge-risk ${det.risk_level === 'High' ? 'high' : det.risk_level === 'Medium' ? 'medium' : 'low'}`}>
                           {det.risk_level}
                         </span>
                       </td>
-                      <td style={{ color: det.vet_name && det.vet_name !== '—' ? 'inherit' : '#e59a18', fontWeight: det.vet_name ? '500' : 'normal' }}>
+                      <td className={det.vet_name && det.vet_name !== '—' ? '' : 'table-vet-pending'}>
                         {det.vet_name || 'Pending'}
                       </td>
-                      <td style={{ color: '#777' }}>
+                      <td className="table-time-muted">
                         {det.created_at ? (
                           new Date(det.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
                         ) : '—'}
@@ -326,10 +309,10 @@ export default function Dashboard() {
               <div className="status-item" key={idx}>
                 <div className="status-item-name">
                   <div className={`status-dot ${sys.status === 'Operational' ? 'green' : 'orange'}`}></div>
-                  <span style={{ fontWeight: 500 }}>{sys.name}</span>
+                  <span>{sys.name}</span>
                 </div>
                 <div className="status-item-details">
-                  <span className="status-txt" style={{ color: sys.status === 'Operational' ? '#3da860' : '#ff9800', fontWeight: '600' }}>{sys.status}</span>
+                  <span className={`status-txt ${sys.status === 'Operational' ? 'operational' : 'degraded'}`}>{sys.status}</span>
                   <span className="status-uptime">{sys.uptime}</span>
                 </div>
               </div>

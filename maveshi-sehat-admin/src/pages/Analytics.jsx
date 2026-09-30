@@ -16,6 +16,7 @@ import {
   Legend, 
   ResponsiveContainer 
 } from 'recharts';
+import './Analytics.css';
 
 export default function Analytics() {
   const [timeRange, setTimeRange] = useState('30days');
@@ -139,26 +140,26 @@ export default function Analytics() {
   return (
     <div className="analytics-view">
       
-      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginBottom: '24px', alignItems: 'center' }}>
+      <div className="analytics-top-bar">
         <button className="btn-icon-only" onClick={fetchAnalyticsData} title="Refresh database">
           <RefreshCw size={16} />
         </button>
-        <div style={{ display: 'flex', gap: '8px', backgroundColor: '#ffffff', padding: '4px', borderRadius: '12px', border: '1px solid var(--border-light)' }}>
+        <div className="analytics-time-selector">
           <button 
             onClick={() => setTimeRange('7days')}
-            style={{ padding: '6px 12px', fontSize: '13px', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', backgroundColor: timeRange === '7days' ? '#3da860' : 'transparent', color: timeRange === '7days' ? '#ffffff' : 'var(--text-muted)' }}
+            className={`analytics-time-btn ${timeRange === '7days' ? 'active' : ''}`}
           >
             Last 7 Days
           </button>
           <button 
             onClick={() => setTimeRange('30days')}
-            style={{ padding: '6px 12px', fontSize: '13px', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', backgroundColor: timeRange === '30days' ? '#3da860' : 'transparent', color: timeRange === '30days' ? '#ffffff' : 'var(--text-muted)' }}
+            className={`analytics-time-btn ${timeRange === '30days' ? 'active' : ''}`}
           >
             Last 30 Days
           </button>
           <button 
             onClick={() => setTimeRange('90days')}
-            style={{ padding: '6px 12px', fontSize: '13px', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', backgroundColor: timeRange === '90days' ? '#3da860' : 'transparent', color: timeRange === '90days' ? '#ffffff' : 'var(--text-muted)' }}
+            className={`analytics-time-btn ${timeRange === '90days' ? 'active' : ''}`}
           >
             Last 90 Days
           </button>
@@ -166,52 +167,52 @@ export default function Analytics() {
       </div>
 
       {loading ? (
-        <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>Loading platform analytics...</div>
+        <div className="analytics-loading">Loading platform analytics...</div>
       ) : (
         <>
-          <div className="grid-4" style={{ marginBottom: '24px' }}>
-            <div className="card" style={{ display: 'flex', alignItems: 'center', gap: '16px', borderRadius: '16px' }}>
-              <div style={{ width: '48px', height: '48px', borderRadius: '50%', backgroundColor: '#e6f0ff', color: '#007aff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div className="grid-4 analytics-stats-grid">
+            <div className="card analytics-stat-card">
+              <div className="analytics-stat-icon-wrapper icon-blue">
                 <Users size={20} />
               </div>
-              <div style={{ flex: 1 }}>
-                <span style={{ fontSize: '24px', fontWeight: '700', color: '#135431', display: 'block', lineHeight: 1.2 }}>{stats.newUsers}</span>
-                <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>New Users (30d)</span>
+              <div className="analytics-stat-info">
+                <span className="analytics-stat-value">{stats.newUsers}</span>
+                <span className="analytics-stat-label">New Users (30d)</span>
               </div>
-              <span style={{ fontSize: '12px', fontWeight: '700', color: '#3da860' }}>{stats.newUsersTrend}</span>
+              <span className="analytics-stat-trend">{stats.newUsersTrend}</span>
             </div>
 
-            <div className="card" style={{ display: 'flex', alignItems: 'center', gap: '16px', borderRadius: '16px' }}>
-              <div style={{ width: '48px', height: '48px', borderRadius: '50%', backgroundColor: '#eff7f2', color: '#3da860', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div className="card analytics-stat-card">
+              <div className="analytics-stat-icon-wrapper icon-green">
                 <Scan size={20} />
               </div>
-              <div style={{ flex: 1 }}>
-                <span style={{ fontSize: '24px', fontWeight: '700', color: '#135431', display: 'block', lineHeight: 1.2 }}>{stats.scans}</span>
-                <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>AI Scans (30d)</span>
+              <div className="analytics-stat-info">
+                <span className="analytics-stat-value">{stats.scans}</span>
+                <span className="analytics-stat-label">AI Scans (30d)</span>
               </div>
-              <span style={{ fontSize: '12px', fontWeight: '700', color: '#3da860' }}>{stats.scansTrend}</span>
+              <span className="analytics-stat-trend">{stats.scansTrend}</span>
             </div>
 
-            <div className="card" style={{ display: 'flex', alignItems: 'center', gap: '16px', borderRadius: '16px' }}>
-              <div style={{ width: '48px', height: '48px', borderRadius: '50%', backgroundColor: '#fff3e0', color: '#ff9800', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div className="card analytics-stat-card">
+              <div className="analytics-stat-icon-wrapper icon-orange">
                 <Stethoscope size={20} />
               </div>
-              <div style={{ flex: 1 }}>
-                <span style={{ fontSize: '24px', fontWeight: '700', color: '#135431', display: 'block', lineHeight: 1.2 }}>{stats.consultations}</span>
-                <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Clinical Cases</span>
+              <div className="analytics-stat-info">
+                <span className="analytics-stat-value">{stats.consultations}</span>
+                <span className="analytics-stat-label">Clinical Cases</span>
               </div>
-              <span style={{ fontSize: '12px', fontWeight: '700', color: '#3da860' }}>{stats.consultationsTrend}</span>
+              <span className="analytics-stat-trend">{stats.consultationsTrend}</span>
             </div>
 
-            <div className="card" style={{ display: 'flex', alignItems: 'center', gap: '16px', borderRadius: '16px' }}>
-              <div style={{ width: '48px', height: '48px', borderRadius: '50%', backgroundColor: '#ffebee', color: '#d32f2f', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div className="card analytics-stat-card">
+              <div className="analytics-stat-icon-wrapper icon-red">
                 <TrendingUp size={20} />
               </div>
-              <div style={{ flex: 1 }}>
-                <span style={{ fontSize: '24px', fontWeight: '700', color: '#135431', display: 'block', lineHeight: 1.2 }}>{stats.avgResponse}</span>
-                <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{stats.avgResponseTrend}</span>
+              <div className="analytics-stat-info">
+                <span className="analytics-stat-value">{stats.avgResponse}</span>
+                <span className="analytics-stat-label">{stats.avgResponseTrend}</span>
               </div>
-              <span style={{ fontSize: '11px', fontWeight: '700', color: '#3da860' }}>Scans average</span>
+              <span className="analytics-stat-trend trend-subtle">Scans average</span>
             </div>
           </div>
 
@@ -223,7 +224,7 @@ export default function Analytics() {
                   <p className="card-subtitle">Monthly registration distribution</p>
                 </div>
               </div>
-              <div style={{ width: '100%', height: 300 }}>
+              <div className="analytics-chart-wrapper">
                 <ResponsiveContainer>
                   <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
@@ -245,15 +246,15 @@ export default function Analytics() {
                   <p className="card-subtitle">Platform activity indicators</p>
                 </div>
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div className="analytics-metric-list">
                 {engagementMetrics.map((metric, idx) => (
-                  <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: idx !== engagementMetrics.length - 1 ? '1px solid #f1f5f9' : 'none', paddingBottom: idx !== engagementMetrics.length - 1 ? '12px' : '0' }}>
-                    <div style={{ display: 'flex', flexDirection: 'column' }}>
-                      <span style={{ fontSize: '13px', fontWeight: '600', color: '#374151' }}>{metric.name}</span>
+                  <div key={idx} className="analytics-metric-item">
+                    <div>
+                      <span className="analytics-metric-title">{metric.name}</span>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <span style={{ fontSize: '14px', fontWeight: '700', color: '#135431' }}>{metric.value}</span>
-                      <span style={{ fontSize: '11px', fontWeight: '700', color: metric.isPositive ? '#3da860' : '#d32f2f' }}>
+                    <div className="analytics-metric-data">
+                      <span className="analytics-metric-val">{metric.value}</span>
+                      <span className={`analytics-metric-trend ${metric.isPositive ? 'positive' : 'negative'}`}>
                         {metric.trend}
                       </span>
                     </div>
@@ -263,7 +264,7 @@ export default function Analytics() {
             </div>
           </div>
 
-          <div className="card" style={{ marginBottom: '24px', marginTop: '24px' }}>
+          <div className="card analytics-vets-card">
             <div className="card-title-container">
               <div>
                 <h3 className="card-title">Top Registered Veterinarians</h3>
@@ -274,7 +275,7 @@ export default function Analytics() {
               <table className="custom-table">
                 <thead>
                   <tr>
-                    <th style={{ width: '80px' }}>Rank</th>
+                    <th className="analytics-col-rank">Rank</th>
                     <th>Veterinarian</th>
                     <th>City</th>
                     <th>Specialization</th>
@@ -284,7 +285,7 @@ export default function Analytics() {
                 <tbody>
                   {topVets.length === 0 ? (
                     <tr>
-                      <td colSpan="5" style={{ textAlign: 'center', padding: '24px', color: '#94a3b8' }}>
+                      <td colSpan="5" className="analytics-empty-row">
                         No veterinary doctors registered yet.
                       </td>
                     </tr>
@@ -292,26 +293,15 @@ export default function Analytics() {
                     topVets.map((vet) => (
                       <tr key={vet.rank}>
                         <td>
-                          <span style={{
-                            display: 'inline-flex',
-                            width: '26px',
-                            height: '26px',
-                            borderRadius: '50%',
-                            backgroundColor: vet.rank === 1 ? '#fff3e0' : '#f1f5f9',
-                            color: vet.rank === 1 ? '#ff9800' : 'var(--text-muted)',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontWeight: '700',
-                            fontSize: '12px'
-                          }}>
+                          <span className={`analytics-rank-badge ${vet.rank === 1 ? 'rank-first' : ''}`}>
                             {vet.rank}
                           </span>
                         </td>
-                        <td style={{ fontWeight: '600' }}>{vet.name}</td>
+                        <td className="analytics-vet-name">{vet.name}</td>
                         <td>{vet.city}</td>
                         <td>{vet.specialization}</td>
                         <td>
-                          <span style={{ fontWeight: '700', color: '#135431' }}>{vet.cases}</span>
+                          <span className="analytics-vet-cases-count">{vet.cases}</span>
                         </td>
                       </tr>
                     ))

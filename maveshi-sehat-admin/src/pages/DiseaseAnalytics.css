@@ -1,0 +1,301 @@
+/* DiseaseAnalytics.css - Epidemiological Analytics & Model Benchmarks */
+
+.disease-analytics-view {
+  display: flex;
+  flex-direction: column;
+}
+
+.da-top-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.da-timerange-group {
+  display: flex;
+  gap: 8px;
+  background-color: #ffffff;
+  padding: 4px;
+  border-radius: 12px;
+  border: 1px solid var(--border-light);
+}
+
+.da-timerange-btn {
+  padding: 6px 12px;
+  font-size: 13px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  background-color: transparent;
+  color: var(--text-muted);
+  transition: all 0.2s ease;
+}
+
+.da-timerange-btn.active {
+  background-color: #3da860;
+  color: #ffffff;
+}
+
+.da-action-group {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.da-export-btn {
+  padding: 10px 18px;
+  background-color: #3da860;
+  color: #ffffff;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: background-color 0.2s;
+}
+
+.da-export-btn:hover {
+  background-color: #2e8b4e;
+}
+
+.da-loading-state {
+  text-align: center;
+  padding: 40px;
+  color: var(--text-muted);
+}
+
+.da-stat-card {
+  padding: 20px;
+  border-radius: 16px;
+}
+
+.da-stat-num {
+  font-size: 28px;
+  font-weight: 700;
+  display: block;
+  line-height: 1.2;
+}
+
+.da-stat-num.total {
+  color: #1f2937;
+}
+
+.da-stat-num.lsd {
+  color: #3da860;
+}
+
+.da-stat-num.fmd {
+  color: #ff9800;
+}
+
+.da-stat-num.tick {
+  color: #d32f2f;
+}
+
+.da-stat-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.da-stat-subrow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 2px;
+}
+
+.da-stat-pct {
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.da-stat-pct.lsd {
+  color: #3da860;
+}
+
+.da-stat-pct.fmd {
+  color: #ff9800;
+}
+
+.da-stat-pct.tick {
+  color: #d32f2f;
+}
+
+.da-chart-area-box {
+  width: 100%;
+  height: 260px;
+}
+
+.da-donut-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+.da-donut-card-header {
+  align-self: flex-start;
+  width: 100%;
+}
+
+.da-donut-chart-box {
+  width: 100%;
+  height: 200px;
+  position: relative;
+}
+
+.da-donut-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  pointer-events: none;
+}
+
+.da-donut-center-total {
+  font-size: 20px;
+  font-weight: 700;
+  color: #135431;
+  display: block;
+}
+
+.da-donut-center-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.da-donut-legend-grid {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 16px;
+  font-size: 12px;
+  margin-top: 16px;
+  max-height: 120px;
+  overflow-y: auto;
+}
+
+.da-donut-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.da-legend-color-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.da-legend-name {
+  color: #4b5563;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 80px;
+}
+
+.da-legend-val {
+  color: #1f2937;
+}
+
+.da-progress-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.da-progress-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.da-progress-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+}
+
+.da-progress-label {
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.da-progress-count {
+  color: #135431;
+}
+
+.da-progress-bar-bg {
+  width: 100%;
+  height: 8px;
+  background-color: #e2e8f0;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.da-progress-bar-fill {
+  height: 100%;
+  background-color: #3da860;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.da-empty-state-text {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 13px;
+  padding: 20px;
+}
+
+.da-conf-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.da-conf-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.da-conf-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+}
+
+.da-conf-range {
+  font-weight: 500;
+  color: var(--text-main);
+}
+
+.da-model-card {
+  margin-bottom: 24px;
+}
+
+.da-model-disease {
+  font-weight: 600;
+  color: #135431;
+}
+
+.da-model-runs-badge {
+  background-color: #eff7f2;
+  color: #3da860;
+  font-weight: 700;
+  border-radius: 12px;
+  padding: 2px 8px;
+}

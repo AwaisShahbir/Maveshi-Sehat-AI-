@@ -8,6 +8,7 @@ import {
   Activity,
   Eye
 } from 'lucide-react';
+import './Notifications.css';
 
 export default function Notifications() {
   const [notifications, setNotifications] = useState([]);
@@ -105,31 +106,31 @@ export default function Notifications() {
       case 'vet_verification':
         return {
           icon: <UserCheck size={18} />,
-          color: '#ff9800',
-          bgColor: '#fff3e0',
+          itemClass: 'type-vet',
+          iconClass: 'icon-vet',
           actionText: 'Review Vet'
         };
       case 'disease_outbreak':
       case 'outbreak':
         return {
           icon: <Activity size={18} />,
-          color: '#d32f2f',
-          bgColor: '#ffebee',
+          itemClass: 'type-outbreak',
+          iconClass: 'icon-outbreak',
           actionText: 'View Outbreak'
         };
       case 'pharmacy_approval':
       case 'pharmacy_pending':
         return {
           icon: <Store size={18} />,
-          color: '#007aff',
-          bgColor: '#e6f0ff',
+          itemClass: 'type-pharmacy',
+          iconClass: 'icon-pharmacy',
           actionText: 'Review Pharmacy'
         };
       default:
         return {
           icon: <Bell size={18} />,
-          color: '#3da860',
-          bgColor: '#eff7f2',
+          itemClass: 'type-general',
+          iconClass: 'icon-general',
           actionText: 'View Details'
         };
     }
@@ -138,122 +139,64 @@ export default function Notifications() {
   return (
     <div className="notifications-view">
       
-      <div className="grid-2-1" style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '24px' }}>
+      <div className="notifications-grid">
         
         <div>
           
-          <div className="tabs-container" style={{ display: 'flex', gap: '12px', borderBottom: '1px solid var(--border-light)', marginBottom: '20px', flexWrap: 'wrap', alignItems: 'center' }}>
+          <div className="notifications-tabs">
             <button 
-              className={`tab-btn ${filter === 'all' ? 'active' : ''}`}
-              style={{
-                padding: '8px 12px',
-                fontSize: '13px',
-                fontWeight: '600',
-                backgroundColor: filter === 'all' ? '#eff7f2' : 'transparent',
-                color: filter === 'all' ? '#3da860' : 'var(--text-muted)',
-                borderRadius: '8px',
-                border: 'none',
-                cursor: 'pointer'
-              }}
+              className={`notifications-tab-btn ${filter === 'all' ? 'active' : ''}`}
               onClick={() => setFilter('all')}
             >
               All Notifications ({notifications.length})
             </button>
             <button 
-              className={`tab-btn ${filter === 'vet' ? 'active' : ''}`}
-              style={{
-                padding: '8px 12px',
-                fontSize: '13px',
-                fontWeight: '600',
-                backgroundColor: filter === 'vet' ? '#eff7f2' : 'transparent',
-                color: filter === 'vet' ? '#3da860' : 'var(--text-muted)',
-                borderRadius: '8px',
-                border: 'none',
-                cursor: 'pointer'
-              }}
+              className={`notifications-tab-btn ${filter === 'vet' ? 'active' : ''}`}
               onClick={() => setFilter('vet')}
             >
               Vet Approvals
             </button>
             <button 
-              className={`tab-btn ${filter === 'outbreak' ? 'active' : ''}`}
-              style={{
-                padding: '8px 12px',
-                fontSize: '13px',
-                fontWeight: '600',
-                backgroundColor: filter === 'outbreak' ? '#eff7f2' : 'transparent',
-                color: filter === 'outbreak' ? '#3da860' : 'var(--text-muted)',
-                borderRadius: '8px',
-                border: 'none',
-                cursor: 'pointer'
-              }}
+              className={`notifications-tab-btn ${filter === 'outbreak' ? 'active' : ''}`}
               onClick={() => setFilter('outbreak')}
             >
               Disease Alerts
             </button>
             <button 
-              className={`tab-btn ${filter === 'pharmacy' ? 'active' : ''}`}
-              style={{
-                padding: '8px 12px',
-                fontSize: '13px',
-                fontWeight: '600',
-                backgroundColor: filter === 'pharmacy' ? '#eff7f2' : 'transparent',
-                color: filter === 'pharmacy' ? '#3da860' : 'var(--text-muted)',
-                borderRadius: '8px',
-                border: 'none',
-                cursor: 'pointer'
-              }}
+              className={`notifications-tab-btn ${filter === 'pharmacy' ? 'active' : ''}`}
               onClick={() => setFilter('pharmacy')}
             >
               Pharmacy
             </button>
-            <button className="btn-icon-only" onClick={fetchNotificationsData} title="Refresh notifications" style={{ marginLeft: 'auto' }}>
+            <button 
+              className="btn-icon-only notifications-refresh-btn" 
+              onClick={fetchNotificationsData} 
+              title="Refresh notifications"
+            >
               <RefreshCw size={16} />
             </button>
           </div>
 
           {loading ? (
-            <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>Loading notifications...</div>
+            <div className="notifications-loading">Loading notifications...</div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div className="notifications-list">
               {filteredNotifs.map((n) => {
                 const details = getNotifDetails(n);
                 return (
                   <div 
                     key={n.id} 
-                    className="card"
-                    style={{ 
-                      display: 'flex', 
-                      gap: '16px', 
-                      padding: '20px', 
-                      borderRadius: '16px', 
-                      borderLeft: `5px solid ${details.color}`,
-                      borderTop: '1px solid var(--border-light)',
-                      borderRight: '1px solid var(--border-light)',
-                      borderBottom: '1px solid var(--border-light)',
-                      alignItems: 'flex-start',
-                      backgroundColor: '#ffffff'
-                    }}
+                    className={`card notifications-card-item ${details.itemClass}`}
                   >
-                    <div style={{
-                      width: '36px',
-                      height: '36px',
-                      borderRadius: '50%',
-                      backgroundColor: details.bgColor,
-                      color: details.color,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      minWidth: '36px'
-                    }}>
+                    <div className={`notifications-icon-box ${details.iconClass}`}>
                       {details.icon}
                     </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <h4 style={{ fontSize: '14px', fontWeight: '700', color: '#1f2937', margin: '0 0 4px 0' }}>
+                    <div className="notifications-content">
+                      <h4 className="notifications-title">
                         {n.type.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase())}
                       </h4>
-                      <p style={{ fontSize: '13px', color: '#4b5563', margin: '0 0 6px 0' }}>{n.message_en}</p>
-                      <span style={{ fontSize: '11px', color: '#9ca3af' }}>
+                      <p className="notifications-text">{n.message_en}</p>
+                      <span className="notifications-timestamp">
                         {new Date(n.created_at).toLocaleString([], { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
                       </span>
                     </div>
@@ -261,7 +204,7 @@ export default function Notifications() {
                 );
               })}
               {filteredNotifs.length === 0 && (
-                <div style={{ textAlign: 'center', color: '#94a3b8', padding: '40px' }} className="card">
+                <div className="card notifications-empty">
                   No notifications recorded.
                 </div>
               )}
@@ -271,30 +214,30 @@ export default function Notifications() {
         </div>
 
         {/* Announcement Dispatch Form */}
-        <div className="card" style={{ padding: '24px', borderRadius: '16px', height: 'fit-content', backgroundColor: '#ffffff' }}>
-          <h3 className="card-title" style={{ fontSize: '18px', fontWeight: '700', color: '#135431', marginBottom: '2px' }}>Send Announcement</h3>
-          <p className="card-subtitle" style={{ marginBottom: '20px' }}>Broadcast notifications to platform users</p>
+        <div className="card announcement-card">
+          <h3 className="announcement-title">Send Announcement</h3>
+          <p className="card-subtitle announcement-subtitle">Broadcast notifications to platform users</p>
           
-          <form onSubmit={handleSendAnnouncement} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <form onSubmit={handleSendAnnouncement} className="announcement-form">
             
             <div>
-              <span style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-main)', display: 'block', marginBottom: '8px' }}>Send to:</span>
-              <div style={{ display: 'flex', gap: '20px' }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', cursor: 'pointer', color: '#4b5563' }}>
+              <span className="announcement-label">Send to:</span>
+              <div className="announcement-check-group">
+                <label className="announcement-check-label">
                   <input 
                     type="checkbox" 
                     checked={sendToOwners} 
                     onChange={(e) => setSendToOwners(e.target.checked)}
-                    style={{ accentColor: '#3da860' }}
+                    className="announcement-check-input"
                   />
                   <span>All Owners ({ownersCount})</span>
                 </label>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', cursor: 'pointer', color: '#4b5563' }}>
+                <label className="announcement-check-label">
                   <input 
                     type="checkbox" 
                     checked={sendToVets} 
                     onChange={(e) => setSendToVets(e.target.checked)}
-                    style={{ accentColor: '#3da860' }}
+                    className="announcement-check-input"
                   />
                   <span>All Vets ({vetsCount})</span>
                 </label>
@@ -302,22 +245,22 @@ export default function Notifications() {
             </div>
 
             <div>
-              <span style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-main)', display: 'block', marginBottom: '8px' }}>Notification Category:</span>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '13px' }}>
+              <span className="announcement-label">Notification Category:</span>
+              <div className="announcement-radio-group">
                 {[
                   { id: 'general', label: 'General Alert' },
                   { id: 'outbreak', label: 'Disease Outbreak Warning' },
                   { id: 'maintenance', label: 'System Maintenance' },
                   { id: 'campaign', label: 'Vaccination Campaign' }
                 ].map((type) => (
-                  <label key={type.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', color: '#374151' }}>
+                  <label key={type.id} className="announcement-radio-label">
                     <input 
                       type="radio" 
                       name="notifType" 
                       value={type.id} 
                       checked={notifType === type.id}
                       onChange={() => setNotifType(type.id)}
-                      style={{ accentColor: '#3da860' }}
+                      className="announcement-radio-input"
                     />
                     <span>{type.label}</span>
                   </label>
@@ -325,43 +268,39 @@ export default function Notifications() {
               </div>
             </div>
 
-            <div className="form-group" style={{ margin: 0 }}>
-              <label className="form-label" style={{ fontSize: '12px', fontWeight: '700' }}>Announcement Title</label>
+            <div className="form-group">
+              <label className="form-label">Announcement Title</label>
               <input 
                 type="text" 
-                className="form-control"
+                className="form-control announcement-input"
                 placeholder="e.g. Critical Vaccination Notice"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                style={{ height: '42px', borderRadius: '10px' }}
               />
             </div>
 
-            <div className="form-group" style={{ margin: 0 }}>
-              <label className="form-label" style={{ fontSize: '12px', fontWeight: '700' }}>Broadcast Message</label>
+            <div className="form-group">
+              <label className="form-label">Broadcast Message</label>
               <textarea 
-                className="form-control"
+                className="form-control announcement-textarea"
                 placeholder="Enter announcement details..."
                 value={messageEn}
                 onChange={(e) => setMessageEn(e.target.value)}
-                style={{ height: '110px', borderRadius: '10px', resize: 'none' }}
               />
             </div>
 
-            <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
+            <div className="announcement-actions">
               <button 
                 type="button" 
-                className="btn btn-secondary" 
+                className="announcement-preview-btn" 
                 onClick={() => alert(`Announcement Preview:\n\nTitle: ${title}\nMessage: ${messageEn}`)}
-                style={{ flex: 1, height: '42px', border: '1px solid var(--border-light)', backgroundColor: '#ffffff', borderRadius: '10px', fontSize: '13px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
               >
                 <Eye size={14} />
                 <span>Preview</span>
               </button>
               <button 
                 type="submit" 
-                className="btn" 
-                style={{ flex: 1.2, height: '42px', backgroundColor: '#3da860', color: '#ffffff', border: 'none', borderRadius: '10px', fontSize: '13px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+                className="announcement-submit-btn" 
               >
                 <Send size={14} />
                 <span>Send Broadcast</span>
