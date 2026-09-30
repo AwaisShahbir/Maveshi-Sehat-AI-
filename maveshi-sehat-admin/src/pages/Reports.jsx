@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Download, Calendar, HardDrive, FileSpreadsheet } from 'lucide-react';
-import './Reports.css';
+import '../styles/Reports.css';
 
 export default function Reports() {
   const [activeTab, setActiveTab] = useState('available');

@@ -17,7 +17,7 @@ import {
   Legend, 
   ResponsiveContainer 
 } from 'recharts';
-import './Dashboard.css';
+import '../styles/Dashboard.css';
 
 export default function Dashboard() {
   const [stats, setStats] = useState(null);

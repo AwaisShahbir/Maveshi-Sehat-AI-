@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { User, Lock, Bell, Settings as SettingsIcon } from 'lucide-react';
-import './Settings.css';
+import '../styles/Settings.css';
 
 export default function Settings() {
   const [subTab, setSubTab] = useState('profile');

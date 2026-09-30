@@ -9,6 +9,14 @@
   flex-direction: column;
   height: 100vh;
   border-right: 1px solid rgba(255, 255, 255, 0.05);
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.sidebar::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
 }
 
 .sidebar-brand {
@@ -96,6 +104,14 @@
   flex: 1;
   overflow-y: auto;
   padding: 24px 0;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.sidebar-menu::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
 }
 
 .menu-group {

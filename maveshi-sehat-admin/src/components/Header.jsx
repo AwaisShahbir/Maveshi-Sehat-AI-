@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { Search, Bell } from 'lucide-react';
-import './Header.css';
+import '../styles/Header.css';
 
 export default function Header() {
   const location = useLocation();

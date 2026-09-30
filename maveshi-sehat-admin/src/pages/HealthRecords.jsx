@@ -5,7 +5,7 @@ import {
   CheckCircle2, Printer, ExternalLink, 
   FileText, Check, Image as ImageIcon
 } from 'lucide-react';
-import './HealthRecords.css';
+import '../styles/HealthRecords.css';
 
 export default function HealthRecords() {
   const [records, setRecords] = useState([]);

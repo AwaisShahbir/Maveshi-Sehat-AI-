@@ -13,7 +13,7 @@ import HealthRecords from './pages/HealthRecords';
 import DiseaseAnalytics from './pages/DiseaseAnalytics';
 import Notifications from './pages/Notifications';
 import Settings from './pages/Settings';
-import './App.css';
+import './styles/App.css';
 
 function PlaceholderPage({ name }) {
   return (

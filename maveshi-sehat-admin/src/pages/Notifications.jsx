@@ -8,7 +8,7 @@ import {
   Activity,
   Eye
 } from 'lucide-react';
-import './Notifications.css';
+import '../styles/Notifications.css';
 
 export default function Notifications() {
   const [notifications, setNotifications] = useState([]);

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Check, X, HelpCircle, Copy, Download } from 'lucide-react';
-import './VetVerification.css';
+import '../styles/VetVerification.css';
 
 export default function VetVerification() {
   const [vets, setVets] = useState([]);
@@ -88,7 +88,18 @@ export default function VetVerification() {
     }
   };
 
-  const filteredVets = vets.filter(v => v.status === activeTab || (activeTab === 'pending' && v.status === 'info_requested'));
+  const filteredVets = vets.filter(v => {
+    if (activeTab === 'pending') {
+      return v.status === 'pending' || v.status === 'info_requested';
+    }
+    if (activeTab === 'approved') {
+      return v.status === 'approved' || v.status === 'verified';
+    }
+    if (activeTab === 'rejected') {
+      return v.status === 'rejected';
+    }
+    return v.status === activeTab;
+  });
 
   return (
     <div className="vet-verification-view">
@@ -131,6 +142,12 @@ export default function VetVerification() {
                 <span className="vet-spec-badge">
                   {vet.specialization || 'Veterinary Specialist'}
                 </span>
+
+                {(vet.status === 'approved' || vet.status === 'verified') && (
+                  <span className="badge-verified">
+                    Verified Doctor
+                  </span>
+                )}
 
                 {vet.status === 'info_requested' && (
                   <span className="badge-info-req">

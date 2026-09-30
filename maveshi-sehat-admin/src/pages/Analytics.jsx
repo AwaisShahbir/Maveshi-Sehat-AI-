@@ -16,7 +16,7 @@ import {
   Legend, 
   ResponsiveContainer 
 } from 'recharts';
-import './Analytics.css';
+import '../styles/Analytics.css';
 
 export default function Analytics() {
   const [timeRange, setTimeRange] = useState('30days');

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { AreaChart, Area, PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import { FileDown, RefreshCw } from 'lucide-react';
-import './DiseaseAnalytics.css';
+import '../styles/DiseaseAnalytics.css';
 
 export default function DiseaseAnalytics() {
   const [timeRange, setTimeRange] = useState('30days');

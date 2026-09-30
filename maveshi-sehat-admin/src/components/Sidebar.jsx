@@ -14,7 +14,7 @@ import {
   Activity
 } from 'lucide-react';
 import logoImg from '../assets/logo.png';
-import './Sidebar.css';
+import '../styles/Sidebar.css';
 
 export default function Sidebar({ onLogout }) {
   const [stats, setStats] = useState(null);

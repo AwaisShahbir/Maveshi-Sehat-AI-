@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Eye, ShieldAlert, ShieldCheck, Download, Search, RefreshCw, X, Mail, Phone, MapPin, Calendar, Award } from 'lucide-react';
-import './UserManagement.css';
+import '../styles/UserManagement.css';
 
 export default function UserManagement() {
   const [users, setUsers] = useState([]);

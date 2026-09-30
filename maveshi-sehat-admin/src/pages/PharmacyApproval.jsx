@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Store, Check, X, ExternalLink } from 'lucide-react';
-import './PharmacyApproval.css';
+import '../styles/PharmacyApproval.css';
 
 export default function PharmacyApproval() {
   const [pharmacies, setPharmacies] = useState([]);
