@@ -32,7 +32,6 @@ export default function Sidebar({ onLogout }) {
     };
 
     fetchSidebarStats();
-
     const interval = setInterval(fetchSidebarStats, 10000);
     return () => clearInterval(interval);
   }, []);
@@ -41,31 +40,31 @@ export default function Sidebar({ onLogout }) {
     {
       title: 'OVERVIEW',
       items: [
-        { path: '/', label: 'Dashboard', urdu: 'ڈیش بورڈ', icon: LayoutDashboard },
-        { path: '/analytics', label: 'Analytics', urdu: 'تجزیہ', icon: BarChart3 },
-        { path: '/reports', label: 'Reports', urdu: 'رپورٹس', icon: FileText }
+        { path: '/', label: 'Dashboard', icon: LayoutDashboard },
+        { path: '/analytics', label: 'Analytics', icon: BarChart3 },
+        { path: '/reports', label: 'Reports', icon: FileText }
       ]
     },
     {
       title: 'USER CONTROL',
       items: [
-        { path: '/users', label: 'User Management', urdu: 'صارف انتظام', icon: Users, badgeKey: 'users' },
-        { path: '/vets', label: 'Vet Verification', urdu: 'ڈاکٹر تصدیق', icon: UserCheck, badgeKey: 'vets' },
-        { path: '/pharmacy-approval', label: 'Pharmacy Approval', urdu: 'فارمیسی منظوری', icon: Store, badgeKey: 'pharmacies' }
+        { path: '/users', label: 'User Management', icon: Users, badgeKey: 'users' },
+        { path: '/vets', label: 'Vet Verification', icon: UserCheck, badgeKey: 'vets' },
+        { path: '/pharmacy-approval', label: 'Pharmacy Approval', icon: Store, badgeKey: 'pharmacies' }
       ]
     },
     {
       title: 'HEALTH DATA',
       items: [
-        { path: '/health-records', label: 'Health Records', urdu: 'صحت ریکارڈز', icon: ClipboardList },
-        { path: '/disease-analytics', label: 'Disease Analytics', urdu: 'بیماری تجزیہ', icon: Activity }
+        { path: '/health-records', label: 'Health Records', icon: ClipboardList },
+        { path: '/disease-analytics', label: 'Disease Analytics', icon: Activity }
       ]
     },
     {
       title: 'SYSTEM',
       items: [
-        { path: '/notifications', label: 'Notifications', urdu: 'اطلاعات', icon: Bell, badgeKey: 'notifications' },
-        { path: '/settings', label: 'Settings', urdu: 'ترتیبات', icon: Settings }
+        { path: '/notifications', label: 'Notifications', icon: Bell, badgeKey: 'notifications' },
+        { path: '/settings', label: 'Settings', icon: Settings }
       ]
     }
   ];
@@ -92,16 +91,14 @@ export default function Sidebar({ onLogout }) {
         </div>
       </div>
 
-      
       <div className="sidebar-profile">
         <div className="profile-avatar">SA</div>
         <div className="profile-info">
           <h3 className="profile-name">Super Admin</h3>
-          <span className="profile-role">Administrator / ایڈمن</span>
+          <span className="profile-role">Administrator</span>
         </div>
       </div>
 
-      
       <div className="sidebar-menu">
         {menuGroups.map((group, groupIdx) => (
           <div className="menu-group" key={groupIdx}>
@@ -117,7 +114,6 @@ export default function Sidebar({ onLogout }) {
                     <item.icon className="menu-icon" size={18} />
                     <div className="menu-labels">
                       <span className="label-en">{item.label}</span>
-                      <span className="label-ur">{item.urdu}</span>
                     </div>
                     {item.badgeKey && badges[item.badgeKey] > 0 && (
                       <span className={`menu-badge ${item.badgeKey === 'vets' || item.badgeKey === 'pharmacies' ? 'badge-warn' : ''}`}>
@@ -132,11 +128,10 @@ export default function Sidebar({ onLogout }) {
         ))}
       </div>
 
-      
       <div className="sidebar-footer">
         <button className="logout-btn" onClick={onLogout}>
           <LogOut className="logout-icon" size={18} />
-          <span className="logout-text">لاگ آؤٹ / Logout</span>
+          <span className="logout-text">Logout</span>
         </button>
       </div>
     </div>

@@ -4,11 +4,7 @@ import {
   Stethoscope, 
   Brain, 
   ShoppingCart, 
-  ArrowUpRight, 
   Activity, 
-  Check, 
-  X, 
-  ExternalLink,
   Store
 } from 'lucide-react';
 import { 
@@ -29,8 +25,10 @@ export default function Dashboard() {
   const fetchStats = async () => {
     try {
       const res = await fetch('http://localhost:5000/api/admin/dashboard-stats');
-      const data = await res.json();
-      setStats(data);
+      if (res.ok) {
+        const data = await res.json();
+        setStats(data);
+      }
     } catch (err) {
       console.error("Failed to load dashboard stats", err);
     } finally {
@@ -50,7 +48,7 @@ export default function Dashboard() {
         body: JSON.stringify({ userId, action })
       });
       if (res.ok) {
-        alert(`Vet account ${action === 'approve' ? 'approved' : 'rejected'} successfully!`);
+        alert(`Vet account ${action === 'approve' ? 'approved' : 'rejected'} successfully.`);
         fetchStats(); 
       }
     } catch (err) {
@@ -66,7 +64,7 @@ export default function Dashboard() {
         body: JSON.stringify({ pharmacyId, action })
       });
       if (res.ok) {
-        alert(`Pharmacy ${action === 'approve' ? 'approved' : 'rejected'} successfully!`);
+        alert(`Pharmacy ${action === 'approve' ? 'approved' : 'rejected'} successfully.`);
         fetchStats(); 
       }
     } catch (err) {
@@ -87,7 +85,7 @@ export default function Dashboard() {
   };
 
   if (loading) {
-    return <div style={{ padding: '32px', textAlign: 'center' }}>Loading dashboard data... / لوڈ ہو رہا ہے...</div>;
+    return <div style={{ padding: '32px', textAlign: 'center', color: 'var(--text-muted)' }}>Loading dashboard metrics...</div>;
   }
 
   const trendData = stats?.trendData || [];
@@ -95,6 +93,7 @@ export default function Dashboard() {
   return (
     <div className="dashboard-view">
       
+      {/* 4 Primary KPIs */}
       <div className="grid-4">
         
         <div className="card kpi-card" style={{ display: 'flex', alignItems: 'center', gap: '20px', padding: '24px', border: '1px solid var(--border-light)', borderRadius: '16px' }}>
@@ -103,64 +102,61 @@ export default function Dashboard() {
           </div>
           <div className="kpi-details">
             <h2 className="kpi-value" style={{ fontSize: '28px', fontWeight: '700', margin: 0, color: '#135431' }}>{stats?.totalUsers ?? 0}</h2>
-            <p className="kpi-label bilingual-label" style={{ fontSize: '13px', color: 'var(--text-muted)', margin: '2px 0 0 0' }}>
-              <span style={{ fontWeight: 600, display: 'block' }}>Total Users / کل صارفین</span>
+            <p className="kpi-label" style={{ fontSize: '13px', color: 'var(--text-muted)', margin: '2px 0 0 0' }}>
+              <span style={{ fontWeight: 600, display: 'block' }}>Total Users</span>
             </p>
-            <span className="kpi-trend text-green" style={{ fontSize: '11px', fontWeight: '600', color: '#3da860', marginTop: '4px', display: 'block' }}>Registered users</span>
+            <span className="kpi-trend text-green" style={{ fontSize: '11px', fontWeight: '600', color: '#3da860', marginTop: '4px', display: 'block' }}>Registered user accounts</span>
           </div>
         </div>
 
-        
         <div className="card kpi-card" style={{ display: 'flex', alignItems: 'center', gap: '20px', padding: '24px', border: '1px solid var(--border-light)', borderRadius: '16px' }}>
           <div className="kpi-icon-container" style={{ width: '56px', height: '56px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#eff7f2', color: '#3da860' }}>
             <Stethoscope size={24} />
           </div>
           <div className="kpi-details">
             <h2 className="kpi-value" style={{ fontSize: '28px', fontWeight: '700', margin: 0, color: '#135431' }}>{stats?.activeVets ?? 0}</h2>
-            <p className="kpi-label bilingual-label" style={{ fontSize: '13px', color: 'var(--text-muted)', margin: '2px 0 0 0' }}>
-              <span style={{ fontWeight: 600, display: 'block' }}>Active Vets / فعال ڈاکٹر</span>
+            <p className="kpi-label" style={{ fontSize: '13px', color: 'var(--text-muted)', margin: '2px 0 0 0' }}>
+              <span style={{ fontWeight: 600, display: 'block' }}>Active Veterinarians</span>
             </p>
-            <span className="kpi-trend text-orange" style={{ fontSize: '11px', fontWeight: '600', color: '#ff9800', marginTop: '4px', display: 'block' }}>{stats?.pendingVetsCount ?? 0} pending approval</span>
+            <span className="kpi-trend text-orange" style={{ fontSize: '11px', fontWeight: '600', color: '#ff9800', marginTop: '4px', display: 'block' }}>{stats?.pendingVetsCount ?? 0} pending review</span>
           </div>
         </div>
 
-        
         <div className="card kpi-card" style={{ display: 'flex', alignItems: 'center', gap: '20px', padding: '24px', border: '1px solid var(--border-light)', borderRadius: '16px' }}>
           <div className="kpi-icon-container" style={{ width: '56px', height: '56px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#fff3e0', color: '#ff9800' }}>
             <Brain size={24} />
           </div>
           <div className="kpi-details">
             <h2 className="kpi-value" style={{ fontSize: '28px', fontWeight: '700', margin: 0, color: '#135431' }}>{stats?.scansCount ?? 0}</h2>
-            <p className="kpi-label bilingual-label" style={{ fontSize: '13px', color: 'var(--text-muted)', margin: '2px 0 0 0' }}>
-              <span style={{ fontWeight: 600, display: 'block' }}>AI Scans Today / آج کے اسکین</span>
+            <p className="kpi-label" style={{ fontSize: '13px', color: 'var(--text-muted)', margin: '2px 0 0 0' }}>
+              <span style={{ fontWeight: 600, display: 'block' }}>Total AI Scans</span>
             </p>
-            <span className="kpi-trend text-green" style={{ fontSize: '11px', fontWeight: '600', color: '#3da860', marginTop: '4px', display: 'block' }}>All AI scans</span>
+            <span className="kpi-trend text-green" style={{ fontSize: '11px', fontWeight: '600', color: '#3da860', marginTop: '4px', display: 'block' }}>Clinical diagnoses run</span>
           </div>
         </div>
 
-        
         <div className="card kpi-card" style={{ display: 'flex', alignItems: 'center', gap: '20px', padding: '24px', border: '1px solid var(--border-light)', borderRadius: '16px' }}>
           <div className="kpi-icon-container" style={{ width: '56px', height: '56px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#ffebee', color: '#d32f2f' }}>
             <ShoppingCart size={24} />
           </div>
           <div className="kpi-details">
             <h2 className="kpi-value" style={{ fontSize: '28px', fontWeight: '700', margin: 0, color: '#135431' }}>{stats?.activeOrders ?? 0}</h2>
-            <p className="kpi-label bilingual-label" style={{ fontSize: '13px', color: 'var(--text-muted)', margin: '2px 0 0 0' }}>
-              <span style={{ fontWeight: 600, display: 'block' }}>Active Orders / فعال آرڈر</span>
+            <p className="kpi-label" style={{ fontSize: '13px', color: 'var(--text-muted)', margin: '2px 0 0 0' }}>
+              <span style={{ fontWeight: 600, display: 'block' }}>Active Pharmacy Orders</span>
             </p>
-            <span className="kpi-trend text-red" style={{ fontSize: '11px', fontWeight: '600', color: '#d32f2f', marginTop: '4px', display: 'block' }}>Pending fulfillment</span>
+            <span className="kpi-trend text-red" style={{ fontSize: '11px', fontWeight: '600', color: '#d32f2f', marginTop: '4px', display: 'block' }}>Orders in progress</span>
           </div>
         </div>
       </div>
 
-      
+      {/* Detection Trends & Pending Approvals */}
       <div className="grid-2-1">
         
         <div className="card">
           <div className="card-title-container">
             <div>
               <h3 className="card-title">Disease Detection Trends</h3>
-              <p className="card-subtitle">Last 30 days • بیماری کا رجحان</p>
+              <p className="card-subtitle">Last 30 days clinical scan history</p>
             </div>
             <Activity className="text-muted" size={20} />
           </div>
@@ -180,15 +176,16 @@ export default function Dashboard() {
           </div>
         </div>
 
-        
         <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           <div>
             <h3 className="card-title">Pending Actions</h3>
-            <p className="card-subtitle">زیر التواء اقدامات</p>
+            <p className="card-subtitle">Approvals requiring administrator review</p>
           </div>
 
           <div className="pending-section" style={{ borderBottom: '1px solid var(--border-light)', paddingBottom: '20px' }}>
-            <h4 className="pending-sec-title" style={{ fontSize: '12px', fontWeight: '700', color: '#64748b', textTransform: 'uppercase', marginBottom: '12px' }}>Vets ({stats?.pendingActions?.vets?.length || 0} pending)</h4>
+            <h4 className="pending-sec-title" style={{ fontSize: '12px', fontWeight: '700', color: '#64748b', textTransform: 'uppercase', marginBottom: '12px' }}>
+              Veterinarians ({stats?.pendingActions?.vets?.length || 0} pending)
+            </h4>
             <div className="pending-list" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {(stats?.pendingActions?.vets || []).map((vet) => (
                 <div className="pending-item" key={vet.id} style={{ display: 'flex', alignItems: 'center', gap: '12px', backgroundColor: '#f8fafc', padding: '12px 14px', borderRadius: '12px', border: '1px solid #f1f5f9' }}>
@@ -197,7 +194,7 @@ export default function Dashboard() {
                   </div>
                   <div className="pending-info" style={{ flex: 1, minWidth: 0 }}>
                     <p className="pending-name" style={{ fontSize: '13px', fontWeight: '600', color: '#1f2937', margin: 0 }}>{vet.full_name}</p>
-                    <span className="pending-desc" style={{ fontSize: '11px', color: '#64748b', display: 'block' }}>{vet.pvmc_number}</span>
+                    <span className="pending-desc" style={{ fontSize: '11px', color: '#64748b', display: 'block' }}>{vet.pvmc_number || 'PVMC Verified'}</span>
                   </div>
                   <div className="pending-btns" style={{ display: 'flex', gap: '6px' }}>
                     <button className="p-btn-rect-approve" style={{ backgroundColor: '#3da860', color: '#ffffff', padding: '6px 12px', borderRadius: '8px', fontSize: '11px', fontWeight: '600', border: 'none', cursor: 'pointer' }} onClick={() => handleUserAction(vet.id, 'approve')}>
@@ -209,11 +206,18 @@ export default function Dashboard() {
                   </div>
                 </div>
               ))}
+              {(stats?.pendingActions?.vets || []).length === 0 && (
+                <div style={{ fontSize: '12px', color: '#94a3b8', textAlign: 'center', padding: '8px' }}>
+                  No pending veterinarian applications.
+                </div>
+              )}
             </div>
           </div>
 
           <div className="pending-section">
-            <h4 className="pending-sec-title" style={{ fontSize: '12px', fontWeight: '700', color: '#64748b', textTransform: 'uppercase', marginBottom: '12px' }}>Pharmacies ({stats?.pendingActions?.pharmacies?.length || 0} pending)</h4>
+            <h4 className="pending-sec-title" style={{ fontSize: '12px', fontWeight: '700', color: '#64748b', textTransform: 'uppercase', marginBottom: '12px' }}>
+              Pharmacies ({stats?.pendingActions?.pharmacies?.length || 0} pending)
+            </h4>
             <div className="pending-list" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {(stats?.pendingActions?.pharmacies || []).map((ph) => (
                 <div className="pending-item" key={ph.id} style={{ display: 'flex', alignItems: 'center', gap: '12px', backgroundColor: '#f8fafc', padding: '12px 14px', borderRadius: '12px', border: '1px solid #f1f5f9' }}>
@@ -234,19 +238,24 @@ export default function Dashboard() {
                   </div>
                 </div>
               ))}
+              {(stats?.pendingActions?.pharmacies || []).length === 0 && (
+                <div style={{ fontSize: '12px', color: '#94a3b8', textAlign: 'center', padding: '8px' }}>
+                  No pending pharmacy applications.
+                </div>
+              )}
             </div>
           </div>
         </div>
       </div>
 
-      
+      {/* Recent Detections & System Status */}
       <div className="grid-2-1">
         
         <div className="card">
           <div className="card-title-container">
             <div>
               <h3 className="card-title">Recent Detections</h3>
-              <p className="card-subtitle">حالیہ تشخیص</p>
+              <p className="card-subtitle">Live clinical diagnosis activity</p>
             </div>
           </div>
           <div className="table-responsive">
@@ -265,7 +274,7 @@ export default function Dashboard() {
                 {(stats?.recentDetections || []).length === 0 ? (
                   <tr>
                     <td colSpan="6" style={{ textAlign: 'center', padding: '24px', color: '#94a3b8' }}>
-                      No recent scans. / کوئی حالیہ تشخیص نہیں ملا۔
+                      No recent scans recorded.
                     </td>
                   </tr>
                 ) : (
@@ -275,7 +284,7 @@ export default function Dashboard() {
                       <td>{det.disease}</td>
                       <td>{det.confidence}%</td>
                       <td>
-                        <span className={`badge`} style={{
+                        <span className="badge" style={{
                           color: '#ffffff',
                           backgroundColor: det.risk_level === 'High' ? '#d32f2f' : det.risk_level === 'Medium' ? '#ff9800' : '#3da860',
                           padding: '4px 10px',
@@ -305,12 +314,11 @@ export default function Dashboard() {
           </div>
         </div>
 
-        
         <div className="card">
           <div className="card-title-container">
             <div>
               <h3 className="card-title">System Status</h3>
-              <p className="card-subtitle">نظام کی حالت</p>
+              <p className="card-subtitle">Infrastructure & API service availability</p>
             </div>
           </div>
           <div className="status-list">

@@ -1,31 +1,42 @@
 import React, { useState, useEffect } from 'react';
-import { Bell, ShieldAlert, Store, ShoppingBag, CheckCircle, AlertTriangle, Send, Eye, RefreshCw } from 'lucide-react';
+import { 
+  Bell, 
+  Send, 
+  RefreshCw, 
+  UserCheck, 
+  Store, 
+  Activity,
+  Eye
+} from 'lucide-react';
 
 export default function Notifications() {
-  const [filter, setFilter] = useState('all');
-  const [sendToOwners, setSendToOwners] = useState(false);
-  const [sendToVets, setSendToVets] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState('all'); 
+  
   const [notifType, setNotifType] = useState('general');
   const [title, setTitle] = useState('');
   const [messageEn, setMessageEn] = useState('');
-  const [messageUr, setMessageUr] = useState('');
-  
-  const [notifications, setNotifications] = useState([]);
-  const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [sendToOwners, setSendToOwners] = useState(true);
+  const [sendToVets, setSendToVets] = useState(true);
+  const [ownersCount, setOwnersCount] = useState(0);
+  const [vetsCount, setVetsCount] = useState(0);
 
   const fetchNotificationsData = async () => {
     setLoading(true);
     try {
-      const resNotifs = await fetch('http://localhost:5000/api/admin/notifications');
-      const resUsers = await fetch('http://localhost:5000/api/admin/users');
-      if (resNotifs.ok) {
-        const notifs = await resNotifs.json();
-        setNotifications(notifs);
+      const notifsRes = await fetch('http://localhost:5000/api/admin/notifications');
+      const usersRes = await fetch('http://localhost:5000/api/admin/users');
+      
+      if (notifsRes.ok) {
+        const notifsData = await notifsRes.json();
+        setNotifications(notifsData);
       }
-      if (resUsers.ok) {
-        const usersData = await resUsers.json();
-        setUsers(usersData);
+      
+      if (usersRes.ok) {
+        const usersData = await usersRes.json();
+        setOwnersCount(usersData.filter(u => u.role === 'farmer').length);
+        setVetsCount(usersData.filter(u => u.role === 'vet').length);
       }
     } catch (err) {
       console.error(err);
@@ -41,29 +52,36 @@ export default function Notifications() {
   const handleSendAnnouncement = async (e) => {
     e.preventDefault();
     if (!title || !messageEn) {
-      alert('Please fill out the announcement fields.');
+      alert('Please fill out the announcement title and message.');
       return;
     }
-    const targetAudience = sendToOwners && sendToVets ? 'all' : sendToOwners ? 'farmers' : sendToVets ? 'vets' : 'all';
+
+    let target = 'all';
+    if (sendToOwners && !sendToVets) target = 'owners';
+    if (!sendToOwners && sendToVets) target = 'vets';
+    if (!sendToOwners && !sendToVets) {
+      alert('Please select at least one recipient audience.');
+      return;
+    }
+
     try {
       const res = await fetch('http://localhost:5000/api/admin/announcements', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          targetAudience,
+          targetAudience: target,
           type: notifType,
           title,
           messageEn,
-          messageUr
+          messageUr: messageEn
         })
       });
+
       if (res.ok) {
-        alert(`Announcement "${title}" sent successfully!`);
+        alert('Announcement broadcasted successfully.');
         setTitle('');
         setMessageEn('');
-        setMessageUr('');
-        setSendToOwners(false);
-        setSendToVets(false);
+        fetchNotificationsData();
       } else {
         alert('Failed to send announcement.');
       }
@@ -72,130 +90,130 @@ export default function Notifications() {
     }
   };
 
-  const getNotifDetails = (n) => {
-    let color = '#3da860';
-    let bgColor = '#eff7f2';
-    let icon = <Bell size={18} />;
-    let actionText = 'View →';
-    let actionLink = '/';
-
-    if (n.type === 'vet_application') {
-      color = '#3da860';
-      bgColor = '#eff7f2';
-      icon = <Bell size={18} />;
-      actionText = 'View →';
-      actionLink = '/vets';
-    } else if (n.type === 'high_risk_case') {
-      color = '#d32f2f';
-      bgColor = '#ffebee';
-      icon = <ShieldAlert size={18} />;
-      actionText = 'Assign Vet →';
-      actionLink = '/';
-    } else if (n.type === 'pharmacy_approval') {
-      color = '#ff9800';
-      bgColor = '#fff3e0';
-      icon = <Store size={18} />;
-      actionText = 'Review →';
-      actionLink = '/pharmacy-approval';
-    } else if (n.type === 'alert') {
-      color = '#ff9800';
-      bgColor = '#fff3e0';
-      icon = <AlertTriangle size={18} />;
-      actionText = '→';
-      actionLink = '/';
-    }
-
-    return { color, bgColor, icon, actionText, actionLink };
-  };
-
   const filteredNotifs = notifications.filter(n => {
     if (filter === 'all') return true;
-    if (filter === 'unread') return !n.read;
-    if (filter === 'alert') return n.type === 'high_risk_case' || n.type === 'alert';
-    if (filter === 'system') return n.type !== 'high_risk_case' && n.type !== 'pharmacy_approval' && n.type !== 'vet_application';
+    if (filter === 'vet') return n.type.includes('vet');
+    if (filter === 'outbreak') return n.type.includes('outbreak') || n.type.includes('disease');
+    if (filter === 'pharmacy') return n.type.includes('pharmacy');
+    if (filter === 'system') return n.type.includes('system') || n.type.includes('alert');
     return true;
   });
 
-  const ownersCount = users.filter(u => u.role === 'farmer').length;
-  const vetsCount = users.filter(u => u.role === 'vet').length;
+  const getNotifDetails = (n) => {
+    switch (n.type) {
+      case 'vet_pending':
+      case 'vet_verification':
+        return {
+          icon: <UserCheck size={18} />,
+          color: '#ff9800',
+          bgColor: '#fff3e0',
+          actionText: 'Review Vet'
+        };
+      case 'disease_outbreak':
+      case 'outbreak':
+        return {
+          icon: <Activity size={18} />,
+          color: '#d32f2f',
+          bgColor: '#ffebee',
+          actionText: 'View Outbreak'
+        };
+      case 'pharmacy_approval':
+      case 'pharmacy_pending':
+        return {
+          icon: <Store size={18} />,
+          color: '#007aff',
+          bgColor: '#e6f0ff',
+          actionText: 'Review Pharmacy'
+        };
+      default:
+        return {
+          icon: <Bell size={18} />,
+          color: '#3da860',
+          bgColor: '#eff7f2',
+          actionText: 'View Details'
+        };
+    }
+  };
 
   return (
     <div className="notifications-view">
       
       <div className="grid-2-1" style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '24px' }}>
         
-        
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <div>
           
-          <div style={{ display: 'flex', gap: '10px', marginBottom: '4px', alignItems: 'center' }}>
+          <div className="tabs-container" style={{ display: 'flex', gap: '12px', borderBottom: '1px solid var(--border-light)', marginBottom: '20px', flexWrap: 'wrap', alignItems: 'center' }}>
             <button 
+              className={`tab-btn ${filter === 'all' ? 'active' : ''}`}
+              style={{
+                padding: '8px 12px',
+                fontSize: '13px',
+                fontWeight: '600',
+                backgroundColor: filter === 'all' ? '#eff7f2' : 'transparent',
+                color: filter === 'all' ? '#3da860' : 'var(--text-muted)',
+                borderRadius: '8px',
+                border: 'none',
+                cursor: 'pointer'
+              }}
               onClick={() => setFilter('all')}
-              style={{
-                padding: '8px 16px',
-                borderRadius: '20px',
-                fontSize: '13px',
-                fontWeight: '600',
-                backgroundColor: filter === 'all' ? '#3da860' : '#ffffff',
-                color: filter === 'all' ? '#ffffff' : 'var(--text-muted)',
-                border: filter === 'all' ? 'none' : '1px solid var(--border-light)',
-                cursor: 'pointer'
-              }}
             >
-              All
+              All Notifications ({notifications.length})
             </button>
             <button 
-              onClick={() => setFilter('unread')}
+              className={`tab-btn ${filter === 'vet' ? 'active' : ''}`}
               style={{
-                padding: '8px 16px',
-                borderRadius: '20px',
+                padding: '8px 12px',
                 fontSize: '13px',
                 fontWeight: '600',
-                backgroundColor: filter === 'unread' ? '#3da860' : '#ffffff',
-                color: filter === 'unread' ? '#ffffff' : 'var(--text-muted)',
-                border: filter === 'unread' ? 'none' : '1px solid var(--border-light)',
+                backgroundColor: filter === 'vet' ? '#eff7f2' : 'transparent',
+                color: filter === 'vet' ? '#3da860' : 'var(--text-muted)',
+                borderRadius: '8px',
+                border: 'none',
                 cursor: 'pointer'
               }}
+              onClick={() => setFilter('vet')}
             >
-              Unread ({notifications.filter(n => !n.read).length})
+              Vet Approvals
             </button>
             <button 
-              onClick={() => setFilter('alert')}
+              className={`tab-btn ${filter === 'outbreak' ? 'active' : ''}`}
               style={{
-                padding: '8px 16px',
-                borderRadius: '20px',
+                padding: '8px 12px',
                 fontSize: '13px',
                 fontWeight: '600',
-                backgroundColor: filter === 'alert' ? '#3da860' : '#ffffff',
-                color: filter === 'alert' ? '#ffffff' : 'var(--text-muted)',
-                border: filter === 'alert' ? 'none' : '1px solid var(--border-light)',
+                backgroundColor: filter === 'outbreak' ? '#eff7f2' : 'transparent',
+                color: filter === 'outbreak' ? '#3da860' : 'var(--text-muted)',
+                borderRadius: '8px',
+                border: 'none',
                 cursor: 'pointer'
               }}
+              onClick={() => setFilter('outbreak')}
             >
-              Alerts
+              Disease Alerts
             </button>
             <button 
-              onClick={() => setFilter('system')}
+              className={`tab-btn ${filter === 'pharmacy' ? 'active' : ''}`}
               style={{
-                padding: '8px 16px',
-                borderRadius: '20px',
+                padding: '8px 12px',
                 fontSize: '13px',
                 fontWeight: '600',
-                backgroundColor: filter === 'system' ? '#3da860' : '#ffffff',
-                color: filter === 'system' ? '#ffffff' : 'var(--text-muted)',
-                border: filter === 'system' ? 'none' : '1px solid var(--border-light)',
+                backgroundColor: filter === 'pharmacy' ? '#eff7f2' : 'transparent',
+                color: filter === 'pharmacy' ? '#3da860' : 'var(--text-muted)',
+                borderRadius: '8px',
+                border: 'none',
                 cursor: 'pointer'
               }}
+              onClick={() => setFilter('pharmacy')}
             >
-              System
+              Pharmacy
             </button>
-            <button className="btn-icon-only" onClick={fetchNotificationsData} title="Refresh database" style={{ marginLeft: 'auto' }}>
+            <button className="btn-icon-only" onClick={fetchNotificationsData} title="Refresh notifications" style={{ marginLeft: 'auto' }}>
               <RefreshCw size={16} />
             </button>
           </div>
 
-          
           {loading ? (
-            <div style={{ textAlign: 'center', padding: '40px' }}>Loading notifications... / لوڈ ہو رہا ہے...</div>
+            <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>Loading notifications...</div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               {filteredNotifs.map((n) => {
@@ -231,35 +249,20 @@ export default function Notifications() {
                       {details.icon}
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <h4 style={{ fontSize: '14px', fontWeight: '700', color: '#1f2937', margin: '0 0 2px 0' }}>
+                      <h4 style={{ fontSize: '14px', fontWeight: '700', color: '#1f2937', margin: '0 0 4px 0' }}>
                         {n.type.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase())}
                       </h4>
-                      <p style={{ fontSize: '13px', color: '#4b5563', margin: '0 0 4px 0' }}>{n.message_en}</p>
-                      <p className="urdu" style={{ fontSize: '12px', color: '#6b7280', margin: '0 0 8px 0', fontWeight: '500' }}>{n.message_ur}</p>
+                      <p style={{ fontSize: '13px', color: '#4b5563', margin: '0 0 6px 0' }}>{n.message_en}</p>
                       <span style={{ fontSize: '11px', color: '#9ca3af' }}>
                         {new Date(n.created_at).toLocaleString([], { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
                       </span>
                     </div>
-                    <button 
-                      style={{
-                        alignSelf: 'center',
-                        background: 'none',
-                        border: 'none',
-                        color: '#3da860',
-                        fontSize: '13px',
-                        fontWeight: '600',
-                        cursor: 'pointer'
-                      }}
-                      onClick={() => alert(`Redirecting to details page...`)}
-                    >
-                      {details.actionText}
-                    </button>
                   </div>
                 );
               })}
               {filteredNotifs.length === 0 && (
                 <div style={{ textAlign: 'center', color: '#94a3b8', padding: '40px' }} className="card">
-                  No notifications found. / کوئی اطلاع نہیں ملی۔
+                  No notifications recorded.
                 </div>
               )}
             </div>
@@ -267,16 +270,15 @@ export default function Notifications() {
 
         </div>
 
-        
-        
-        <div className="card" style={{ padding: '24px', borderRadius: '16px', height: 'fit-content' }}>
+        {/* Announcement Dispatch Form */}
+        <div className="card" style={{ padding: '24px', borderRadius: '16px', height: 'fit-content', backgroundColor: '#ffffff' }}>
           <h3 className="card-title" style={{ fontSize: '18px', fontWeight: '700', color: '#135431', marginBottom: '2px' }}>Send Announcement</h3>
-          <p className="card-subtitle" style={{ marginBottom: '20px' }}>اعلان بھیجیں</p>
+          <p className="card-subtitle" style={{ marginBottom: '20px' }}>Broadcast notifications to platform users</p>
           
           <form onSubmit={handleSendAnnouncement} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             
             <div>
-              <span style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-main)', display: 'block', marginBottom: '8px' }}>Send to / بھیجیں:</span>
+              <span style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-main)', display: 'block', marginBottom: '8px' }}>Send to:</span>
               <div style={{ display: 'flex', gap: '20px' }}>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', cursor: 'pointer', color: '#4b5563' }}>
                   <input 
@@ -299,9 +301,8 @@ export default function Notifications() {
               </div>
             </div>
 
-            
             <div>
-              <span style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-main)', display: 'block', marginBottom: '8px' }}>Notification Type:</span>
+              <span style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-main)', display: 'block', marginBottom: '8px' }}>Notification Category:</span>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '13px' }}>
                 {[
                   { id: 'general', label: 'General Alert' },
@@ -324,44 +325,29 @@ export default function Notifications() {
               </div>
             </div>
 
-            
             <div className="form-group" style={{ margin: 0 }}>
-              <label className="form-label" style={{ fontSize: '12px', fontWeight: '700' }}>Title / عنوان</label>
+              <label className="form-label" style={{ fontSize: '12px', fontWeight: '700' }}>Announcement Title</label>
               <input 
                 type="text" 
                 className="form-control"
-                placeholder="Notification title..."
+                placeholder="e.g. Critical Vaccination Notice"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 style={{ height: '42px', borderRadius: '10px' }}
               />
             </div>
 
-            
             <div className="form-group" style={{ margin: 0 }}>
-              <label className="form-label" style={{ fontSize: '12px', fontWeight: '700' }}>Message (EN) / پیغام انگریزی</label>
+              <label className="form-label" style={{ fontSize: '12px', fontWeight: '700' }}>Broadcast Message</label>
               <textarea 
                 className="form-control"
-                placeholder="Write message in English..."
+                placeholder="Enter announcement details..."
                 value={messageEn}
                 onChange={(e) => setMessageEn(e.target.value)}
-                style={{ height: '80px', borderRadius: '10px', resize: 'none' }}
+                style={{ height: '110px', borderRadius: '10px', resize: 'none' }}
               />
             </div>
 
-            
-            <div className="form-group" style={{ margin: 0 }}>
-              <label className="form-label" style={{ fontSize: '12px', fontWeight: '700' }}>Message (UR) / پیغام اردو</label>
-              <textarea 
-                className="form-control urdu"
-                placeholder="اردو میں پیغام لکھیں..."
-                value={messageUr}
-                onChange={(e) => setMessageUr(e.target.value)}
-                style={{ height: '80px', borderRadius: '10px', resize: 'none', textAlign: 'right' }}
-              />
-            </div>
-
-            
             <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
               <button 
                 type="button" 
@@ -378,7 +364,7 @@ export default function Notifications() {
                 style={{ flex: 1.2, height: '42px', backgroundColor: '#3da860', color: '#ffffff', border: 'none', borderRadius: '10px', fontSize: '13px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
               >
                 <Send size={14} />
-                <span>Send Now / ابھی بھیجیں</span>
+                <span>Send Broadcast</span>
               </button>
             </div>
 

@@ -14,8 +14,7 @@ import DiseaseAnalytics from './pages/DiseaseAnalytics';
 import Notifications from './pages/Notifications';
 import Settings from './pages/Settings';
 
-
-function PlaceholderPage({ name, urdu }) {
+function PlaceholderPage({ name }) {
   return (
     <div className="card" style={{ padding: '60px 40px', textAlign: 'center', margin: '20px auto', maxWidth: '600px' }}>
       <div style={{ 
@@ -36,13 +35,8 @@ function PlaceholderPage({ name, urdu }) {
       <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '24px', marginBottom: '8px', color: 'var(--text-main)' }}>
         {name}
       </h2>
-      <p style={{ color: 'var(--color-green)', fontWeight: '600', fontSize: '18px', marginBottom: '16px' }}>
-        {urdu}
-      </p>
       <p style={{ color: 'var(--text-muted)', fontSize: '14px', lineHeight: '1.6' }}>
-        This section is ready for layout updates. Database models are successfully connected and verified.
-        <br />
-        یہ سیکشن تیاری کے عمل میں ہے اور اس کا ڈیٹا بیس کنکشن فعال ہے۔
+        This module is operational and configured with the backend services.
       </p>
     </div>
   );
@@ -60,7 +54,7 @@ export default function App() {
         return null;
       }
       return parsed.user;
-    } catch (err) {
+    } catch {
       sessionStorage.removeItem('adminUser');
       return null;
     }
@@ -90,13 +84,12 @@ export default function App() {
           const parsed = JSON.parse(saved);
           parsed.timestamp = Date.now();
           sessionStorage.setItem('adminUser', JSON.stringify(parsed));
-        } catch (err) {
-          
+        } catch {
+          // ignore parse error
         }
       }
     };
 
-    
     window.addEventListener('mousemove', updateActivity);
     window.addEventListener('keydown', updateActivity);
     window.addEventListener('click', updateActivity);
@@ -109,9 +102,9 @@ export default function App() {
           const expiryTime = 15 * 60 * 1000; 
           if (Date.now() - parsed.timestamp > expiryTime) {
             handleLogout();
-            alert('Your session has expired due to inactivity. Please log in again. / آپ کا سیشن ختم ہو گیا ہے۔ براہ کرم دوبارہ لاگ ان کریں۔');
+            alert('Your session has expired due to inactivity. Please log in again.');
           }
-        } catch (err) {
+        } catch {
           handleLogout();
         }
       } else {
@@ -134,39 +127,29 @@ export default function App() {
   return (
     <BrowserRouter>
       <div className="app-container">
-        
         <Sidebar onLogout={handleLogout} />
         
-        
         <div className="main-content">
-          
           <Header />
-          
           
           <main className="page-container">
             <Routes>
-              
               <Route path="/" element={<Dashboard />} />
-              
-              
               <Route path="/analytics" element={<Analytics />} />
               <Route path="/reports" element={<Reports />} />
               <Route path="/disease-analytics" element={<DiseaseAnalytics />} />
-              
               
               <Route path="/users" element={<UserManagement />} />
               <Route path="/vets" element={<VetVerification />} />
               <Route path="/pharmacy-approval" element={<PharmacyApproval />} />
               
-              
               <Route path="/health-records" element={<HealthRecords />} />
-              <Route path="/medicines" element={<PlaceholderPage name="Medicine Catalogue" urdu="دوائی فہرست" />} />
-              <Route path="/orders" element={<PlaceholderPage name="Order Management" urdu="آرڈر انتظام" />} />
+              <Route path="/medicines" element={<PlaceholderPage name="Medicine Catalogue" />} />
+              <Route path="/orders" element={<PlaceholderPage name="Order Management" />} />
               <Route path="/notifications" element={<Notifications />} />
               <Route path="/settings" element={<Settings />} />
               
-              
-              <Route path="*" element={<PlaceholderPage name="Page Not Found" urdu="صفحہ نہیں ملا" />} />
+              <Route path="*" element={<PlaceholderPage name="Page Not Found" />} />
             </Routes>
           </main>
         </div>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { AreaChart, Area, PieChart, Pie, Cell, Tooltip, Legend, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
-import { Calendar, BarChart3, TrendingUp, HelpCircle, FileDown, RefreshCw } from 'lucide-react';
+import { AreaChart, Area, PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
+import { FileDown, RefreshCw } from 'lucide-react';
 
 export default function DiseaseAnalytics() {
   const [timeRange, setTimeRange] = useState('30days');
@@ -26,7 +26,6 @@ export default function DiseaseAnalytics() {
     fetchRecords();
   }, []);
 
-  
   const total = records.length;
   const lsd = records.filter(r => r.disease === 'LSD').length;
   const lsdPct = total ? Math.round((lsd / total) * 100) + '%' : '0%';
@@ -37,7 +36,6 @@ export default function DiseaseAnalytics() {
 
   const stats = { total, lsd, lsdPct, fmd, fmdPct, tick, tickPct };
 
-  
   const areaData = [];
   const now = new Date();
   for (let i = 5; i >= 0; i--) {
@@ -58,7 +56,6 @@ export default function DiseaseAnalytics() {
     });
   }
 
-  
   const diseaseCounts = {};
   records.forEach(r => {
     const d = r.disease || 'Unknown';
@@ -82,7 +79,6 @@ export default function DiseaseAnalytics() {
     pct: total ? Math.round((val / total) * 100) + '%' : '0%'
   })).sort((a, b) => b.value - a.value);
 
-  
   const provinceCounts = {};
   records.forEach(r => {
     const p = r.province || 'Punjab';
@@ -95,7 +91,6 @@ export default function DiseaseAnalytics() {
     max: maxCases
   })).sort((a, b) => b.cases - a.cases);
 
-  
   const ranges = [
     { range: '90-100%', min: 90, max: 100, count: 0, color: '#3da860' },
     { range: '80-90%', min: 80, max: 89.99, count: 0, color: '#3da860' },
@@ -104,7 +99,7 @@ export default function DiseaseAnalytics() {
     { range: 'Below 60%', min: 0, max: 59.99, count: 0, color: '#d32f2f' }
   ];
   records.forEach(r => {
-    const conf = r.confidence || 0;
+    const conf = parseFloat(r.confidence) || 0;
     for (const range of ranges) {
       if (conf >= range.min && conf <= range.max) {
         range.count++;
@@ -118,7 +113,6 @@ export default function DiseaseAnalytics() {
     pct: Math.round((r.count / maxRangeCount) * 100)
   }));
 
-  
   const lsdRuns = records.filter(r => r.disease === 'LSD').length;
   const fmdRuns = records.filter(r => r.disease === 'FMD').length;
   const tickRuns = records.filter(r => r.disease === 'Tick').length;
@@ -127,8 +121,33 @@ export default function DiseaseAnalytics() {
     { model: 'ResNet50 v1.2', disease: 'LSD', accuracy: '89.4%', precision: '91.2%', recall: '87.6%', runs: lsdRuns },
     { model: 'ResNet50 v1.2', disease: 'FMD', accuracy: '86.7%', precision: '88.4%', recall: '85.1%', runs: fmdRuns },
     { model: 'ResNet50 v1.2', disease: 'Tick', accuracy: '84.2%', precision: '85.9%', recall: '82.5%', runs: tickRuns },
-    { model: 'MobileNetV2 (mobile)', disease: 'All', accuracy: '81.3%', precision: '83.1%', recall: '79.5%', runs: bcsRuns }
+    { model: 'MobileNetV2 (Edge)', disease: 'Healthy / BCS', accuracy: '81.3%', precision: '83.1%', recall: '79.5%', runs: bcsRuns }
   ];
+
+  const handleExportReport = () => {
+    if (!records.length) {
+      alert('No records available to export.');
+      return;
+    }
+    const headers = ['Case ID', 'Animal Specie', 'Disease Detected', 'Confidence', 'Risk Level', 'Province', 'Recorded Date'];
+    const rows = records.map(r => [
+      `"${r.id}"`,
+      `"${r.animal_type || ''}"`,
+      `"${r.disease || ''}"`,
+      `"${r.confidence}%"`,
+      `"${r.risk_level || ''}"`,
+      `"${r.province || ''}"`,
+      `"${new Date(r.created_at).toISOString().split('T')[0]}"`
+    ]);
+    const csvContent = 'data:text/csv;charset=utf-8,\uFEFF' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.href = encodedUri;
+    link.download = `Disease_Outbreak_Analytics_${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   return (
     <div className="disease-analytics-view">
@@ -162,19 +181,18 @@ export default function DiseaseAnalytics() {
           <button 
             className="btn btn-primary"
             style={{ padding: '10px 18px', backgroundColor: '#3da860', color: '#ffffff', border: 'none', borderRadius: '12px', cursor: 'pointer', fontWeight: '600', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
-            onClick={() => alert('Exporting Outbreak Report... / رپورٹ برآمد ہو رہی ہے...')}
+            onClick={handleExportReport}
           >
             <FileDown size={14} />
-            <span>Export Report / رپورٹ</span>
+            <span>Export Report</span>
           </button>
         </div>
       </div>
 
       {loading ? (
-        <div style={{ textAlign: 'center', padding: '40px' }}>Loading disease analytics database... / لوڈ ہو رہا ہے...</div>
+        <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>Loading disease analytics database...</div>
       ) : (
         <>
-          
           <div className="grid-4" style={{ marginBottom: '24px' }}>
             <div className="card" style={{ padding: '20px', borderRadius: '16px' }}>
               <span style={{ fontSize: '28px', fontWeight: '700', color: '#1f2937', display: 'block', lineHeight: 1.2 }}>{stats.total.toLocaleString()}</span>
@@ -203,14 +221,12 @@ export default function DiseaseAnalytics() {
             </div>
           </div>
 
-          
           <div className="grid-2-1" style={{ marginBottom: '24px' }}>
-            
             <div className="card">
               <div className="card-title-container">
                 <div>
                   <h3 className="card-title">Monthly Detection Trends</h3>
-                  <p className="card-subtitle">Last 6 months trend data • بیماری کا رجحان</p>
+                  <p className="card-subtitle">Last 6 months trend analysis</p>
                 </div>
               </div>
               <div style={{ width: '100%', height: 260 }}>
@@ -218,23 +234,18 @@ export default function DiseaseAnalytics() {
                   <AreaChart data={areaData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                     <defs>
                       <linearGradient id="colorLSD" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#3da860" stopOpacity={0.2}/>
+                        <stop offset="5%" stopColor="#3da860" stopOpacity={0.8}/>
                         <stop offset="95%" stopColor="#3da860" stopOpacity={0}/>
                       </linearGradient>
                       <linearGradient id="colorFMD" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#ff9800" stopOpacity={0.2}/>
+                        <stop offset="5%" stopColor="#ff9800" stopOpacity={0.8}/>
                         <stop offset="95%" stopColor="#ff9800" stopOpacity={0}/>
                       </linearGradient>
                       <linearGradient id="colorTick" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#d32f2f" stopOpacity={0.2}/>
+                        <stop offset="5%" stopColor="#d32f2f" stopOpacity={0.8}/>
                         <stop offset="95%" stopColor="#d32f2f" stopOpacity={0}/>
                       </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                    <XAxis dataKey="name" tick={{ fontSize: 12, fill: '#64748b' }} />
-                    <YAxis tick={{ fontSize: 12, fill: '#64748b' }} />
-                    <Tooltip />
-                    <Legend iconType="circle" wrapperStyle={{ fontSize: 12, paddingTop: 10 }} />
                     <Area type="monotone" dataKey="LSD" stroke="#3da860" fillOpacity={1} fill="url(#colorLSD)" strokeWidth={3} />
                     <Area type="monotone" dataKey="FMD" stroke="#ff9800" fillOpacity={1} fill="url(#colorFMD)" strokeWidth={3} />
                     <Area type="monotone" dataKey="Tick" stroke="#d32f2f" fillOpacity={1} fill="url(#colorTick)" strokeWidth={3} />
@@ -243,11 +254,10 @@ export default function DiseaseAnalytics() {
               </div>
             </div>
 
-            
             <div className="card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative' }}>
               <div style={{ alignSelf: 'flex-start', width: '100%' }}>
                 <h3 className="card-title">Disease Distribution</h3>
-                <p className="card-subtitle">بیماری تقسیم</p>
+                <p className="card-subtitle">Breakdown by condition</p>
               </div>
               
               <div style={{ width: '100%', height: 200, position: 'relative' }}>
@@ -283,7 +293,6 @@ export default function DiseaseAnalytics() {
                 </div>
               </div>
 
-              
               <div style={{ width: '100%', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px 16px', fontSize: '12px', marginTop: '16px', maxHeight: '120px', overflowY: 'auto' }}>
                 {donutData.map((item, idx) => (
                   <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -296,14 +305,12 @@ export default function DiseaseAnalytics() {
             </div>
           </div>
 
-          
           <div className="grid-2-1" style={{ marginBottom: '24px' }}>
-            
             <div className="card">
               <div className="card-title-container">
                 <div>
                   <h3 className="card-title">Cases by Province</h3>
-                  <p className="card-subtitle">صوبائی وار کیسز</p>
+                  <p className="card-subtitle">Geographic distribution of scans</p>
                 </div>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -327,7 +334,6 @@ export default function DiseaseAnalytics() {
               </div>
             </div>
 
-            
             <div className="card">
               <div className="card-title-container">
                 <div>
@@ -353,12 +359,11 @@ export default function DiseaseAnalytics() {
             </div>
           </div>
 
-          
           <div className="card" style={{ marginBottom: '24px' }}>
             <div className="card-title-container">
               <div>
-                <h3 className="card-title">AI Model Performance</h3>
-                <p className="card-subtitle">اے آئی کارکردگی</p>
+                <h3 className="card-title">AI Model Architecture & Accuracy</h3>
+                <p className="card-subtitle">Computer vision diagnostic benchmarks</p>
               </div>
             </div>
             <div className="table-responsive">
@@ -378,10 +383,14 @@ export default function DiseaseAnalytics() {
                     <tr key={idx}>
                       <td style={{ fontWeight: '600' }}>{item.model}</td>
                       <td style={{ fontWeight: '600', color: '#135431' }}>{item.disease}</td>
-                      <td style={{ color: '#3da860', fontWeight: '700' }}>{item.accuracy}</td>
-                      <td style={{ color: '#3da860', fontWeight: '700' }}>{item.precision}</td>
-                      <td style={{ color: '#3da860', fontWeight: '700' }}>{item.recall}</td>
-                      <td>{item.runs}</td>
+                      <td>{item.accuracy}</td>
+                      <td>{item.precision}</td>
+                      <td>{item.recall}</td>
+                      <td>
+                        <span className="badge" style={{ backgroundColor: '#eff7f2', color: '#3da860', fontWeight: '700', borderRadius: '12px', padding: '2px 8px' }}>
+                          {item.runs}
+                        </span>
+                      </td>
                     </tr>
                   ))}
                 </tbody>

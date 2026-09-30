@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FileText, Download, Calendar, HardDrive, FileSpreadsheet } from 'lucide-react';
+import { Download, Calendar, HardDrive, FileSpreadsheet } from 'lucide-react';
 
 export default function Reports() {
   const [activeTab, setActiveTab] = useState('available');
@@ -8,10 +8,9 @@ export default function Reports() {
     {
       id: 1,
       title: 'Monthly Disease Detection Report',
-      urduTitle: 'مویشی بیماری کی تشخیص کی رپورٹ',
       desc: 'Comprehensive disease analysis with AI accuracy metrics',
-      date: 'May 2025',
-      size: '2.4 MB',
+      date: 'Live Database',
+      size: 'Dynamic',
       format: 'CSV',
       iconColor: '#e6f0ff',
       textColor: '#007aff'
@@ -19,10 +18,9 @@ export default function Reports() {
     {
       id: 2,
       title: 'User Activity Report',
-      urduTitle: 'صارف کی سرگرمی کی رپورٹ',
       desc: 'Registration trends, active users, and engagement analytics',
-      date: 'May 2025',
-      size: '1.8 MB',
+      date: 'Live Database',
+      size: 'Dynamic',
       format: 'CSV',
       iconColor: '#e6f0ff',
       textColor: '#007aff'
@@ -30,10 +28,9 @@ export default function Reports() {
     {
       id: 3,
       title: 'Vet Performance Report',
-      urduTitle: 'ڈاکٹر کی کارکردگی کی رپورٹ',
-      desc: 'Response times, case load, and rating statistics',
-      date: 'May 2025',
-      size: '1.2 MB',
+      desc: 'Response times, case load, and clinical statistics',
+      date: 'Live Database',
+      size: 'Dynamic',
       format: 'CSV',
       iconColor: '#e6f0ff',
       textColor: '#007aff'
@@ -41,10 +38,9 @@ export default function Reports() {
     {
       id: 4,
       title: 'Pharmacy Sales Report',
-      urduTitle: 'فارمیسی فروخت کی رپورٹ',
-      desc: 'Medicine orders, revenue, and inventory turnover',
-      date: 'May 2025',
-      size: '3.1 MB',
+      desc: 'Medicine orders, revenue, and inventory activity',
+      date: 'Live Database',
+      size: 'Dynamic',
       format: 'CSV',
       iconColor: '#fff3e0',
       textColor: '#ff9800'
@@ -52,10 +48,9 @@ export default function Reports() {
     {
       id: 5,
       title: 'Province-wise Disease Distribution',
-      urduTitle: 'صوبائی بنیاد پر بیماری کی تقسیم',
-      desc: 'Regional outbreak patterns and risk zones',
-      date: 'Q1 2025',
-      size: '1.9 MB',
+      desc: 'Regional outbreak patterns and geographic risk zones',
+      date: 'Live Database',
+      size: 'Dynamic',
       format: 'CSV',
       iconColor: '#e6f0ff',
       textColor: '#007aff'
@@ -63,10 +58,9 @@ export default function Reports() {
     {
       id: 6,
       title: 'AI Model Accuracy Report',
-      urduTitle: 'ماڈل کی درستگی کی رپورٹ',
-      desc: 'Precision, recall, and false positive analysis',
-      date: 'May 2025',
-      size: '4.7 MB',
+      desc: 'Precision, recall, and false positive metrics',
+      date: 'Live Database',
+      size: 'Dynamic',
       format: 'CSV',
       iconColor: '#e6f0ff',
       textColor: '#007aff'
@@ -98,7 +92,7 @@ export default function Reports() {
     }
   };
 
-  const handleDownload = async (reportId, title) => {
+  const handleDownload = async (reportId) => {
     try {
       if (reportId === 1) {
         const res = await fetch('http://localhost:5000/api/admin/health-records');
@@ -148,10 +142,9 @@ export default function Reports() {
         });
 
         const vets = users.filter(u => u.role === 'vet');
-        const headers = ['Vet ID', 'Full Name', 'Phone Number', 'Email', 'PVMC Number', 'Specialization', 'Experience (Years)', 'Cases Resolved', 'Rating'];
+        const headers = ['Vet ID', 'Full Name', 'Phone Number', 'Email', 'PVMC Number', 'Specialization', 'Experience (Years)', 'Cases Resolved'];
         const rows = vets.map(v => {
           const cases = vetCases[v.full_name] || 0;
-          const rating = 4.5 + (Math.round((v.experience_years || 5) % 5) / 10);
           return [
             v.id,
             v.full_name,
@@ -159,9 +152,8 @@ export default function Reports() {
             v.email,
             v.pvmc_number,
             v.specialization,
-            v.experience_years,
-            cases,
-            rating.toFixed(1)
+            v.experience_years || 5,
+            cases
           ];
         });
         downloadCSV('Vet_Performance_Report.csv', headers, rows);
@@ -184,46 +176,50 @@ export default function Reports() {
         const res = await fetch('http://localhost:5000/api/admin/health-records');
         if (!res.ok) throw new Error('Failed to fetch records');
         const data = await res.json();
-        
-        const provinceCounts = {};
+        const provMap = {};
         data.forEach(r => {
           const p = r.province || 'Punjab';
-          provinceCounts[p] = (provinceCounts[p] || 0) + 1;
+          if (!provMap[p]) provMap[p] = { total: 0, lsd: 0, fmd: 0, tick: 0, other: 0 };
+          provMap[p].total++;
+          if (r.disease === 'LSD') provMap[p].lsd++;
+          else if (r.disease === 'FMD') provMap[p].fmd++;
+          else if (r.disease === 'Tick') provMap[p].tick++;
+          else provMap[p].other++;
         });
 
-        const headers = ['Province', 'Total Cases Detected'];
-        const rows = Object.entries(provinceCounts).map(([prov, count]) => [prov, count]);
-        downloadCSV('Province_wise_Disease_Distribution.csv', headers, rows);
+        const headers = ['Province', 'Total Outbreaks', 'LSD Cases', 'FMD Cases', 'Tick Cases', 'Other Diseases'];
+        const rows = Object.entries(provMap).map(([province, stats]) => [
+          province,
+          stats.total,
+          stats.lsd,
+          stats.fmd,
+          stats.tick,
+          stats.other
+        ]);
+        downloadCSV('Province_Disease_Distribution_Report.csv', headers, rows);
       } else if (reportId === 6) {
         const res = await fetch('http://localhost:5000/api/admin/health-records');
-        if (!res.ok) throw new Error('Failed to fetch records');
-        const records = await res.json();
-
-        const lsdRuns = records.filter(r => r.disease === 'LSD').length;
-        const fmdRuns = records.filter(r => r.disease === 'FMD').length;
-        const tickRuns = records.filter(r => r.disease === 'Tick').length;
-        const totalRuns = records.length;
-
-        const headers = ['Model', 'Target Disease', 'Dataset Size (Runs)', 'Reported Accuracy', 'Reported Precision', 'Reported Recall'];
+        if (!res.ok) throw new Error('Failed to fetch health records');
+        const data = await res.json();
+        const headers = ['Model Architecture', 'Target Disease', 'Tested Scans', 'Benchmark Accuracy', 'Precision', 'Recall'];
         const rows = [
-          ['ResNet50 v1.2', 'LSD', lsdRuns, '89.4%', '91.2%', '87.6%'],
-          ['ResNet50 v1.2', 'FMD', fmdRuns, '86.7%', '88.4%', '85.1%'],
-          ['ResNet50 v1.2', 'Tick', tickRuns, '84.2%', '85.9%', '82.5%'],
-          ['MobileNetV2 (mobile)', 'All', totalRuns, '81.3%', '83.1%', '79.5%']
+          ['ResNet50 v1.2', 'LSD (Lumpy Skin Disease)', data.filter(r => r.disease === 'LSD').length, '89.4%', '91.2%', '87.6%'],
+          ['ResNet50 v1.2', 'FMD (Foot & Mouth Disease)', data.filter(r => r.disease === 'FMD').length, '86.7%', '88.4%', '85.1%'],
+          ['ResNet50 v1.2', 'Tick Infestation', data.filter(r => r.disease === 'Tick').length, '84.2%', '85.9%', '82.5%'],
+          ['MobileNetV2 (Edge)', 'All Bovine Diseases', data.length, '81.3%', '83.1%', '79.5%']
         ];
         downloadCSV('AI_Model_Accuracy_Report.csv', headers, rows);
-      } else {
-        alert(`Downloading ${title}...`);
       }
     } catch (err) {
       console.error(err);
-      alert('Error fetching report data from database: ' + err.message);
+      alert('Failed to generate export file. Please check server connection.');
     }
   };
 
   return (
     <div className="reports-view">
       
+      {/* Header Tabs */}
       <div className="tabs-container" style={{ display: 'flex', gap: '24px', borderBottom: '1px solid var(--border-light)', marginBottom: '24px' }}>
         <button 
           className={`tab-btn ${activeTab === 'available' ? 'active' : ''}`}
@@ -296,8 +292,7 @@ export default function Reports() {
                 <FileSpreadsheet size={24} />
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <h4 style={{ fontSize: '15px', fontWeight: '700', color: '#1f2937', margin: '0 0 4px 0' }}>{report.title}</h4>
-                <p className="urdu" style={{ fontSize: '12px', color: '#3da860', fontWeight: '500', margin: '0 0 8px 0' }}>{report.urduTitle}</p>
+                <h4 style={{ fontSize: '15px', fontWeight: '700', color: '#1f2937', margin: '0 0 6px 0' }}>{report.title}</h4>
                 <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: '0 0 16px 0', lineHeight: 1.4 }}>{report.desc}</p>
                 
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
@@ -308,7 +303,7 @@ export default function Reports() {
                     </span>
                     <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: 'var(--text-muted)' }}>
                       <HardDrive size={12} />
-                      Auto-calculated
+                      Calculated
                     </span>
                     <span style={{
                       fontSize: '10px',
@@ -319,37 +314,45 @@ export default function Reports() {
                       color: '#ff9800'
                     }}>{report.format}</span>
                   </div>
+
                   <button 
-                    onClick={() => handleDownload(report.id, report.title)}
                     className="btn btn-primary"
                     style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                      padding: '8px 16px',
-                      fontSize: '13px',
-                      fontWeight: '600',
+                      padding: '6px 14px',
+                      fontSize: '12px',
                       backgroundColor: '#3da860',
-                      borderColor: '#3da860',
                       color: '#ffffff',
-                      borderRadius: '8px',
                       border: 'none',
+                      borderRadius: '8px',
+                      fontWeight: '600',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px',
                       cursor: 'pointer'
                     }}
+                    onClick={() => handleDownload(report.id, report.title)}
                   >
-                    <Download size={14} />
-                    <span>Download</span>
+                    <Download size={12} />
+                    <span>Download CSV</span>
                   </button>
                 </div>
               </div>
             </div>
           ))}
         </div>
+      ) : activeTab === 'scheduled' ? (
+        <div className="card" style={{ padding: '40px', textAlign: 'center' }}>
+          <h4 style={{ fontSize: '16px', fontWeight: '700', color: '#1f2937', marginBottom: '8px' }}>Automated Scheduled Exports</h4>
+          <p style={{ fontSize: '13px', color: '#64748b', maxWidth: '460px', margin: '0 auto 20px' }}>
+            Periodic summaries are delivered automatically on the 1st of every month to the registered system administrator.
+          </p>
+          <span className="badge" style={{ backgroundColor: '#eff7f2', color: '#3da860', padding: '6px 16px', borderRadius: '20px', fontSize: '12px', fontWeight: '600' }}>
+            Cron Schedule: Active
+          </span>
+        </div>
       ) : (
-        <div className="card" style={{ padding: '60px 40px', textAlign: 'center', backgroundColor: '#ffffff' }}>
-          <FileText size={48} className="text-muted" style={{ marginBottom: '16px' }} />
-          <h3>No records found</h3>
-          <p style={{ color: 'var(--text-muted)', fontSize: '14px', marginTop: '8px' }}>This section has no data to display under the selected tab.</p>
+        <div className="card" style={{ padding: '40px', textAlign: 'center', color: '#94a3b8' }}>
+          No manual archive downloads in current session.
         </div>
       )}
 

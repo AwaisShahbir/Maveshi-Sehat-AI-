@@ -4,8 +4,6 @@ import {
   Scan, 
   Stethoscope, 
   TrendingUp, 
-  Star,
-  Activity,
   RefreshCw
 } from 'lucide-react';
 import { 
@@ -50,10 +48,8 @@ export default function Analytics() {
     fetchAnalyticsData();
   }, []);
 
-  
-  const nowTime = Date.now();
+  const nowTime = React.useMemo(() => Date.now(), []);
   const ms30d = 30 * 24 * 60 * 60 * 1000;
-  
   
   const newUsersLast30 = users.filter(u => (nowTime - new Date(u.created_at).getTime()) <= ms30d).length;
   const newUsersPrev30 = users.filter(u => {
@@ -63,7 +59,6 @@ export default function Analytics() {
   const usersTrendVal = newUsersPrev30 ? Math.round(((newUsersLast30 - newUsersPrev30) / newUsersPrev30) * 100) : newUsersLast30 * 10;
   const newUsersTrend = (usersTrendVal >= 0 ? '+' : '') + usersTrendVal + '%';
 
-  
   const scansLast30 = records.filter(r => (nowTime - new Date(r.created_at).getTime()) <= ms30d).length;
   const scansPrev30 = records.filter(r => {
     const diff = nowTime - new Date(r.created_at).getTime();
@@ -72,12 +67,10 @@ export default function Analytics() {
   const scansTrendVal = scansPrev30 ? Math.round(((scansLast30 - scansPrev30) / scansPrev30) * 100) : scansLast30 * 10;
   const scansTrend = (scansTrendVal >= 0 ? '+' : '') + scansTrendVal + '%';
 
-  
   const consultations = records.filter(r => r.disease !== 'Healthy' && r.disease !== 'BCS Normal').length;
   const consultationsTrend = '+12.5%';
 
-  
-  const avgConf = records.length ? Math.round(records.reduce((sum, r) => sum + r.confidence, 0) / records.length) : 0;
+  const avgConf = records.length ? Math.round(records.reduce((sum, r) => sum + (parseFloat(r.confidence) || 0), 0) / records.length) : 0;
   const avgResponse = avgConf ? avgConf + '%' : '0%';
   const avgResponseTrend = 'Avg. Confidence';
 
@@ -92,7 +85,6 @@ export default function Analytics() {
     avgResponseTrend
   };
 
-  
   const chartData = [];
   const now = new Date();
   for (let i = 5; i >= 0; i--) {
@@ -100,11 +92,12 @@ export default function Analytics() {
     const monthName = d.toLocaleString([], { month: 'short' });
     const year = d.getFullYear();
     const monthVal = d.getMonth();
-    
+
     const monthlyUsers = users.filter(u => {
       const ud = new Date(u.created_at);
       return ud.getFullYear() === year && ud.getMonth() === monthVal;
     });
+
     chartData.push({
       name: monthName,
       Owners: monthlyUsers.filter(u => u.role === 'farmer').length,
@@ -112,20 +105,16 @@ export default function Analytics() {
     });
   }
 
-  
-  const successRate = records.length ? Math.round((records.filter(r => r.confidence >= 75).length / records.length) * 100) : 94.2;
-  const responseRate = records.length ? Math.round((records.filter(r => r.vet_name || r.status === 'Resolved').length / records.length) * 100) : 87.5;
+  const successRate = records.length ? Math.round((records.filter(r => (parseFloat(r.confidence) || 0) >= 75).length / records.length) * 100) : 94;
+  const responseRate = records.length ? Math.round((records.filter(r => r.vet_name).length / records.length) * 100) : 88;
 
   const engagementMetrics = [
-    { name: 'Daily Active Users (DAU)', value: Math.max(1, Math.round(users.length * 0.15)).toString(), trend: '+5.2%', isPositive: true },
-    { name: 'Weekly Active Users (WAU)', value: Math.max(1, Math.round(users.length * 0.45)).toString(), trend: '+8.7%', isPositive: true },
-    { name: 'Monthly Active Users (MAU)', value: users.length.toString(), trend: '+12.3%', isPositive: true },
-    { name: 'Avg. Session Duration', value: '8.4 min', trend: '+1.8%', isPositive: true },
+    { name: 'Active User Ratio', value: users.length ? `${Math.round((users.filter(u => u.status !== 'blocked').length / users.length) * 100)}%` : '100%', trend: '+4.2%', isPositive: true },
+    { name: 'Monthly Registered Accounts', value: users.length.toString(), trend: '+12.3%', isPositive: true },
     { name: 'Scan Success Rate (Conf >= 75%)', value: successRate + '%', trend: '+2.1%', isPositive: true },
-    { name: 'Vet Response Rate', value: responseRate + '%', trend: '+1.5%', isPositive: true }
+    { name: 'Veterinary Assignment Rate', value: responseRate + '%', trend: '+3.5%', isPositive: true }
   ];
 
-  
   const vetCases = {};
   records.forEach(r => {
     if (r.vet_name) {
@@ -140,9 +129,9 @@ export default function Analytics() {
       name: v.full_name,
       city: v.district || 'Punjab',
       cases: cases,
-      rating: 4.5 + (Math.round((v.experience_years || 5) % 5) / 10)
+      specialization: v.specialization || 'Livestock Specialist'
     };
-  }).sort((a, b) => b.cases - a.cases || b.rating - a.rating).slice(0, 5).map((v, index) => ({
+  }).sort((a, b) => b.cases - a.cases).slice(0, 5).map((v, index) => ({
     rank: index + 1,
     ...v
   }));
@@ -177,12 +166,10 @@ export default function Analytics() {
       </div>
 
       {loading ? (
-        <div style={{ textAlign: 'center', padding: '40px' }}>Loading platform analytics... / لوڈ ہو رہا ہے...</div>
+        <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>Loading platform analytics...</div>
       ) : (
         <>
-          
           <div className="grid-4" style={{ marginBottom: '24px' }}>
-            
             <div className="card" style={{ display: 'flex', alignItems: 'center', gap: '16px', borderRadius: '16px' }}>
               <div style={{ width: '48px', height: '48px', borderRadius: '50%', backgroundColor: '#e6f0ff', color: '#007aff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <Users size={20} />
@@ -194,7 +181,6 @@ export default function Analytics() {
               <span style={{ fontSize: '12px', fontWeight: '700', color: '#3da860' }}>{stats.newUsersTrend}</span>
             </div>
 
-            
             <div className="card" style={{ display: 'flex', alignItems: 'center', gap: '16px', borderRadius: '16px' }}>
               <div style={{ width: '48px', height: '48px', borderRadius: '50%', backgroundColor: '#eff7f2', color: '#3da860', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <Scan size={20} />
@@ -206,19 +192,17 @@ export default function Analytics() {
               <span style={{ fontSize: '12px', fontWeight: '700', color: '#3da860' }}>{stats.scansTrend}</span>
             </div>
 
-            
             <div className="card" style={{ display: 'flex', alignItems: 'center', gap: '16px', borderRadius: '16px' }}>
               <div style={{ width: '48px', height: '48px', borderRadius: '50%', backgroundColor: '#fff3e0', color: '#ff9800', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <Stethoscope size={20} />
               </div>
               <div style={{ flex: 1 }}>
                 <span style={{ fontSize: '24px', fontWeight: '700', color: '#135431', display: 'block', lineHeight: 1.2 }}>{stats.consultations}</span>
-                <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Consultations</span>
+                <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Clinical Cases</span>
               </div>
               <span style={{ fontSize: '12px', fontWeight: '700', color: '#3da860' }}>{stats.consultationsTrend}</span>
             </div>
 
-            
             <div className="card" style={{ display: 'flex', alignItems: 'center', gap: '16px', borderRadius: '16px' }}>
               <div style={{ width: '48px', height: '48px', borderRadius: '50%', backgroundColor: '#ffebee', color: '#d32f2f', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <TrendingUp size={20} />
@@ -231,14 +215,12 @@ export default function Analytics() {
             </div>
           </div>
 
-          
           <div className="grid-2-1">
-            
             <div className="card">
               <div className="card-title-container">
                 <div>
                   <h3 className="card-title">User Growth Trend</h3>
-                  <p className="card-subtitle">Monthly registration statistics • رجسٹریشن اعداد و شمار</p>
+                  <p className="card-subtitle">Monthly registration distribution</p>
                 </div>
               </div>
               <div style={{ width: '100%', height: 300 }}>
@@ -256,12 +238,11 @@ export default function Analytics() {
               </div>
             </div>
 
-            
             <div className="card">
               <div className="card-title-container">
                 <div>
                   <h3 className="card-title">Engagement Metrics</h3>
-                  <p className="card-subtitle">Platform activity indicators • سرگرمی انڈیکیٹرز</p>
+                  <p className="card-subtitle">Platform activity indicators</p>
                 </div>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -282,12 +263,11 @@ export default function Analytics() {
             </div>
           </div>
 
-          
           <div className="card" style={{ marginBottom: '24px', marginTop: '24px' }}>
             <div className="card-title-container">
               <div>
-                <h3 className="card-title">Top Performing Vets</h3>
-                <p className="card-subtitle">Based on cases handled and ratings • ڈاکٹروں کی کارکردگی کی درجہ بندی</p>
+                <h3 className="card-title">Top Registered Veterinarians</h3>
+                <p className="card-subtitle">Active verified veterinary specialists</p>
               </div>
             </div>
             <div className="table-responsive">
@@ -297,46 +277,44 @@ export default function Analytics() {
                     <th style={{ width: '80px' }}>Rank</th>
                     <th>Veterinarian</th>
                     <th>City</th>
-                    <th>Cases Handled</th>
-                    <th>Rating</th>
+                    <th>Specialization</th>
+                    <th>Cases Assigned</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {topVets.map((vet) => (
-                    <tr key={vet.rank}>
-                      <td>
-                        <div style={{
-                          width: '28px',
-                          height: '28px',
-                          borderRadius: '50%',
-                          backgroundColor: vet.rank === 1 ? '#ffeb3b' : vet.rank === 2 ? '#e0e0e0' : vet.rank === 3 ? '#ffe0b2' : '#f1f5f9',
-                          color: vet.rank <= 3 ? '#5d4037' : 'var(--text-main)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontWeight: '700',
-                          fontSize: '13px'
-                        }}>
-                          {vet.rank}
-                        </div>
-                      </td>
-                      <td style={{ fontWeight: '600' }}>{vet.name}</td>
-                      <td>{vet.city}</td>
-                      <td>{vet.cases}</td>
-                      <td style={{ fontWeight: '700', color: '#ff9800' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          <Star size={14} fill="#ff9800" stroke="none" />
-                          <span>{vet.rating.toFixed(1)}</span>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                  {topVets.length === 0 && (
+                  {topVets.length === 0 ? (
                     <tr>
                       <td colSpan="5" style={{ textAlign: 'center', padding: '24px', color: '#94a3b8' }}>
-                        No veterinarians registered in directory. / کوئی ڈاکٹر رجسٹرڈ نہیں ہے۔
+                        No veterinary doctors registered yet.
                       </td>
                     </tr>
+                  ) : (
+                    topVets.map((vet) => (
+                      <tr key={vet.rank}>
+                        <td>
+                          <span style={{
+                            display: 'inline-flex',
+                            width: '26px',
+                            height: '26px',
+                            borderRadius: '50%',
+                            backgroundColor: vet.rank === 1 ? '#fff3e0' : '#f1f5f9',
+                            color: vet.rank === 1 ? '#ff9800' : 'var(--text-muted)',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontWeight: '700',
+                            fontSize: '12px'
+                          }}>
+                            {vet.rank}
+                          </span>
+                        </td>
+                        <td style={{ fontWeight: '600' }}>{vet.name}</td>
+                        <td>{vet.city}</td>
+                        <td>{vet.specialization}</td>
+                        <td>
+                          <span style={{ fontWeight: '700', color: '#135431' }}>{vet.cases}</span>
+                        </td>
+                      </tr>
+                    ))
                   )}
                 </tbody>
               </table>

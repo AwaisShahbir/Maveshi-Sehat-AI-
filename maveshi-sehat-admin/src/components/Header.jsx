@@ -26,51 +26,48 @@ export default function Header() {
   }, []);
 
   const routeTitles = {
-    '/': { en: 'Dashboard', ur: 'ڈیش بورڈ' },
-    '/analytics': { en: 'Platform Analytics', ur: 'پلیٹ فارم تجزیات' },
-    '/reports': { en: 'Reports Center', ur: 'رپورٹس سینٹر' },
-    '/users': { en: 'User Management', ur: 'صارف انتظام' },
-    '/vets': { en: 'Vet Verification', ur: 'ڈاکٹر تصدیق' },
-    '/pharmacy-approval': { en: 'Pharmacy Approval', ur: 'فارمیسی منظوری' },
-    '/health-records': { en: 'Health Records', ur: 'صحت کے ریکارڈ' },
-    '/medicines': { en: 'Medicine Catalogue', ur: 'دوائی فہرست' },
-    '/orders': { en: 'Order Management', ur: 'آرڈر انتظام' },
-    '/notifications': { en: 'Notifications', ur: 'اطلاعات' },
-    '/settings': { en: 'Settings & Configuration', ur: 'ترتیبات' }
+    '/': 'Dashboard',
+    '/analytics': 'Platform Analytics',
+    '/reports': 'Reports Center',
+    '/users': 'User Management',
+    '/vets': 'Vet Verification',
+    '/pharmacy-approval': 'Pharmacy Approval',
+    '/health-records': 'Health Records',
+    '/disease-analytics': 'Disease Analytics',
+    '/medicines': 'Medicine Catalogue',
+    '/orders': 'Order Management',
+    '/notifications': 'Notifications',
+    '/settings': 'Settings & Configuration'
   };
 
-  const currentTitle = routeTitles[location.pathname] || { en: 'Admin Panel', ur: 'ایڈمن پینل' };
+  const currentTitle = routeTitles[location.pathname] || 'Admin Panel';
 
   return (
     <header className="main-header">
       
       <div className="header-title-container">
-        <h1 className="header-title-en">{currentTitle.en}</h1>
-        <span className="header-title-ur">{currentTitle.ur}</span>
+        <h1 className="header-title-en">{currentTitle}</h1>
       </div>
 
-      
       <div className="header-actions">
         
         <div className="header-search-container">
           <Search className="search-icon" size={18} />
           <input 
             type="text" 
-            placeholder="تلاش کریں / Search..." 
+            placeholder="Search records, users..." 
             className="search-input"
           />
         </div>
 
-        
-        <Link to="/notifications" className="header-notification-btn">
+        <Link to="/notifications" className="header-notification-btn" title="View notifications">
           <Bell size={20} />
           {unreadCount > 0 && (
             <span className="notification-badge">{unreadCount}</span>
           )}
         </Link>
 
-        
-        <Link to="/settings" className="header-avatar-btn">
+        <Link to="/settings" className="header-avatar-btn" title="Account settings">
           <div className="header-avatar-circle">SA</div>
           <div className="avatar-online-dot"></div>
         </Link>
