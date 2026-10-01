@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { AlertTriangle, ShieldAlert, CheckCircle2, Edit3, Plus } from 'lucide-react';
+import '../styles/StockAlerts.css';
 
 export default function StockAlerts({ pharmacy, onEditMedicine, onAddMedicine }) {
   const [medicines, setMedicines] = useState([]);

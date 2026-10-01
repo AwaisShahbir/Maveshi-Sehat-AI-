@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
+import './styles/App.css';
 
 export default function App() {
   const [currentView, setCurrentView] = useState('login'); 
@@ -34,7 +35,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen w-screen bg-slate-50 flex flex-col overflow-x-hidden">
+    <div className="pharmacy-app-container">
       {currentView === 'login' && (
         <Login 
           onLoginSuccess={handleLoginSuccess} 

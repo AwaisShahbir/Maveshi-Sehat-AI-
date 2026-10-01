@@ -11,6 +11,7 @@ import AddMedicine from './AddMedicine';
 import StockAlerts from './StockAlerts';
 import SettingsPage from './Settings';
 import logoImg from '../assets/logo.png';
+import '../styles/Dashboard.css';
 
 export default function Dashboard({ pharmacy, onLogout }) {
   const [currentView, setCurrentView] = useState('dashboard'); 
@@ -131,7 +132,7 @@ export default function Dashboard({ pharmacy, onLogout }) {
           <img 
             src={logoImg} 
             alt="Maveshi Sehat AI Logo" 
-            style={{ width: '38px', height: '38px', borderRadius: '50%', objectFit: 'cover', border: '2px solid rgba(255,255,255,0.2)' }} 
+            className="pharmacy-sidebar-logo" 
           />
           <div>
             <span className="font-heading text-sm font-extrabold text-white block leading-tight">Maveshi Sehat AI</span>

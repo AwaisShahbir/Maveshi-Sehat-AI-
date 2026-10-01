@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ShieldAlert, CheckCircle, Clock, Heart, TrendingUp, KeyRound, Mail, LogIn, Eye, EyeOff } from 'lucide-react';
+import '../styles/Login.css';
 
 export default function Login({ onLoginSuccess, onViewChange }) {
   const [emailOrPhone, setEmailOrPhone] = useState('');
@@ -36,11 +37,10 @@ export default function Login({ onLoginSuccess, onViewChange }) {
   };
 
   return (
-    <div className="flex min-h-screen w-screen bg-[#eff7f2]">
+    <div className="pharmacy-login-wrapper">
       
       <div 
-        className="hidden md:flex flex-col justify-center items-center p-12 bg-gradient-to-br from-[#135431] to-[#0e3a22] border-r border-[#0e3a22] text-white"
-        style={{ flex: '1.1' }}
+        className="pharmacy-login-branding hidden md:flex flex-col justify-center items-center p-12 bg-gradient-to-br from-[#135431] to-[#0e3a22] border-r border-[#0e3a22] text-white"
       >
         <div className="flex flex-col items-center mb-10">
           <div className="w-[96px] h-[96px] rounded-full bg-white/5 border-[3px] border-[#3da860] flex items-center justify-center mb-5 shadow-inner">
@@ -109,8 +109,7 @@ export default function Login({ onLoginSuccess, onViewChange }) {
 
       
       <div 
-        className="flex items-center justify-center p-6 md:p-12"
-        style={{ flex: '1.2' }}
+        className="pharmacy-login-form-pane flex items-center justify-center p-6 md:p-12"
       >
         <div className="w-full max-w-[460px] bg-white rounded-[24px] border border-slate-200 p-8 md:p-12 shadow-xl flex flex-col">
           <h2 className="font-heading text-2xl font-bold text-slate-900 text-center">Welcome Back</h2>

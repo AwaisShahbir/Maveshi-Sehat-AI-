@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Pill, Upload, X, Check, HelpCircle, Save, Ban } from 'lucide-react';
+import '../styles/AddMedicine.css';
 
 export default function AddMedicine({ pharmacy, onSaveSuccess, onCancel }) {
   const [form, setForm] = useState({

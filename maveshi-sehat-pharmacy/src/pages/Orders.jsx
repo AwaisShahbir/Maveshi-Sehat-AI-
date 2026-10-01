@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronRight, ChevronDown, Clock, ShoppingBag, Truck, CheckCircle, AlertTriangle } from 'lucide-react';
+import '../styles/Orders.css';
 
 export default function Orders({ pharmacy, onOrderAction, formatPrice, getStatusBadge }) {
   const [orders, setOrders] = useState([]);

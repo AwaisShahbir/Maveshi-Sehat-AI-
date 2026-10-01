@@ -7,6 +7,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, 
   Tooltip, Legend, ResponsiveContainer, Cell 
 } from 'recharts';
+import '../styles/Analytics.css';
 
 export default function Analytics({ pharmacy, formatPrice }) {
   const [data, setData] = useState(null);
@@ -33,7 +34,7 @@ export default function Analytics({ pharmacy, formatPrice }) {
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '300px', color: '#94a3b8' }}>
+      <div className="analytics-loading">
         <p>Loading analytics data... / لوڈ ہو رہا ہے...</p>
       </div>
     );

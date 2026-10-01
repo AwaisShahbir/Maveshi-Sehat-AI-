@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ShieldCheck, Info, MapPin, Award, Store, ArrowLeft, Send } from 'lucide-react';
+import '../styles/Register.css';
 
 export default function Register({ onViewChange }) {
   
@@ -66,7 +67,7 @@ export default function Register({ onViewChange }) {
 
   if (success) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#eff7f2] p-6">
+      <div className="pharmacy-register-success-view">
         <div className="w-full max-w-[460px] bg-white border border-slate-200 rounded-[24px] p-8 md:p-12 text-center shadow-xl">
           <div className="w-20 h-20 rounded-full bg-[#3da860]/10 text-[#3da860] flex items-center justify-center mx-auto mb-6 border-[3px] border-[#3da860]">
             <ShieldCheck size={48} />
@@ -90,7 +91,7 @@ export default function Register({ onViewChange }) {
   }
 
   return (
-    <div className="min-h-screen bg-[#eff7f2] text-slate-900 flex flex-col">
+    <div className="pharmacy-register-view">
       
       <header className="flex items-center p-6 md:px-8 bg-white border-b border-slate-200 gap-6">
         <button 

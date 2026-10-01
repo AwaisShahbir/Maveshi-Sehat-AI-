@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Pill, Search, Plus, Edit, Trash2, X, AlertTriangle, CheckCircle, Eye } from 'lucide-react';
+import '../styles/Medicines.css';
 
 export default function Medicines({ pharmacy, showAddModal, onCloseAddModal, editMedicineId, onCloseEditModal, formatPrice }) {
   const [medicines, setMedicines] = useState([]);
@@ -272,13 +273,13 @@ export default function Medicines({ pharmacy, showAddModal, onCloseAddModal, edi
             <table className="custom-table">
               <thead>
                 <tr>
-                  <th style={{ width: '130px' }} className="font-bold text-slate-500 uppercase tracking-wider text-xs">Medicine ID</th>
+                  <th className="med-col-id font-bold text-slate-500 uppercase tracking-wider text-xs">Medicine ID</th>
                   <th className="font-bold text-slate-500 uppercase tracking-wider text-xs">Name / نام</th>
                   <th className="font-bold text-slate-500 uppercase tracking-wider text-xs">Category</th>
                   <th className="font-bold text-slate-500 uppercase tracking-wider text-xs">Price (PKR)</th>
                   <th className="font-bold text-slate-500 uppercase tracking-wider text-xs">Stock</th>
                   <th className="font-bold text-slate-500 uppercase tracking-wider text-xs">Status</th>
-                  <th style={{ width: '150px' }} className="font-bold text-slate-500 uppercase tracking-wider text-xs text-right">Actions</th>
+                  <th className="med-col-actions font-bold text-slate-500 uppercase tracking-wider text-xs text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">

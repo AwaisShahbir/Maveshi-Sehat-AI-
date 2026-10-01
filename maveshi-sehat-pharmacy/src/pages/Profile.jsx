@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Store, ShieldCheck, Mail, Phone, Clock, FileText, Check } from 'lucide-react';
+import '../styles/Profile.css';
 
 export default function Profile({ pharmacy, onProfileUpdate }) {
   const [profile, setProfile] = useState(null);

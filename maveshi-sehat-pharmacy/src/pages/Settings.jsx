@@ -3,6 +3,7 @@ import {
   Globe, Bell, Shield, Eye, EyeOff, Lock, Save, CheckCircle,
   Sun, Moon, Monitor, ChevronRight, AlertTriangle, Smartphone
 } from 'lucide-react';
+import '../styles/Settings.css';
 
 export default function Settings({ pharmacy }) {
   // Language

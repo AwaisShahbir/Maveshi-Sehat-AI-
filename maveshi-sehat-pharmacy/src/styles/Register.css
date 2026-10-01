@@ -1,0 +1,18 @@
+/* Register.css - Pharmacy Portal Registration */
+
+.pharmacy-register-view {
+  min-height: 100vh;
+  background-color: var(--bg-page, #eff7f2);
+  color: #0f172a;
+  display: flex;
+  flex-direction: column;
+}
+
+.pharmacy-register-success-view {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--bg-page, #eff7f2);
+  padding: 24px;
+}

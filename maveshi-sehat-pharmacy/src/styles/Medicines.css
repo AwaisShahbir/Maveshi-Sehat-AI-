@@ -1,0 +1,85 @@
+/* Medicines.css - Pharmacy Portal Medicines Management Styles */
+
+.med-col-id {
+  width: 130px;
+}
+
+.med-col-actions {
+  width: 150px;
+}
+
+.medicines-table-container {
+  overflow-x: auto;
+  border-radius: 12px;
+}
+
+.med-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  background-color: #ffffff;
+  color: #64748b;
+  transition: all 0.15s ease-in-out;
+}
+
+.med-action-btn:hover {
+  background-color: #f8fafc;
+  color: #0f172a;
+}
+
+.med-action-btn.edit:hover {
+  border-color: #3b82f6;
+  color: #3b82f6;
+  background-color: #eff6ff;
+}
+
+.med-action-btn.delete:hover {
+  border-color: #ef4444;
+  color: #ef4444;
+  background-color: #fef2f2;
+}
+
+.med-filter-chip {
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 9999px;
+  border: 1px solid #e2e8f0;
+  background-color: #ffffff;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.med-filter-chip.active {
+  background-color: #135431;
+  color: #ffffff;
+  border-color: #135431;
+}
+
+.med-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background-color: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.med-modal-content {
+  background-color: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  width: 100%;
+  max-width: 580px;
+  max-height: 90vh;
+  overflow-y: auto;
+  border: 1px solid #e2e8f0;
+}

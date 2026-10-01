@@ -1,0 +1,59 @@
+/* Orders.css - Pharmacy Portal Order Management Styles */
+
+.orders-filter-container {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.orders-filter-tab {
+  padding: 8px 16px;
+  border-radius: 9999px;
+  font-size: 13px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  border: 1px solid #e2e8f0;
+  background-color: #ffffff;
+  color: #64748b;
+  cursor: pointer;
+}
+
+.orders-filter-tab.active {
+  background-color: #135431;
+  color: #ffffff;
+  border-color: #135431;
+}
+
+.order-card-row {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background-color: #ffffff;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.order-card-row:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.05);
+}
+
+.order-items-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.order-items-table th {
+  padding: 8px 12px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #64748b;
+  background-color: #f8fafc;
+}
+
+.order-items-table td {
+  padding: 10px 12px;
+  font-size: 13px;
+  border-top: 1px solid #f1f5f9;
+}
