@@ -1,75 +1,277 @@
-import React, { useState } from 'react';
-import { User, Lock, Bell, Settings as SettingsIcon } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { User, Lock, Bell, Settings as SettingsIcon, CheckCircle2, AlertCircle } from 'lucide-react';
 import '../styles/Settings.css';
 
-export default function Settings() {
+export default function Settings({ onProfileUpdate }) {
   const [subTab, setSubTab] = useState('profile');
+  const [feedback, setFeedback] = useState({ type: '', message: '' });
+  const [loading, setLoading] = useState(false);
 
-  const [profileName, setProfileName] = useState(() => {
-    try {
-      const saved = sessionStorage.getItem('adminUser');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        return parsed.user?.full_name || 'Super Admin';
-      }
-    } catch {
-      // ignore
-    }
-    return 'Super Admin';
-  });
+  // Profile Form States
+  const [profileName, setProfileName] = useState('Awais Shabbir');
+  const [profileEmail, setProfileEmail] = useState('maveshisehatai@gmail.com');
+  const [profilePhone, setProfilePhone] = useState('03240650810');
+  const [avatarUrl, setAvatarUrl] = useState(() => localStorage.getItem('adminAvatar') || '');
+  const fileInputRef = useRef(null);
 
-  const [profileEmail, setProfileEmail] = useState(() => {
-    try {
-      const saved = sessionStorage.getItem('adminUser');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        return parsed.user?.email || 'admin@maveshisehat.pk';
-      }
-    } catch {
-      // ignore
-    }
-    return 'admin@maveshisehat.pk';
-  });
-
-  const [profilePhone, setProfilePhone] = useState('+92 300 1234567');
-
+  // Security Form States
   const [currentPwd, setCurrentPwd] = useState('');
   const [newPwd, setNewPwd] = useState('');
   const [confirmPwd, setConfirmPwd] = useState('');
 
+  // Notification Preferences States
   const [emailNotif, setEmailNotif] = useState(true);
   const [smsNotif, setSmsNotif] = useState(true);
   const [outbreakAlerts, setOutbreakAlerts] = useState(true);
   const [newUserReg, setNewUserReg] = useState(true);
   const [vetReq, setVetReq] = useState(true);
 
+  // System Settings States
   const [threshold, setThreshold] = useState(85);
   const [language, setLanguage] = useState('en');
   const [timezone, setTimezone] = useState('utc-5');
 
-  const handleProfileSave = (e) => {
-    e.preventDefault();
-    alert('Profile changes saved successfully.');
+  // Load initial settings and profile from backend API
+  useEffect(() => {
+    const fetchProfileAndSettings = async () => {
+      try {
+        const [profileRes, settingsRes] = await Promise.all([
+          fetch('http://localhost:5000/api/admin/profile'),
+          fetch('http://localhost:5000/api/admin/settings')
+        ]);
+
+        if (profileRes.ok) {
+          const profileData = await profileRes.json();
+          if (profileData.fullName || profileData.full_name) {
+            setProfileName(profileData.fullName || profileData.full_name);
+          }
+          if (profileData.email) setProfileEmail(profileData.email);
+          if (profileData.phoneNumber || profileData.phone_number) {
+            setProfilePhone(profileData.phoneNumber || profileData.phone_number);
+          }
+        }
+
+        if (settingsRes.ok) {
+          const settingsData = await settingsRes.json();
+          if (settingsData.notifications) {
+            const notifs = settingsData.notifications;
+            if (notifs.emailNotif !== undefined) setEmailNotif(notifs.emailNotif);
+            if (notifs.smsNotif !== undefined) setSmsNotif(notifs.smsNotif);
+            if (notifs.outbreakAlerts !== undefined) setOutbreakAlerts(notifs.outbreakAlerts);
+            if (notifs.newUserReg !== undefined) setNewUserReg(notifs.newUserReg);
+            if (notifs.vetReq !== undefined) setVetReq(notifs.vetReq);
+          }
+          if (settingsData.system) {
+            const sys = settingsData.system;
+            if (sys.threshold !== undefined) setThreshold(sys.threshold);
+            if (sys.language !== undefined) setLanguage(sys.language);
+            if (sys.timezone !== undefined) setTimezone(sys.timezone);
+          }
+        }
+      } catch (err) {
+        console.error('Failed to load settings from server:', err);
+      }
+    };
+
+    fetchProfileAndSettings();
+  }, []);
+
+  // Compute initials dynamically (e.g. Awais Shabbir -> AS)
+  const getInitials = (name) => {
+    if (!name) return 'AS';
+    return name
+      .trim()
+      .split(' ')
+      .filter(Boolean)
+      .slice(0, 2)
+      .map(part => part[0])
+      .join('')
+      .toUpperCase();
   };
 
-  const handlePasswordUpdate = (e) => {
+  const handleAvatarChange = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        setFeedback({ type: 'error', message: 'Avatar image must be under 2MB.' });
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64 = reader.result;
+        setAvatarUrl(base64);
+        localStorage.setItem('adminAvatar', base64);
+        setFeedback({ type: 'success', message: 'Avatar updated successfully.' });
+        window.dispatchEvent(new Event('adminAvatarUpdated'));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // 1. Save Profile
+  const handleProfileSave = async (e) => {
     e.preventDefault();
-    if (newPwd !== confirmPwd) {
-      alert('Passwords do not match.');
+    setFeedback({ type: '', message: '' });
+    setLoading(true);
+
+    try {
+      const res = await fetch('http://localhost:5000/api/admin/profile', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          full_name: profileName,
+          phone_number: profilePhone,
+          email: profileEmail
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to update profile.');
+      }
+
+      setFeedback({ type: 'success', message: 'Profile details saved successfully.' });
+
+      // Update sessionStorage so header and sidebar reflect the change
+      const saved = sessionStorage.getItem('adminUser');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          parsed.user = {
+            ...parsed.user,
+            full_name: data.user.full_name,
+            fullName: data.user.full_name,
+            email: data.user.email,
+            phone_number: data.user.phone_number
+          };
+          sessionStorage.setItem('adminUser', JSON.stringify(parsed));
+        } catch {
+          // ignore
+        }
+      }
+
+      if (onProfileUpdate) {
+        onProfileUpdate(data.user);
+      }
+    } catch (err) {
+      setFeedback({ type: 'error', message: err.message || 'Error updating profile.' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 2. Change Password
+  const handlePasswordUpdate = async (e) => {
+    e.preventDefault();
+    setFeedback({ type: '', message: '' });
+
+    if (!currentPwd || !newPwd || !confirmPwd) {
+      setFeedback({ type: 'error', message: 'Please fill in all password fields.' });
       return;
     }
-    alert('Password updated successfully.');
-    setCurrentPwd('');
-    setNewPwd('');
-    setConfirmPwd('');
+
+    if (newPwd !== confirmPwd) {
+      setFeedback({ type: 'error', message: 'New password and confirmation do not match.' });
+      return;
+    }
+
+    if (newPwd.length < 6) {
+      setFeedback({ type: 'error', message: 'New password must be at least 6 characters long.' });
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const res = await fetch('http://localhost:5000/api/admin/change-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          currentPassword: currentPwd,
+          newPassword: newPwd
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to update password.');
+      }
+
+      setFeedback({ type: 'success', message: 'Password updated successfully.' });
+      setCurrentPwd('');
+      setNewPwd('');
+      setConfirmPwd('');
+    } catch (err) {
+      setFeedback({ type: 'error', message: err.message || 'Error updating password.' });
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleNotifSave = () => {
-    alert('Notification preferences updated.');
+  // 3. Save Notification Preferences
+  const handleNotifSave = async () => {
+    setFeedback({ type: '', message: '' });
+    setLoading(true);
+
+    try {
+      const res = await fetch('http://localhost:5000/api/admin/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          key: 'notifications',
+          value: {
+            emailNotif,
+            smsNotif,
+            outbreakAlerts,
+            newUserReg,
+            vetReq
+          }
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to save notifications.');
+      }
+
+      setFeedback({ type: 'success', message: 'Notification preferences saved successfully.' });
+    } catch (err) {
+      setFeedback({ type: 'error', message: err.message || 'Error saving notification preferences.' });
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleSystemSave = () => {
-    alert('System configurations applied.');
+  // 4. Save System Settings
+  const handleSystemSave = async () => {
+    setFeedback({ type: '', message: '' });
+    setLoading(true);
+
+    try {
+      const res = await fetch('http://localhost:5000/api/admin/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          key: 'system',
+          value: {
+            threshold: Number(threshold),
+            language,
+            timezone
+          }
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to save system settings.');
+      }
+
+      setFeedback({ type: 'success', message: 'System configurations applied successfully.' });
+    } catch (err) {
+      setFeedback({ type: 'error', message: err.message || 'Error saving system settings.' });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -86,7 +288,10 @@ export default function Settings() {
           ].map((tab) => (
             <button
               key={tab.id}
-              onClick={() => setSubTab(tab.id)}
+              onClick={() => {
+                setSubTab(tab.id);
+                setFeedback({ type: '', message: '' });
+              }}
               className={`settings-nav-item ${subTab === tab.id ? 'active' : ''}`}
             >
               {tab.icon}
@@ -97,6 +302,14 @@ export default function Settings() {
 
         {/* Content Box */}
         <div className="card settings-content-card">
+
+          {/* Feedback Banner */}
+          {feedback.message && (
+            <div className={`settings-alert ${feedback.type === 'success' ? 'alert-success' : 'alert-error'}`}>
+              {feedback.type === 'success' ? <CheckCircle2 size={16} /> : <AlertCircle size={16} />}
+              <span>{feedback.message}</span>
+            </div>
+          )}
           
           {subTab === 'profile' && (
             <form onSubmit={handleProfileSave}>
@@ -105,10 +318,25 @@ export default function Settings() {
 
               <div className="settings-avatar-row">
                 <div className="settings-avatar-circle">
-                  SA
+                  {avatarUrl ? (
+                    <img src={avatarUrl} alt="Avatar" className="settings-avatar-img" />
+                  ) : (
+                    getInitials(profileName)
+                  )}
                 </div>
                 <div>
-                  <button type="button" className="btn btn-secondary settings-avatar-btn">
+                  <input 
+                    type="file" 
+                    ref={fileInputRef} 
+                    style={{ display: 'none' }} 
+                    accept="image/*" 
+                    onChange={handleAvatarChange} 
+                  />
+                  <button 
+                    type="button" 
+                    className="btn btn-secondary settings-avatar-btn"
+                    onClick={() => fileInputRef.current?.click()}
+                  >
                     Upload New Avatar
                   </button>
                   <span className="settings-avatar-hint">
@@ -125,6 +353,7 @@ export default function Settings() {
                     className="form-control settings-input"
                     value={profileName}
                     onChange={(e) => setProfileName(e.target.value)}
+                    required
                   />
                 </div>
 
@@ -135,6 +364,7 @@ export default function Settings() {
                     className="form-control settings-input"
                     value={profileEmail}
                     onChange={(e) => setProfileEmail(e.target.value)}
+                    required
                   />
                 </div>
 
@@ -145,6 +375,7 @@ export default function Settings() {
                     className="form-control settings-input"
                     value={profilePhone}
                     onChange={(e) => setProfilePhone(e.target.value)}
+                    required
                   />
                 </div>
 
@@ -155,6 +386,7 @@ export default function Settings() {
                     className="form-control settings-input-disabled"
                     value="Super Administrator"
                     disabled
+                    title="Account authorization role is fixed by system administrator policy"
                   />
                 </div>
               </div>
@@ -162,9 +394,10 @@ export default function Settings() {
               <div className="settings-form-footer">
                 <button
                   type="submit"
+                  disabled={loading}
                   className="btn btn-primary settings-save-btn"
                 >
-                  Save Changes
+                  {loading ? 'Saving...' : 'Save Changes'}
                 </button>
               </div>
             </form>
@@ -184,6 +417,7 @@ export default function Settings() {
                     placeholder="Enter current password"
                     value={currentPwd}
                     onChange={(e) => setCurrentPwd(e.target.value)}
+                    required
                   />
                 </div>
 
@@ -192,9 +426,10 @@ export default function Settings() {
                   <input
                     type="password"
                     className="form-control settings-input"
-                    placeholder="At least 8 characters"
+                    placeholder="At least 6 characters"
                     value={newPwd}
                     onChange={(e) => setNewPwd(e.target.value)}
+                    required
                   />
                 </div>
 
@@ -206,6 +441,7 @@ export default function Settings() {
                     placeholder="Re-enter new password"
                     value={confirmPwd}
                     onChange={(e) => setConfirmPwd(e.target.value)}
+                    required
                   />
                 </div>
               </div>
@@ -213,9 +449,10 @@ export default function Settings() {
               <div className="settings-form-footer">
                 <button
                   type="submit"
+                  disabled={loading}
                   className="btn btn-primary settings-save-btn"
                 >
-                  Update Password
+                  {loading ? 'Updating...' : 'Update Password'}
                 </button>
               </div>
             </form>
@@ -258,9 +495,10 @@ export default function Settings() {
                 <button
                   type="button"
                   onClick={handleNotifSave}
+                  disabled={loading}
                   className="btn btn-primary settings-save-btn"
                 >
-                  Save Preferences
+                  {loading ? 'Saving...' : 'Save Preferences'}
                 </button>
               </div>
             </div>
@@ -322,9 +560,10 @@ export default function Settings() {
                 <button
                   type="button"
                   onClick={handleSystemSave}
+                  disabled={loading}
                   className="btn btn-primary settings-save-btn"
                 >
-                  Apply System Settings
+                  {loading ? 'Applying...' : 'Apply System Settings'}
                 </button>
               </div>
             </div>

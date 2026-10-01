@@ -116,10 +116,10 @@ export default function App() {
   return (
     <BrowserRouter>
       <div className="app-container">
-        <Sidebar onLogout={handleLogout} />
+        <Sidebar onLogout={handleLogout} adminUser={adminUser} />
         
         <div className="main-content">
-          <Header />
+          <Header adminUser={adminUser} />
           
           <main className="page-container">
             <Routes>
@@ -136,7 +136,7 @@ export default function App() {
               <Route path="/medicines" element={<PlaceholderPage name="Medicine Catalogue" />} />
               <Route path="/orders" element={<PlaceholderPage name="Order Management" />} />
               <Route path="/notifications" element={<Notifications />} />
-              <Route path="/settings" element={<Settings />} />
+              <Route path="/settings" element={<Settings onProfileUpdate={handleLoginSuccess} />} />
               
               <Route path="*" element={<PlaceholderPage name="Page Not Found" />} />
             </Routes>

@@ -16,8 +16,28 @@ import {
 import logoImg from '../assets/logo.png';
 import '../styles/Sidebar.css';
 
-export default function Sidebar({ onLogout }) {
+export default function Sidebar({ onLogout, adminUser }) {
   const [stats, setStats] = useState(null);
+  const [avatar, setAvatar] = useState(() => localStorage.getItem('adminAvatar') || '');
+
+  const displayName = adminUser?.fullName || adminUser?.full_name || 'Awais Shabbir';
+  const displayRole = adminUser?.role === 'admin' ? 'Administrator' : (adminUser?.role || 'Administrator');
+  const initials = displayName
+    .trim()
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map(p => p[0])
+    .join('')
+    .toUpperCase() || 'AS';
+
+  useEffect(() => {
+    const handleAvatarUpdate = () => {
+      setAvatar(localStorage.getItem('adminAvatar') || '');
+    };
+    window.addEventListener('adminAvatarUpdated', handleAvatarUpdate);
+    return () => window.removeEventListener('adminAvatarUpdated', handleAvatarUpdate);
+  }, []);
 
   useEffect(() => {
     const fetchSidebarStats = async () => {
@@ -93,10 +113,16 @@ export default function Sidebar({ onLogout }) {
       </div>
 
       <div className="sidebar-profile">
-        <div className="profile-avatar">SA</div>
+        <div className="profile-avatar">
+          {avatar ? (
+            <img src={avatar} alt={displayName} className="sidebar-avatar-img" />
+          ) : (
+            initials
+          )}
+        </div>
         <div className="profile-info">
-          <h3 className="profile-name">Super Admin</h3>
-          <span className="profile-role">Administrator</span>
+          <h3 className="profile-name">{displayName}</h3>
+          <span className="profile-role">{displayRole}</span>
         </div>
       </div>
 

@@ -846,6 +846,172 @@ app.post('/api/admin/announcements', async (req, res) => {
   }
 });
 
+// --- ADMIN SETTINGS & PROFILE ENDPOINTS ---
+
+// Ensure admin_settings table exists
+pool.query(`
+  CREATE TABLE IF NOT EXISTS admin_settings (
+    id SERIAL PRIMARY KEY,
+    setting_key VARCHAR(100) UNIQUE NOT NULL,
+    setting_value JSONB NOT NULL,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  );
+`).catch(err => console.error('admin_settings table check error:', err.message));
+
+// 1. GET Admin Profile
+app.get('/api/admin/profile', async (req, res) => {
+  try {
+    const result = await pool.query("SELECT id, full_name, email, phone_number, role, status FROM users WHERE role = 'admin' LIMIT 1");
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Admin profile not found' });
+    }
+    const admin = result.rows[0];
+    res.status(200).json({
+      id: admin.id,
+      fullName: admin.full_name,
+      full_name: admin.full_name,
+      email: admin.email,
+      phoneNumber: admin.phone_number,
+      phone_number: admin.phone_number,
+      role: admin.role,
+      status: admin.status
+    });
+  } catch (err) {
+    console.error('Error fetching admin profile:', err.message);
+    res.status(500).json({ error: 'Failed to fetch admin profile' });
+  }
+});
+
+// 2. UPDATE Admin Profile
+app.put('/api/admin/profile', async (req, res) => {
+  try {
+    const { full_name, phone_number, email } = req.body;
+    if (!full_name || !phone_number || !email) {
+      return res.status(400).json({ error: 'Full name, phone number, and email are required.' });
+    }
+
+    const checkPhone = await pool.query("SELECT id FROM users WHERE phone_number = $1 AND role != 'admin'", [phone_number.trim()]);
+    if (checkPhone.rows.length > 0) {
+      return res.status(400).json({ error: 'Phone number is already associated with another account.' });
+    }
+
+    const result = await pool.query(
+      "UPDATE users SET full_name = $1, phone_number = $2, email = $3 WHERE role = 'admin' RETURNING id, full_name, email, phone_number, role",
+      [full_name.trim(), phone_number.trim(), email.trim()]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Admin account not found to update.' });
+    }
+
+    const updated = result.rows[0];
+    res.status(200).json({
+      message: 'Profile updated successfully.',
+      user: {
+        id: updated.id,
+        fullName: updated.full_name,
+        full_name: updated.full_name,
+        email: updated.email,
+        phoneNumber: updated.phone_number,
+        phone_number: updated.phone_number,
+        role: updated.role
+      }
+    });
+  } catch (err) {
+    console.error('Error updating admin profile:', err.message);
+    res.status(500).json({ error: 'Failed to update profile.' });
+  }
+});
+
+// 3. CHANGE Admin Password
+app.post('/api/admin/change-password', async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ error: 'Both current password and new password are required.' });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({ error: 'New password must be at least 6 characters long.' });
+    }
+
+    const adminRes = await pool.query("SELECT * FROM users WHERE role = 'admin' LIMIT 1");
+    if (adminRes.rows.length === 0) {
+      return res.status(404).json({ error: 'Admin account not found.' });
+    }
+
+    const admin = adminRes.rows[0];
+    const isMatch = await bcrypt.compare(currentPassword, admin.password);
+    if (!isMatch) {
+      return res.status(400).json({ error: 'Current password does not match.' });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const newHashed = await bcrypt.hash(newPassword, salt);
+    await pool.query("UPDATE users SET password = $1 WHERE id = $2", [newHashed, admin.id]);
+
+    res.status(200).json({ message: 'Password updated successfully.' });
+  } catch (err) {
+    console.error('Error changing admin password:', err.message);
+    res.status(500).json({ error: 'Failed to update password.' });
+  }
+});
+
+// 4. GET Admin Settings
+app.get('/api/admin/settings', async (req, res) => {
+  try {
+    const rows = await pool.query("SELECT setting_key, setting_value FROM admin_settings");
+    const settingsMap = {};
+    rows.rows.forEach(r => {
+      settingsMap[r.setting_key] = r.setting_value;
+    });
+
+    const defaultNotifications = {
+      emailNotif: true,
+      smsNotif: true,
+      outbreakAlerts: true,
+      newUserReg: true,
+      vetReq: true
+    };
+
+    const defaultSystem = {
+      threshold: 85,
+      language: 'en',
+      timezone: 'utc-5'
+    };
+
+    res.status(200).json({
+      notifications: settingsMap.notifications || defaultNotifications,
+      system: settingsMap.system || defaultSystem
+    });
+  } catch (err) {
+    console.error('Error fetching admin settings:', err.message);
+    res.status(500).json({ error: 'Failed to fetch settings' });
+  }
+});
+
+// 5. SAVE Admin Settings
+app.post('/api/admin/settings', async (req, res) => {
+  try {
+    const { key, value } = req.body;
+    if (!key || !value) {
+      return res.status(400).json({ error: 'Setting key and value are required.' });
+    }
+
+    await pool.query(`
+      INSERT INTO admin_settings (setting_key, setting_value, updated_at)
+      VALUES ($1, $2, CURRENT_TIMESTAMP)
+      ON CONFLICT (setting_key)
+      DO UPDATE SET setting_value = $2, updated_at = CURRENT_TIMESTAMP
+    `, [key, JSON.stringify(value)]);
+
+    res.status(200).json({ message: 'Settings saved successfully.' });
+  } catch (err) {
+    console.error('Error saving admin settings:', err.message);
+    res.status(500).json({ error: 'Failed to save settings.' });
+  }
+});
+
 
 
 

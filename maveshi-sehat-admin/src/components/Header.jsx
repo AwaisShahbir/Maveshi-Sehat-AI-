@@ -3,9 +3,28 @@ import { useLocation, Link } from 'react-router-dom';
 import { Search, Bell } from 'lucide-react';
 import '../styles/Header.css';
 
-export default function Header() {
+export default function Header({ adminUser }) {
   const location = useLocation();
   const [unreadCount, setUnreadCount] = useState(0);
+  const [avatar, setAvatar] = useState(() => localStorage.getItem('adminAvatar') || '');
+
+  const displayName = adminUser?.fullName || adminUser?.full_name || 'Awais Shabbir';
+  const initials = displayName
+    .trim()
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map(p => p[0])
+    .join('')
+    .toUpperCase() || 'AS';
+
+  useEffect(() => {
+    const handleAvatarUpdate = () => {
+      setAvatar(localStorage.getItem('adminAvatar') || '');
+    };
+    window.addEventListener('adminAvatarUpdated', handleAvatarUpdate);
+    return () => window.removeEventListener('adminAvatarUpdated', handleAvatarUpdate);
+  }, []);
 
   useEffect(() => {
     const fetchUnreadCount = async () => {
@@ -69,7 +88,13 @@ export default function Header() {
         </Link>
 
         <Link to="/settings" className="header-avatar-btn" title="Account settings">
-          <div className="header-avatar-circle">SA</div>
+          <div className="header-avatar-circle">
+            {avatar ? (
+              <img src={avatar} alt={displayName} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+            ) : (
+              initials
+            )}
+          </div>
           <div className="avatar-online-dot"></div>
         </Link>
       </div>
