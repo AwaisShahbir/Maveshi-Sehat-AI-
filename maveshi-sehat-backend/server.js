@@ -1809,6 +1809,30 @@ app.put('/api/pharmacy/profile', async (req, res) => {
   }
 });
 
+app.put('/api/pharmacy/change-password', async (req, res) => {
+  try {
+    const { pharmacyId, currentPassword, newPassword } = req.body;
+    if (!pharmacyId || !currentPassword || !newPassword) {
+      return res.status(400).json({ error: 'All password fields are required.' });
+    }
+    const result = await pool.query("SELECT * FROM pharmacies WHERE id = $1", [parseInt(pharmacyId)]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Pharmacy not found.' });
+    }
+    const pharmacy = result.rows[0];
+    const isMatch = await bcrypt.compare(currentPassword, pharmacy.password);
+    if (!isMatch) {
+      return res.status(400).json({ error: 'Incorrect current password.' });
+    }
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await pool.query("UPDATE pharmacies SET password = $1 WHERE id = $2", [hashedPassword, parseInt(pharmacyId)]);
+    res.status(200).json({ message: 'Password updated successfully.' });
+  } catch (err) {
+    console.error('Pharmacy change password error:', err.message);
+    res.status(500).json({ error: 'Failed to update password.' });
+  }
+});
+
 
 
 
