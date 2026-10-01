@@ -95,8 +95,9 @@ export default function PharmacyApproval() {
                       <div className="pharmacy-meta-grid">
                         <div><strong className="pharmacy-meta-label">License:</strong> <span className="font-mono pharmacy-meta-val">{pharm.license_number}</span></div>
                         <div><strong className="pharmacy-meta-label">Owner:</strong> <span className="pharmacy-meta-val">{pharm.owner_name}</span></div>
-                        <div><strong className="pharmacy-meta-label">Address:</strong> <span className="pharmacy-meta-val">{pharm.address}</span></div>
+                        <div><strong className="pharmacy-meta-label">Email:</strong> <span className="pharmacy-meta-val">{pharm.email || 'N/A'}</span></div>
                         <div><strong className="pharmacy-meta-label">Phone:</strong> <span className="pharmacy-meta-val">{pharm.phone}</span></div>
+                        <div><strong className="pharmacy-meta-label">Address:</strong> <span className="pharmacy-meta-val">{pharm.address || (pharm.city ? `${pharm.city}, ${pharm.province || ''}` : 'N/A')}</span></div>
                         <div><strong className="pharmacy-meta-label">Submitted:</strong> <span className="pharmacy-meta-val">{pharm.created_at ? new Date(pharm.created_at).toLocaleDateString([], { day: 'numeric', month: 'short' }) : 'N/A'}</span></div>
                         <div><strong className="pharmacy-meta-label">Catalogue:</strong> <span className="pharmacy-meta-val">{pharm.medicines_count || 0} medicines listed</span></div>
                       </div>
@@ -155,6 +156,7 @@ export default function PharmacyApproval() {
                       <th>Pharmacy Name</th>
                       <th>License Number</th>
                       <th>Owner</th>
+                      <th>Email</th>
                       <th>City</th>
                       <th>Medicines</th>
                       <th>Status</th>
@@ -166,7 +168,8 @@ export default function PharmacyApproval() {
                         <td className="pharmacy-meta-val">{p.name}</td>
                         <td className="font-mono">{p.license_number}</td>
                         <td>{p.owner_name}</td>
-                        <td>{p.address}</td>
+                        <td>{p.email || 'N/A'}</td>
+                        <td>{p.city || p.address || 'N/A'}</td>
                         <td>{p.medicines_count || 0}</td>
                         <td>
                           <span className="badge badge-green">
@@ -177,7 +180,7 @@ export default function PharmacyApproval() {
                     ))}
                     {pharmacies.filter(p => p.status === 'approved').length === 0 && (
                       <tr>
-                        <td colSpan="6" className="pharmacy-empty-card">
+                        <td colSpan="7" className="pharmacy-empty-card">
                           No approved pharmacies found.
                         </td>
                       </tr>
@@ -220,12 +223,20 @@ export default function PharmacyApproval() {
                 <strong className="pharmacy-modal-val">{selectedPharmacy.owner_name}</strong>
               </div>
               <div className="pharmacy-modal-box">
+                <span className="pharmacy-modal-label">Registered Email</span>
+                <strong className="pharmacy-modal-val">{selectedPharmacy.email || 'N/A'}</strong>
+              </div>
+              <div className="pharmacy-modal-box">
                 <span className="pharmacy-modal-label">Contact Phone</span>
                 <strong className="pharmacy-modal-val">{selectedPharmacy.phone}</strong>
               </div>
               <div className="pharmacy-modal-box">
+                <span className="pharmacy-modal-label">WhatsApp</span>
+                <strong className="pharmacy-modal-val">{selectedPharmacy.whatsapp || 'N/A'}</strong>
+              </div>
+              <div className="pharmacy-modal-box">
                 <span className="pharmacy-modal-label">Location / Address</span>
-                <strong className="pharmacy-modal-val">{selectedPharmacy.address}</strong>
+                <strong className="pharmacy-modal-val">{selectedPharmacy.address || (selectedPharmacy.city ? `${selectedPharmacy.city}, ${selectedPharmacy.province || ''}` : 'No address provided')}</strong>
               </div>
               <div className="pharmacy-modal-box">
                 <span className="pharmacy-modal-label">Current Status</span>

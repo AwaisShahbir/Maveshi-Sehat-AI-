@@ -35,7 +35,7 @@ export default function Analytics({ pharmacy, formatPrice }) {
   if (loading) {
     return (
       <div className="analytics-loading">
-        <p>Loading analytics data... / لوڈ ہو رہا ہے...</p>
+        <p>Loading analytics data...</p>
       </div>
     );
   }
@@ -45,7 +45,7 @@ export default function Analytics({ pharmacy, formatPrice }) {
   const topMedicines = data?.topMedicines || [];
   const distribution = data?.distribution || { completed: 0, processing: 0, cancelled: 0 };
   const retention = data?.customerRetention || 0;
-  const satisfaction = data?.customerSatisfaction || 4.8;
+  const satisfaction = data?.customerSatisfaction !== undefined ? Number(data.customerSatisfaction) : 0;
 
   
   const CustomTooltip = ({ active, payload, label }) => {
@@ -76,7 +76,6 @@ export default function Analytics({ pharmacy, formatPrice }) {
           <div className="mb-3.5">
             <h3 className="text-xl font-extrabold text-slate-800 mb-1 leading-tight">{formatPrice(kpis.totalRevenue)}</h3>
             <p className="text-xs font-semibold text-slate-600">Total Revenue</p>
-            <p className="text-[10px] text-slate-400 mt-0.5 urdu">کل آمدنی</p>
           </div>
           <div className="flex items-center border-t border-slate-100 pt-2.5 text-[11px] text-slate-400">
             <TrendingUp size={12} className="text-[#3da860] mr-1" />
@@ -95,7 +94,6 @@ export default function Analytics({ pharmacy, formatPrice }) {
           <div className="mb-3.5">
             <h3 className="text-xl font-extrabold text-slate-800 mb-1 leading-tight">{kpis.totalOrders}</h3>
             <p className="text-xs font-semibold text-slate-600">Total Orders</p>
-            <p className="text-[10px] text-slate-400 mt-0.5 urdu">کل آرڈرز</p>
           </div>
           <div className="flex items-center border-t border-slate-100 pt-2.5 text-[11px] text-slate-400">
             <TrendingUp size={12} className="text-[#3da860] mr-1" />
@@ -114,7 +112,6 @@ export default function Analytics({ pharmacy, formatPrice }) {
           <div className="mb-3.5">
             <h3 className="text-xl font-extrabold text-slate-800 mb-1 leading-tight">{kpis.activeCustomers}</h3>
             <p className="text-xs font-semibold text-slate-600">Active Customers</p>
-            <p className="text-[10px] text-slate-400 mt-0.5 urdu">فعال صارفین</p>
           </div>
           <div className="flex items-center border-t border-slate-100 pt-2.5 text-[11px] text-slate-400">
             <TrendingUp size={12} className="text-[#3da860] mr-1" />
@@ -133,7 +130,6 @@ export default function Analytics({ pharmacy, formatPrice }) {
           <div className="mb-3.5">
             <h3 className="text-xl font-extrabold text-slate-800 mb-1 leading-tight">{formatPrice(kpis.avgOrderValue)}</h3>
             <p className="text-xs font-semibold text-slate-600">Avg. Order Value</p>
-            <p className="text-[10px] text-slate-400 mt-0.5 urdu">اوسط آرڈر ویلیو</p>
           </div>
           <div className="flex items-center border-t border-slate-100 pt-2.5 text-[11px] text-slate-400">
             <TrendingUp size={12} className="text-[#3da860] mr-1" />
@@ -149,7 +145,7 @@ export default function Analytics({ pharmacy, formatPrice }) {
           <div className="flex justify-between items-center mb-4">
             <div>
               <h3 className="card-title">Revenue Overview</h3>
-              <p className="card-subtitle">Monthly sales tracking • آمدنی کا جائزہ</p>
+              <p className="card-subtitle">Monthly sales tracking</p>
             </div>
             <div className="flex gap-4 text-xs font-semibold text-slate-600">
               <div className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full inline-block bg-[#3da860]"></span> Revenue (PKR)</div>
@@ -184,7 +180,7 @@ export default function Analytics({ pharmacy, formatPrice }) {
           <div className="flex justify-between items-center mb-4">
             <div>
               <h3 className="card-title">Top Medicines</h3>
-              <p className="card-subtitle">Most selling products • اعلیٰ دوائیں</p>
+              <p className="card-subtitle">Most selling products</p>
             </div>
           </div>
           
@@ -211,7 +207,6 @@ export default function Analytics({ pharmacy, formatPrice }) {
                     </div>
                     <div className="flex-1 flex flex-col">
                       <span className="text-sm font-semibold text-slate-800">{med.name}</span>
-                      {med.nameUrdu && <span className="text-[10px] text-[#3da860] font-semibold urdu">{med.nameUrdu}</span>}
                     </div>
                     <div className="flex flex-col items-end">
                       <span className="text-[10px] text-slate-400">{med.orders} orders</span>

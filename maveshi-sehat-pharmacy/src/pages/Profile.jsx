@@ -85,7 +85,7 @@ export default function Profile({ pharmacy, onProfileUpdate }) {
     }
   };
 
-  if (loading) return <div className="text-center text-slate-500 py-10 text-sm font-medium">Loading profile details... / لوڈ ہو رہا ہے...</div>;
+  if (loading) return <div className="text-center text-slate-500 py-10 text-sm font-medium">Loading profile details...</div>;
 
   return (
     <div className="flex flex-col gap-6">
@@ -110,12 +110,9 @@ export default function Profile({ pharmacy, onProfileUpdate }) {
               <Store size={36} />
             </div>
             <h3 className="text-lg font-extrabold text-slate-800">{profile.name}</h3>
-            {profile.name_urdu && (
-              <p className="text-xs text-[#3da860] font-semibold mt-1.5 urdu">{profile.name_urdu}</p>
-            )}
             <div className="mt-4 mb-6">
               <span className="badge badge-green bg-[#3da860]/10 text-[#3da860] border border-[#3da860]/25">
-                <ShieldCheck size={14} /> Approved Portal / تصدیق شدہ
+                <ShieldCheck size={14} /> Approved Portal
               </span>
             </div>
             
@@ -137,22 +134,22 @@ export default function Profile({ pharmacy, onProfileUpdate }) {
           <div className="card bg-white border border-slate-100 rounded-2xl p-7 shadow-sm">
             <div className="card-header-flex border-b border-slate-50 pb-4 mb-6">
               <div>
-                <h3 className="card-title text-slate-900 font-bold">Pharmacy Details / معلومات</h3>
-                <p className="text-xs text-slate-400 urdu mt-0.5">پروفائل کی تفصیلات</p>
+                <h3 className="card-title text-slate-900 font-bold">Pharmacy Details</h3>
+                <p className="text-xs text-slate-400 mt-0.5">Profile and store information</p>
               </div>
               {!isEditing ? (
                 <button 
                   className="btn btn-secondary btn-sm bg-slate-50 border border-slate-200 text-slate-700 hover:bg-slate-100 rounded-xl transition-all cursor-pointer font-bold" 
                   onClick={() => setIsEditing(true)}
                 >
-                  Edit Profile / ترمیم کریں
+                  Edit Profile
                 </button>
               ) : (
                 <button 
                   className="btn btn-danger btn-sm rounded-xl hover:bg-red-600 transition-all cursor-pointer font-bold" 
                   onClick={() => setIsEditing(false)}
                 >
-                  Cancel / منسوخ کریں
+                  Cancel
                 </button>
               )}
             </div>
@@ -160,13 +157,9 @@ export default function Profile({ pharmacy, onProfileUpdate }) {
             {!isEditing ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-6">
                 
-                <div className="flex flex-col">
-                  <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold mb-1">Pharmacy Name (English)</span>
+                <div className="flex flex-col md:col-span-2">
+                  <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold mb-1">Pharmacy Name</span>
                   <span className="text-sm font-bold text-slate-900">{profile.name}</span>
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold mb-1">Pharmacy Name (Urdu)</span>
-                  <span className="text-sm font-bold text-slate-900 urdu">{profile.name_urdu || 'N/A'}</span>
                 </div>
                 <div className="flex flex-col border-t border-slate-50 pt-3">
                   <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold mb-1">Owner Name</span>
@@ -226,24 +219,14 @@ export default function Profile({ pharmacy, onProfileUpdate }) {
             ) : (
               <form onSubmit={handleSubmit} className="flex flex-col gap-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="form-group mb-0">
-                    <label className="form-label">Pharmacy Name (English)</label>
+                  <div className="form-group mb-0 md:col-span-2">
+                    <label className="form-label">Pharmacy Name</label>
                     <input 
                       type="text" 
                       name="name" 
                       required
                       className="form-control focus:border-[#3da860] focus:ring-2 focus:ring-[#3da860]/20 placeholder:text-slate-400" 
                       value={form.name} 
-                      onChange={handleChange}
-                    />
-                  </div>
-                  <div className="form-group mb-0">
-                    <label className="form-label">Pharmacy Name (Urdu)</label>
-                    <input 
-                      type="text" 
-                      name="nameUrdu" 
-                      className="form-control text-right focus:border-[#3da860] focus:ring-2 focus:ring-[#3da860]/20 placeholder:text-slate-400 urdu" 
-                      value={form.nameUrdu} 
                       onChange={handleChange}
                     />
                   </div>
@@ -340,7 +323,7 @@ export default function Profile({ pharmacy, onProfileUpdate }) {
                   className="btn btn-primary bg-[#3da860] hover:bg-[#2e8c4e] shadow-md shadow-[#3da860]/10 mt-3 flex items-center gap-2 justify-center w-fit rounded-xl cursor-pointer font-bold"
                 >
                   <Check size={16} />
-                  <span>Save Changes / محفوظ کریں</span>
+                  <span>Save Changes</span>
                 </button>
               </form>
             )}

@@ -136,7 +136,7 @@ export default function Dashboard({ pharmacy, onLogout }) {
           />
           <div>
             <span className="font-heading text-sm font-extrabold text-white block leading-tight">Maveshi Sehat AI</span>
-            <span className="text-[11px] text-[#c5dbd0] font-bold block mt-0.5">Pharmacy Portal / پورٹل</span>
+            <span className="text-[11px] text-[#c5dbd0] font-bold block mt-0.5">Pharmacy Portal</span>
           </div>
         </div>
 
@@ -146,7 +146,7 @@ export default function Dashboard({ pharmacy, onLogout }) {
           </div>
           <div>
             <span className="text-sm font-bold text-white block">{pharmacy.name}</span>
-            <span className="text-[11px] text-[#c5dbd0] font-semibold block mt-0.5">Verified / تصدیق شدہ</span>
+            <span className="text-[11px] text-[#c5dbd0] font-semibold block mt-0.5">Verified</span>
           </div>
         </div>
 
@@ -166,7 +166,6 @@ export default function Dashboard({ pharmacy, onLogout }) {
                   <LayoutDashboard size={18} />
                   <div className="flex-1 flex flex-col">
                     <span className="font-semibold">Dashboard</span>
-                    <span className="text-[10px] opacity-70 mt-0.5">ڈیش بورڈ</span>
                   </div>
                 </button>
               </li>
@@ -182,7 +181,6 @@ export default function Dashboard({ pharmacy, onLogout }) {
                   <BarChart3 size={18} />
                   <div className="flex-1 flex flex-col">
                     <span className="font-semibold">Analytics</span>
-                    <span className="text-[10px] opacity-70 mt-0.5">تجزیہ</span>
                   </div>
                 </button>
               </li>
@@ -190,7 +188,7 @@ export default function Dashboard({ pharmacy, onLogout }) {
           </div>
 
           <div className="mb-5">
-            <span className="block text-[10px] font-extrabold text-[#c5dbd0]/75 px-6 mb-2.5 tracking-wider">MEDICINES / دوائیں</span>
+            <span className="block text-[10px] font-extrabold text-[#c5dbd0]/75 px-6 mb-2.5 tracking-wider">MEDICINES</span>
             <ul className="list-none flex flex-col gap-1.5">
               <li>
                 <button 
@@ -204,7 +202,6 @@ export default function Dashboard({ pharmacy, onLogout }) {
                   <Pill size={18} />
                   <div className="flex-1 flex flex-col">
                     <span className="font-semibold">My Listings</span>
-                    <span className="text-[10px] opacity-70 mt-0.5">میری فہرست</span>
                   </div>
                   <span className={`text-[10px] font-bold px-2 py-0.5 rounded-[10px] ${
                     currentView === 'listings' ? 'bg-[#135431] text-[#c5dbd0]' : 'bg-[#0e3a22] text-[#c5dbd0]'
@@ -223,7 +220,6 @@ export default function Dashboard({ pharmacy, onLogout }) {
                   <PlusCircle size={18} />
                   <div className="flex-1 flex flex-col">
                     <span className="font-semibold">Add Medicine</span>
-                    <span className="text-[10px] opacity-70 mt-0.5">دوائی شامل کریں</span>
                   </div>
                 </button>
               </li>
@@ -240,7 +236,6 @@ export default function Dashboard({ pharmacy, onLogout }) {
                   <AlertTriangle size={18} />
                   <div className="flex-1 flex flex-col">
                     <span className="font-semibold">Stock Alerts</span>
-                    <span className="text-[10px] opacity-70 mt-0.5">اسٹاک الرٹ</span>
                   </div>
                   {stats.stockAlerts > 0 && (
                     <span className="text-[10px] font-bold bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-[10px]">{stats.stockAlerts}</span>
@@ -251,7 +246,7 @@ export default function Dashboard({ pharmacy, onLogout }) {
           </div>
 
           <div className="mb-5">
-            <span className="block text-[10px] font-extrabold text-[#c5dbd0]/75 px-6 mb-2.5 tracking-wider">ORDERS / آرڈرز</span>
+            <span className="block text-[10px] font-extrabold text-[#c5dbd0]/75 px-6 mb-2.5 tracking-wider">ORDERS</span>
             <ul className="list-none flex flex-col gap-1.5">
               <li>
                 <button 
@@ -265,7 +260,6 @@ export default function Dashboard({ pharmacy, onLogout }) {
                   <ShoppingBag size={18} />
                   <div className="flex-1 flex flex-col">
                     <span className="font-semibold">All Orders</span>
-                    <span className="text-[10px] opacity-70 mt-0.5">تمام آرڈرز</span>
                   </div>
                   {stats.activeOrders > 0 && (
                     <span className="text-[10px] font-bold bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded-[10px]">{stats.activeOrders}</span>
@@ -276,7 +270,7 @@ export default function Dashboard({ pharmacy, onLogout }) {
           </div>
 
           <div className="mb-5">
-            <span className="block text-[10px] font-extrabold text-[#c5dbd0]/75 px-6 mb-2.5 tracking-wider">ACCOUNT / اکاؤنٹ</span>
+            <span className="block text-[10px] font-extrabold text-[#c5dbd0]/75 px-6 mb-2.5 tracking-wider">ACCOUNT</span>
             <ul className="list-none flex flex-col gap-1.5">
               <li>
                 <button 
@@ -290,7 +284,6 @@ export default function Dashboard({ pharmacy, onLogout }) {
                   <User size={18} />
                   <div className="flex-1 flex flex-col">
                     <span className="font-semibold">Pharmacy Profile</span>
-                    <span className="text-[10px] opacity-70 mt-0.5">فارمیسی پروفائل</span>
                   </div>
                 </button>
               </li>
@@ -306,7 +299,6 @@ export default function Dashboard({ pharmacy, onLogout }) {
                   <Settings size={18} />
                   <div className="flex flex-col">
                     <span className="font-semibold">Settings</span>
-                    <span className="text-[10px] opacity-70 mt-0.5">ترتیبات</span>
                   </div>
                 </button>
               </li>
@@ -320,7 +312,7 @@ export default function Dashboard({ pharmacy, onLogout }) {
             onClick={onLogout}
           >
             <LogOut size={18} className="text-[#ff5c5c] shrink-0" />
-            <span>لاگ آؤٹ / Logout</span>
+            <span>Logout</span>
           </button>
         </div>
       </aside>
@@ -339,16 +331,6 @@ export default function Dashboard({ pharmacy, onLogout }) {
               {currentView === 'stock-alerts' && 'Stock Alerts'}
               {currentView === 'settings' && 'Settings'}
             </h2>
-            <span className="text-xs text-[#3da860] font-semibold mt-0.5 urdu">
-              {currentView === 'dashboard' && 'ڈیش بورڈ'}
-              {currentView === 'analytics' && 'تجزیہ'}
-              {currentView === 'listings' && 'میری فہرست'}
-              {currentView === 'orders' && 'آرڈر مینجمنٹ'}
-              {currentView === 'profile' && 'فارمیسی پروفائل'}
-              {currentView === 'add-medicine' && 'دوا شامل کریں'}
-              {currentView === 'stock-alerts' && 'اسٹاک الرٹ'}
-              {currentView === 'settings' && 'ترتیبات'}
-            </span>
           </div>
 
           <div className="flex items-center gap-4">
@@ -392,7 +374,6 @@ export default function Dashboard({ pharmacy, onLogout }) {
               <div className="bg-[#135431] bg-gradient-to-br from-[#135431] to-[#3da860] rounded-2xl p-6 md:p-8 mb-7 text-white shadow-md">
                 <h3 className="font-heading text-2xl font-bold">Welcome back, {pharmacy.name}!</h3>
                 <p className="text-sm opacity-90 mt-1">Here's what's happening with your pharmacy today.</p>
-                <p className="text-xs opacity-80 mt-1.5 urdu">آج آپ کی فارمیسی کے ساتھ کیا ہو رہا ہے</p>
               </div>
 
               
@@ -401,7 +382,6 @@ export default function Dashboard({ pharmacy, onLogout }) {
                 <div className="card flex justify-between items-start p-5 bg-white border border-slate-200/80 shadow-sm rounded-2xl">
                   <div className="flex flex-col">
                     <span className="text-xs font-bold text-slate-500">Total Revenue</span>
-                    <span className="text-[10px] text-slate-400 mt-0.5">کل آمدنی</span>
                     <h3 className="font-heading text-xl font-bold text-slate-900 my-3">{formatPrice(stats.totalRevenue)}</h3>
                     <span className="text-[11px] font-bold text-[#3da860] bg-[#3da860]/10 px-2 py-0.5 rounded-full w-fit">Total sales</span>
                   </div>
@@ -414,7 +394,6 @@ export default function Dashboard({ pharmacy, onLogout }) {
                 <div className="card flex justify-between items-start p-5 bg-white border border-slate-200/80 shadow-sm rounded-2xl">
                   <div className="flex flex-col">
                     <span className="text-xs font-bold text-slate-500">Active Orders</span>
-                    <span className="text-[10px] text-slate-400 mt-0.5">فعال آرڈرز</span>
                     <h3 className="font-heading text-xl font-bold text-slate-900 my-3">{stats.activeOrders}</h3>
                     <span className="text-[11px] font-bold text-blue-500 bg-blue-500/10 px-2 py-0.5 rounded-full w-fit">
                       {stats.activeOrders > 0 ? `${stats.activeOrders} active` : '0 active'}
@@ -429,7 +408,6 @@ export default function Dashboard({ pharmacy, onLogout }) {
                 <div className="card flex justify-between items-start p-5 bg-white border border-slate-200/80 shadow-sm rounded-2xl">
                   <div className="flex flex-col">
                     <span className="text-xs font-bold text-slate-500">Medicine Listings</span>
-                    <span className="text-[10px] text-slate-400 mt-0.5">دوائیں فہرست</span>
                     <h3 className="font-heading text-xl font-bold text-slate-900 my-3">{stats.medicineListings}</h3>
                     <span className="text-[11px] font-bold text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded-full w-fit">
                       {stats.stockAlerts > 0 ? `${stats.stockAlerts} alerts` : 'Stock normal'}
@@ -444,7 +422,6 @@ export default function Dashboard({ pharmacy, onLogout }) {
                 <div className="card flex justify-between items-start p-5 bg-white border border-slate-200/80 shadow-sm rounded-2xl">
                   <div className="flex flex-col">
                     <span className="text-xs font-bold text-slate-500">Stock Alerts</span>
-                    <span className="text-[10px] text-slate-400 mt-0.5">اسٹاک الرٹ</span>
                     <h3 className="font-heading text-xl font-bold text-slate-900 my-3">{stats.stockAlerts}</h3>
                     <span className="text-[11px] font-bold text-red-500 bg-red-500/10 px-2 py-0.5 rounded-full w-fit">
                       {stats.stockAlerts > 0 ? `${stats.stockAlerts} alerts` : 'Healthy stock'}
@@ -464,7 +441,6 @@ export default function Dashboard({ pharmacy, onLogout }) {
                     <div>
                       <h3 className="card-title text-[#135431] font-bold">Recent Orders</h3>
                       <p className="card-subtitle text-slate-500">Latest incoming requests</p>
-                      <p className="text-[11px] text-[#3da860] mt-0.5 urdu">حالیہ آرڈرز</p>
                     </div>
                     <button 
                       className="flex items-center gap-1 text-[#3da860] hover:text-[#2e8c4e] text-xs font-bold bg-transparent border-none cursor-pointer" 
@@ -535,7 +511,6 @@ export default function Dashboard({ pharmacy, onLogout }) {
                       <div>
                         <h3 className="card-title text-[#135431] font-bold">Stock Alerts</h3>
                         <p className="card-subtitle text-slate-500">Items low or out of stock</p>
-                        <p className="text-[11px] text-[#3da860] mt-0.5 urdu">اسٹاک الرٹ</p>
                       </div>
                       <button 
                         className="flex items-center gap-1 text-[#3da860] hover:text-[#2e8c4e] text-xs font-bold bg-transparent border-none cursor-pointer" 

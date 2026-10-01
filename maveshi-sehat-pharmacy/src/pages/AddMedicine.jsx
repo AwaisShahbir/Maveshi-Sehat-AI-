@@ -7,7 +7,7 @@ export default function AddMedicine({ pharmacy, onSaveSuccess, onCancel }) {
     name: '',
     nameUrdu: '',
     manufacturer: '',
-    category: 'Antibiotic',
+    category: '',
     dosageForm: '',
     strength: '',
     price: '',
@@ -99,8 +99,8 @@ export default function AddMedicine({ pharmacy, onSaveSuccess, onCancel }) {
       {/* Header Section */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white p-4 rounded-2xl border border-slate-100 shadow-sm gap-4">
         <div className="flex flex-col">
-          <h2 className="text-lg font-bold text-slate-900 font-heading">Add Medicine / دوا شامل کریں</h2>
-          <span className="text-xs text-[#3da860] font-semibold mt-0.5 urdu">نیا میڈیسن کارڈ بنائیں</span>
+          <h2 className="text-lg font-bold text-slate-900 font-heading">Add Medicine</h2>
+          <span className="text-xs text-slate-500 font-medium mt-0.5">Create a new medicine listing</span>
         </div>
         <div className="flex gap-2">
           <button 
@@ -109,7 +109,7 @@ export default function AddMedicine({ pharmacy, onSaveSuccess, onCancel }) {
             disabled={loading}
           >
             <Ban size={14} />
-            <span>Cancel / منسوخ کریں</span>
+            <span>Cancel</span>
           </button>
           <button 
             className="inline-flex items-center gap-2 px-5 py-2 bg-[#3da860] text-white rounded-xl font-bold text-xs hover:bg-[#2e8c4e] transition-colors disabled:opacity-50 shadow-md shadow-[#3da860]/10 cursor-pointer" 
@@ -117,7 +117,7 @@ export default function AddMedicine({ pharmacy, onSaveSuccess, onCancel }) {
             disabled={loading}
           >
             <Check size={14} />
-            <span>{loading ? 'Saving...' : 'Save Medicine / محفوظ کریں'}</span>
+            <span>{loading ? 'Saving...' : 'Save Medicine'}</span>
           </button>
         </div>
       </div>
@@ -131,33 +131,20 @@ export default function AddMedicine({ pharmacy, onSaveSuccess, onCancel }) {
             {/* Basic Info Card */}
             <div className="card p-6 bg-white border border-slate-100 rounded-2xl shadow-sm">
               <h3 className="text-sm font-bold text-[#135431] border-b border-slate-50 pb-3 mb-5 font-heading flex items-center justify-between">
-                <span>Basic Information / بنیادی معلومات</span>
+                <span>Basic Information</span>
                 <span className="text-[10px] text-red-500 font-normal">* Fields are required</span>
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="form-group mb-4">
-                  <label className="form-label">Medicine Name (English) <span className="text-red-500">*</span></label>
-                  <input
-                    type="text"
-                    name="name"
-                    required
-                    className="form-control focus:border-[#3da860] focus:ring-2 focus:ring-[#3da860]/20 placeholder:text-slate-400"
-                    placeholder="e.g., Tetracycline 500mg"
-                    value={form.name}
-                    onChange={handleChange}
-                  />
-                </div>
-                <div className="form-group mb-4">
-                  <label className="form-label">Medicine Name (Urdu)</label>
-                  <input
-                    type="text"
-                    name="nameUrdu"
-                    className="form-control urdu focus:border-[#3da860] focus:ring-2 focus:ring-[#3da860]/20 placeholder:text-slate-400"
-                    placeholder="مثال: ٹیٹراسائیکلین"
-                    value={form.nameUrdu}
-                    onChange={handleChange}
-                  />
-                </div>
+              <div className="form-group mb-4">
+                <label className="form-label">Medicine Name <span className="text-red-500">*</span></label>
+                <input
+                  type="text"
+                  name="name"
+                  required
+                  className="form-control focus:border-[#3da860] focus:ring-2 focus:ring-[#3da860]/20 placeholder:text-slate-400"
+                  placeholder="e.g., Tetracycline 500mg"
+                  value={form.name}
+                  onChange={handleChange}
+                />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -170,6 +157,7 @@ export default function AddMedicine({ pharmacy, onSaveSuccess, onCancel }) {
                     value={form.category}
                     onChange={handleChange}
                   >
+                    <option value="">Select Category</option>
                     {categories.map(cat => (
                       <option key={cat} value={cat}>{cat}</option>
                     ))}
@@ -220,7 +208,7 @@ export default function AddMedicine({ pharmacy, onSaveSuccess, onCancel }) {
             {/* Pricing & Stock Card */}
             <div className="card p-6 bg-white border border-slate-100 rounded-2xl shadow-sm">
               <h3 className="text-sm font-bold text-[#135431] border-b border-slate-50 pb-3 mb-5 font-heading">
-                Pricing & Stock / قیمت اور اسٹاک
+                Pricing & Stock
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="form-group mb-0">
@@ -268,7 +256,7 @@ export default function AddMedicine({ pharmacy, onSaveSuccess, onCancel }) {
             {/* Product Details Card */}
             <div className="card p-6 bg-white border border-slate-100 rounded-2xl shadow-sm">
               <h3 className="text-sm font-bold text-[#135431] border-b border-slate-50 pb-3 mb-5 font-heading">
-                Product Details / پروڈکٹ کی تفصیلات
+                Product Details
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="form-group mb-4">
@@ -328,7 +316,7 @@ export default function AddMedicine({ pharmacy, onSaveSuccess, onCancel }) {
                   className="mt-1 cursor-pointer w-4 h-4 text-[#3da860] border-slate-300 rounded focus:ring-[#3da860]/30"
                 />
                 <label htmlFor="prescriptionRequired" className="flex flex-col cursor-pointer">
-                  <strong className="text-xs text-slate-800 font-bold">Prescription Required / نسخہ ضروری ہے</strong>
+                  <strong className="text-xs text-slate-800 font-bold">Prescription Required</strong>
                   <span className="text-[11px] text-slate-400 mt-0.5">This medicine requires a valid veterinary prescription to purchase.</span>
                 </label>
               </div>
@@ -337,7 +325,7 @@ export default function AddMedicine({ pharmacy, onSaveSuccess, onCancel }) {
             {/* Product Image Card */}
             <div className="card p-6 bg-white border border-slate-100 rounded-2xl shadow-sm">
               <h3 className="text-sm font-bold text-[#135431] border-b border-slate-50 pb-3 mb-5 font-heading">
-                Product Image / پروڈکٹ کی تصویر
+                Product Image
               </h3>
               <div className="border-2 border-dashed border-slate-200 rounded-xl bg-slate-50/50 p-8 text-center cursor-pointer hover:border-[#3da860] hover:bg-[#3da860]/5 transition-all">
                 <input
@@ -365,7 +353,7 @@ export default function AddMedicine({ pharmacy, onSaveSuccess, onCancel }) {
           <div className="bg-white rounded-2xl border border-slate-100 p-5 flex flex-col shadow-sm">
             <div className="flex items-center gap-2 text-xs font-extrabold text-[#3da860] uppercase tracking-wider mb-4 border-b border-slate-50 pb-2">
               <Pill size={16} />
-              <span>Live Preview / ڈیمو پیش نظارہ</span>
+              <span>Live Preview</span>
             </div>
             
             <div className="aspect-video bg-slate-100 rounded-xl border border-slate-200 flex justify-center items-center overflow-hidden mb-4 relative">
@@ -407,12 +395,11 @@ export default function AddMedicine({ pharmacy, onSaveSuccess, onCancel }) {
           <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
             <div className="flex items-center mb-3">
               <HelpCircle size={16} className="text-[#3da860] mr-2" />
-              <span className="text-xs font-bold text-slate-800">Guidelines / رہنمائی</span>
+              <span className="text-xs font-bold text-slate-800">Guidelines</span>
             </div>
             <ul className="pl-4 text-xs text-slate-500 flex flex-col gap-2.5 list-disc leading-relaxed">
-              <li>Ensure English name matches the packaging exactly.</li>
-              <li>Provide Urdu names when possible for local customers.</li>
-              <li>Always check and verify the **expiry date** before listing.</li>
+              <li>Ensure medicine name and strength match packaging.</li>
+              <li>Always check and verify the <strong>expiry date</strong> before listing.</li>
               <li>Define realistic minimum stock levels to trigger timely alerts.</li>
             </ul>
           </div>

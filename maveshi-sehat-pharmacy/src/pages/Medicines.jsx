@@ -20,10 +20,10 @@ export default function Medicines({ pharmacy, showAddModal, onCloseAddModal, edi
     name: '',
     nameUrdu: '',
     manufacturer: '',
-    category: 'Antibiotic',
+    category: '',
     price: '',
     stock: '',
-    minStock: '15'
+    minStock: ''
   });
 
   const categories = ['Vaccine', 'Antibiotic', 'Vitamin', 'Antiparasitic', 'Supplements', 'Other'];
@@ -67,10 +67,10 @@ export default function Medicines({ pharmacy, showAddModal, onCloseAddModal, edi
       name: '', 
       nameUrdu: '', 
       manufacturer: '', 
-      category: 'Antibiotic', 
+      category: '', 
       price: '', 
       stock: '', 
-      minStock: '15' 
+      minStock: '' 
     });
     setIsAddOpen(true);
   };
@@ -210,7 +210,7 @@ export default function Medicines({ pharmacy, showAddModal, onCloseAddModal, edi
           <Search size={18} className="absolute left-3.5 text-slate-400" />
           <input
             type="text"
-            placeholder="Search medicines... / ادویات تلاش کریں..."
+            placeholder="Search medicines by name or formula..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full h-10 pl-11 pr-4 border border-slate-200 rounded-xl bg-white text-slate-900 text-sm focus:border-[#3da860] focus:ring-2 focus:ring-[#3da860]/20 transition-all placeholder:text-slate-400"
@@ -226,7 +226,7 @@ export default function Medicines({ pharmacy, showAddModal, onCloseAddModal, edi
                 : 'text-slate-600 bg-transparent hover:bg-slate-100'
             }`}
           >
-            All Stock / کل اسٹاک
+            All Stock
           </button>
           <button
             onClick={() => setStockFilter('Low Stock')}
@@ -236,7 +236,7 @@ export default function Medicines({ pharmacy, showAddModal, onCloseAddModal, edi
                 : 'text-slate-600 bg-transparent hover:bg-slate-100'
             }`}
           >
-            Low Stock / کم اسٹاک
+            Low Stock
           </button>
           <button
             onClick={() => setStockFilter('Good Stock')}
@@ -246,7 +246,7 @@ export default function Medicines({ pharmacy, showAddModal, onCloseAddModal, edi
                 : 'text-slate-600 bg-transparent hover:bg-slate-100'
             }`}
           >
-            Good Stock / وافر اسٹاک
+            Good Stock
           </button>
         </div>
       </div>
@@ -256,7 +256,7 @@ export default function Medicines({ pharmacy, showAddModal, onCloseAddModal, edi
         {loading ? (
           <div className="text-center text-slate-500 py-16 flex flex-col items-center justify-center gap-3">
             <div className="w-8 h-8 border-3 border-[#3da860] border-t-transparent rounded-full animate-spin"></div>
-            <p className="text-sm font-medium text-slate-500">Loading medicines list... / لوڈ ہو رہا ہے...</p>
+            <p className="text-sm font-medium text-slate-500">Loading medicines list...</p>
           </div>
         ) : filteredMedicines.length === 0 ? (
           <div className="text-center text-slate-500 py-16 px-4 text-sm flex flex-col items-center justify-center gap-3">
@@ -265,7 +265,6 @@ export default function Medicines({ pharmacy, showAddModal, onCloseAddModal, edi
             </div>
             <div>
               <p className="font-semibold text-slate-700">No medicines found matching the filters.</p>
-              <p className="text-xs text-slate-400 mt-1">کوئی دوا نہیں ملی۔</p>
             </div>
           </div>
         ) : (
@@ -274,7 +273,7 @@ export default function Medicines({ pharmacy, showAddModal, onCloseAddModal, edi
               <thead>
                 <tr>
                   <th className="med-col-id font-bold text-slate-500 uppercase tracking-wider text-xs">Medicine ID</th>
-                  <th className="font-bold text-slate-500 uppercase tracking-wider text-xs">Name / نام</th>
+                  <th className="font-bold text-slate-500 uppercase tracking-wider text-xs">Name</th>
                   <th className="font-bold text-slate-500 uppercase tracking-wider text-xs">Category</th>
                   <th className="font-bold text-slate-500 uppercase tracking-wider text-xs">Price (PKR)</th>
                   <th className="font-bold text-slate-500 uppercase tracking-wider text-xs">Stock</th>
@@ -295,7 +294,6 @@ export default function Medicines({ pharmacy, showAddModal, onCloseAddModal, edi
                       <td>
                         <div className="flex flex-col gap-0.5">
                           <span className="font-bold text-sm text-slate-900">{med.name}</span>
-                          {med.name_urdu && <span className="text-xs text-[#3da860] font-semibold urdu">{med.name_urdu}</span>}
                           {med.manufacturer && <span className="text-[11px] text-slate-400 font-medium">{med.manufacturer}</span>}
                         </div>
                       </td>
@@ -384,7 +382,7 @@ export default function Medicines({ pharmacy, showAddModal, onCloseAddModal, edi
             </button>
             <h3 className="modal-title text-[#3da860] flex items-center gap-2 mb-6 font-bold">
               <Pill size={22} />
-              <span>Medicine Details / دوا کی تفصیلات</span>
+              <span>Medicine Details</span>
             </h3>
             
             <div className="grid grid-cols-2 gap-5">
@@ -399,15 +397,9 @@ export default function Medicines({ pharmacy, showAddModal, onCloseAddModal, edi
                 </span>
               </div>
               <div className="flex flex-col gap-1 col-span-2 border-t border-slate-50 pt-3">
-                <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">English Name</span>
+                <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Medicine Name</span>
                 <span className="text-base font-bold text-slate-900">{viewingMed.name}</span>
               </div>
-              {viewingMed.name_urdu && (
-                <div className="flex flex-col gap-1 col-span-2 border-t border-slate-50 pt-3">
-                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Urdu Name</span>
-                  <span className="text-base font-bold text-[#3da860] urdu">{viewingMed.name_urdu}</span>
-                </div>
-              )}
               {viewingMed.manufacturer && (
                 <div className="flex flex-col gap-1 col-span-2 border-t border-slate-50 pt-3">
                   <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Manufacturer / Company</span>
@@ -435,7 +427,7 @@ export default function Medicines({ pharmacy, showAddModal, onCloseAddModal, edi
             </div>
             
             <div className="modal-actions border-t border-slate-100 pt-4 mt-6">
-              <button className="btn btn-primary w-full bg-[#3da860] hover:bg-[#2e8c4e]" onClick={handleCloseView}>Close / بند کریں</button>
+              <button className="btn btn-primary w-full bg-[#3da860] hover:bg-[#2e8c4e]" onClick={handleCloseView}>Close</button>
             </div>
           </div>
         </div>
@@ -451,10 +443,10 @@ export default function Medicines({ pharmacy, showAddModal, onCloseAddModal, edi
             >
               <X size={16} />
             </button>
-            <h3 className="modal-title text-slate-900 font-bold mb-5">Add New Medicine / نئی دوا شامل کریں</h3>
+            <h3 className="modal-title text-slate-900 font-bold mb-5">Add New Medicine</h3>
             <form onSubmit={handleAddSubmit} className="flex flex-col gap-4">
               <div className="form-group mb-0">
-                <label className="form-label">Medicine Name (English) <span className="text-red-500">*</span></label>
+                <label className="form-label">Medicine Name <span className="text-red-500">*</span></label>
                 <input
                   type="text"
                   required
@@ -462,17 +454,6 @@ export default function Medicines({ pharmacy, showAddModal, onCloseAddModal, edi
                   placeholder="e.g. Tetracycline 500mg"
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
-                />
-              </div>
-
-              <div className="form-group mb-0">
-                <label className="form-label">Medicine Name (Urdu / اختیاری)</label>
-                <input
-                  type="text"
-                  className="form-control urdu focus:border-[#3da860] focus:ring-2 focus:ring-[#3da860]/20"
-                  placeholder="مثال: ٹیٹراسائیکلین"
-                  value={form.nameUrdu}
-                  onChange={(e) => setForm({ ...form, nameUrdu: e.target.value })}
                 />
               </div>
 
@@ -495,6 +476,7 @@ export default function Medicines({ pharmacy, showAddModal, onCloseAddModal, edi
                   value={form.category}
                   onChange={(e) => setForm({ ...form, category: e.target.value })}
                 >
+                  <option value="">Select Category</option>
                   {categories.map(cat => (
                     <option key={cat} value={cat}>{cat}</option>
                   ))}
@@ -542,8 +524,8 @@ export default function Medicines({ pharmacy, showAddModal, onCloseAddModal, edi
               </div>
 
               <div className="modal-actions border-t border-slate-100 pt-4 mt-2">
-                <button type="button" className="btn btn-secondary" onClick={handleCloseAdd}>Cancel / منسوخ کریں</button>
-                <button type="submit" className="btn btn-primary bg-[#3da860] hover:bg-[#2e8c4e]">Save Listing / محفوظ کریں</button>
+                <button type="button" className="btn btn-secondary" onClick={handleCloseAdd}>Cancel</button>
+                <button type="submit" className="btn btn-primary bg-[#3da860] hover:bg-[#2e8c4e]">Save Listing</button>
               </div>
             </form>
           </div>
@@ -560,26 +542,16 @@ export default function Medicines({ pharmacy, showAddModal, onCloseAddModal, edi
             >
               <X size={16} />
             </button>
-            <h3 className="modal-title text-slate-900 font-bold mb-5">Edit Medicine Details / ترمیم کریں</h3>
+            <h3 className="modal-title text-slate-900 font-bold mb-5">Edit Medicine Details</h3>
             <form onSubmit={handleEditSubmit} className="flex flex-col gap-4">
               <div className="form-group mb-0">
-                <label className="form-label">Medicine Name (English) <span className="text-red-500">*</span></label>
+                <label className="form-label">Medicine Name <span className="text-red-500">*</span></label>
                 <input
                   type="text"
                   required
                   className="form-control focus:border-[#3da860] focus:ring-2 focus:ring-[#3da860]/20"
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
-                />
-              </div>
-
-              <div className="form-group mb-0">
-                <label className="form-label">Medicine Name (Urdu)</label>
-                <input
-                  type="text"
-                  className="form-control urdu focus:border-[#3da860] focus:ring-2 focus:ring-[#3da860]/20"
-                  value={form.nameUrdu}
-                  onChange={(e) => setForm({ ...form, nameUrdu: e.target.value })}
                 />
               </div>
 
@@ -601,6 +573,7 @@ export default function Medicines({ pharmacy, showAddModal, onCloseAddModal, edi
                   value={form.category}
                   onChange={(e) => setForm({ ...form, category: e.target.value })}
                 >
+                  <option value="">Select Category</option>
                   {categories.map(cat => (
                     <option key={cat} value={cat}>{cat}</option>
                   ))}
@@ -645,8 +618,8 @@ export default function Medicines({ pharmacy, showAddModal, onCloseAddModal, edi
               </div>
 
               <div className="modal-actions border-t border-slate-100 pt-4 mt-2">
-                <button type="button" className="btn btn-secondary" onClick={handleCloseEdit}>Cancel / منسوخ کریں</button>
-                <button type="submit" className="btn btn-primary bg-[#3da860] hover:bg-[#2e8c4e]">Update Details / محفوظ کریں</button>
+                <button type="button" className="btn btn-secondary" onClick={handleCloseEdit}>Cancel</button>
+                <button type="submit" className="btn btn-primary bg-[#3da860] hover:bg-[#2e8c4e]">Update Details</button>
               </div>
             </form>
           </div>

@@ -101,14 +101,14 @@ export default function Settings({ pharmacy }) {
     </button>
   );
 
-  const SectionTitle = ({ icon: Icon, title, urdu }) => (
+  const SectionTitle = ({ icon: Icon, title, subtitle }) => (
     <div className="flex items-center gap-3 mb-6">
       <div className="w-9 h-9 rounded-xl bg-[#3da860]/10 text-[#3da860] flex items-center justify-center">
         <Icon size={18} />
       </div>
       <div>
         <h3 className="text-base font-bold text-slate-900">{title}</h3>
-        <p className="text-[11px] text-[#3da860] urdu">{urdu}</p>
+        {subtitle && <p className="text-[11px] text-slate-400 mt-0.5">{subtitle}</p>}
       </div>
     </div>
   );
@@ -126,13 +126,13 @@ export default function Settings({ pharmacy }) {
 
       {/* ─── Language & Display ─── */}
       <div className="bg-white border border-slate-100 rounded-2xl p-7 shadow-sm">
-        <SectionTitle icon={Globe} title="Language & Display" urdu="زبان اور ڈسپلے" />
+        <SectionTitle icon={Globe} title="Language & Display" subtitle="Configure portal language and visual preferences" />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Language */}
           <div className="flex flex-col gap-2">
             <label className="text-xs font-bold text-slate-600 uppercase tracking-wider">
-              Portal Language / پورٹل کی زبان
+              Portal Language
             </label>
             <div className="flex flex-col gap-2">
               {['English', 'Urdu', 'Both'].map(lang => (
@@ -147,7 +147,7 @@ export default function Settings({ pharmacy }) {
                   }`}
                 >
                   <span>
-                    {lang === 'English' ? '🇬🇧 English' : lang === 'Urdu' ? '🇵🇰 Urdu (اردو)' : '🔄 Both (English / اردو)'}
+                    {lang === 'English' ? 'English (Standard)' : lang === 'Urdu' ? 'Urdu' : 'Dual Language (English / Urdu)'}
                   </span>
                   {language === lang && <CheckCircle size={16} className="text-[#3da860]" />}
                 </button>
@@ -160,7 +160,7 @@ export default function Settings({ pharmacy }) {
             {/* Theme */}
             <div className="flex flex-col gap-2">
               <label className="text-xs font-bold text-slate-600 uppercase tracking-wider">
-                Theme / تھیم
+                Theme
               </label>
               <div className="flex gap-2">
                 {[
@@ -188,7 +188,7 @@ export default function Settings({ pharmacy }) {
             {/* Currency */}
             <div className="flex flex-col gap-2">
               <label className="text-xs font-bold text-slate-600 uppercase tracking-wider">
-                Currency / کرنسی
+                Currency
               </label>
               <select
                 value={currency}
@@ -203,7 +203,7 @@ export default function Settings({ pharmacy }) {
             {/* Date Format */}
             <div className="flex flex-col gap-2">
               <label className="text-xs font-bold text-slate-600 uppercase tracking-wider">
-                Date Format / تاریخ فارمیٹ
+                Date Format
               </label>
               <select
                 value={dateFormat}
@@ -221,19 +221,19 @@ export default function Settings({ pharmacy }) {
 
       {/* ─── Notification Preferences ─── */}
       <div className="bg-white border border-slate-100 rounded-2xl p-7 shadow-sm">
-        <SectionTitle icon={Bell} title="Notification Preferences" urdu="اطلاعات کی ترجیحات" />
+        <SectionTitle icon={Bell} title="Notification Preferences" subtitle="Manage your notifications and alerts" />
 
         <div className="flex flex-col gap-4">
           {[
-            { label: 'New Order Received', urdu: 'نیا آرڈر موصول ہوا', val: notifNewOrder, set: setNotifNewOrder },
-            { label: 'Low Stock Alert', urdu: 'کم اسٹاک الرٹ', val: notifLowStock, set: setNotifLowStock },
-            { label: 'Order Status Updates', urdu: 'آرڈر کی حالت کی تازہ کاری', val: notifOrderStatus, set: setNotifOrderStatus },
-            { label: 'Email Notifications', urdu: 'ای میل اطلاعات', val: notifEmail, set: setNotifEmail, icon: Smartphone }
-          ].map(({ label, urdu, val, set }) => (
+            { label: 'New Order Received', desc: 'Alerts when a new order arrives', val: notifNewOrder, set: setNotifNewOrder },
+            { label: 'Low Stock Alert', desc: 'Warn when medicines fall below threshold', val: notifLowStock, set: setNotifLowStock },
+            { label: 'Order Status Updates', desc: 'Status transitions for processed orders', val: notifOrderStatus, set: setNotifOrderStatus },
+            { label: 'Email Notifications', desc: 'Receive urgent notifications via email', val: notifEmail, set: setNotifEmail, icon: Smartphone }
+          ].map(({ label, desc, val, set }) => (
             <div key={label} className="flex items-center justify-between py-3 border-b border-slate-50 last:border-b-0">
               <div>
                 <p className="text-sm font-semibold text-slate-800">{label}</p>
-                <p className="text-[11px] text-slate-400 urdu mt-0.5">{urdu}</p>
+                <p className="text-[11px] text-slate-400 mt-0.5">{desc}</p>
               </div>
               <Toggle value={val} onChange={set} />
             </div>
@@ -249,13 +249,13 @@ export default function Settings({ pharmacy }) {
           className="btn btn-primary bg-[#3da860] hover:bg-[#2e8c4e] shadow-md shadow-[#3da860]/15 flex items-center gap-2 rounded-xl cursor-pointer font-bold px-6 py-2.5"
         >
           <Save size={16} />
-          <span>Save Settings / ترتیبات محفوظ کریں</span>
+          <span>Save Settings</span>
         </button>
       </div>
 
       {/* ─── Security / Change Password ─── */}
       <div className="bg-white border border-slate-100 rounded-2xl p-7 shadow-sm">
-        <SectionTitle icon={Shield} title="Security / Change Password" urdu="سیکیورٹی / پاس ورڈ تبدیل کریں" />
+        <SectionTitle icon={Shield} title="Security & Password" subtitle="Change or update your password" />
 
         {pwdSuccess && (
           <div className="flex items-center gap-2 bg-[#3da860]/10 text-[#3da860] border border-[#3da860]/20 p-3 rounded-xl text-sm font-bold mb-4">
@@ -271,7 +271,7 @@ export default function Settings({ pharmacy }) {
         <form onSubmit={handleChangePassword} className="flex flex-col gap-4 max-w-lg">
           {/* Current Password */}
           <div className="form-group mb-0">
-            <label className="form-label">Current Password / موجودہ پاس ورڈ</label>
+            <label className="form-label">Current Password</label>
             <div className="relative">
               <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
@@ -293,7 +293,7 @@ export default function Settings({ pharmacy }) {
 
           {/* New Password */}
           <div className="form-group mb-0">
-            <label className="form-label">New Password / نیا پاس ورڈ</label>
+            <label className="form-label">New Password</label>
             <div className="relative">
               <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
@@ -329,7 +329,7 @@ export default function Settings({ pharmacy }) {
 
           {/* Confirm Password */}
           <div className="form-group mb-0">
-            <label className="form-label">Confirm New Password / تصدیق کریں</label>
+            <label className="form-label">Confirm New Password</label>
             <div className="relative">
               <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
@@ -366,14 +366,14 @@ export default function Settings({ pharmacy }) {
             className="btn btn-primary bg-[#135431] hover:bg-[#0e3a22] shadow-md flex items-center gap-2 rounded-xl cursor-pointer font-bold w-fit px-6 py-2.5 mt-1"
           >
             <Shield size={16} />
-            <span>Change Password / پاس ورڈ تبدیل کریں</span>
+            <span>Change Password</span>
           </button>
         </form>
       </div>
 
       {/* ─── Account Info ─── */}
       <div className="bg-white border border-slate-100 rounded-2xl p-7 shadow-sm">
-        <SectionTitle icon={Lock} title="Account Information" urdu="اکاؤنٹ کی معلومات" />
+        <SectionTitle icon={Lock} title="Account Information" subtitle="Pharmacy details and verification status" />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="flex flex-col">
             <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold mb-1">Pharmacy Name</span>

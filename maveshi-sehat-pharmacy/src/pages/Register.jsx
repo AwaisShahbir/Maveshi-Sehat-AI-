@@ -19,7 +19,7 @@ export default function Register({ onViewChange }) {
     city: '',
     licenseNumber: '',
     licenseExpiry: '',
-    businessHours: 'Mon-Sat: 9:00 AM - 8:00 PM',
+    businessHours: '',
     description: '',
   });
 
@@ -76,14 +76,11 @@ export default function Register({ onViewChange }) {
           <p className="text-sm text-slate-600 leading-relaxed">
             Thank you for registering <strong>{formData.name}</strong>. Your application is now pending admin review.
           </p>
-          <p className="text-xs text-[#3da860] mt-3 leading-loose urdu">
-            آپ کی فارمیسی کی رجسٹریشن درخواست موصول ہو گئی ہے۔ ایڈمن کی منظوری کے بعد آپ لاگ ان کر سکیں گے۔
-          </p>
           <button 
             className="w-full h-11 bg-[#3da860] hover:bg-[#2e8c4e] text-white border-none rounded-xl text-sm font-bold cursor-pointer mt-8 transition-colors duration-200" 
             onClick={() => onViewChange('login')}
           >
-            Back to Login / لاگ ان پر واپس جائیں
+            Back to Login
           </button>
         </div>
       </div>
@@ -103,25 +100,24 @@ export default function Register({ onViewChange }) {
         </button>
         <div className="flex flex-col">
           <h1 className="font-heading text-xl font-bold text-slate-900">Register Pharmacy Portal</h1>
-          <p className="text-xs text-[#3da860] mt-0.5 urdu">فارمیسی رجسٹریشن فارم</p>
         </div>
       </header>
 
       
       <main className="flex-1 max-w-[800px] w-full mx-auto py-10 px-6">
-        <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-6" autoComplete="off">
           {error && <div className="bg-red-50 text-red-600 p-4 rounded-xl border border-red-100 font-semibold text-sm">{error}</div>}
 
           
           <section className="bg-white rounded-2xl border border-slate-200 p-6 md:p-8 shadow-sm">
             <div className="flex items-center gap-3 mb-5 border-b border-slate-100 pb-3">
               <Info size={20} className="text-[#3da860]" />
-              <h2 className="text-sm font-bold text-slate-900">Basic Information / بنیادی معلومات</h2>
+              <h2 className="text-sm font-bold text-slate-900">Basic Information</h2>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div className="form-group mb-0">
                 <label className="form-label">
-                  Pharmacy Name (English) <span className="label-ur">فارمیسی کا نام (انگریزی)</span>
+                  Pharmacy Name
                 </label>
                 <input
                   type="text"
@@ -135,22 +131,22 @@ export default function Register({ onViewChange }) {
               </div>
               <div className="form-group mb-0">
                 <label className="form-label">
-                  Pharmacy Name (Urdu) <span className="label-ur">فارمیسی کا نام (اردو)</span>
+                  Branch / Trade Name
                 </label>
                 <input
                   type="text"
                   name="nameUrdu"
-                  placeholder="مثال: الشفاء میڈیکل اسٹور"
+                  placeholder="e.g. Main Bazar Branch"
                   value={formData.nameUrdu}
                   onChange={handleChange}
-                  className="form-control bg-white border border-slate-200 text-slate-900 rounded-xl focus:border-[#3da860] focus:ring-2 focus:ring-[#3da860]/20 w-full text-right"
+                  className="form-control bg-white border border-slate-200 text-slate-900 rounded-xl focus:border-[#3da860] focus:ring-2 focus:ring-[#3da860]/20 w-full"
                 />
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-5">
               <div className="form-group mb-0">
                 <label className="form-label">
-                  Owner Name <span className="label-ur">مالک کا نام</span>
+                  Owner Name
                 </label>
                 <input
                   type="text"
@@ -164,7 +160,7 @@ export default function Register({ onViewChange }) {
               </div>
               <div className="form-group mb-0">
                 <label className="form-label">
-                  CNIC <span className="label-ur">شناختی کارڈ نمبر</span>
+                  CNIC
                 </label>
                 <input
                   type="text"
@@ -183,12 +179,12 @@ export default function Register({ onViewChange }) {
           <section className="bg-white rounded-2xl border border-slate-200 p-6 md:p-8 shadow-sm">
             <div className="flex items-center gap-3 mb-5 border-b border-slate-100 pb-3">
               <Store size={20} className="text-[#3da860]" />
-              <h2 className="text-sm font-bold text-slate-900">Contact Information / رابطہ کی معلومات</h2>
+              <h2 className="text-sm font-bold text-slate-900">Contact Information</h2>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
               <div className="form-group mb-0">
                 <label className="form-label">
-                  Phone Number <span className="label-ur">فون نمبر</span>
+                  Phone Number
                 </label>
                 <input
                   type="tel"
@@ -202,7 +198,7 @@ export default function Register({ onViewChange }) {
               </div>
               <div className="form-group mb-0">
                 <label className="form-label">
-                  WhatsApp Number <span className="label-ur">واٹس ایپ نمبر</span>
+                  WhatsApp Number
                 </label>
                 <input
                   type="tel"
@@ -215,7 +211,7 @@ export default function Register({ onViewChange }) {
               </div>
               <div className="form-group mb-0">
                 <label className="form-label">
-                  Email Address <span className="label-ur">ای میل ایڈریس</span>
+                  Email Address
                 </label>
                 <input
                   type="email"
@@ -234,12 +230,12 @@ export default function Register({ onViewChange }) {
           <section className="bg-white rounded-2xl border border-slate-200 p-6 md:p-8 shadow-sm">
             <div className="flex items-center gap-3 mb-5 border-b border-slate-100 pb-3">
               <MapPin size={20} className="text-[#3da860]" />
-              <h2 className="text-sm font-bold text-slate-900">Location / مقام</h2>
+              <h2 className="text-sm font-bold text-slate-900">Location</h2>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div className="form-group mb-0">
                 <label className="form-label">
-                  Province <span className="label-ur">صوبہ</span>
+                  Province
                 </label>
                 <select
                   name="province"
@@ -257,7 +253,7 @@ export default function Register({ onViewChange }) {
               </div>
               <div className="form-group mb-0">
                 <label className="form-label">
-                  City <span className="label-ur">شہر</span>
+                  City
                 </label>
                 <input
                   type="text"
@@ -272,7 +268,7 @@ export default function Register({ onViewChange }) {
             </div>
             <div className="form-group mb-0 mt-5">
               <label className="form-label">
-                Full Address <span className="label-ur">مکمل پتہ</span>
+                Full Address
               </label>
               <textarea
                 name="address"
@@ -289,12 +285,12 @@ export default function Register({ onViewChange }) {
           <section className="bg-white rounded-2xl border border-slate-200 p-6 md:p-8 shadow-sm">
             <div className="flex items-center gap-3 mb-5 border-b border-slate-100 pb-3">
               <Award size={20} className="text-[#3da860]" />
-              <h2 className="text-sm font-bold text-slate-900">License Information / لائسنس کی معلومات</h2>
+              <h2 className="text-sm font-bold text-slate-900">License Information</h2>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div className="form-group mb-0">
                 <label className="form-label">
-                  DRAP License Number <span className="label-ur">ڈرپ لائسنس نمبر</span>
+                  DRAP License Number
                 </label>
                 <input
                   type="text"
@@ -308,7 +304,7 @@ export default function Register({ onViewChange }) {
               </div>
               <div className="form-group mb-0">
                 <label className="form-label">
-                  License Expiry Date <span className="label-ur">لائسنس کی تاریخ ختم</span>
+                  License Expiry Date
                 </label>
                 <input
                   type="date"
@@ -326,11 +322,11 @@ export default function Register({ onViewChange }) {
           <section className="bg-white rounded-2xl border border-slate-200 p-6 md:p-8 shadow-sm">
             <div className="flex items-center gap-3 mb-5 border-b border-slate-100 pb-3">
               <Store size={20} className="text-[#3da860]" />
-              <h2 className="text-sm font-bold text-slate-900">Business Details / کاروباری تفصیلات</h2>
+              <h2 className="text-sm font-bold text-slate-900">Business Details</h2>
             </div>
             <div className="form-group">
               <label className="form-label">
-                Business Hours <span className="label-ur">کاروبار کے اوقات</span>
+                Business Hours
               </label>
               <input
                 type="text"
@@ -344,7 +340,7 @@ export default function Register({ onViewChange }) {
             </div>
             <div className="form-group mb-0">
               <label className="form-label">
-                Description <span className="label-ur">تفصیل</span>
+                Description
               </label>
               <textarea
                 name="description"
@@ -360,12 +356,12 @@ export default function Register({ onViewChange }) {
           <section className="bg-white rounded-2xl border border-slate-200 p-6 md:p-8 shadow-sm">
             <div className="flex items-center gap-3 mb-5 border-b border-slate-100 pb-3">
               <Award size={20} className="text-[#3da860]" />
-              <h2 className="text-sm font-bold text-slate-900">Security / سیکیورٹی</h2>
+              <h2 className="text-sm font-bold text-slate-900">Security</h2>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div className="form-group mb-0">
                 <label className="form-label">
-                  Password <span className="label-ur">پاس ورڈ</span>
+                  Password
                 </label>
                 <input
                   type="password"
@@ -380,7 +376,7 @@ export default function Register({ onViewChange }) {
               </div>
               <div className="form-group mb-0">
                 <label className="form-label">
-                  Confirm Password <span className="label-ur">تصدیق کریں</span>
+                  Confirm Password
                 </label>
                 <input
                   type="password"
@@ -401,7 +397,7 @@ export default function Register({ onViewChange }) {
             className="h-12 bg-[#3da860] hover:bg-[#2e8c4e] disabled:bg-[#3da860]/50 text-white text-sm font-bold border-none rounded-xl flex items-center justify-center gap-2.5 cursor-pointer shadow-lg shadow-[#3da860]/20 mt-3 transition-all duration-200"
           >
             <Send size={18} />
-            <span>{loading ? 'Submitting Request...' : 'Submit Registration / درخواست جمع کرائیں'}</span>
+            <span>{loading ? 'Submitting Request...' : 'Submit Registration'}</span>
           </button>
         </form>
       </main>

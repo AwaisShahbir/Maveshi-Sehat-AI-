@@ -319,6 +319,28 @@ textarea.form-control {
   resize: vertical;
 }
 
+.form-control.pl-10,
+.form-control.pl-11,
+.input-with-left-icon {
+  padding-left: 44px !important;
+}
+
+.form-control.pr-10,
+.form-control.pr-11,
+.input-with-right-icon {
+  padding-right: 44px !important;
+}
+
+/* Prevent browser autofill ugly background and styling distortion */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px #ffffff inset !important;
+  -webkit-text-fill-color: #0f172a !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
 
 .table-responsive {
   width: 100%;

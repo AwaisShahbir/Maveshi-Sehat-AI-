@@ -51,7 +51,6 @@ export default function Login({ onLoginSuccess, onViewChange }) {
           </div>
           <h1 className="font-heading text-3xl font-extrabold text-white tracking-tight">Maveshi Sehat AI</h1>
           <h2 className="text-lg font-semibold text-[#3da860] mt-1">Pharmacy Portal</h2>
-          <p className="text-sm text-[#3da860] mt-1.5 urdu">فارمیسی پورٹل</p>
         </div>
 
         <div className="w-full max-w-[400px] flex flex-col gap-6 mb-12">
@@ -61,7 +60,6 @@ export default function Login({ onLoginSuccess, onViewChange }) {
             </div>
             <div>
               <p className="text-sm font-bold text-white">Verified & trusted platform</p>
-              <p className="text-xs text-slate-300 mt-0.5">تصدیق شدہ اور قابل اعتماد پلیٹ فارم</p>
             </div>
           </div>
 
@@ -71,7 +69,6 @@ export default function Login({ onLoginSuccess, onViewChange }) {
             </div>
             <div>
               <p className="text-sm font-bold text-white">Real-time order management</p>
-              <p className="text-xs text-slate-300 mt-0.5">حقیقی وقت میں آرڈر کا انتظام</p>
             </div>
           </div>
 
@@ -81,7 +78,6 @@ export default function Login({ onLoginSuccess, onViewChange }) {
             </div>
             <div>
               <p className="text-sm font-bold text-white">Direct farmer-pharmacy connection</p>
-              <p className="text-xs text-slate-300 mt-0.5">کسان اور فارمیسی کا براہ راست رابطہ</p>
             </div>
           </div>
 
@@ -91,7 +87,6 @@ export default function Login({ onLoginSuccess, onViewChange }) {
             </div>
             <div>
               <p className="text-sm font-bold text-white">Grow your medicine business</p>
-              <p className="text-xs text-slate-300 mt-0.5">اپنے دوا کے کاروبار کو بڑھائیں</p>
             </div>
           </div>
         </div>
@@ -102,7 +97,7 @@ export default function Login({ onLoginSuccess, onViewChange }) {
             className="bg-transparent border-none text-[#3da860] font-bold text-sm cursor-pointer underline hover:text-[#4cb880] transition-colors"
             onClick={() => onViewChange('register')}
           >
-            Register your pharmacy / اپنی فارمیسی رجسٹر کریں
+            Register your pharmacy
           </button>
         </div>
       </div>
@@ -114,7 +109,6 @@ export default function Login({ onLoginSuccess, onViewChange }) {
         <div className="w-full max-w-[460px] bg-white rounded-[24px] border border-slate-200 p-8 md:p-12 shadow-xl flex flex-col">
           <h2 className="font-heading text-2xl font-bold text-slate-900 text-center">Welcome Back</h2>
           <p className="text-sm text-slate-500 text-center mt-1">Login to your pharmacy portal</p>
-          <p className="text-xs text-[#3da860] text-center mt-0.5 urdu">اپنے فارمیسی پورٹل میں لاگ ان کریں</p>
 
           {error && (
             <div className="flex items-center gap-2.5 bg-red-50 text-red-600 p-3.5 rounded-xl text-xs font-semibold mt-6 border border-red-100">
@@ -123,15 +117,18 @@ export default function Login({ onLoginSuccess, onViewChange }) {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="flex flex-col mt-7">
+          <form onSubmit={handleSubmit} className="flex flex-col mt-7" autoComplete="off">
             <div className="form-group">
               <label className="form-label">
-                Email or Phone Number <span className="label-ur">ای میل یا فون نمبر</span>
+                Email or Phone Number
               </label>
               <div className="relative flex items-center">
-                <Mail size={18} className="absolute left-3.5 text-slate-400" />
+                <Mail size={18} className="pharmacy-input-icon-left text-slate-400" />
                 <input
                   type="text"
+                  name="pharmacy_user_id"
+                  id="pharmacy_user_id"
+                  autoComplete="off"
                   required
                   placeholder="Enter email or phone"
                   value={emailOrPhone}
@@ -143,12 +140,15 @@ export default function Login({ onLoginSuccess, onViewChange }) {
 
             <div className="form-group">
               <label className="form-label">
-                Password <span className="label-ur">پاس ورڈ</span>
+                Password
               </label>
               <div className="relative flex items-center">
-                <KeyRound size={18} className="absolute left-3.5 text-slate-400" />
+                <KeyRound size={18} className="pharmacy-input-icon-left text-slate-400" />
                 <input
                   type={showPassword ? 'text' : 'password'}
+                  name="pharmacy_user_pwd"
+                  id="pharmacy_user_pwd"
+                  autoComplete="new-password"
                   required
                   placeholder="Enter your password"
                   value={password}
@@ -158,7 +158,7 @@ export default function Login({ onLoginSuccess, onViewChange }) {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3.5 bg-transparent border-none text-slate-400 hover:text-slate-600 cursor-pointer flex items-center"
+                  className="pharmacy-input-icon-right text-slate-400 hover:text-slate-600"
                 >
                   {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
@@ -184,7 +184,7 @@ export default function Login({ onLoginSuccess, onViewChange }) {
               className="w-full h-12 bg-[#3da860] hover:bg-[#2e8c4e] disabled:bg-[#3da860]/50 text-white text-sm font-bold border-none rounded-xl flex items-center justify-center gap-2.5 cursor-pointer transition-colors duration-200 shadow-md shadow-[#3da860]/10"
             >
               <LogIn size={18} />
-              <span>{loading ? 'Logging in...' : 'Login to Dashboard / لاگ ان کریں'}</span>
+              <span>{loading ? 'Logging in...' : 'Login to Dashboard'}</span>
             </button>
           </form>
 
@@ -199,7 +199,7 @@ export default function Login({ onLoginSuccess, onViewChange }) {
             onClick={() => onViewChange('register')}
             className="w-full h-12 bg-transparent text-[#3da860] border border-[#3da860] hover:bg-[#eff7f2] rounded-xl text-xs font-bold cursor-pointer flex items-center justify-center transition-all duration-200"
           >
-            Register New Pharmacy / فارمیسی رجسٹر کریں
+            Register New Pharmacy
           </button>
 
           <div className="text-center mt-8 text-xs text-slate-400">

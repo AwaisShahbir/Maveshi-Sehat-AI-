@@ -114,7 +114,7 @@ export default function Orders({ pharmacy, onOrderAction, formatPrice, getStatus
       {loading ? (
         <div className="text-center text-slate-500 py-16 flex flex-col items-center justify-center gap-3">
           <div className="w-8 h-8 border-3 border-[#3da860] border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-sm font-medium text-slate-500">Loading orders... / آرڈرز لوڈ ہو رہے ہیں...</p>
+          <p className="text-sm font-medium text-slate-500">Loading orders...</p>
         </div>
       ) : filteredOrders.length === 0 ? (
         <div className="text-center text-slate-500 py-16 text-sm bg-white border border-dashed border-slate-200 rounded-2xl">
@@ -148,9 +148,6 @@ export default function Orders({ pharmacy, onOrderAction, formatPrice, getStatus
 
                   <div className="flex flex-col">
                     <span className="font-bold text-sm text-slate-900">{order.buyer_name}</span>
-                    {order.buyer_name_urdu && (
-                      <span className="text-xs text-slate-400 font-semibold urdu mt-0.5">{order.buyer_name_urdu}</span>
-                    )}
                   </div>
 
                   <div className="flex flex-col items-start md:items-end">
@@ -163,7 +160,7 @@ export default function Orders({ pharmacy, onOrderAction, formatPrice, getStatus
                 {isExpanded && (
                   <div className="border-t border-slate-100 p-6 bg-slate-50/50">
                     <h4 className="text-xs font-bold text-[#135431] uppercase tracking-wider mb-4 font-heading">
-                      Order Items Details / آرڈر کی تفصیلات
+                      Order Items Details
                     </h4>
                     
                     {items.length === 0 ? (
@@ -179,7 +176,6 @@ export default function Orders({ pharmacy, onOrderAction, formatPrice, getStatus
                           <div key={idx} className="grid grid-cols-3 p-3 px-4 border-b border-slate-100 last:border-b-0 items-center">
                             <div className="flex flex-col">
                               <span className="text-xs font-bold text-slate-900">{item.name}</span>
-                              {item.name_urdu && <span className="text-xs text-[#3da860] font-semibold urdu mt-0.5">{item.name_urdu}</span>}
                             </div>
                             <span className="text-xs text-slate-600 font-semibold">{item.quantity} units</span>
                             <span className="text-xs font-extrabold text-slate-900 text-right">{formatPrice(item.price * item.quantity)}</span>
@@ -237,7 +233,7 @@ export default function Orders({ pharmacy, onOrderAction, formatPrice, getStatus
                         )}
                         {(order.status.toLowerCase() === 'completed' || order.status.toLowerCase() === 'delivered' || order.status.toLowerCase() === 'cancelled') && (
                           <span className="text-xs text-slate-500 font-semibold border border-slate-200 bg-slate-100 px-3 py-1.5 rounded-xl w-full sm:w-auto text-center">
-                            Order Processed / آرڈر مکمل ہو گیا
+                            Order Processed
                           </span>
                         )}
                       </div>

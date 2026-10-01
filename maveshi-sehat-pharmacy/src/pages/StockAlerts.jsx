@@ -67,7 +67,7 @@ export default function StockAlerts({ pharmacy, onEditMedicine, onAddMedicine })
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-[300px] text-slate-400 text-sm font-medium">
-        <p>Loading inventory metrics... / لوڈ ہو رہا ہے...</p>
+        <p>Loading inventory metrics...</p>
       </div>
     );
   }
@@ -78,15 +78,14 @@ export default function StockAlerts({ pharmacy, onEditMedicine, onAddMedicine })
       {/* Header Section */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white p-4 rounded-2xl border border-slate-100 shadow-sm gap-4">
         <div className="flex flex-col">
-          <h2 className="text-lg font-bold text-slate-900 font-heading">Stock Alerts / اسٹاک الرٹ</h2>
-          <span className="text-xs text-[#3da860] font-semibold mt-0.5 urdu">اسٹاک کی نگرانی اور تنبیہات</span>
+          <h2 className="text-lg font-bold text-slate-900 font-heading">Stock Alerts</h2>
         </div>
         <button 
           className="inline-flex items-center gap-2 px-4 py-2 bg-[#3da860] hover:bg-[#2e8c4e] text-white rounded-xl font-bold text-xs shadow-md shadow-[#3da860]/10 transition-all cursor-pointer" 
           onClick={onAddMedicine}
         >
           <Plus size={14} />
-          <span>Add Medicine / نئی دوا شامل کریں</span>
+          <span>Add Medicine</span>
         </button>
       </div>
 
@@ -98,9 +97,9 @@ export default function StockAlerts({ pharmacy, onEditMedicine, onAddMedicine })
             <ShieldAlert size={22} />
           </div>
           <div className="flex flex-col">
-            <span className="text-xs font-semibold text-slate-500">Critical Stock / تشویشناک اسٹاک</span>
+            <span className="text-xs font-semibold text-slate-500">Critical Stock</span>
             <h3 className="text-2xl font-extrabold text-red-600 my-0.5">{criticalList.length}</h3>
-            <span className="text-[10px] text-slate-400 font-semibold">Immediate attention needed / فوراً لوڈ کریں</span>
+            <span className="text-[10px] text-slate-400 font-semibold">Immediate attention needed</span>
           </div>
         </div>
 
@@ -109,9 +108,9 @@ export default function StockAlerts({ pharmacy, onEditMedicine, onAddMedicine })
             <AlertTriangle size={22} />
           </div>
           <div className="flex flex-col">
-            <span className="text-xs font-semibold text-slate-500">Low Stock / کم اسٹاک</span>
+            <span className="text-xs font-semibold text-slate-500">Low Stock</span>
             <h3 className="text-2xl font-extrabold text-amber-500 my-0.5">{lowList.length}</h3>
-            <span className="text-[10px] text-slate-400 font-semibold">Restock soon / اسٹاک منگوائیں</span>
+            <span className="text-[10px] text-slate-400 font-semibold">Restock soon</span>
           </div>
         </div>
 
@@ -120,9 +119,9 @@ export default function StockAlerts({ pharmacy, onEditMedicine, onAddMedicine })
             <CheckCircle2 size={22} />
           </div>
           <div className="flex flex-col">
-            <span className="text-xs font-semibold text-slate-500">Good Stock / وافر اسٹاک</span>
+            <span className="text-xs font-semibold text-slate-500">Good Stock</span>
             <h3 className="text-2xl font-extrabold text-[#3da860] my-0.5">{goodList.length}</h3>
-            <span className="text-[10px] text-slate-400 font-semibold">Healthy inventory level / تسلی بخش اسٹاک</span>
+            <span className="text-[10px] text-slate-400 font-semibold">Healthy inventory level</span>
           </div>
         </div>
       </div>
@@ -131,7 +130,6 @@ export default function StockAlerts({ pharmacy, onEditMedicine, onAddMedicine })
       <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden p-6">
         <div className="mb-5">
           <h3 className="card-title text-slate-900 font-bold mb-1">Medicine Stock Levels</h3>
-          <p className="text-xs text-slate-400 urdu">دوائیوں کے اسٹاک کی سطح اور صلاحیت</p>
         </div>
         
         {medicines.length === 0 ? (
@@ -143,7 +141,7 @@ export default function StockAlerts({ pharmacy, onEditMedicine, onAddMedicine })
             <table className="custom-table">
               <thead>
                 <tr>
-                  <th className="font-bold text-slate-500 uppercase tracking-wider text-xs">Medicine / دوا</th>
+                  <th className="font-bold text-slate-500 uppercase tracking-wider text-xs">Medicine</th>
                   <th className="font-bold text-slate-500 uppercase tracking-wider text-xs">Current Stock</th>
                   <th className="font-bold text-slate-500 uppercase tracking-wider text-xs">Min / Max</th>
                   <th className="font-bold text-slate-500 uppercase tracking-wider text-xs">Stock Capacity</th>
@@ -181,7 +179,6 @@ export default function StockAlerts({ pharmacy, onEditMedicine, onAddMedicine })
                       <td>
                         <div className="flex flex-col gap-0.5">
                           <span className="text-sm font-bold text-slate-900">{med.name}</span>
-                          {med.name_urdu && <span className="text-xs text-[#3da860] font-semibold urdu">{med.name_urdu}</span>}
                           <span className="text-[10px] text-slate-400 font-medium">{restockText}</span>
                         </div>
                       </td>

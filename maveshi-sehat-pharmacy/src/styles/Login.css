@@ -14,3 +14,26 @@
 .pharmacy-login-form-pane {
   flex: 1.2;
 }
+
+.pharmacy-input-icon-left {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  z-index: 10;
+}
+
+.pharmacy-input-icon-right {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
