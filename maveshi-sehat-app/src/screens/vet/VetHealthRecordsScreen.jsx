@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, FlatList, TouchableOpacity, StatusBar, ActivityIndicator, Platform, TextInput, ScrollView } from 'react-native';
+import { View, Text, SafeAreaView, FlatList, TouchableOpacity, StatusBar, ActivityIndicator, Platform, TextInput, ScrollView } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { t } from '../../utils/translate';
 import { subscribeProfile } from '../../utils/profileStore';
+import styles from '../../styles/VetHealthRecordsScreenStyles';
 
 
 export default function VetHealthRecordsScreen() {
@@ -199,46 +200,3 @@ export default function VetHealthRecordsScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#F4F7F5' },
-  header: { backgroundColor: '#58D66D', paddingHorizontal: 20, paddingTop: 10, paddingBottom: 20 },
-  headerTopRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 },
-  backBtn: { padding: 4 },
-  titleContainer: { alignItems: 'center' },
-  headerTitle: { fontSize: 22, fontWeight: '700', color: '#FFF' },
-  headerSubtitle: { fontSize: 14, color: 'rgba(255,255,255,0.8)', marginTop: 2 },
-  downloadBtn: { padding: 4 },
-  searchContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFF', borderRadius: 25, paddingHorizontal: 16, height: 48 },
-  searchInput: { flex: 1, fontSize: 15, color: '#333' },
-  micIcon: { marginLeft: 10 },
-  tabsContainer: { backgroundColor: '#FFF', paddingVertical: 5, borderBottomWidth: 1, borderBottomColor: '#EAEAEA' },
-  tabsScroll: { paddingHorizontal: 15 },
-  tabBtn: { paddingVertical: 12, paddingHorizontal: 16, alignItems: 'center', position: 'relative' },
-  tabText: { color: '#888', fontWeight: '600', fontSize: 14 },
-  tabTextActive: { color: '#58D66D' },
-  activeIndicator: { position: 'absolute', bottom: 0, width: 20, height: 3, backgroundColor: '#58D66D', borderRadius: 2 },
-  listContainer: { padding: 16, paddingBottom: 100 },
-  card: { backgroundColor: '#FFF', borderRadius: 16, padding: 16, marginBottom: 16, elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 3 },
-  cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  diseaseName: { fontSize: 16, fontWeight: '700', color: '#333', flex: 1 },
-  riskBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
-  riskBadgeText: { fontSize: 10, fontWeight: 'bold', color: '#FFF' },
-  diseaseUrduText: { fontSize: 12, color: '#888', marginTop: 2, marginBottom: 12 },
-  infoRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 10, justifyContent: 'space-between' },
-  infoText: { fontSize: 13, color: '#666' },
-  dotSeparator: { width: 4, height: 4, borderRadius: 2, backgroundColor: '#CCC', marginHorizontal: 8 },
-  dateText: { fontSize: 12, color: '#999' },
-  modelTag: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#E8F8EA', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10 },
-  modelTagText: { fontSize: 10, color: '#58D66D', fontWeight: 'bold' },
-  confidenceSection: { marginBottom: 16, marginTop: 6 },
-  confidenceHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 },
-  confidenceLabel: { fontSize: 12, color: '#666' },
-  confidenceValue: { fontSize: 14, fontWeight: 'bold' },
-  progressBarBg: { height: 6, backgroundColor: '#EEE', borderRadius: 3, overflow: 'hidden' },
-  progressBarFill: { height: '100%', borderRadius: 3 },
-  cardFooter: { borderTopWidth: 1, borderTopColor: '#F0F0F0', paddingTop: 12, alignItems: 'center' },
-  viewFullText: { color: '#58D66D', fontSize: 13, fontWeight: 'bold' },
-  emptyContainer: { alignItems: 'center', marginTop: 60 },
-  emptyText: { marginTop: 16, fontSize: 16, color: '#888' }
-});

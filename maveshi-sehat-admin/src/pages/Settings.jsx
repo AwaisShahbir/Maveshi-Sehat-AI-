@@ -28,7 +28,7 @@ export default function Settings({ onProfileUpdate }) {
 
   // System Settings States
   const [threshold, setThreshold] = useState(85);
-  const [language, setLanguage] = useState('en');
+  const [language, setLanguage] = useState('Both');
   const [timezone, setTimezone] = useState('utc-5');
 
   // Load initial settings and profile from backend API
@@ -533,14 +533,19 @@ export default function Settings({ onProfileUpdate }) {
 
               <div className="settings-grid-options">
                 <div>
-                  <span className="settings-select-label">Interface Language</span>
+                  <span className="settings-select-label">Mobile App & System Language</span>
                   <select
                     value={language}
                     onChange={(e) => setLanguage(e.target.value)}
                     className="form-control settings-input"
                   >
-                    <option value="en">English (US)</option>
+                    <option value="English">English</option>
+                    <option value="Urdu">Urdu</option>
+                    <option value="Both">Both (English & Urdu)</option>
                   </select>
+                  <span className="settings-slider-hint" style={{ marginTop: '4px', display: 'block' }}>
+                    Controls the global language across the mobile app. Users cannot change it themselves.
+                  </span>
                 </div>
 
                 <div>

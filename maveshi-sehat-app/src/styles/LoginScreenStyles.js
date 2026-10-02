@@ -1,0 +1,166 @@
+import { StyleSheet, Platform } from 'react-native';
+
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#58D66D',
+  },
+  container: {
+    flex: 1,
+    backgroundColor: '#F8FAF9',
+  },
+  scrollContent: {
+    flexGrow: 1,
+  },
+  topSection: {
+    backgroundColor: '#58D66D',
+    paddingHorizontal: 24,
+    paddingTop: Platform.OS === 'android' ? 40 : 16,
+    paddingBottom: 70,
+  },
+  backButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  backText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+    marginLeft: 4,
+  },
+  mainTitle: {
+    color: '#FFFFFF',
+    fontSize: 32,
+    fontWeight: 'bold',
+    marginBottom: 8,
+  },
+  urduTitle: {
+    color: '#FFFFFF',
+    fontSize: 22,
+  },
+  cardContainer: {
+    backgroundColor: '#FFFFFF',
+    marginHorizontal: 24,
+    borderRadius: 24,
+    padding: 24,
+    marginTop: -40,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 5,
+    marginBottom: 40,
+  },
+  label: {
+    fontSize: 13,
+    color: '#555',
+    marginBottom: 10,
+    fontWeight: '600',
+    marginTop: 20,
+  },
+  roleContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  roleButton: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+  },
+  roleButtonActive: {
+    borderColor: '#4CB85C',
+    backgroundColor: '#E8F8EA',
+  },
+  roleText: {
+    color: '#666',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  roleTextActive: {
+    color: '#4CB85C',
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F7F9F8',
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    height: 60,
+    borderWidth: 1,
+    borderColor: '#D1D5D3',
+  },
+  inputIcon: {
+    marginRight: 12,
+  },
+  input: {
+    flex: 1,
+    height: '100%',
+    fontSize: 15,
+    color: '#333',
+    outlineStyle: 'none',
+  },
+  eyeIcon: {
+    padding: 8,
+  },
+  forgotPassword: {
+    color: '#4CB85C',
+    fontSize: 13,
+    marginTop: 16,
+    marginBottom: 32,
+    fontWeight: '600',
+  },
+  loginButton: {
+    backgroundColor: '#58D66D',
+    paddingVertical: 18,
+    borderRadius: 16,
+    alignItems: 'center',
+    shadowColor: '#58D66D',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+    marginBottom: 24,
+  },
+  errorContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFEBEA',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 16,
+  },
+  errorText: {
+    color: '#FF3B30',
+    fontSize: 13,
+    fontWeight: '600',
+    marginLeft: 8,
+    flex: 1,
+  },
+  loginButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  registerContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  registerText: {
+    color: '#777',
+    fontSize: 14,
+  },
+  registerLink: {
+    color: '#4CB85C',
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+});
+
+export default styles;

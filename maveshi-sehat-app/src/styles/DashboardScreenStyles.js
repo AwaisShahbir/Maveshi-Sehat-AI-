@@ -1,0 +1,160 @@
+import { StyleSheet, Platform, StatusBar } from 'react-native';
+
+const styles = StyleSheet.create({
+  safeArea: { flex: 1, backgroundColor: '#F8FAF9' },
+  scrollContent: { paddingBottom: 20 },
+  
+  header: {
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
+    paddingHorizontal: 24,
+    paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 0) + 20 : 20,
+    paddingBottom: 40,
+  },
+  headerTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 30,
+  },
+  greeting: { fontSize: 22, fontWeight: 'bold', color: '#FFF' },
+  userName: { fontSize: 14, color: '#E8F8EA', marginTop: 4 },
+  notificationBtn: {
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    padding: 10,
+    borderRadius: 20,
+    position: 'relative'
+  },
+  badge: {
+    position: 'absolute',
+    top: -2,
+    right: -2,
+    backgroundColor: '#FF4D4D',
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#58D66D'
+  },
+  badgeText: { color: '#FFF', fontSize: 10, fontWeight: 'bold' },
+  
+  statsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+  },
+  statItem: { alignItems: 'center' },
+  statValue: { fontSize: 28, fontWeight: '800', color: '#FFF' },
+  statLabel: { fontSize: 11, color: '#FFF', marginTop: 2, fontWeight: '600' },
+  statUrdu: { fontSize: 9, color: 'rgba(255,255,255,0.8)', marginTop: 2 },
+
+  cardContainer: {
+    backgroundColor: '#FFF',
+    marginHorizontal: 20,
+    borderRadius: 20,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 3,
+    marginBottom: 20,
+  },
+  overlapCard: {
+    marginTop: -20,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  sectionTitle: { fontSize: 16, fontWeight: 'bold', color: '#333', marginBottom: 16 },
+  viewAll: { fontSize: 13, color: '#4CB85C', fontWeight: 'bold', marginBottom: 16 },
+  
+  actionGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'flex-start',
+  },
+  actionItem: {
+    alignItems: 'center',
+    width: '33.33%',
+    marginBottom: 20,
+  },
+  iconBox: {
+    width: 60,
+    height: 60,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 8,
+    backgroundColor: '#FFF',
+  },
+  actionText: { fontSize: 11, fontWeight: 'bold', color: '#333', textAlign: 'center' },
+  actionUrdu: { fontSize: 10, color: '#888', textAlign: 'center', marginTop: 2 },
+  soonText: { fontSize: 9, color: '#FF4D4D', fontWeight: 'bold' },
+
+  scanItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F5F5F5',
+  },
+  scanIconBox: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  scanDetails: { flex: 1 },
+  scanTitle: { fontSize: 14, fontWeight: '600', color: '#333' },
+  scanTime: { fontSize: 12, color: '#888', marginTop: 4 },
+  scanStatus: { alignItems: 'flex-end' },
+  scanPercentage: { fontSize: 15, fontWeight: 'bold', color: '#333', marginBottom: 4 },
+  severityText: { fontSize: 11, fontWeight: 'bold' },
+
+  loadingContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 30,
+  },
+  emptyContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 30,
+  },
+  emptyText: {
+    fontSize: 14,
+    color: '#888',
+    fontWeight: '600',
+  },
+  emptyUrduText: {
+    fontSize: 12,
+    color: '#aaa',
+    marginTop: 2,
+  },
+
+  bottomNav: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: '#4CB85C',
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    paddingVertical: 16,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+  },
+  navItem: { alignItems: 'center' },
+  navText: { fontSize: 10, color: '#FFF', marginTop: 4, fontWeight: '600' }
+});
+
+export default styles;

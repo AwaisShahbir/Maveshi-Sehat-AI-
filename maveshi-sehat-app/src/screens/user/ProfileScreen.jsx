@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { 
   View, 
   Text, 
-  StyleSheet, 
   SafeAreaView, 
   TouchableOpacity, 
   ScrollView, 
@@ -19,6 +18,7 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import { getProfile, updateProfile, subscribeProfile } from '../../utils/profileStore';
 import { getRecords, subscribe, loadRecords } from '../../utils/recordsStore';
 import { t } from '../../utils/translate';
+import styles from '../../styles/ProfileScreenStyles';
 
 export default function ProfileScreen() {
   const navigation = useNavigation();
@@ -201,18 +201,20 @@ export default function ProfileScreen() {
 
         <Text style={styles.groupTitle}>{t('Preferences', 'ترجیحات')}</Text>
         <View style={styles.settingsGroup}>
-          <TouchableOpacity style={styles.settingsItem} onPress={openLanguageSelector}>
+          <View style={styles.settingsItem}>
             <View style={[styles.itemIconBg, { backgroundColor: '#E8F8EA' }]}>
               <Feather name="globe" size={18} color="#58D66D" />
             </View>
             <View style={styles.itemDetails}>
               <Text style={styles.itemTitle}>{t('Language', 'زبان')}</Text>
               <Text style={styles.itemVal}>
-                {profile.language === 'English' ? 'English / اردو' : (profile.language === 'Urdu' ? 'اردو' :t('English', 'اردو'))}
+                {profile.language === 'English' ? 'English' : (profile.language === 'Urdu' ? 'Urdu' : 'Both (English & Urdu)')}
               </Text>
             </View>
-            <Feather name="chevron-right" size={18} color="#888" />
-          </TouchableOpacity>
+            <Text style={{ fontSize: 11, color: '#94a3b8', fontStyle: 'italic' }}>
+              {t('Set by Admin', 'ایڈمن کنٹرولڈ')}
+            </Text>
+          </View>
 
           <View style={styles.settingsItem}>
             <View style={[styles.itemIconBg, { backgroundColor: '#E8F8EA' }]}>
@@ -337,63 +339,7 @@ export default function ProfileScreen() {
         </View>
       </Modal>
 
-      {/* Language Modal */}
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={langModalVisible}
-        onRequestClose={() => setLangModalVisible(false)}
-      >
-        <View style={styles.modalBg}>
-          <View style={styles.modalContainer}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>{t('Select Language', 'زبان کا انتخاب کریں')}</Text>
-              <TouchableOpacity onPress={() => setLangModalVisible(false)}>
-                <Feather name="x" size={24} color="#333" />
-              </TouchableOpacity>
-            </View>
-            
-            <TouchableOpacity 
-              style={[styles.langOption, profile.language === 'English' && styles.langOptionSelected]}
-              onPress={() => {
-                updateProfile({ language: 'English' });
-                setLangModalVisible(false);
-              }}
-            >
-              <Text style={[styles.langOptionText, profile.language === 'English' && styles.langOptionTextSelected]}>
-                🇬🇧 English
-              </Text>
-              {profile.language === 'English' && <Feather name="check" size={18} color="#58D66D" />}
-            </TouchableOpacity>
 
-            <TouchableOpacity 
-              style={[styles.langOption, profile.language === 'Urdu' && styles.langOptionSelected]}
-              onPress={() => {
-                updateProfile({ language: 'Urdu' });
-                setLangModalVisible(false);
-              }}
-            >
-              <Text style={[styles.langOptionText, profile.language === 'Urdu' && styles.langOptionTextSelected]}>
-                🇵🇰 Urdu (اردو)
-              </Text>
-              {profile.language === 'Urdu' && <Feather name="check" size={18} color="#58D66D" />}
-            </TouchableOpacity>
-
-            <TouchableOpacity 
-              style={[styles.langOption, profile.language === 'Both' && styles.langOptionSelected]}
-              onPress={() => {
-                updateProfile({ language: 'Both' });
-                setLangModalVisible(false);
-              }}
-            >
-              <Text style={[styles.langOptionText, profile.language === 'Both' && styles.langOptionTextSelected]}>
-                🔄 Both (English / اردو)
-              </Text>
-              {profile.language === 'Both' && <Feather name="check" size={18} color="#58D66D" />}
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
 
       <View style={styles.bottomNavContainer}>
         <View style={styles.bottomNav}>
@@ -422,236 +368,3 @@ export default function ProfileScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#F4F7F5' },
-  scrollContent: { paddingBottom: 100 },
-  
-  header: {
-    backgroundColor: '#58D66D',
-    paddingHorizontal: 24,
-    paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 0) + 16 : 16,
-    paddingBottom: 60,
-    borderBottomLeftRadius: 30,
-    borderBottomRightRadius: 30,
-  },
-  headerTitle: { fontSize: 24, fontWeight: 'bold', color: '#FFF' },
-  headerUrdu: { fontSize: 14, color: '#E8F8EA', marginTop: 2, fontWeight: '500' },
-
-  profileCard: {
-    backgroundColor: '#FFF',
-    marginHorizontal: 20,
-    borderRadius: 20,
-    padding: 20,
-    marginTop: -40,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 4,
-    marginBottom: 20,
-  },
-  cardTopRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    position: 'relative',
-  },
-  avatar: {
-    width: 64,
-    height: 64,
-    borderRadius: 16,
-    backgroundColor: '#58D66D',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 16,
-  },
-  avatarText: { fontSize: 24, fontWeight: 'bold', color: '#FFF' },
-  userInfo: {
-    flex: 1,
-    justifyContent: 'center',
-  },
-  userName: { fontSize: 18, fontWeight: 'bold', color: '#333' },
-  userNameUrdu: { fontSize: 12, color: '#666', marginTop: 2 },
-  roleBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#E8F8EA',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-    marginTop: 6,
-    alignSelf: 'flex-start',
-  },
-  roleText: { fontSize: 10, color: '#58D66D', fontWeight: 'bold' },
-  editIconBtn: {
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    padding: 4,
-  },
-  statsDivider: {
-    height: 1,
-    backgroundColor: '#F0F0F0',
-    marginVertical: 16,
-  },
-  statsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  statItem: {
-    alignItems: 'center',
-    flex: 1,
-  },
-  statValue: { fontSize: 18, fontWeight: 'bold', color: '#333' },
-  statLabel: { fontSize: 11, color: '#666', marginTop: 4, fontWeight: '600' },
-  statUrdu: { fontSize: 10, color: '#999', marginTop: 2 },
-
-  groupTitle: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#666',
-    marginBottom: 8,
-    marginLeft: 24,
-    marginTop: 10,
-  },
-  settingsGroup: {
-    backgroundColor: '#FFF',
-    marginHorizontal: 20,
-    borderRadius: 16,
-    paddingHorizontal: 16,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.03,
-    shadowRadius: 6,
-    elevation: 2,
-  },
-  settingsItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
-  },
-  itemIconBg: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 14,
-  },
-  itemDetails: {
-    flex: 1,
-  },
-  itemTitle: { fontSize: 14, fontWeight: 'bold', color: '#333' },
-  itemSubtitle: { fontSize: 11, color: '#888', marginTop: 2 },
-  itemVal: { fontSize: 11, color: '#666', marginTop: 2 },
-
-  logoutBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginHorizontal: 20,
-    marginTop: 10,
-    paddingVertical: 16,
-    borderRadius: 16,
-    backgroundColor: '#FFF',
-    borderWidth: 1,
-    borderColor: '#FF3B30',
-  },
-  logoutBtnText: {
-    color: '#FF3B30',
-    fontSize: 14,
-    fontWeight: 'bold',
-  },
-
-  modalBg: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'flex-end',
-  },
-  modalContainer: {
-    backgroundColor: '#FFF',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    padding: 24,
-    maxHeight: '80%',
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
-    paddingBottom: 12,
-  },
-  modalTitle: { fontSize: 16, fontWeight: 'bold', color: '#333' },
-  inputLabel: { fontSize: 12, color: '#666', fontWeight: '600', marginTop: 12, marginBottom: 6 },
-  textInput: {
-    backgroundColor: '#F7F9F8',
-    borderWidth: 1,
-    borderColor: '#E2E6E4',
-    borderRadius: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 14,
-    fontSize: 14,
-    color: '#333',
-    marginBottom: 10,
-  },
-  saveBtn: {
-    backgroundColor: '#58D66D',
-    borderRadius: 14,
-    paddingVertical: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 16,
-  },
-  saveBtnText: { fontSize: 14, color: '#FFF', fontWeight: 'bold' },
-
-  bottomNavContainer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: '#4CB85C',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-  },
-  bottomNav: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingVertical: 16,
-    paddingBottom: Platform.OS === 'ios' ? 24 : 16,
-  },
-  navItem: { alignItems: 'center' },
-  navText: { fontSize: 10, color: '#FFF', marginTop: 4, fontWeight: '600' },
-
-  langOption: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#E2E6E4',
-    marginBottom: 12,
-    backgroundColor: '#F7F9F8'
-  },
-  langOptionSelected: {
-    borderColor: '#58D66D',
-    backgroundColor: '#E8F8EA'
-  },
-  langOptionText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#333'
-  },
-  langOptionTextSelected: {
-    color: '#58D66D',
-    fontWeight: 'bold'
-  }
-});

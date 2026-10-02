@@ -2321,6 +2321,132 @@ app.get('/api/farmer/vaccinations', async (req, res) => {
   }
 });
 
+// Initialize system_settings table
+pool.query(`
+  CREATE TABLE IF NOT EXISTS system_settings (
+    key VARCHAR(50) PRIMARY KEY,
+    value JSONB NOT NULL,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  );
+`).catch(err => console.error('Error creating system_settings table:', err.message));
+
+// Admin Profile API
+app.get('/api/admin/profile', async (req, res) => {
+  try {
+    const result = await pool.query("SELECT id, full_name, phone_number, email FROM users WHERE role = 'admin' LIMIT 1");
+    if (result.rows.length > 0) {
+      return res.status(200).json(result.rows[0]);
+    }
+    res.status(200).json({
+      fullName: 'Awais Shabbir',
+      email: 'maveshisehatai@gmail.com',
+      phoneNumber: '03240650810'
+    });
+  } catch (err) {
+    res.status(200).json({
+      fullName: 'Awais Shabbir',
+      email: 'maveshisehatai@gmail.com',
+      phoneNumber: '03240650810'
+    });
+  }
+});
+
+app.put('/api/admin/profile', async (req, res) => {
+  try {
+    const { full_name, phone_number, email } = req.body;
+    let result = await pool.query(
+      `UPDATE users SET full_name = $1, phone_number = $2, email = $3 WHERE role = 'admin' RETURNING *`,
+      [full_name, phone_number, email]
+    );
+    if (result.rows.length === 0) {
+      const hashed = await bcrypt.hash('admin123', 10);
+      result = await pool.query(
+        `INSERT INTO users (full_name, phone_number, email, role, password, status)
+         VALUES ($1, $2, $3, 'admin', $4, 'approved') RETURNING *`,
+        [full_name, phone_number, email, hashed]
+      );
+    }
+    res.status(200).json({ message: 'Profile updated successfully', user: result.rows[0] });
+  } catch (err) {
+    console.error('Error updating admin profile:', err.message);
+    res.status(500).json({ error: 'Failed to update admin profile' });
+  }
+});
+
+app.post('/api/admin/change-password', async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    const result = await pool.query("SELECT * FROM users WHERE role = 'admin' LIMIT 1");
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Admin user not found' });
+    }
+    const admin = result.rows[0];
+    const isMatch = await bcrypt.compare(currentPassword, admin.password);
+    if (!isMatch) {
+      return res.status(400).json({ error: 'Current password is incorrect' });
+    }
+    const hashed = await bcrypt.hash(newPassword, 10);
+    await pool.query("UPDATE users SET password = $1 WHERE id = $2", [hashed, admin.id]);
+    res.status(200).json({ message: 'Password updated successfully' });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to change admin password' });
+  }
+});
+
+// Admin & App System Settings APIs
+app.get('/api/admin/settings', async (req, res) => {
+  try {
+    const result = await pool.query("SELECT key, value FROM system_settings");
+    const settings = {};
+    result.rows.forEach(r => {
+      settings[r.key] = r.value;
+    });
+    if (!settings.system) {
+      settings.system = { threshold: 85, language: 'Both', timezone: 'utc-5' };
+    }
+    if (!settings.notifications) {
+      settings.notifications = { emailNotif: true, smsNotif: true, outbreakAlerts: true, newUserReg: true, vetReq: true };
+    }
+    res.status(200).json(settings);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch settings' });
+  }
+});
+
+app.post('/api/admin/settings', async (req, res) => {
+  try {
+    const { key, value } = req.body;
+    if (!key || value === undefined) {
+      return res.status(400).json({ error: 'Key and value required' });
+    }
+    await pool.query(
+      `INSERT INTO system_settings (key, value, updated_at) 
+       VALUES ($1, $2, CURRENT_TIMESTAMP)
+       ON CONFLICT (key) DO UPDATE SET value = $2, updated_at = CURRENT_TIMESTAMP`,
+      [key, JSON.stringify(value)]
+    );
+    if (io) {
+      io.emit('systemSettingsUpdated', { key, value });
+    }
+    res.status(200).json({ message: 'Settings saved successfully', key, value });
+  } catch (err) {
+    console.error('Error saving settings:', err.message);
+    res.status(500).json({ error: 'Failed to save settings' });
+  }
+});
+
+// Public / Mobile App Settings Endpoint
+app.get('/api/app/settings', async (req, res) => {
+  try {
+    const result = await pool.query("SELECT value FROM system_settings WHERE key = 'system'");
+    if (result.rows.length > 0) {
+      return res.status(200).json(result.rows[0].value);
+    }
+    res.status(200).json({ language: 'Both', timezone: 'utc-5', threshold: 85 });
+  } catch (err) {
+    res.status(200).json({ language: 'Both', timezone: 'utc-5', threshold: 85 });
+  }
+});
 
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {

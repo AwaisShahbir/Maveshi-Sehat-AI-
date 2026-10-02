@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { syncSystemLanguage } from './src/utils/profileStore';
 
 import SplashScreen from './src/screens/shared/SplashScreen';
 import WelcomeScreen from './src/screens/shared/WelcomeScreen';
@@ -31,6 +32,16 @@ import VaccinationScreen from './src/screens/user/VaccinationScreen';
 const Stack = createNativeStackNavigator();
 
 export default function App() {
+  useEffect(() => {
+    // Initial sync on app launch
+    syncSystemLanguage();
+    // Poll periodically to reflect admin language shifts live
+    const interval = setInterval(() => {
+      syncSystemLanguage();
+    }, 3000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <NavigationContainer>
       <Stack.Navigator initialRouteName="Splash" screenOptions={{ headerShown: false }}>

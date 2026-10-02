@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, StatusBar, Alert, Switch, Platform, ActivityIndicator } from 'react-native';
+import { View, Text, SafeAreaView, TouchableOpacity, ScrollView, StatusBar, Alert, Switch, Platform, ActivityIndicator } from 'react-native';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { getProfile, subscribeProfile } from '../../utils/profileStore';
 import { t } from '../../utils/translate';
+import styles from '../../styles/VetDashboardScreenStyles';
 
 
 export default function VetDashboardScreen() {
@@ -297,67 +298,3 @@ export default function VetDashboardScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#F4F7F5' },
-  headerBg: { backgroundColor: '#58D66D', paddingBottom: 50 }, 
-  headerTop: { backgroundColor: '#58D66D', paddingHorizontal: 20, paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight + 10 : 20, paddingBottom: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  titleContainer: { alignItems: 'center' },
-  headerTitle: { fontSize: 20, fontWeight: '700', color: '#FFF' },
-  headerSubtitle: { fontSize: 14, color: 'rgba(255,255,255,0.8)' },
-  headerRight: { flexDirection: 'row', alignItems: 'center' },
-  notificationBtn: { marginRight: 15, position: 'relative' },
-  badge: { position: 'absolute', top: -5, right: -5, backgroundColor: '#F5B041', borderRadius: 10, minWidth: 18, height: 18, justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: '#58D66D' },
-  badgeText: { color: '#FFF', fontSize: 10, fontWeight: 'bold' },
-  profileAvatar: { width: 32, height: 32, borderRadius: 16, backgroundColor: '#FFF', justifyContent: 'center', alignItems: 'center' },
-  profileAvatarText: { color: '#58D66D', fontWeight: 'bold', fontSize: 12 },
-  welcomeCard: { backgroundColor: '#6CE581', marginHorizontal: 20, marginTop: -15, borderRadius: 16, padding: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  welcomeLeft: { flex: 1 },
-  welcomeTitle: { color: '#FFF', fontSize: 18, fontWeight: 'bold' },
-  welcomeUrdu: { color: 'rgba(255,255,255,0.9)', fontSize: 14, marginTop: 4 },
-  welcomeSub: { color: 'rgba(255,255,255,0.8)', fontSize: 12, marginTop: 8 },
-  availableToggle: { alignItems: 'flex-end' },
-  availableText: { color: '#FFF', fontSize: 12, marginBottom: 5 },
-  statsContainer: { flexDirection: 'row', paddingHorizontal: 15, marginTop: -30, justifyContent: 'space-between' },
-  statCard: { backgroundColor: '#FFF', borderRadius: 12, padding: 12, flex: 1, marginHorizontal: 5, elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, alignItems: 'center' },
-  statIconRow: { marginBottom: 8 },
-  statValue: { fontSize: 20, fontWeight: 'bold', color: '#58D66D' },
-  statLabel: { fontSize: 10, color: '#888', textAlign: 'center', marginTop: 2 },
-  sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, marginTop: 25, marginBottom: 15 },
-  sectionTitle: { fontSize: 18, fontWeight: '700', color: '#333' },
-  viewAllBtn: { fontSize: 14, color: '#58D66D', fontWeight: '600' },
-  casesContainer: { paddingHorizontal: 20 },
-  caseCard: { backgroundColor: '#FFF', borderRadius: 16, padding: 16, marginBottom: 15, elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 3 },
-  cardHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 },
-  userInfoRow: { flexDirection: 'row', alignItems: 'center' },
-  avatar: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#A3E6B2', justifyContent: 'center', alignItems: 'center', marginRight: 12 },
-  avatarText: { fontSize: 16, fontWeight: 'bold', color: '#FFF' },
-  farmerName: { fontSize: 16, fontWeight: '700', color: '#333' },
-  farmerNameUrdu: { fontSize: 12, color: '#888', marginTop: 2 },
-  diseaseText: { fontSize: 16, fontWeight: '600', color: '#333', marginTop: 4 },
-  diseaseUrduText: { fontSize: 12, color: '#888', marginTop: 2, marginBottom: 12 },
-  cardFooter: { borderTopWidth: 1, borderTopColor: '#F0F0F0', paddingTop: 12 },
-  confidenceSection: { marginBottom: 12 },
-  confidenceRow: { flexDirection: 'row', alignItems: 'center' },
-  statusBadge: { paddingHorizontal: 12, paddingVertical: 4, borderRadius: 12, alignSelf: 'flex-start', marginBottom: 10 },
-  statusText: { fontSize: 10, fontWeight: 'bold', color: '#FFF' },
-  confidenceValue: { width: 35, fontSize: 12, fontWeight: 'bold', color: '#FF3B30' },
-  progressBarBg: { flex: 1, height: 6, backgroundColor: '#EEE', borderRadius: 3, overflow: 'hidden', marginLeft: 8 },
-  progressBarFill: { height: '100%', borderRadius: 3 },
-  cardFooterBottom: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  timeText: { fontSize: 12, color: '#888' },
-  reviewBtn: { borderWidth: 1, borderColor: '#58D66D', borderRadius: 20, paddingVertical: 6, paddingHorizontal: 16 },
-  reviewBtnText: { color: '#58D66D', fontSize: 12, fontWeight: '600' },
-  quickActionsGrid: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 15, justifyContent: 'space-between', paddingBottom: 20 },
-  actionCard: { backgroundColor: '#FFF', width: '47%', borderRadius: 16, padding: 20, marginBottom: 15, alignItems: 'center', elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 3 },
-  actionIconBox: { width: 50, height: 50, borderRadius: 25, justifyContent: 'center', alignItems: 'center', marginBottom: 12 },
-  actionTitle: { fontSize: 15, fontWeight: '600', color: '#333', textAlign: 'center' },
-  actionSub: { fontSize: 12, color: '#888', marginTop: 4 },
-  emptyContainer: { alignItems: 'center', paddingVertical: 30 },
-  emptyText: { color: '#888', fontSize: 14 },
-  bottomNav: { flexDirection: 'row', backgroundColor: '#FFF', paddingVertical: 12, paddingHorizontal: 20, justifyContent: 'space-between', borderTopWidth: 1, borderTopColor: '#EEE', elevation: 10 },
-  navItem: { alignItems: 'center' },
-  navText: { fontSize: 10, color: '#999', marginTop: 4, fontWeight: '500' },
-  navProfile: { width: 24, height: 24, borderRadius: 12, backgroundColor: '#E0E0E0', justifyContent: 'center', alignItems: 'center' },
-  navProfileText: { fontSize: 10, fontWeight: 'bold', color: '#888' }
-});
