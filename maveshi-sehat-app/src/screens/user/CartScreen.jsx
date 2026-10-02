@@ -9,9 +9,9 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import { getProfile, updateProfile } from '../../utils/profileStore';
 import { useTranslation } from '../../utils/translate';
 import { 
-import styles from '../../styles/CartScreenStyles';
   getCart, getCartTotal, updateQuantity, removeFromCart, clearCart, subscribeCart 
 } from '../../utils/cartStore';
+import styles from '../../styles/CartScreenStyles';
 
 const getImageUrl = (url) => {
   if (!url) return null;
