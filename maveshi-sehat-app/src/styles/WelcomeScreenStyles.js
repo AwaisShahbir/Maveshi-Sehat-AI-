@@ -109,6 +109,95 @@ const styles = StyleSheet.create({
     fontSize: 11.5,
     color: 'rgba(255,255,255,0.42)',
   },
+
+  /* ── Language Selection Modal ── */
+  langBadgeBtn: {
+    position: 'absolute',
+    top: 14,
+    right: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.25)',
+  },
+  langBadgeText: {
+    color: '#FFF',
+    fontSize: 12,
+    fontWeight: '700',
+    marginLeft: 6,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.65)',
+    justifyContent: 'flex-end',
+  },
+  modalContainer: {
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    paddingHorizontal: 24,
+    paddingTop: 24,
+    paddingBottom: 36,
+  },
+  modalHandle: {
+    width: 44,
+    height: 4,
+    backgroundColor: '#CBD5E1',
+    borderRadius: 2,
+    alignSelf: 'center',
+    marginBottom: 16,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#0F172A',
+    textAlign: 'center',
+  },
+  modalSubtitle: {
+    fontSize: 12.5,
+    color: '#64748B',
+    textAlign: 'center',
+    marginTop: 4,
+    marginBottom: 20,
+  },
+  langOptionCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 14,
+    borderWidth: 1.5,
+    borderColor: '#E2E8F0',
+    marginBottom: 12,
+    backgroundColor: '#F8FAFC',
+  },
+  langOptionCardSelected: {
+    borderColor: '#58D66D',
+    backgroundColor: '#F0FDF4',
+  },
+  langCardLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  langFlag: {
+    fontSize: 24,
+    marginRight: 14,
+  },
+  langCardTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#1E293B',
+  },
+  langCardSub: {
+    fontSize: 11,
+    color: '#64748B',
+    marginTop: 2,
+  },
 });
 
 export default styles;

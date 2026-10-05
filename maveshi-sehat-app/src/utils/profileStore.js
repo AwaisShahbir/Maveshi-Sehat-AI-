@@ -8,6 +8,7 @@ let profile = {
   phone: '+92 300 1234567',
   location: 'Okara, Punjab',
   language: 'Both',
+  hasChosenLanguage: false,
   enforceAdminLanguage: true,
   notificationsEnabled: true,
   consultationsCount: 12
@@ -26,6 +27,10 @@ export const updateProfile = (newProfile) => {
       console.error("Error in profileStore listener:", e);
     }
   });
+};
+
+export const setUserLanguage = (lang) => {
+  updateProfile({ language: lang, hasChosenLanguage: true });
 };
 
 export const subscribeProfile = (listener) => {
@@ -48,8 +53,12 @@ export const syncSystemLanguage = async () => {
             updateProfile({ language: targetLang, enforceAdminLanguage: true });
           }
         } else {
-          if (profile.enforceAdminLanguage !== false) {
-            updateProfile({ enforceAdminLanguage: false });
+          const updates = { enforceAdminLanguage: false };
+          if (!profile.hasChosenLanguage && data.language && profile.language !== data.language) {
+            updates.language = data.language;
+          }
+          if (profile.enforceAdminLanguage !== false || updates.language) {
+            updateProfile(updates);
           }
         }
       }
