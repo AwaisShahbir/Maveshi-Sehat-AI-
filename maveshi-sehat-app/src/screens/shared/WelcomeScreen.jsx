@@ -57,7 +57,7 @@ export default function WelcomeScreen() {
           >
             <Feather name="globe" size={14} color="#58D66D" />
             <Text style={styles.langBadgeText}>
-              {currentLang === 'English' ? 'EN' : currentLang === 'Urdu' ? 'اردو' : 'EN / اردو'}
+              {currentLang === 'English' ? 'EN' : currentLang === 'Urdu' ? 'Urdu' : 'Both'}
             </Text>
           </TouchableOpacity>
         )}
@@ -140,28 +140,12 @@ export default function WelcomeScreen() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
             <View style={styles.modalHandle} />
-            <Text style={styles.modalTitle}>Choose Your Language / زبان کا انتخاب کریں</Text>
-            <Text style={styles.modalSubtitle}>Select how you would like to experience Maveshi Sehat</Text>
+            <Text style={styles.modalTitle}>Choose Your Language</Text>
 
             {[
-              {
-                id: 'English',
-                flag: '🇬🇧',
-                title: 'English',
-                sub: 'Continue in English only'
-              },
-              {
-                id: 'Urdu',
-                flag: '🇵🇰',
-                title: 'اردو (Urdu)',
-                sub: 'اردو زبان میں استعمال کریں'
-              },
-              {
-                id: 'Both',
-                flag: '🔄',
-                title: 'Both (English & اردو)',
-                sub: 'English and Urdu simultaneously'
-              }
+              { id: 'English', title: 'English' },
+              { id: 'Urdu', title: 'Urdu' },
+              { id: 'Both', title: 'Both (English and Urdu)' }
             ].map((item) => (
               <TouchableOpacity
                 key={item.id}
@@ -172,18 +156,12 @@ export default function WelcomeScreen() {
                 onPress={() => handleSelectLanguage(item.id)}
                 activeOpacity={0.8}
               >
-                <View style={styles.langCardLeft}>
-                  <Text style={styles.langFlag}>{item.flag}</Text>
-                  <View>
-                    <Text style={styles.langCardTitle}>{item.title}</Text>
-                    <Text style={styles.langCardSub}>{item.sub}</Text>
-                  </View>
-                </View>
+                <Text style={[styles.langCardTitle, currentLang === item.id && styles.langCardTitleSelected]}>
+                  {item.title}
+                </Text>
 
-                {currentLang === item.id ? (
-                  <Feather name="check-circle" size={22} color="#58D66D" />
-                ) : (
-                  <Feather name="circle" size={22} color="#CBD5E1" />
+                {currentLang === item.id && (
+                  <Feather name="check" size={20} color="#58D66D" />
                 )}
               </TouchableOpacity>
             ))}

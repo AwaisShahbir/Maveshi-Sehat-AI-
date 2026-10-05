@@ -149,13 +149,13 @@ export default function VetProfileScreen() {
               profile.enforceAdminLanguage ? (
                 <View style={{ alignItems: 'flex-end' }}>
                   <Text style={styles.menuSubtitleActive}>
-                    {profile.language === 'English' ? 'English' : (profile.language === 'Urdu' ? 'Urdu' : 'Both')}
+                    {profile.language === 'English' ? 'English' : (profile.language === 'Urdu' ? 'Urdu' : 'Both (English and Urdu)')}
                   </Text>
                   <Text style={{ fontSize: 10, color: '#999' }}>Set by Admin</Text>
                 </View>
               ) : (
                 <Text style={styles.menuSubtitleActive}>
-                  {profile.language === 'English' ? 'English' : (profile.language === 'Urdu' ? 'Urdu' : 'Both')}
+                  {profile.language === 'English' ? 'English' : (profile.language === 'Urdu' ? 'Urdu' : 'Both (English and Urdu)')}
                 </Text>
               ), 
               profile.enforceAdminLanguage 
@@ -256,16 +256,16 @@ export default function VetProfileScreen() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>{t('Select Language', 'زبان کا انتخاب کریں')}</Text>
+              <Text style={styles.modalTitle}>Choose Your Language</Text>
               <TouchableOpacity onPress={() => setLangModalVisible(false)}>
                 <Feather name="x" size={24} color="#333" />
               </TouchableOpacity>
             </View>
 
             {[
-              { id: 'English', label: '🇬🇧 English', sub: 'English' },
-              { id: 'Urdu', label: '🇵🇰 اردو', sub: 'Urdu' },
-              { id: 'Both', label: '🔄 Both (English / اردو)', sub: 'Bilingual Interface' }
+              { id: 'English', label: 'English' },
+              { id: 'Urdu', label: 'Urdu' },
+              { id: 'Both', label: 'Both (English and Urdu)' }
             ].map((item) => (
               <TouchableOpacity
                 key={item.id}
@@ -278,12 +278,9 @@ export default function VetProfileScreen() {
                   setLangModalVisible(false);
                 }}
               >
-                <View>
-                  <Text style={[styles.langOptionText, profile.language === item.id && styles.langOptionTextSelected]}>
-                    {item.label}
-                  </Text>
-                  <Text style={{ fontSize: 11, color: '#888', marginTop: 2 }}>{item.sub}</Text>
-                </View>
+                <Text style={[styles.langOptionText, profile.language === item.id && styles.langOptionTextSelected]}>
+                  {item.label}
+                </Text>
                 {profile.language === item.id && (
                   <Feather name="check" size={20} color="#58D66D" />
                 )}

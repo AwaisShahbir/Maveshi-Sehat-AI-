@@ -156,6 +156,7 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: '#0F172A',
     textAlign: 'center',
+    marginBottom: 20,
   },
   modalSubtitle: {
     fontSize: 12.5,
@@ -168,8 +169,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 14,
-    paddingHorizontal: 16,
+    paddingVertical: 16,
+    paddingHorizontal: 18,
     borderRadius: 14,
     borderWidth: 1.5,
     borderColor: '#E2E8F0',
@@ -189,9 +190,13 @@ const styles = StyleSheet.create({
     marginRight: 14,
   },
   langCardTitle: {
-    fontSize: 15,
-    fontWeight: '700',
+    fontSize: 16,
+    fontWeight: '600',
     color: '#1E293B',
+  },
+  langCardTitleSelected: {
+    fontWeight: '700',
+    color: '#166534',
   },
   langCardSub: {
     fontSize: 11,
