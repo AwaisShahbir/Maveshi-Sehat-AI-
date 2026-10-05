@@ -33,9 +33,7 @@ const Stack = createNativeStackNavigator();
 
 export default function App() {
   useEffect(() => {
-    // Initial sync on app launch
     syncSystemLanguage();
-    // Poll periodically to reflect admin language shifts live
     const interval = setInterval(() => {
       syncSystemLanguage();
     }, 3000);

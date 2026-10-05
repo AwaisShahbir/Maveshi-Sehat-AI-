@@ -14,6 +14,7 @@ export default function VetProfileScreen() {
 
   const [profile, setProfile] = useState(getProfile());
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const [langModalVisible, setLangModalVisible] = useState(false);
 
   useEffect(() => {
     const unsubscribe = subscribeProfile((updatedProfile) => {
@@ -145,13 +146,21 @@ export default function VetProfileScreen() {
           <Text style={styles.sectionHeading}>{t('Preferences', 'ترجیحات')}</Text>
           <View style={styles.menuCard}>
             {renderMenuItem('globe', 'Language', 'زبان', 
-              <View style={{ alignItems: 'flex-end' }}>
+              profile.enforceAdminLanguage ? (
+                <View style={{ alignItems: 'flex-end' }}>
+                  <Text style={styles.menuSubtitleActive}>
+                    {profile.language === 'English' ? 'English' : (profile.language === 'Urdu' ? 'Urdu' : 'Both')}
+                  </Text>
+                  <Text style={{ fontSize: 10, color: '#999' }}>Set by Admin</Text>
+                </View>
+              ) : (
                 <Text style={styles.menuSubtitleActive}>
                   {profile.language === 'English' ? 'English' : (profile.language === 'Urdu' ? 'Urdu' : 'Both')}
                 </Text>
-                <Text style={{ fontSize: 10, color: '#999' }}>Set by Admin</Text>
-              </View>, 
-              null
+              ), 
+              profile.enforceAdminLanguage 
+                ? () => Alert.alert(t('Managed by Admin', 'ایڈمن کنٹرولڈ'), t('Language is currently set centrally by the administrator.', 'زبان فی الحال ایڈمنسٹریٹر کے زیر انتظام ہے۔'))
+                : () => setLangModalVisible(true)
             )}
             <View style={styles.menuDivider} />
             {renderMenuItem('bell', 'Notifications', 'اطلاعات', 
@@ -235,6 +244,53 @@ export default function VetProfileScreen() {
             </TouchableOpacity>
           </View>
         </KeyboardAvoidingView>
+      </Modal>
+
+      {/* Language Selection Modal (Available when Admin enforcement is OFF) */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={langModalVisible}
+        onRequestClose={() => setLangModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>{t('Select Language', 'زبان کا انتخاب کریں')}</Text>
+              <TouchableOpacity onPress={() => setLangModalVisible(false)}>
+                <Feather name="x" size={24} color="#333" />
+              </TouchableOpacity>
+            </View>
+
+            {[
+              { id: 'English', label: '🇬🇧 English', sub: 'English' },
+              { id: 'Urdu', label: '🇵🇰 اردو', sub: 'Urdu' },
+              { id: 'Both', label: '🔄 Both (English / اردو)', sub: 'Bilingual Interface' }
+            ].map((item) => (
+              <TouchableOpacity
+                key={item.id}
+                style={[
+                  styles.langOption,
+                  profile.language === item.id && styles.langOptionSelected
+                ]}
+                onPress={() => {
+                  updateProfile({ language: item.id });
+                  setLangModalVisible(false);
+                }}
+              >
+                <View>
+                  <Text style={[styles.langOptionText, profile.language === item.id && styles.langOptionTextSelected]}>
+                    {item.label}
+                  </Text>
+                  <Text style={{ fontSize: 11, color: '#888', marginTop: 2 }}>{item.sub}</Text>
+                </View>
+                {profile.language === item.id && (
+                  <Feather name="check" size={20} color="#58D66D" />
+                )}
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
       </Modal>
 
       <View style={styles.bottomNav}>

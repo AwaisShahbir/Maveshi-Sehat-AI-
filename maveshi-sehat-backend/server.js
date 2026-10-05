@@ -963,7 +963,8 @@ app.get('/api/admin/settings', async (req, res) => {
     const rows = await pool.query("SELECT setting_key, setting_value FROM admin_settings");
     const settingsMap = {};
     rows.rows.forEach(r => {
-      settingsMap[r.setting_key] = r.setting_value;
+      const val = typeof r.setting_value === 'string' ? JSON.parse(r.setting_value) : r.setting_value;
+      settingsMap[r.setting_key] = val;
     });
 
     const defaultNotifications = {
@@ -976,8 +977,9 @@ app.get('/api/admin/settings', async (req, res) => {
 
     const defaultSystem = {
       threshold: 85,
-      language: 'en',
-      timezone: 'utc-5'
+      language: 'Both',
+      timezone: 'utc-5',
+      enforceAdminLanguage: true
     };
 
     res.status(200).json({
@@ -994,7 +996,7 @@ app.get('/api/admin/settings', async (req, res) => {
 app.post('/api/admin/settings', async (req, res) => {
   try {
     const { key, value } = req.body;
-    if (!key || !value) {
+    if (!key || value === undefined) {
       return res.status(400).json({ error: 'Setting key and value are required.' });
     }
 
@@ -1005,10 +1007,30 @@ app.post('/api/admin/settings', async (req, res) => {
       DO UPDATE SET setting_value = $2, updated_at = CURRENT_TIMESTAMP
     `, [key, JSON.stringify(value)]);
 
-    res.status(200).json({ message: 'Settings saved successfully.' });
+    if (io) {
+      io.emit('systemSettingsUpdated', { key, value });
+    }
+
+    res.status(200).json({ message: 'Settings saved successfully.', key, value });
   } catch (err) {
     console.error('Error saving admin settings:', err.message);
     res.status(500).json({ error: 'Failed to save settings.' });
+  }
+});
+
+// 6. GET Mobile App Settings
+app.get('/api/app/settings', async (req, res) => {
+  try {
+    const result = await pool.query("SELECT setting_value FROM admin_settings WHERE setting_key = 'system'");
+    if (result.rows.length > 0) {
+      const val = typeof result.rows[0].setting_value === 'string' 
+        ? JSON.parse(result.rows[0].setting_value) 
+        : result.rows[0].setting_value;
+      return res.status(200).json(val);
+    }
+    res.status(200).json({ language: 'Both', enforceAdminLanguage: true, timezone: 'utc-5', threshold: 85 });
+  } catch (err) {
+    res.status(200).json({ language: 'Both', enforceAdminLanguage: true, timezone: 'utc-5', threshold: 85 });
   }
 });
 
@@ -2390,61 +2412,6 @@ app.post('/api/admin/change-password', async (req, res) => {
     res.status(200).json({ message: 'Password updated successfully' });
   } catch (err) {
     res.status(500).json({ error: 'Failed to change admin password' });
-  }
-});
-
-// Admin & App System Settings APIs
-app.get('/api/admin/settings', async (req, res) => {
-  try {
-    const result = await pool.query("SELECT key, value FROM system_settings");
-    const settings = {};
-    result.rows.forEach(r => {
-      settings[r.key] = r.value;
-    });
-    if (!settings.system) {
-      settings.system = { threshold: 85, language: 'Both', timezone: 'utc-5' };
-    }
-    if (!settings.notifications) {
-      settings.notifications = { emailNotif: true, smsNotif: true, outbreakAlerts: true, newUserReg: true, vetReq: true };
-    }
-    res.status(200).json(settings);
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to fetch settings' });
-  }
-});
-
-app.post('/api/admin/settings', async (req, res) => {
-  try {
-    const { key, value } = req.body;
-    if (!key || value === undefined) {
-      return res.status(400).json({ error: 'Key and value required' });
-    }
-    await pool.query(
-      `INSERT INTO system_settings (key, value, updated_at) 
-       VALUES ($1, $2, CURRENT_TIMESTAMP)
-       ON CONFLICT (key) DO UPDATE SET value = $2, updated_at = CURRENT_TIMESTAMP`,
-      [key, JSON.stringify(value)]
-    );
-    if (io) {
-      io.emit('systemSettingsUpdated', { key, value });
-    }
-    res.status(200).json({ message: 'Settings saved successfully', key, value });
-  } catch (err) {
-    console.error('Error saving settings:', err.message);
-    res.status(500).json({ error: 'Failed to save settings' });
-  }
-});
-
-// Public / Mobile App Settings Endpoint
-app.get('/api/app/settings', async (req, res) => {
-  try {
-    const result = await pool.query("SELECT value FROM system_settings WHERE key = 'system'");
-    if (result.rows.length > 0) {
-      return res.status(200).json(result.rows[0].value);
-    }
-    res.status(200).json({ language: 'Both', timezone: 'utc-5', threshold: 85 });
-  } catch (err) {
-    res.status(200).json({ language: 'Both', timezone: 'utc-5', threshold: 85 });
   }
 });
 

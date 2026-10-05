@@ -30,6 +30,7 @@ export default function Settings({ onProfileUpdate }) {
   const [threshold, setThreshold] = useState(85);
   const [language, setLanguage] = useState('Both');
   const [timezone, setTimezone] = useState('utc-5');
+  const [enforceAdminLanguage, setEnforceAdminLanguage] = useState(true);
 
   // Load initial settings and profile from backend API
   useEffect(() => {
@@ -66,6 +67,7 @@ export default function Settings({ onProfileUpdate }) {
             if (sys.threshold !== undefined) setThreshold(sys.threshold);
             if (sys.language !== undefined) setLanguage(sys.language);
             if (sys.timezone !== undefined) setTimezone(sys.timezone);
+            if (sys.enforceAdminLanguage !== undefined) setEnforceAdminLanguage(sys.enforceAdminLanguage);
           }
         }
       } catch (err) {
@@ -256,7 +258,8 @@ export default function Settings({ onProfileUpdate }) {
           value: {
             threshold: Number(threshold),
             language,
-            timezone
+            timezone,
+            enforceAdminLanguage
           }
         })
       });
@@ -531,6 +534,32 @@ export default function Settings({ onProfileUpdate }) {
                 </div>
               </div>
 
+              <div style={{ marginBottom: '20px', padding: '16px', background: '#F8FAF9', borderRadius: '12px', border: '1px solid #E2E8F0' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <span style={{ fontWeight: 600, fontSize: '14px', color: '#1E293B', display: 'block' }}>
+                      Enforce Admin Language on Mobile App
+                    </span>
+                    <span className="settings-slider-hint" style={{ marginTop: '3px', display: 'block' }}>
+                      {enforceAdminLanguage 
+                        ? 'Active: App language is strictly controlled by Admin. Mobile users cannot change it.' 
+                        : 'Disabled: Mobile app users and Veterinarians can choose their own preferred language in profile.'}
+                    </span>
+                  </div>
+                  <label className="settings-toggle">
+                    <input
+                      type="checkbox"
+                      checked={enforceAdminLanguage}
+                      onChange={(e) => setEnforceAdminLanguage(e.target.checked)}
+                      className="settings-toggle-checkbox"
+                    />
+                    <span className={`settings-toggle-slider ${enforceAdminLanguage ? 'active' : ''}`}>
+                      <span className={`settings-toggle-knob ${enforceAdminLanguage ? 'active' : ''}`} />
+                    </span>
+                  </label>
+                </div>
+              </div>
+
               <div className="settings-grid-options">
                 <div>
                   <span className="settings-select-label">Mobile App & System Language</span>
@@ -538,13 +567,17 @@ export default function Settings({ onProfileUpdate }) {
                     value={language}
                     onChange={(e) => setLanguage(e.target.value)}
                     className="form-control settings-input"
+                    disabled={!enforceAdminLanguage}
+                    style={!enforceAdminLanguage ? { opacity: 0.6, cursor: 'not-allowed' } : {}}
                   >
                     <option value="English">English</option>
                     <option value="Urdu">Urdu</option>
                     <option value="Both">Both (English & Urdu)</option>
                   </select>
                   <span className="settings-slider-hint" style={{ marginTop: '4px', display: 'block' }}>
-                    Controls the global language across the mobile app. Users cannot change it themselves.
+                    {enforceAdminLanguage 
+                      ? 'Controls the global language across the mobile app.' 
+                      : 'Disabled while admin enforcement is OFF. Turn ON toggle above to lock language.'}
                   </span>
                 </div>
 

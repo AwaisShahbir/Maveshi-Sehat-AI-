@@ -8,6 +8,7 @@ let profile = {
   phone: '+92 300 1234567',
   location: 'Okara, Punjab',
   language: 'Both',
+  enforceAdminLanguage: true,
   notificationsEnabled: true,
   consultationsCount: 12
 };
@@ -39,8 +40,18 @@ export const syncSystemLanguage = async () => {
     const res = await fetch(`${BASE_URL}/api/app/settings`);
     if (res.ok) {
       const data = await res.json();
-      if (data && data.language && data.language !== profile.language) {
-        updateProfile({ language: data.language });
+      if (data) {
+        const isEnforced = data.enforceAdminLanguage !== false;
+        if (isEnforced) {
+          const targetLang = data.language || 'Both';
+          if (profile.language !== targetLang || profile.enforceAdminLanguage !== true) {
+            updateProfile({ language: targetLang, enforceAdminLanguage: true });
+          }
+        } else {
+          if (profile.enforceAdminLanguage !== false) {
+            updateProfile({ enforceAdminLanguage: false });
+          }
+        }
       }
     }
   } catch (e) {
