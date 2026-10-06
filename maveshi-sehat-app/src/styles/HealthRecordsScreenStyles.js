@@ -2,13 +2,13 @@ import { StyleSheet, Platform, StatusBar } from 'react-native';
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: '#F8FAF9' },
-  scrollContent: { paddingBottom: 20 },
+  scrollContent: { paddingBottom: 110 },
   
   header: {
     backgroundColor: '#58D66D',
     paddingHorizontal: 24,
     paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 0) + 16 : 16,
-    paddingBottom: 40,
+    paddingBottom: 44,
     borderBottomLeftRadius: 30,
     borderBottomRightRadius: 30,
   },
@@ -27,7 +27,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF',
     borderRadius: 14,
     alignItems: 'center',
-    paddingHorizontal: 12,
+    paddingHorizontal: 14,
+    height: 50,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
@@ -37,13 +38,14 @@ const styles = StyleSheet.create({
   searchIcon: { marginRight: 8 },
   searchInput: {
     flex: 1,
-    height: 48,
+    height: '100%',
     fontSize: 14,
     color: '#333',
+    paddingVertical: 0,
   },
   filterBtn: {
-    width: 48,
-    height: 48,
+    width: 50,
+    height: 50,
     borderRadius: 14,
     backgroundColor: '#FFF',
     justifyContent: 'center',
@@ -60,11 +62,38 @@ const styles = StyleSheet.create({
     borderColor: '#FFF',
   },
 
+  statsCardRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    marginTop: -26,
+    marginBottom: 16,
+    zIndex: 5,
+  },
+  statCard: {
+    backgroundColor: '#FFF',
+    width: '31%',
+    minHeight: 84,
+    borderRadius: 14,
+    paddingVertical: 12,
+    paddingHorizontal: 4,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  statValue: { fontSize: 22, fontWeight: '800', color: '#333' },
+  statLabel: { fontSize: 11, color: '#666', marginTop: 4, fontWeight: '600', textAlign: 'center' },
+  statUrdu: { fontSize: 9, color: '#999', marginTop: 2 },
+
   filterChipsRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     paddingHorizontal: 20,
-    marginTop: 16,
+    marginBottom: 16,
     gap: 8,
   },
   filterChip: {
@@ -78,29 +107,6 @@ const styles = StyleSheet.create({
   },
   filterChipText: { fontSize: 12, color: '#666', fontWeight: '600' },
   filterChipTextActive: { color: '#FFF' },
-
-  statsCardRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    marginTop: -20,
-    marginBottom: 20,
-  },
-  statCard: {
-    backgroundColor: '#FFF',
-    width: '31%',
-    borderRadius: 12,
-    paddingVertical: 14,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
-    elevation: 3,
-  },
-  statValue: { fontSize: 22, fontWeight: '800', color: '#333' },
-  statLabel: { fontSize: 11, color: '#666', marginTop: 4, fontWeight: '600' },
-  statUrdu: { fontSize: 9, color: '#999', marginTop: 2 },
 
   recordsListContainer: {
     paddingHorizontal: 20,
@@ -171,11 +177,11 @@ const styles = StyleSheet.create({
   bottomNav: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    paddingVertical: 16,
-    paddingBottom: Platform.OS === 'ios' ? 24 : 16,
+    paddingTop: 10,
+    paddingBottom: Platform.OS === 'ios' ? 28 : 22,
   },
-  navItem: { alignItems: 'center' },
-  navText: { fontSize: 10, color: '#FFF', marginTop: 4, fontWeight: '600' },
+  navItem: { alignItems: 'center', justifyContent: 'center', minWidth: 50 },
+  navText: { fontSize: 11, color: '#FFF', marginTop: 2, fontWeight: '600' },
 
   modalBg: {
     flex: 1,

@@ -200,11 +200,11 @@ const styles = StyleSheet.create({
   bottomNav: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    paddingVertical: 16,
-    paddingBottom: Platform.OS === 'ios' ? 24 : 16,
+    paddingTop: 10,
+    paddingBottom: Platform.OS === 'ios' ? 28 : 22,
   },
-  navItem: { alignItems: 'center' },
-  navText: { fontSize: 10, color: '#FFF', marginTop: 4, fontWeight: '600' },
+  navItem: { alignItems: 'center', justifyContent: 'center', minWidth: 50 },
+  navText: { fontSize: 11, color: '#FFF', marginTop: 2, fontWeight: '600' },
 
   langOption: {
     flexDirection: 'row',
