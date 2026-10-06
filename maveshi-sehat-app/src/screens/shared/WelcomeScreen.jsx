@@ -4,7 +4,8 @@ import { useNavigation } from '@react-navigation/native';
 import LinearGradient from 'react-native-linear-gradient';
 import Feather from 'react-native-vector-icons/Feather';
 import { getProfile, subscribeProfile, setUserLanguage } from '../../utils/profileStore';
-import { t } from '../../utils/translate';
+import { t, useTranslation, subscribeTranslation } from '../../utils/translate';
+import fonts from '../../styles/fonts';
 import styles from '../../styles/WelcomeScreenStyles';
 
 const logoImg = require('../../../assets/images/maveshi_sehat_logo.png');
@@ -13,14 +14,19 @@ export default function WelcomeScreen() {
   const navigation = useNavigation();
   const [profile, setProfile] = useState(getProfile());
   const [showLanguageModal, setShowLanguageModal] = useState(false);
+  const { isUrdu } = useTranslation();
+  const [, setTick] = useState(0);
 
   useEffect(() => {
-    const unsub = subscribeProfile((p) => {
+    const unsubProfile = subscribeProfile((p) => {
       setProfile(p);
-      // If admin enforcement is OFF and user has not chosen language, prompt them
       if (!p.enforceAdminLanguage && !p.hasChosenLanguage) {
         setShowLanguageModal(true);
       }
+    });
+
+    const unsubTrans = subscribeTranslation(() => {
+      setTick(t => t + 1);
     });
 
     const current = getProfile();
@@ -28,7 +34,10 @@ export default function WelcomeScreen() {
       setShowLanguageModal(true);
     }
 
-    return () => unsub();
+    return () => {
+      unsubProfile();
+      unsubTrans();
+    };
   }, []);
 
   const handleSelectLanguage = (lang) => {
@@ -36,7 +45,7 @@ export default function WelcomeScreen() {
     setShowLanguageModal(false);
   };
 
-  const currentLang = profile.language || 'Both';
+  const currentLang = profile.language === 'Urdu' ? 'Urdu' : 'English';
 
   return (
     <LinearGradient
@@ -57,7 +66,7 @@ export default function WelcomeScreen() {
           >
             <Feather name="globe" size={14} color="#58D66D" />
             <Text style={styles.langBadgeText}>
-              {currentLang === 'English' ? 'EN' : currentLang === 'Urdu' ? 'Urdu' : 'Both'}
+              {currentLang === 'Urdu' ? 'UR' : 'EN'}
             </Text>
           </TouchableOpacity>
         )}
@@ -66,7 +75,9 @@ export default function WelcomeScreen() {
         <View style={styles.topSection}>
 
           <View style={styles.badge}>
-            <Text style={styles.badgeText}>PAKISTAN'S #1 LIVESTOCK AI</Text>
+            <Text style={[styles.badgeText, isUrdu && { fontFamily: fonts.urduBold }]}>
+              {t("PAKISTAN'S #1 LIVESTOCK AI")}
+            </Text>
           </View>
 
           <View style={styles.logoCircle}>
@@ -78,26 +89,14 @@ export default function WelcomeScreen() {
           </View>
 
           {/* Dynamic Titles */}
-          {(currentLang === 'English' || currentLang === 'Both') && (
-            <Text style={styles.mainTitle}>Maveshi Sehat AI</Text>
-          )}
-
-          {(currentLang === 'Urdu' || currentLang === 'Both') && (
-            <Text style={styles.urduTitle}>مویشی صحت اے آئی</Text>
-          )}
+          <Text style={[styles.mainTitle, isUrdu && { fontFamily: fonts.urduBold, fontSize: 30, lineHeight: 48 }]}>
+            {t('Maveshi Sehat AI')}
+          </Text>
 
           {/* Dynamic Subtitles */}
-          {(currentLang === 'English' || currentLang === 'Both') && (
-            <Text style={styles.englishSub}>
-              Smart Disease Detection • Expert Vet Care • Medicine Delivery
-            </Text>
-          )}
-
-          {(currentLang === 'Urdu' || currentLang === 'Both') && (
-            <Text style={styles.urduSub}>
-              بیماری کی شناخت • ماہر ڈاکٹر • ادویات کی ترسیل
-            </Text>
-          )}
+          <Text style={[styles.englishSub, isUrdu && { fontFamily: fonts.urduRegular, fontSize: 14, lineHeight: 26 }]}>
+            {t('Smart Disease Detection • Expert Vet Care • Medicine Delivery')}
+          </Text>
 
         </View>
 
@@ -108,7 +107,9 @@ export default function WelcomeScreen() {
             onPress={() => navigation.navigate('Login')}
             activeOpacity={0.85}
           >
-            <Text style={styles.loginText}>{t('Login', 'لاگ اِن')}</Text>
+            <Text style={[styles.loginText, isUrdu && { fontFamily: fonts.urduBold }]}>
+              {t('Login')}
+            </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -116,21 +117,19 @@ export default function WelcomeScreen() {
             onPress={() => navigation.navigate('Register')}
             activeOpacity={0.85}
           >
-            <Text style={styles.registerText}>{t('Register', 'رجسٹر کریں')}</Text>
+            <Text style={[styles.registerText, isUrdu && { fontFamily: fonts.urduBold }]}>
+              {t('Register')}
+            </Text>
           </TouchableOpacity>
 
-          <Text style={styles.trustText}>
-            {currentLang === 'Urdu'
-              ? 'پاکستان بھر میں 10,000+ مویشی پال حضرات کا بھروسہ'
-              : currentLang === 'English'
-              ? 'Trusted by 10,000+ livestock owners across Pakistan'
-              : 'Trusted by 10,000+ livestock owners across Pakistan\nپاکستان بھر میں بااعتماد'}
+          <Text style={[styles.trustText, isUrdu && { fontFamily: fonts.urduRegular, fontSize: 13, lineHeight: 24 }]}>
+            {t('Trusted by 10,000+ livestock owners across Pakistan')}
           </Text>
         </View>
 
       </SafeAreaView>
 
-      {/* ── First-Time User Language Selection Modal ── */}
+      {/* ── Clean 2-Language Selection Modal (English or Urdu) ── */}
       <Modal
         animationType="slide"
         transparent={true}
@@ -140,12 +139,11 @@ export default function WelcomeScreen() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
             <View style={styles.modalHandle} />
-            <Text style={styles.modalTitle}>Choose Your Language</Text>
+            <Text style={styles.modalTitle}>{t('Choose Your Language')}</Text>
 
             {[
               { id: 'English', title: 'English' },
-              { id: 'Urdu', title: 'Urdu' },
-              { id: 'Both', title: 'Both (English and Urdu)' }
+              { id: 'Urdu', title: 'Urdu' }
             ].map((item) => (
               <TouchableOpacity
                 key={item.id}

@@ -178,7 +178,7 @@ export default function ChatScreen() {
 
   const handleSendVaccination = () => {
     if (!vaccineName.trim()) {
-      alert(t('Please enter vaccine name', 'ویکسین کا نام لکھیں'));
+      alert(t('Please enter vaccine name'));
       return;
     }
     const vaccinationData = {
@@ -267,12 +267,12 @@ export default function ChatScreen() {
 
   const handleSendPrescription = () => {
     if (!diagnosis.trim()) {
-      alert(t('Please enter a diagnosis', 'بیماری کی تشخیص لکھیں'));
+      alert(t('Please enter a diagnosis'));
       return;
     }
     const validMedicines = prescriptionMedicines.filter(m => m.name.trim());
     if (validMedicines.length === 0) {
-      alert(t('Please add at least one medicine', 'کم از کم ایک دوا لکھیں'));
+      alert(t('Please add at least one medicine'));
       return;
     }
 
@@ -303,7 +303,7 @@ export default function ChatScreen() {
       if (response.ok) {
         setConversationStatus('resolved');
         
-        handleSendMessage(t('📢 This consultation has been marked as RESOLVED.', 'یہ مشورہ مکمل نشان زد کر دیا گیا ہے۔'));
+        handleSendMessage(t('📢 This consultation has been marked as RESOLVED.'));
       } else {
         const data = await response.json();
         alert(data.error || 'Failed to resolve consultation');
@@ -334,16 +334,16 @@ export default function ChatScreen() {
             <View style={styles.prescriptionHeader}>
               <MaterialCommunityIcons name="file-document-edit" size={24} color="#FFF" />
               <View style={{ marginLeft: 8 }}>
-                <Text style={styles.prescriptionHeaderTitle}>{t('Rx Prescription', 'طبی نسخہ')}</Text>
+                <Text style={styles.prescriptionHeaderTitle}>{t('Rx Prescription')}</Text>
                 <Text style={styles.prescriptionHeaderSubtitle}>Maveshi Sehat Vet Advice</Text>
               </View>
             </View>
 
             <View style={styles.prescriptionBody}>
-              <Text style={styles.prescriptionLabel}>{t('Diagnosis', 'بیماری کی تشخیص:')}</Text>
+              <Text style={styles.prescriptionLabel}>{t('Diagnosis')}</Text>
               <Text style={styles.prescriptionValue}>{data.diagnosis}</Text>
 
-              <Text style={[styles.prescriptionLabel, { marginTop: 12 }]}>{t('Medicines', 'ادویات:')}</Text>
+              <Text style={[styles.prescriptionLabel, { marginTop: 12 }]}>{t('Medicines')}</Text>
               {data.medicines.map((med, index) => (
                 <View key={index} style={styles.medicineItem}>
                   <Text style={styles.medicineName}>• {med.name}</Text>
@@ -353,7 +353,7 @@ export default function ChatScreen() {
 
               {data.instructions ? (
                 <>
-                  <Text style={[styles.prescriptionLabel, { marginTop: 12 }]}>{t('Special Instructions', 'خصوصی ہدایات:')}</Text>
+                  <Text style={[styles.prescriptionLabel, { marginTop: 12 }]}>{t('Special Instructions')}</Text>
                   <Text style={styles.prescriptionValue}>{data.instructions}</Text>
                 </>
               ) : null}
@@ -366,14 +366,14 @@ export default function ChatScreen() {
                 activeOpacity={0.8}
               >
                 <Feather name="check-circle" size={16} color="#FFF" style={{ marginRight: 6 }} />
-                <Text style={styles.resolveButtonText}>{t('Mark Resolved', 'مشورہ مکمل کریں')}</Text>
+                <Text style={styles.resolveButtonText}>{t('Mark Resolved')}</Text>
               </TouchableOpacity>
             )}
 
             {conversationStatus === 'resolved' && (
               <View style={styles.resolvedLabel}>
                 <Feather name="check" size={14} color="#4CB85C" style={{ marginRight: 4 }} />
-                <Text style={styles.resolvedLabelText}>{t('Case Resolved', 'حل شدہ کیس')}</Text>
+                <Text style={styles.resolvedLabelText}>{t('Case Resolved')}</Text>
               </View>
             )}
           </View>
@@ -393,28 +393,28 @@ export default function ChatScreen() {
             <View style={[styles.prescriptionHeader, { backgroundColor: '#3B82F6' }]}>
               <MaterialCommunityIcons name="needle" size={24} color="#FFF" />
               <View style={{ marginLeft: 8 }}>
-                <Text style={styles.prescriptionHeaderTitle}>{t('Vaccination Schedule', 'ویکسین')}</Text>
+                <Text style={styles.prescriptionHeaderTitle}>{t('Vaccination Schedule')}</Text>
                 <Text style={styles.prescriptionHeaderSubtitle}>Maveshi Sehat Vet Advice</Text>
               </View>
             </View>
 
             <View style={styles.prescriptionBody}>
-              <Text style={styles.prescriptionLabel}>{t('Vaccine', 'ویکسین کا نام:')}</Text>
+              <Text style={styles.prescriptionLabel}>{t('Vaccine')}</Text>
               <Text style={styles.prescriptionValue}>{data.vaccineName}</Text>
 
-              <Text style={[styles.prescriptionLabel, { marginTop: 12 }]}>{t('Date Administered', 'تاریخ:')}</Text>
+              <Text style={[styles.prescriptionLabel, { marginTop: 12 }]}>{t('Date Administered')}</Text>
               <Text style={styles.prescriptionValue}>{data.vaccineDate}</Text>
 
               {data.nextDueDate ? (
                 <>
-                  <Text style={[styles.prescriptionLabel, { marginTop: 12, color: '#FF3B30' }]}>{t('Next Due Date', 'اگلی تاریخ:')}</Text>
+                  <Text style={[styles.prescriptionLabel, { marginTop: 12, color: '#FF3B30' }]}>{t('Next Due Date')}</Text>
                   <Text style={[styles.prescriptionValue, { color: '#FF3B30', fontWeight: 'bold' }]}>{data.nextDueDate}</Text>
                 </>
               ) : null}
 
               {data.notes ? (
                 <>
-                  <Text style={[styles.prescriptionLabel, { marginTop: 12 }]}>{t('Notes', 'ہدایات:')}</Text>
+                  <Text style={[styles.prescriptionLabel, { marginTop: 12 }]}>{t('Notes')}</Text>
                   <Text style={styles.prescriptionValue}>{data.notes}</Text>
                 </>
               ) : null}
@@ -462,7 +462,7 @@ export default function ChatScreen() {
         <View style={styles.headerInfo}>
           <Text style={styles.headerName}>{partnerName}</Text>
           <Text style={styles.headerRole}>
-            {partnerRole === 'vet' ? 'Large Animal Specialist' :t('Farmer', 'کسان')}
+            {partnerRole === 'vet' ? 'Large Animal Specialist' :t('Farmer')}
           </Text>
         </View>
         <View style={styles.headerActions}>
@@ -501,7 +501,7 @@ export default function ChatScreen() {
           {conversationStatus === 'resolved' ? (
             <View style={[styles.resolvedBanner, { paddingBottom: Math.max(insets.bottom, 14) }]}>
               <MaterialCommunityIcons name="lock" size={18} color="#666" style={{ marginRight: 6 }} />
-              <Text style={styles.resolvedBannerText}>{t('This consultation is resolved.', 'یہ گفتگو مکمل ہو چکی ہے۔')}</Text>
+              <Text style={styles.resolvedBannerText}>{t('This consultation is resolved.')}</Text>
             </View>
           ) : (
             <View style={{ paddingBottom: Math.max(insets.bottom, 10) }}>
@@ -563,7 +563,7 @@ export default function ChatScreen() {
 
               <TextInput
                 style={styles.textInput}
-                placeholder={t('Type message...', 'یہاں لکھیں...')}
+                placeholder={t('Type message...')}
                 placeholderTextColor="#888"
                 value={inputText}
                 onChangeText={setInputText}
@@ -641,7 +641,7 @@ export default function ChatScreen() {
 
               <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 24 }}>
                 
-                <Text style={styles.formLabel}>{t('Diagnosis', 'بیماری کی تشخیص')}</Text>
+                <Text style={styles.formLabel}>{t('Diagnosis')}</Text>
                 <TextInput
                   style={styles.formInput}
                   placeholder="e.g. Foot and Mouth Disease (FMD)"
@@ -652,10 +652,10 @@ export default function ChatScreen() {
 
                 
                 <View style={styles.formHeaderRow}>
-                  <Text style={styles.formLabel}>{t('Medicines', 'ادویات')}</Text>
+                  <Text style={styles.formLabel}>{t('Medicines')}</Text>
                   <TouchableOpacity style={styles.addButton} onPress={handleAddMedicineRow}>
                     <Feather name="plus" size={14} color="#58D66D" />
-                    <Text style={styles.addButtonText}>{t('Add', 'شامل کریں')}</Text>
+                    <Text style={styles.addButtonText}>{t('Add')}</Text>
                   </TouchableOpacity>
                 </View>
 
@@ -694,7 +694,7 @@ export default function ChatScreen() {
                 ))}
 
                 
-                <Text style={[styles.formLabel, { marginTop: 14 }]}>{t('Special Instructions', 'خصوصی ہدایات')}</Text>
+                <Text style={[styles.formLabel, { marginTop: 14 }]}>{t('Special Instructions')}</Text>
                 <TextInput
                   style={[styles.formInput, { height: 80, textAlignVertical: 'top' }]}
                   placeholder="e.g. Isolate the sick cow, wash hooves with antiseptic twice daily."
@@ -710,7 +710,7 @@ export default function ChatScreen() {
                   onPress={handleSendPrescription}
                   activeOpacity={0.8}
                 >
-                  <Text style={styles.submitPrescriptionButtonText}>{t('Send Prescription', 'نسخہ بھیجیں')}</Text>
+                  <Text style={styles.submitPrescriptionButtonText}>{t('Send Prescription')}</Text>
                 </TouchableOpacity>
               </ScrollView>
             </View>
@@ -730,19 +730,19 @@ export default function ChatScreen() {
             </View>
             <ScrollView showsVerticalScrollIndicator={false}>
               <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>{t('Vaccine Name', 'ویکسین کا نام')}</Text>
+                <Text style={styles.inputLabel}>{t('Vaccine Name')}</Text>
                 <TextInput style={styles.input} placeholder="e.g. FMD Vaccine" value={vaccineName} onChangeText={setVaccineName} />
               </View>
               <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>{t('Date Administered', 'تاریخ')}</Text>
+                <Text style={styles.inputLabel}>{t('Date Administered')}</Text>
                 <TextInput style={styles.input} placeholder="YYYY-MM-DD" value={vaccineDate} onChangeText={setVaccineDate} />
               </View>
               <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>{t('Next Due Date', 'اگلی تاریخ')}</Text>
+                <Text style={styles.inputLabel}>{t('Next Due Date')}</Text>
                 <TextInput style={styles.input} placeholder="YYYY-MM-DD" value={nextDueDate} onChangeText={setNextDueDate} />
               </View>
               <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>{t('Notes', 'ہدایات')}</Text>
+                <Text style={styles.inputLabel}>{t('Notes')}</Text>
                 <TextInput style={[styles.input, { height: 80, textAlignVertical: 'top' }]} multiline placeholder="Any special instructions..." value={vaccineNotes} onChangeText={setVaccineNotes} />
               </View>
               <TouchableOpacity style={[styles.submitPrescriptionButton, { backgroundColor: '#3B82F6' }]} onPress={handleSendVaccination}>

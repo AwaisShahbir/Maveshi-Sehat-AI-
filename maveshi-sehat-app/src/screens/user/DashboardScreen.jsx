@@ -55,9 +55,9 @@ export default function DashboardScreen() {
       icon: rec.icon,
       color: rec.color,
       title: `${rec.animalId} - ${t(rec.disease, rec.diseaseUrdu)}`,
-      time: rec.timeAgo === 'Just now' ? t('Just now', 'ابھی ابھی') : rec.timeAgo,
+      time: rec.timeAgo === 'Just now' ? t('Just now') : rec.timeAgo,
       percentage: rec.confidence.replace('%', ''),
-      severity: rec.status === 'Active' ? t('Active', 'سرگرم') : (rec.status === 'Under Treatment' ? t('Under Treatment', 'زیر علاج') : t('Healthy', 'صحت مند')),
+      severity: rec.status === 'Active' ? t('Active') : (rec.status === 'Under Treatment' ? t('Under Treatment') : t('Healthy')),
       rawRecord: rec
     }));
     setRecentScans(recent);
@@ -125,7 +125,7 @@ export default function DashboardScreen() {
         >
           <View style={styles.headerTop}>
             <View>
-              <Text style={styles.greeting}>{t('Assalam-o-Alaikum', 'السلام علیکم')}</Text>
+              <Text style={styles.greeting}>{t('Assalam-o-Alaikum')}</Text>
               <Text style={styles.userName}>{userName}</Text>
             </View>
             <TouchableOpacity style={styles.notificationBtn} onPress={() => navigation.navigate('Notifications')}>
@@ -142,63 +142,63 @@ export default function DashboardScreen() {
           <View style={styles.statsRow}>
             <View style={styles.statItem}>
               <Text style={styles.statValue}>{stats.livestock}</Text>
-              <Text style={styles.statLabel}>{t('Livestock', 'مویشی')}</Text>
+              <Text style={styles.statLabel}>{t('Livestock')}</Text>
                           </View>
             <View style={styles.statItem}>
               <Text style={styles.statValue}>{stats.aiScans}</Text>
-              <Text style={styles.statLabel}>{t('AI Scans', 'اسکین')}</Text>
+              <Text style={styles.statLabel}>{t('AI Scans')}</Text>
                           </View>
             <View style={styles.statItem}>
               <Text style={styles.statValue}>{stats.healthy}%</Text>
-              <Text style={styles.statLabel}>{t('Healthy', 'صحت مند')}</Text>
+              <Text style={styles.statLabel}>{t('Healthy')}</Text>
                           </View>
           </View>
         </LinearGradient>
 
         
         <View style={[styles.cardContainer, styles.overlapCard]}>
-          <Text style={styles.sectionTitle}>{t(t('Quick Actions', 'فوری اعمال'), 'فوری اعمال')}</Text>
+          <Text style={styles.sectionTitle}>{t('Quick Actions')}</Text>
           <View style={styles.actionGrid}>
             <TouchableOpacity style={styles.actionItem} onPress={() => navigation.navigate('AiScan', { userName, userId })}>
               <View style={[styles.iconBox, { backgroundColor: '#E8F8EA' }]}>
                 <MaterialCommunityIcons name="line-scan" size={28} color="#4CB85C" />
               </View>
-              <Text style={styles.actionText}>{t('AI Scan', 'اسکین')}</Text>
+              <Text style={styles.actionText}>{t('AI Scan')}</Text>
                           </TouchableOpacity>
             
             <TouchableOpacity style={styles.actionItem} onPress={() => navigation.navigate('Vaccination')}>
               <View style={[styles.iconBox, { backgroundColor: '#FFF5E5' }]}>
                 <MaterialCommunityIcons name="needle" size={28} color="#F5B041" />
               </View>
-              <Text style={styles.actionText}>{t('Vaccination', 'ویکسین')}</Text>
+              <Text style={styles.actionText}>{t('Vaccination')}</Text>
                           </TouchableOpacity>
 
             <TouchableOpacity style={styles.actionItem} onPress={() => navigation.navigate('VeterinariansList', { userName, userId })}>
               <View style={[styles.iconBox, { backgroundColor: '#E8F8EA' }]}>
                 <Feather name="users" size={26} color="#4CB85C" />
               </View>
-              <Text style={styles.actionText}>{t('Veterinarians', 'ڈاکٹرز')}</Text>
+              <Text style={styles.actionText}>{t('Veterinarians')}</Text>
                           </TouchableOpacity>
 
             <TouchableOpacity style={styles.actionItem} onPress={() => navigation.navigate('MyConsultations')}>
               <View style={[styles.iconBox, { backgroundColor: '#E8F8EA' }]}>
                 <Feather name="calendar" size={26} color="#4CB85C" />
               </View>
-              <Text style={styles.actionText}>{t('Consultations', 'مشاورت')}</Text>
+              <Text style={styles.actionText}>{t('Consultations')}</Text>
                           </TouchableOpacity>
 
             <TouchableOpacity style={styles.actionItem} onPress={() => navigation.navigate('HeatAlert', { userName, userId })}>
               <View style={[styles.iconBox, { backgroundColor: '#FFF5E5' }]}>
                 <Feather name="thermometer" size={28} color="#F5B041" />
               </View>
-              <Text style={styles.actionText}>{t('Heat Alert', 'گرمی')}</Text>
+              <Text style={styles.actionText}>{t('Heat Alert')}</Text>
                           </TouchableOpacity>
 
             <TouchableOpacity style={styles.actionItem} onPress={() => navigation.navigate('Marketplace', { userName, userId })}>
               <View style={[styles.iconBox, { backgroundColor: '#E8F8EA' }]}>
                 <Feather name="shopping-bag" size={26} color="#4CB85C" />
               </View>
-              <Text style={styles.actionText}>{t('Marketplace', 'مارکیٹ')}</Text>
+              <Text style={styles.actionText}>{t('Marketplace')}</Text>
                           </TouchableOpacity>
           </View>
         </View>
@@ -206,9 +206,9 @@ export default function DashboardScreen() {
         
         <View style={styles.cardContainer}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>{t(t('Recent AI Scans', 'حالیہ اسکین'), 'حالیہ اسکین')}</Text>
+            <Text style={styles.sectionTitle}>{t('Recent AI Scans')}</Text>
             <TouchableOpacity onPress={() => navigation.navigate('HealthRecords', { userName, userId })}>
-              <Text style={styles.viewAll}>{t('View All', 'سب دیکھیں')}</Text>
+              <Text style={styles.viewAll}>{t('View All')}</Text>
             </TouchableOpacity>
           </View>
 
@@ -239,7 +239,7 @@ export default function DashboardScreen() {
           ) : (
             <View style={styles.emptyContainer}>
               <Feather name="info" size={24} color="#ccc" style={{ marginBottom: 8 }} />
-              <Text style={styles.emptyText}>{t('No recent scans found', 'کوئی حالیہ اسکین نہیں ملا')}</Text>
+              <Text style={styles.emptyText}>{t('No recent scans found')}</Text>
             </View>
           )}
         </View>
@@ -270,23 +270,23 @@ export default function DashboardScreen() {
       <View style={styles.bottomNav}>
         <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Dashboard')}>
           <Feather name="home" size={24} color="#FFF" />
-          <Text style={styles.navText}>{t('Home', 'ہوم')}</Text>
+          <Text style={styles.navText}>{t('Home')}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('AiScan', { userName, userId })}>
           <MaterialCommunityIcons name="line-scan" size={24} color="#A3E6B2" />
-          <Text style={[styles.navText, { color: '#A3E6B2' }]}>{t('AI Scan', 'اسکین')}</Text>
+          <Text style={[styles.navText, { color: '#A3E6B2' }]}>{t('AI Scan')}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('HealthRecords', { userName, userId })}>
           <Feather name="file-text" size={24} color="#A3E6B2" />
-          <Text style={[styles.navText, { color: '#A3E6B2' }]}>{t('Records', 'ریکاردز')}</Text>
+          <Text style={[styles.navText, { color: '#A3E6B2' }]}>{t('Records')}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('CommunityForum', { userName, userId })}>
           <Feather name="message-square" size={24} color="#A3E6B2" />
-          <Text style={[styles.navText, { color: '#A3E6B2' }]}>{t('Forum', 'فورم')}</Text>
+          <Text style={[styles.navText, { color: '#A3E6B2' }]}>{t('Forum')}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Profile', { userName, userId })}>
           <Feather name="user" size={24} color="#A3E6B2" />
-          <Text style={[styles.navText, { color: '#A3E6B2' }]}>{t('Profile', 'پروفائل')}</Text>
+          <Text style={[styles.navText, { color: '#A3E6B2' }]}>{t('Profile')}</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>

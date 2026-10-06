@@ -435,24 +435,9 @@ export default function HeatAlertScreen() {
 
               {/* Gauge Description (Clean bilingual rendering with no nested slashes) */}
               <View style={styles.gaugeDescWrap}>
-                {isBoth ? (
-                  <>
-                    <Text style={styles.gaugeDescEn}>
-                      {`Livestock THI indicates ${stressSplit.en.toLowerCase()} danger level for cattle & buffaloes.`}
-                    </Text>
-                    <Text style={styles.gaugeDescUr}>
-                      {`یہ انڈیکس مویشیوں کے لیے ${stressSplit.ur} کو ظاہر کرتا ہے۔`}
-                    </Text>
-                  </>
-                ) : isUrdu ? (
-                  <Text style={styles.gaugeDescUr}>
-                    {`یہ انڈیکس مویشیوں کے لیے ${stressSplit.ur} کو ظاہر کرتا ہے۔`}
-                  </Text>
-                ) : (
-                  <Text style={styles.gaugeDescEn}>
-                    {`Livestock THI indicates ${stressSplit.en.toLowerCase()} danger level for cattle & buffaloes.`}
-                  </Text>
-                )}
+                <Text style={[styles.gaugeDescEn, isUrdu && styles.gaugeDescUr]}>
+                  {t(`Livestock THI indicates ${stressInfo.title.toLowerCase()} danger level for cattle & buffaloes.`)}
+                </Text>
               </View>
 
               {/* Metrics Row (Temp, Humidity, Wind) */}

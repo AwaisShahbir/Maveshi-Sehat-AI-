@@ -104,7 +104,7 @@ export default function VetCasesScreen() {
         {confidence && (
           <View style={styles.confidenceSection}>
             <View style={styles.confidenceHeader}>
-              <Text style={styles.confidenceLabel}>{t('Confidence', 'اعتماد')}</Text>
+              <Text style={styles.confidenceLabel}>{t('Confidence')}</Text>
               <Text style={styles.confidenceValue}>{confidence}%</Text>
             </View>
             <View style={styles.progressBarBg}>
@@ -154,8 +154,8 @@ export default function VetCasesScreen() {
                 style={[styles.tabBtn, activeTab === tab && styles.tabBtnActive]}
                 onPress={() => setActiveTab(tab)}
               >
-                {tab === 'Pending' && <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>{t('Pending', 'زیر')}</Text>}
-                {tab === 'Urgent' && <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}><View style={styles.dotUrgent}/>{t('Urgent', 'فوری')}</Text>}
+                {tab === 'Pending' && <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>{t('Pending')}</Text>}
+                {tab === 'Urgent' && <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}><View style={styles.dotUrgent}/>{t('Urgent')}</Text>}
                 {tab === 'Resolved' && <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}><View style={styles.dotResolved}/> Resolved</Text>}
               </TouchableOpacity>
             ))}

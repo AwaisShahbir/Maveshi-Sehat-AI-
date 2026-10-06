@@ -17,7 +17,8 @@ import Feather from 'react-native-vector-icons/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { getProfile, updateProfile, subscribeProfile } from '../../utils/profileStore';
 import { getRecords, subscribe, loadRecords } from '../../utils/recordsStore';
-import { t } from '../../utils/translate';
+import { t, useTranslation, subscribeTranslation } from '../../utils/translate';
+import fonts from '../../styles/fonts';
 import styles from '../../styles/ProfileScreenStyles';
 
 export default function ProfileScreen() {
@@ -28,25 +29,22 @@ export default function ProfileScreen() {
 
   const [profile, setProfile] = useState(getProfile());
   const [records, setRecords] = useState(getRecords());
-
+  const [isDarkMode, setIsDarkMode] = useState(false);
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [langModalVisible, setLangModalVisible] = useState(false);
-  
+
+  const { isUrdu } = useTranslation();
+  const [, setTick] = useState(0);
+
+  // Edit form states
   const [editName, setEditName] = useState(profile.userName);
-  const [editNameUrdu, setEditNameUrdu] = useState(profile.userNameUrdu);
   const [editPhone, setEditPhone] = useState(profile.phone);
   const [editLocation, setEditLocation] = useState(profile.location);
 
-  const [isDarkMode, setIsDarkMode] = useState(false);
-
   useEffect(() => {
-    if (params.userName && params.userName !== profile.userName) {
-      updateProfile({ userName: params.userName });
-    }
-
-    loadRecords(params.userName || profile.userName).then(loadedRecords => {
+    loadRecords(profile.userName).then(loadedRecords => {
       setRecords(loadedRecords);
-    }).catch(err => console.log('Error loading records for profile:', err));
+    }).catch(err => console.log('Error initial loading records for profile:', err));
 
     const unsubscribeProfile = subscribeProfile((updatedProfile) => {
       setProfile(updatedProfile);
@@ -59,15 +57,19 @@ export default function ProfileScreen() {
       setRecords(updatedRecords);
     });
 
+    const unsubscribeTranslation = subscribeTranslation(() => {
+      setTick(t => t + 1);
+    });
+
     return () => {
       unsubscribeProfile();
       unsubscribeRecords();
+      unsubscribeTranslation();
     };
   }, []);
 
   useEffect(() => {
     setEditName(profile.userName);
-    setEditNameUrdu(profile.userNameUrdu);
     setEditPhone(profile.phone);
     setEditLocation(profile.location);
   }, [profile]);
@@ -86,37 +88,34 @@ export default function ProfileScreen() {
 
   const handleSaveProfile = () => {
     if (!editName.trim()) {
-      Alert.alert('Error', 'Name cannot be empty.');
+      Alert.alert(t('Error'), t('Name cannot be empty.'));
       return;
     }
     updateProfile({
       userName: editName,
-      userNameUrdu: editNameUrdu || 'صارف',
       phone: editPhone,
       location: editLocation
     });
     setEditModalVisible(false);
-    Alert.alert('Success', 'Profile updated successfully!');
+    Alert.alert(t('Success'), t('Saved successfully'));
   };
 
   const toggleNotifications = (val) => {
     updateProfile({ notificationsEnabled: val });
   };
 
-  const openLanguageSelector = () => {
-    setLangModalVisible(true);
-  };
-
   const handleLogout = () => {
     Alert.alert(
-      "Logout",
-      "Are you sure you want to logout?",
+      t('Log Out'),
+      t('Are you sure you want to log out?'),
       [
-        { text: "Cancel", style: "cancel" },
-        { text: "Logout", style: "destructive", onPress: () => navigation.replace('Welcome') }
+        { text: t('Cancel'), style: "cancel" },
+        { text: t('Log Out'), style: "destructive", onPress: () => navigation.replace('Welcome') }
       ]
     );
   };
+
+  const currentLang = profile.language === 'Urdu' ? 'Urdu' : 'English';
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -125,8 +124,10 @@ export default function ProfileScreen() {
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>{t('Profile & Settings', 'پروفائل اور ترتیبات')}</Text>
-                  </View>
+          <Text style={[styles.headerTitle, isUrdu && { fontFamily: fonts.urduBold }]}>
+            {t('Profile & Settings')}
+          </Text>
+        </View>
 
         <View style={styles.profileCard}>
           <View style={styles.cardTopRow}>
@@ -136,9 +137,11 @@ export default function ProfileScreen() {
 
             <View style={styles.userInfo}>
               <Text style={styles.userName}>{profile.userName}</Text>
-                            <View style={styles.roleBadge}>
+              <View style={styles.roleBadge}>
                 <Feather name="user" size={12} color="#58D66D" style={{ marginRight: 4 }} />
-                <Text style={styles.roleText}>{t(t('Farmer', 'کسان'), 'کسان')}</Text>
+                <Text style={[styles.roleText, isUrdu && { fontFamily: fonts.urduRegular }]}>
+                  {t('Farmer')}
+                </Text>
               </View>
             </View>
 
@@ -151,27 +154,27 @@ export default function ProfileScreen() {
           <View style={styles.statsRow}>
             <View style={styles.statItem}>
               <Text style={styles.statValue}>{uniqueAnimals}</Text>
-              <Text style={styles.statLabel}>{t('Livestock', 'مویشی')}</Text>
-                          </View>
+              <Text style={[styles.statLabel, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Livestock')}</Text>
+            </View>
             <View style={styles.statItem}>
               <Text style={styles.statValue}>{totalScans}</Text>
-              <Text style={styles.statLabel}>{t('AI Scans', 'اسکین')}</Text>
-                          </View>
+              <Text style={[styles.statLabel, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('AI Scans')}</Text>
+            </View>
             <View style={styles.statItem}>
               <Text style={styles.statValue}>{profile.consultationsCount}</Text>
-              <Text style={styles.statLabel}>{t('Consultations', 'مشاورت')}</Text>
-                          </View>
+              <Text style={[styles.statLabel, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Consultations')}</Text>
+            </View>
           </View>
         </View>
 
-        <Text style={styles.groupTitle}>{t('Account', 'اکاؤنٹ')}</Text>
+        <Text style={[styles.groupTitle, isUrdu && { fontFamily: fonts.urduBold }]}>{t('Account')}</Text>
         <View style={styles.settingsGroup}>
           <TouchableOpacity style={styles.settingsItem} onPress={() => setEditModalVisible(true)}>
             <View style={[styles.itemIconBg, { backgroundColor: '#E8F8EA' }]}>
               <Feather name="user" size={18} color="#58D66D" />
             </View>
             <View style={styles.itemDetails}>
-              <Text style={styles.itemTitle}>{t('Edit Profile', 'پروفائل ایڈیٹ کریں')}</Text>
+              <Text style={[styles.itemTitle, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Edit Profile')}</Text>
             </View>
             <Feather name="chevron-right" size={18} color="#888" />
           </TouchableOpacity>
@@ -181,7 +184,7 @@ export default function ProfileScreen() {
               <Feather name="phone-call" size={18} color="#58D66D" />
             </View>
             <View style={styles.itemDetails}>
-              <Text style={styles.itemTitle}>{t('Phone Number', 'فون نمبر')}</Text>
+              <Text style={[styles.itemTitle, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Phone Number')}</Text>
               <Text style={styles.itemVal}>{profile.phone}</Text>
             </View>
             <Feather name="chevron-right" size={18} color="#888" />
@@ -192,21 +195,21 @@ export default function ProfileScreen() {
               <Feather name="map-pin" size={18} color="#58D66D" />
             </View>
             <View style={styles.itemDetails}>
-              <Text style={styles.itemTitle}>{t('Location', 'مقام')}</Text>
+              <Text style={[styles.itemTitle, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Location')}</Text>
               <Text style={styles.itemVal}>{profile.location}</Text>
             </View>
             <Feather name="chevron-right" size={18} color="#888" />
           </TouchableOpacity>
         </View>
 
-        <Text style={styles.groupTitle}>{t('Preferences', 'ترجیحات')}</Text>
+        <Text style={[styles.groupTitle, isUrdu && { fontFamily: fonts.urduBold }]}>{t('Preferences')}</Text>
         <View style={styles.settingsGroup}>
           <TouchableOpacity 
             style={styles.settingsItem}
             activeOpacity={profile.enforceAdminLanguage ? 1 : 0.7}
             onPress={() => {
               if (profile.enforceAdminLanguage) {
-                Alert.alert(t('Managed by Admin', 'ایڈمن کنٹرولڈ'), t('Language is currently set centrally by the administrator.', 'زبان فی الحال ایڈمنسٹریٹر کے زیر انتظام ہے۔'));
+                Alert.alert(t('Managed by Admin'), t('Language is currently set centrally by the administrator.'));
               } else {
                 setLangModalVisible(true);
               }
@@ -216,14 +219,14 @@ export default function ProfileScreen() {
               <Feather name="globe" size={18} color="#58D66D" />
             </View>
             <View style={styles.itemDetails}>
-              <Text style={styles.itemTitle}>{t('Language', 'زبان')}</Text>
-              <Text style={styles.itemVal}>
-                {profile.language === 'English' ? 'English' : (profile.language === 'Urdu' ? 'Urdu' : 'Both (English and Urdu)')}
+              <Text style={[styles.itemTitle, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Language')}</Text>
+              <Text style={[styles.itemVal, isUrdu && { fontFamily: fonts.urduRegular }]}>
+                {currentLang === 'Urdu' ? 'Urdu' : 'English'}
               </Text>
             </View>
             {profile.enforceAdminLanguage ? (
               <Text style={{ fontSize: 11, color: '#94a3b8', fontStyle: 'italic' }}>
-                {t('Set by Admin', 'ایڈمن کنٹرولڈ')}
+                {t('Set by Admin')}
               </Text>
             ) : (
               <Feather name="chevron-right" size={18} color="#888" />
@@ -235,7 +238,7 @@ export default function ProfileScreen() {
               <Feather name="bell" size={18} color="#58D66D" />
             </View>
             <View style={styles.itemDetails}>
-              <Text style={styles.itemTitle}>{t('Notifications', 'اطلاعات')}</Text>
+              <Text style={[styles.itemTitle, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Notifications')}</Text>
             </View>
             <Switch
               value={profile.notificationsEnabled}
@@ -250,7 +253,7 @@ export default function ProfileScreen() {
               <Feather name="moon" size={18} color="#58D66D" />
             </View>
             <View style={styles.itemDetails}>
-              <Text style={styles.itemTitle}>{t('Dark Mode', 'ڈارک موڈ')}</Text>
+              <Text style={[styles.itemTitle, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Dark Mode')}</Text>
             </View>
             <Switch
               value={isDarkMode}
@@ -261,14 +264,14 @@ export default function ProfileScreen() {
           </View>
         </View>
 
-        <Text style={styles.groupTitle}>{t('Support', 'مدد')}</Text>
+        <Text style={[styles.groupTitle, isUrdu && { fontFamily: fonts.urduBold }]}>{t('Support')}</Text>
         <View style={styles.settingsGroup}>
           <TouchableOpacity style={styles.settingsItem}>
             <View style={[styles.itemIconBg, { backgroundColor: '#E8F8EA' }]}>
               <Feather name="shield" size={18} color="#58D66D" />
             </View>
             <View style={styles.itemDetails}>
-              <Text style={styles.itemTitle}>{t('Privacy Policy', 'رازداری کی پالیسی')}</Text>
+              <Text style={[styles.itemTitle, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Terms & Privacy')}</Text>
             </View>
             <Feather name="chevron-right" size={18} color="#888" />
           </TouchableOpacity>
@@ -278,7 +281,7 @@ export default function ProfileScreen() {
               <Feather name="help-circle" size={18} color="#58D66D" />
             </View>
             <View style={styles.itemDetails}>
-              <Text style={styles.itemTitle}>{t('Help & Support', 'مدد اور معاونت')}</Text>
+              <Text style={[styles.itemTitle, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Help & Support')}</Text>
             </View>
             <Feather name="chevron-right" size={18} color="#888" />
           </TouchableOpacity>
@@ -286,7 +289,7 @@ export default function ProfileScreen() {
 
         <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
           <Feather name="log-out" size={18} color="#FF3B30" style={{ transform: [{ scaleX: -1 }], marginRight: 8 }} />
-          <Text style={styles.logoutBtnText}>{t(t('Logout', 'لاگ آؤٹ'), 'لاگ آؤٹ')}</Text>
+          <Text style={[styles.logoutBtnText, isUrdu && { fontFamily: fonts.urduBold }]}>{t('Log Out')}</Text>
         </TouchableOpacity>
 
       </ScrollView>
@@ -301,59 +304,50 @@ export default function ProfileScreen() {
         <View style={styles.modalBg}>
           <View style={styles.modalContainer}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>{t('Edit Profile Info', 'پروفائل ایڈیٹ کریں')}</Text>
+              <Text style={[styles.modalTitle, isUrdu && { fontFamily: fonts.urduBold }]}>{t('Edit Profile')}</Text>
               <TouchableOpacity onPress={() => setEditModalVisible(false)}>
                 <Feather name="x" size={24} color="#333" />
               </TouchableOpacity>
             </View>
 
             <ScrollView showsVerticalScrollIndicator={false} style={{ marginBottom: 16 }}>
-              <Text style={styles.inputLabel}>{t('Full Name (English)', 'پورا نام (انگریزی)')}</Text>
+              <Text style={[styles.inputLabel, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Full Name')}</Text>
               <TextInput
                 style={styles.textInput}
                 value={editName}
                 onChangeText={setEditName}
-                placeholder={t('Enter Full Name', 'پورا نام انگریزی میں درج کریں')}
+                placeholder={t('Enter Full Name')}
                 placeholderTextColor="#999"
               />
 
-              <Text style={styles.inputLabel}>{t('Full Name (Urdu)', 'پورا نام (اردو)')}</Text>
-              <TextInput
-                style={styles.textInput}
-                value={editNameUrdu}
-                onChangeText={setEditNameUrdu}
-                placeholder={t('Enter Urdu Name', 'اپنا نام اردو میں درج کریں')}
-                placeholderTextColor="#999"
-              />
-
-              <Text style={styles.inputLabel}>{t('Phone Number', 'فون نمبر')}</Text>
+              <Text style={[styles.inputLabel, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Phone Number')}</Text>
               <TextInput
                 style={styles.textInput}
                 value={editPhone}
                 onChangeText={setEditPhone}
-                placeholder={t('Enter Phone Number', 'فون نمبر درج کریں')}
+                placeholder={t('Enter Phone Number')}
                 placeholderTextColor="#999"
                 keyboardType="phone-pad"
               />
 
-              <Text style={styles.inputLabel}>{t('Location', 'مقام')}</Text>
+              <Text style={[styles.inputLabel, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Location')}</Text>
               <TextInput
                 style={styles.textInput}
                 value={editLocation}
                 onChangeText={setEditLocation}
-                placeholder={t('Enter Location (City, Province)', 'مقام درج کریں (شہر، صوبہ)')}
+                placeholder={t('Enter Location (City, Province)')}
                 placeholderTextColor="#999"
               />
             </ScrollView>
 
             <TouchableOpacity style={styles.saveBtn} onPress={handleSaveProfile}>
-              <Text style={styles.saveBtnText}>{t('Save Changes', 'محفوظ کریں')}</Text>
+              <Text style={[styles.saveBtnText, isUrdu && { fontFamily: fonts.urduBold }]}>{t('Save Changes')}</Text>
             </TouchableOpacity>
           </View>
         </View>
       </Modal>
 
-      {/* Language Selection Modal (Available when Admin enforcement is OFF) */}
+      {/* Clean 2-Language Selection Modal */}
       <Modal
         animationType="slide"
         transparent={true}
@@ -363,7 +357,7 @@ export default function ProfileScreen() {
         <View style={styles.modalBg}>
           <View style={styles.modalContainer}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Choose Your Language</Text>
+              <Text style={[styles.modalTitle, isUrdu && { fontFamily: fonts.urduBold }]}>{t('Choose Your Language')}</Text>
               <TouchableOpacity onPress={() => setLangModalVisible(false)}>
                 <Feather name="x" size={24} color="#333" />
               </TouchableOpacity>
@@ -371,24 +365,23 @@ export default function ProfileScreen() {
 
             {[
               { id: 'English', label: 'English' },
-              { id: 'Urdu', label: 'Urdu' },
-              { id: 'Both', label: 'Both (English and Urdu)' }
+              { id: 'Urdu', label: 'Urdu' }
             ].map((item) => (
               <TouchableOpacity
                 key={item.id}
                 style={[
                   styles.langOption,
-                  profile.language === item.id && styles.langOptionSelected
+                  currentLang === item.id && styles.langOptionSelected
                 ]}
                 onPress={() => {
                   updateProfile({ language: item.id });
                   setLangModalVisible(false);
                 }}
               >
-                <Text style={[styles.langOptionText, profile.language === item.id && styles.langOptionTextSelected]}>
+                <Text style={[styles.langOptionText, currentLang === item.id && styles.langOptionTextSelected]}>
                   {item.label}
                 </Text>
-                {profile.language === item.id && (
+                {currentLang === item.id && (
                   <Feather name="check" size={20} color="#58D66D" />
                 )}
               </TouchableOpacity>
@@ -397,29 +390,27 @@ export default function ProfileScreen() {
         </View>
       </Modal>
 
-
-
       <View style={styles.bottomNavContainer}>
         <View style={styles.bottomNav}>
           <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Dashboard')}>
             <Feather name="home" size={24} color="#A3E6B2" />
-            <Text style={[styles.navText, { color: '#A3E6B2' }]}>{t('Home', 'ہوم')}</Text>
+            <Text style={[styles.navText, { color: '#A3E6B2' }, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Home')}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('AiScan', { userName: profile.userName, userId })}>
             <MaterialCommunityIcons name="line-scan" size={24} color="#A3E6B2" />
-            <Text style={[styles.navText, { color: '#A3E6B2' }]}>{t('AI Scan', 'اسکین')}</Text>
+            <Text style={[styles.navText, { color: '#A3E6B2' }, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('AI Scan')}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('HealthRecords', { userName: profile.userName, userId })}>
             <Feather name="file-text" size={24} color="#A3E6B2" />
-            <Text style={[styles.navText, { color: '#A3E6B2' }]}>{t('Records', 'ریکارڈز')}</Text>
+            <Text style={[styles.navText, { color: '#A3E6B2' }, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Records')}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('CommunityForum', { userName: profile.userName, userId })}>
             <Feather name="message-square" size={24} color="#A3E6B2" />
-            <Text style={[styles.navText, { color: '#A3E6B2' }]}>{t('Forum', 'فورم')}</Text>
+            <Text style={[styles.navText, { color: '#A3E6B2' }, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Forum')}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.navItem}>
             <Feather name="user" size={24} color="#FFF" />
-            <Text style={[styles.navText, { color: '#FFF' }]}>{t('Profile', 'پروفائل')}</Text>
+            <Text style={[styles.navText, { color: '#FFF' }, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Profile')}</Text>
           </TouchableOpacity>
         </View>
       </View>

@@ -109,43 +109,43 @@ export default function VetProfileScreen() {
             
             <View style={styles.verifiedBadge}>
               <MaterialCommunityIcons name="check-decagram" size={16} color="#58D66D" style={{ marginRight: 6 }} />
-              <Text style={styles.verifiedText}>{t('Verified Vet', 'تصدیق شدہ')}</Text>
+              <Text style={styles.verifiedText}>{t('Verified Vet')}</Text>
             </View>
           </View>
 
           <View style={styles.statsContainer}>
             <View style={styles.statBox}>
               <Text style={styles.statValue}>47</Text>
-              <Text style={styles.statLabel}>{t('Cases', 'کیسز')}</Text>
+              <Text style={styles.statLabel}>{t('Cases')}</Text>
             </View>
             <View style={styles.statDivider} />
             <View style={styles.statBox}>
               <Text style={styles.statValue}>18</Text>
-              <Text style={styles.statLabel}>{t('Prescriptions', 'نسخہ جات')}</Text>
+              <Text style={styles.statLabel}>{t('Prescriptions')}</Text>
             </View>
             <View style={styles.statDivider} />
             <View style={styles.statBox}>
               <Text style={[styles.statValue, { color: '#F5B041' }]}>4.9★</Text>
-              <Text style={styles.statLabel}>{t('Rating', 'ریٹنگ')}</Text>
+              <Text style={styles.statLabel}>{t('Rating')}</Text>
             </View>
           </View>
         </View>
 
         <View style={styles.contentSection}>
-          <Text style={styles.sectionHeading}>{t('Account', 'اکاؤنٹ')}</Text>
+          <Text style={styles.sectionHeading}>{t('Account')}</Text>
           <View style={styles.menuCard}>
-            {renderMenuItem('user', 'Edit Profile', 'پروفائل ترمیم کریں', null, () => setActiveModal('editProfile'))}
+            {renderMenuItem('user', 'Edit Profile', null, null, () => setActiveModal('editProfile'))}
             <View style={styles.menuDivider} />
-            {renderMenuItem('file-text', 'License Details', 'لائسنس کی تفصیلات', null, () => setActiveModal('license'))}
+            {renderMenuItem('file-text', 'License Details', null, null, () => setActiveModal('license'))}
             <View style={styles.menuDivider} />
-            {renderMenuItem('award', 'Specialization', 'تخصص', null, () => setActiveModal('specialization'))}
+            {renderMenuItem('award', 'Specialization', null, null, () => setActiveModal('specialization'))}
             <View style={styles.menuDivider} />
-            {renderMenuItem('calendar', 'Availability Schedule', 'دستیابی شیڈول', null, () => setActiveModal('availability'))}
+            {renderMenuItem('calendar', 'Availability Schedule', null, null, () => setActiveModal('availability'))}
           </View>
 
-          <Text style={styles.sectionHeading}>{t('Preferences', 'ترجیحات')}</Text>
+          <Text style={styles.sectionHeading}>{t('Preferences')}</Text>
           <View style={styles.menuCard}>
-            {renderMenuItem('globe', 'Language', 'زبان', 
+            {renderMenuItem('globe', 'Language', null, 
               profile.enforceAdminLanguage ? (
                 <View style={{ alignItems: 'flex-end' }}>
                   <Text style={styles.menuSubtitleActive}>
@@ -159,11 +159,11 @@ export default function VetProfileScreen() {
                 </Text>
               ), 
               profile.enforceAdminLanguage 
-                ? () => Alert.alert(t('Managed by Admin', 'ایڈمن کنٹرولڈ'), t('Language is currently set centrally by the administrator.', 'زبان فی الحال ایڈمنسٹریٹر کے زیر انتظام ہے۔'))
+                ? () => Alert.alert(t('Managed by Admin'), t('Language is currently set centrally by the administrator.'))
                 : () => setLangModalVisible(true)
             )}
             <View style={styles.menuDivider} />
-            {renderMenuItem('bell', 'Notifications', 'اطلاعات', 
+            {renderMenuItem('bell', 'Notifications', null, 
               <Switch
                 trackColor={{ false: '#EAEAEA', true: '#58D66D' }}
                 thumbColor="#FFF"
@@ -173,23 +173,23 @@ export default function VetProfileScreen() {
               />
             )}
             <View style={styles.menuDivider} />
-            {renderMenuItem('message-circle', 'Consultation Mode', 'مشاورت کا طریقہ', 
+            {renderMenuItem('message-circle', 'Consultation Mode', null, 
               <Text style={styles.menuSubtitleActive}>Chat + Video</Text>
             )}
           </View>
 
-          <Text style={styles.sectionHeading}>{t('Support', 'مدد')}</Text>
+          <Text style={styles.sectionHeading}>{t('Support')}</Text>
           <View style={styles.menuCard}>
-            {renderMenuItem('help-circle', 'Help Center', 'مدد مرکز')}
+            {renderMenuItem('help-circle', 'Help Center')}
             <View style={styles.menuDivider} />
-            {renderMenuItem('headphones', 'Contact Admin', 'ایڈمن سے رابطہ')}
+            {renderMenuItem('headphones', 'Contact Admin')}
             <View style={styles.menuDivider} />
-            {renderMenuItem('shield', 'Privacy Policy', 'رازداری')}
+            {renderMenuItem('shield', 'Privacy Policy')}
           </View>
 
           <TouchableOpacity style={styles.logoutBtn} onPress={() => navigation.reset({ index: 0, routes: [{ name: 'Welcome' }] })}>
             <Feather name="log-out" size={20} color="#FF3B30" style={{ marginRight: 8 }} />
-            <Text style={styles.logoutText}>{t('Logout', 'لاگ آؤٹ')}</Text>
+            <Text style={styles.logoutText}>{t('Logout')}</Text>
           </TouchableOpacity>
         </View>
 

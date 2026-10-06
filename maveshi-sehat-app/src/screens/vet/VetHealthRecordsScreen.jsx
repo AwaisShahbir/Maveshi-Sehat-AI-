@@ -117,7 +117,7 @@ export default function VetHealthRecordsScreen() {
 
         <View style={styles.confidenceSection}>
           <View style={styles.confidenceHeader}>
-            <Text style={styles.confidenceLabel}>{t('Confidence', 'اعتماد')}</Text>
+            <Text style={styles.confidenceLabel}>{t('Confidence')}</Text>
             <Text style={[styles.confidenceValue, { color: riskColor }]}>{confidence}%</Text>
           </View>
           <View style={styles.progressBarBg}>

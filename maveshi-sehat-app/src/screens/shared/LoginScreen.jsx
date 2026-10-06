@@ -1,21 +1,27 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, SafeAreaView, StatusBar, KeyboardAvoidingView, Platform, ScrollView, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
 import { updateProfile } from '../../utils/profileStore';
-import { t, tSplit } from '../../utils/translate';
+import { t, useTranslation, subscribeTranslation } from '../../utils/translate';
 import fonts from '../../styles/fonts';
 import styles from '../../styles/LoginScreenStyles';
 
-
 export default function LoginScreen() {
   const navigation = useNavigation();
+  const { isUrdu } = useTranslation();
+  const [, setTick] = useState(0);
+
   const [role, setRole] = useState('owner'); 
   const [phoneNumber, setPhoneNumber] = useState('');
   const [password, setPassword] = useState('');
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+
+  useEffect(() => {
+    return subscribeTranslation(() => setTick(t => t + 1));
+  }, []);
 
   const handleLogin = async () => {
     setErrorMsg(''); 
@@ -30,9 +36,7 @@ export default function LoginScreen() {
 
     setLoading(true);
     try {
-      
       const mappedRole = role === 'owner' ? 'farmer' : 'vet';
-      
       const baseUrl = Platform.OS === 'android' ? 'http://10.0.2.2:5000' : 'http://localhost:5000';
       const response = await fetch(`${baseUrl}/login`, {
         method: 'POST',
@@ -45,20 +49,27 @@ export default function LoginScreen() {
       if (!response.ok) {
         throw new Error(data.error || 'Login failed');
       }
-      
-      // Update global profile store
+
       updateProfile({
-        userName: data.user.fullName,
-        phone: data.user.phoneNumber || phoneNumber,
+        userName: data.user.full_name,
+        phone: data.user.phone,
+        location: data.user.district,
+        role: mappedRole
       });
 
-      if (data.user.role === 'vet') {
-        navigation.replace('VetDashboard', { userName: data.user.fullName, userId: data.user.id });
+      if (mappedRole === 'farmer') {
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'UserHome' }],
+        });
       } else {
-        navigation.replace('Dashboard', { userName: data.user.fullName, userId: data.user.id });
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'VetHome' }],
+        });
       }
-    } catch (error) {
-      setErrorMsg(error.message);
+    } catch (err) {
+      setErrorMsg(err.message);
     } finally {
       setLoading(false);
     }
@@ -80,47 +91,24 @@ export default function LoginScreen() {
               hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
             >
               <Feather name="chevron-left" size={24} color="#FFFFFF" />
-              {(() => {
-                const backItem = tSplit('Back', 'واپس');
-                return backItem.isBoth ? (
-                  <View style={{ marginLeft: 4 }}>
-                    <Text style={styles.backText}>{backItem.en}</Text>
-                    <Text style={[styles.backText, { fontFamily: fonts.urduBold, fontSize: 13, lineHeight: 20 }]}>{backItem.ur}</Text>
-                  </View>
-                ) : (
-                  <Text style={[styles.backText, backItem.isUrdu && { fontFamily: fonts.urduBold, fontSize: 14, lineHeight: 22 }]}>
-                    {backItem.display}
-                  </Text>
-                );
-              })()}
+              <Text style={[styles.backText, isUrdu && { fontFamily: fonts.urduBold }]}>{t('Back')}</Text>
             </TouchableOpacity>
-            {(() => {
-              const titleItem = tSplit('Welcome Back', 'خوش آمدید');
-              return titleItem.isBoth ? (
-                <View>
-                  <Text style={styles.mainTitle}>{titleItem.en}</Text>
-                  <Text style={styles.urduTitle}>{titleItem.ur}</Text>
-                </View>
-              ) : (
-                <Text style={[styles.mainTitle, titleItem.isUrdu && { fontFamily: fonts.urduBold, fontSize: 28, lineHeight: 46 }]}>
-                  {titleItem.display}
-                </Text>
-              );
-            })()}
+            <Text style={[styles.mainTitle, isUrdu && { fontFamily: fonts.urduBold, fontSize: 28, lineHeight: 46 }]}>
+              {t('Welcome Back')}
+            </Text>
           </View>
 
-          
           <View style={styles.cardContainer}>
             
-            <Text style={styles.label}>{t('Login As', 'لاگ ان بطور')}</Text>
+            <Text style={[styles.label, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Login As')}</Text>
             <View style={styles.roleContainer}>
               <TouchableOpacity 
                 style={[styles.roleButton, role === 'owner' && styles.roleButtonActive]}
                 onPress={() => setRole('owner')}
                 activeOpacity={0.8}
               >
-                <Text style={[styles.roleText, role === 'owner' && styles.roleTextActive]}>
-                  {t('Owner', 'مالک')}
+                <Text style={[styles.roleText, role === 'owner' && styles.roleTextActive, isUrdu && { fontFamily: fonts.urduRegular }]}>
+                  {t('Owner')}
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity 
@@ -128,13 +116,13 @@ export default function LoginScreen() {
                 onPress={() => setRole('vet')}
                 activeOpacity={0.8}
               >
-                <Text style={[styles.roleText, role === 'vet' && styles.roleTextActive]}>
-                  {t('Vet', 'ڈاکٹر')}
+                <Text style={[styles.roleText, role === 'vet' && styles.roleTextActive, isUrdu && { fontFamily: fonts.urduRegular }]}>
+                  {t('Vet')}
                 </Text>
               </TouchableOpacity>
             </View>
 
-            <Text style={styles.label}>{t('Phone Number', 'فون نمبر')}</Text>
+            <Text style={[styles.label, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Phone Number')}</Text>
             <View style={styles.inputContainer}>
               <Feather name="phone" size={20} color="#4CB85C" style={styles.inputIcon} />
               <TextInput 
@@ -147,12 +135,12 @@ export default function LoginScreen() {
               />
             </View>
 
-            <Text style={styles.label}>{t('Password', 'پاس ورڈ')}</Text>
+            <Text style={[styles.label, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Password')}</Text>
             <View style={styles.inputContainer}>
               <Feather name="lock" size={20} color="#4CB85C" style={styles.inputIcon} />
               <TextInput 
                 style={styles.input}
-                placeholder={t('Enter password', 'پاس ورڈ درج کریں')}
+                placeholder={t('Enter password')}
                 placeholderTextColor="#999"
                 secureTextEntry={!passwordVisible}
                 value={password}
@@ -164,13 +152,11 @@ export default function LoginScreen() {
             </View>
 
             <TouchableOpacity>
-              <Text style={styles.forgotPassword}>
-                {t('Forgot Password?', 'پاس ورڈ بھول گئے؟')}
+              <Text style={[styles.forgotPassword, isUrdu && { fontFamily: fonts.urduRegular }]}>
+                {t('Forgot Password?')}
               </Text>
             </TouchableOpacity>
 
-
-            
             {errorMsg ? (
               <View style={styles.errorContainer}>
                 <Feather name="alert-circle" size={16} color="#FF3B30" />
@@ -178,58 +164,27 @@ export default function LoginScreen() {
               </View>
             ) : null}
 
-            
             <TouchableOpacity 
               style={[styles.loginButton, loading && { opacity: 0.7 }]} 
               activeOpacity={0.9}
               onPress={handleLogin}
               disabled={loading}
             >
-              <Text style={styles.loginButtonText}>
-                {loading ? t('Logging in...', 'لاگ ان ہو رہا ہے...') : t('Login', 'لاگ اِن')}
+              <Text style={[styles.loginButtonText, isUrdu && { fontFamily: fonts.urduBold }]}>
+                {loading ? t('Logging in...') : t('Login')}
               </Text>
             </TouchableOpacity>
 
-            
-            {(() => {
-              const loginHelp = tSplit("Don't have an account?", 'اکاؤنٹ نہیں ہے؟');
-              const regLink = tSplit('Register', 'رجسٹر کریں');
-              return (
-                <View style={styles.registerContainer}>
-                  {loginHelp.isBoth ? (
-                    <View style={{ alignItems: 'center' }}>
-                      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                        <Text style={styles.registerText}>{loginHelp.en} </Text>
-                        <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-                          <Text style={styles.registerLink}>{regLink.en}</Text>
-                        </TouchableOpacity>
-                      </View>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }}>
-                        <Text style={[styles.registerText, { fontFamily: fonts.urduRegular, fontSize: 13, lineHeight: 28 }]}>
-                          {loginHelp.ur}{' '}
-                        </Text>
-                        <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-                          <Text style={[styles.registerLink, { fontFamily: fonts.urduBold, fontSize: 13, lineHeight: 28 }]}>
-                            {regLink.ur}
-                          </Text>
-                        </TouchableOpacity>
-                      </View>
-                    </View>
-                  ) : (
-                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
-                      <Text style={[styles.registerText, loginHelp.isUrdu && { fontFamily: fonts.urduRegular, fontSize: 13, lineHeight: 22 }]}>
-                        {loginHelp.display}{' '}
-                      </Text>
-                      <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-                        <Text style={[styles.registerLink, regLink.isUrdu && { fontFamily: fonts.urduBold, fontSize: 13, lineHeight: 22 }]}>
-                          {regLink.display}
-                        </Text>
-                      </TouchableOpacity>
-                    </View>
-                  )}
-                </View>
-              );
-            })()}
+            <View style={styles.registerContainer}>
+              <Text style={[styles.registerText, isUrdu && { fontFamily: fonts.urduRegular }]}>
+                {t("Don't have an account?")}{' '}
+              </Text>
+              <TouchableOpacity onPress={() => navigation.navigate('Register')}>
+                <Text style={[styles.registerLink, isUrdu && { fontFamily: fonts.urduBold }]}>
+                  {t('Register')}
+                </Text>
+              </TouchableOpacity>
+            </View>
 
           </View>
         </ScrollView>
@@ -237,4 +192,3 @@ export default function LoginScreen() {
     </SafeAreaView>
   );
 }
-

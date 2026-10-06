@@ -233,7 +233,7 @@ export default function VetConsultationsScreen() {
             onPress={() => setActiveTab(tab)}
           >
             <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>
-              {tab === 'All' ? t('All', 'سب') : tab === 'Pending' ? t('Pending', 'زیر التواء') : tab === 'Active' ? t('Active', 'فعال') : t('Resolved', 'حل شدہ')}
+              {tab === 'All' ? t('All') : tab === 'Pending' ? t('Pending') : tab === 'Active' ? t('Active') : t('Resolved')}
             </Text>
           </TouchableOpacity>
         ))}

@@ -142,10 +142,10 @@ export default function VetPrescriptionsScreen() {
       <View style={styles.formSection}>
         <View style={styles.sectionTitleRow}>
           <Feather name="user" size={16} color="#888" />
-          <Text style={styles.sectionTitleText}>{t('PATIENT INFO', 'مریض کی معلومات')}</Text>
+          <Text style={styles.sectionTitleText}>{t('PATIENT INFO')}</Text>
         </View>
         
-        <Text style={styles.inputLabel}>{t('Owner Name', 'مالک کا نام')}</Text>
+        <Text style={styles.inputLabel}>{t('Owner Name')}</Text>
         <TextInput
           style={styles.inputField}
           placeholder="e.g. Ahmad Khan"
@@ -153,7 +153,7 @@ export default function VetPrescriptionsScreen() {
           onChangeText={val => setPatientInfo({ ...patientInfo, ownerName: val })}
         />
 
-        <Text style={styles.inputLabel}>{t('Animal', 'جانور')}</Text>
+        <Text style={styles.inputLabel}>{t('Animal')}</Text>
         <TextInput
           style={styles.inputField}
           placeholder="e.g. Cow, 4 years old"
@@ -165,7 +165,7 @@ export default function VetPrescriptionsScreen() {
       <View style={styles.formSection}>
         <View style={styles.sectionTitleRow}>
           <Feather name="file-text" size={16} color="#888" />
-          <Text style={styles.sectionTitleText}>{t('DIAGNOSIS', 'تشخیص')}</Text>
+          <Text style={styles.sectionTitleText}>{t('DIAGNOSIS')}</Text>
         </View>
         
         <Text style={styles.inputLabel}>Diagnosis (English)</Text>
@@ -179,7 +179,7 @@ export default function VetPrescriptionsScreen() {
         <Text style={styles.inputLabel}>Diagnosis (Urdu)</Text>
         <TextInput
           style={styles.inputField}
-          placeholder="مثلاً گانٹھ دار جلد کی بیماری"
+          placeholder={t('Enter Urdu diagnosis (optional)')}
           textAlign="right"
           value={diagnosisUrdu}
           onChangeText={setDiagnosisUrdu}
@@ -190,7 +190,7 @@ export default function VetPrescriptionsScreen() {
         <View style={styles.sectionTitleRow}>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             <Feather name="paperclip" size={16} color="#888" />
-            <Text style={styles.sectionTitleText}>{t('MEDICINES', 'دوائیں')}</Text>
+            <Text style={styles.sectionTitleText}>{t('MEDICINES')}</Text>
           </View>
           <TouchableOpacity onPress={handleAddMedicine}>
             <Text style={styles.addMedicineBtn}>+ Add</Text>
@@ -232,7 +232,7 @@ export default function VetPrescriptionsScreen() {
       </View>
 
       <View style={styles.formSection}>
-        <Text style={styles.sectionTitleText}>{t('NOTES', 'نوٹس')}</Text>
+        <Text style={styles.sectionTitleText}>{t('NOTES')}</Text>
         <TextInput
           style={[styles.inputField, styles.textArea]}
           placeholder="Additional instructions for the owner..."
@@ -244,7 +244,7 @@ export default function VetPrescriptionsScreen() {
       </View>
 
       <TouchableOpacity style={styles.sendBtn} onPress={handleSendPrescription}>
-        <Text style={styles.sendBtnText}>{t('Send Prescription', 'نسخہ بھیجیں')}</Text>
+        <Text style={styles.sendBtnText}>{t('Send Prescription')}</Text>
       </TouchableOpacity>
     </ScrollView>
   );
@@ -271,13 +271,13 @@ export default function VetPrescriptionsScreen() {
             style={[styles.tabBtn, activeTab === 'History' ? styles.tabBtnActive : styles.tabBtnInactive]}
             onPress={() => setActiveTab('History')}
           >
-            <Text style={[styles.tabText, activeTab === 'History' ? styles.tabTextActive : styles.tabTextInactive]}>{t('History', 'تاریخ')}</Text>
+            <Text style={[styles.tabText, activeTab === 'History' ? styles.tabTextActive : styles.tabTextInactive]}>{t('History')}</Text>
           </TouchableOpacity>
           <TouchableOpacity 
             style={[styles.tabBtn, activeTab === 'Write New' ? styles.tabBtnActive : styles.tabBtnInactive]}
             onPress={() => setActiveTab('Write New')}
           >
-            <Text style={[styles.tabText, activeTab === 'Write New' ? styles.tabTextActive : styles.tabTextInactive]}>{t('Write New', 'نیا نسخہ')}</Text>
+            <Text style={[styles.tabText, activeTab === 'Write New' ? styles.tabTextActive : styles.tabTextInactive]}>{t('Write New')}</Text>
           </TouchableOpacity>
         </View>
       </View>

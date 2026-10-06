@@ -159,7 +159,7 @@ export default function MarketplaceScreen() {
                 styles.stockBadgeText, 
                 { color: isOutOfStock ? '#ef4444' : '#10b981' }
               ]}>
-                {isOutOfStock ? t('Out of Stock', 'ختم') : t('In Stock', 'دستیاب')}
+                {isOutOfStock ? t('Out of Stock') : t('In Stock')}
               </Text>
             </View>
           </View>
@@ -171,7 +171,7 @@ export default function MarketplaceScreen() {
             disabled={isOutOfStock}
             activeOpacity={0.8}
           >
-            <Text style={styles.addBtnText}>{t('Add to Cart', 'کارٹ میں شامل کریں')}</Text>
+            <Text style={styles.addBtnText}>{t('Add to Cart')}</Text>
           </TouchableOpacity>
 
         </View>
@@ -213,7 +213,7 @@ export default function MarketplaceScreen() {
           <Feather name="search" size={18} color="#888" style={styles.searchIcon} />
           <TextInput
             style={styles.searchInput}
-            placeholder={t('Search medicines...', 'دوائیں تلاش کریں...')}
+            placeholder={t('Search medicines...')}
             placeholderTextColor="#888"
             value={searchQuery}
             onChangeText={setSearchQuery}
@@ -256,7 +256,7 @@ export default function MarketplaceScreen() {
       {loading && !refreshing ? (
         <View style={styles.loaderContainer}>
           <ActivityIndicator size="large" color="#58D66D" />
-          <Text style={styles.loadingText}>{t('Loading medicines...', 'دوائیں لوڈ کی جا رہی ہیں...')}</Text>
+          <Text style={styles.loadingText}>{t('Loading medicines...')}</Text>
         </View>
       ) : filteredMedicines.length > 0 ? (
         <FlatList
@@ -273,7 +273,7 @@ export default function MarketplaceScreen() {
       ) : (
         <View style={styles.emptyContainer}>
           <MaterialCommunityIcons name="pill-off" size={64} color="#CCC" />
-          <Text style={styles.emptyText}>{t('No medicines found', 'کوئی دوا نہیں ملی')}</Text>
+          <Text style={styles.emptyText}>{t('No medicines found')}</Text>
         </View>
       )}
 

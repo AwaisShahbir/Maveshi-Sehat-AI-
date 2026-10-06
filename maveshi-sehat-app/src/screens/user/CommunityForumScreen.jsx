@@ -90,7 +90,7 @@ export default function CommunityForumScreen() {
   const handleLikePost = async (postId) => {
     const alreadyLiked = likedPosts.has(postId);
     if (alreadyLiked) {
-      Alert.alert(t('Already Liked', 'پہلے ہی پسند کیا گیا'), t('You have already liked this post.', 'آپ پہلے ہی اس پوسٹ کو پسند کر چکے ہیں۔'));
+      Alert.alert(t('Already Liked'), t('You have already liked this post.'));
       return;
     }
 
@@ -107,25 +107,25 @@ export default function CommunityForumScreen() {
           )
         );
       } else {
-        Alert.alert(t('Error', 'خرابی'), t('Could not like this post. Try again.', 'اس پوسٹ کو پسند نہیں کیا جا سکا۔ دوبارہ کوشش کریں۔'));
+        Alert.alert(t('Error'), t('Could not like this post. Try again.'));
       }
     } catch (error) {
       console.error('Error liking post:', error);
-      Alert.alert(t('Network Error', 'نیٹ ورک کی خرابی'), t('Could not like post. Check your connection.', 'پوسٹ کو پسند نہیں کیا جا سکا۔ اپنا کنکشن چیک کریں۔'));
+      Alert.alert(t('Network Error'), t('Could not like post. Check your connection.'));
     }
   };
 
   const handleCreatePost = async () => {
     if (!userName) {
-      Alert.alert(t('Not Logged In', 'لاگ ان نہیں ہے'), t('Please log in to post a discussion.', 'براہ کرم گفتگو پوسٹ کرنے کے لیے لاگ ان کریں۔'));
+      Alert.alert(t('Not Logged In'), t('Please log in to post a discussion.'));
       return;
     }
     if (!postTitle.trim()) {
-      Alert.alert(t('Required', 'ضروری ہے'), t('Please enter a title for your post.', 'براہ کرم اپنی پوسٹ کا عنوان درج کریں۔'));
+      Alert.alert(t('Required'), t('Please enter a title for your post.'));
       return;
     }
     if (!postDescription.trim()) {
-      Alert.alert(t('Required', 'ضروری ہے'), t('Please enter details for your post.', 'براہ کرم اپنی پوسٹ کی تفصیلات درج کریں۔'));
+      Alert.alert(t('Required'), t('Please enter details for your post.'));
       return;
     }
 
@@ -153,13 +153,13 @@ export default function CommunityForumScreen() {
         setPostCategory('All Posts');
         setCreateModalVisible(false);
         await fetchPosts();
-        Alert.alert(t('Published!', 'شائع ہو گیا!'), t('Your post has been shared with the community.', 'آپ کی پوسٹ کمیونٹی کے ساتھ شیئر کر دی گئی ہے۔'));
+        Alert.alert(t('Published!'), t('Your post has been shared with the community.'));
       } else {
-        Alert.alert(t('Error', 'خرابی'), data.error || t('Failed to publish post. Please try again.', 'پوسٹ شائع کرنے میں ناکامی۔ دوبارہ کوشش کریں۔'));
+        Alert.alert(t('Error'), data.error || t('Failed to publish post. Please try again.'));
       }
     } catch (error) {
       console.error('Error submitting post:', error);
-      Alert.alert(t('Network Error', 'نیٹ ورک کی خرابی'), t('Could not publish post. Please check your connection.', 'پوسٹ شائع نہیں کی جا سکی۔ اپنا کنکشن چیک کریں۔'));
+      Alert.alert(t('Network Error'), t('Could not publish post. Please check your connection.'));
     } finally {
       setSubmitting(false);
     }
@@ -167,13 +167,10 @@ export default function CommunityForumScreen() {
 
   const handleSharePost = async (post) => {
     try {
-      const shareMsg = t(
-        `Check out this discussion on Maveshi Sehat:\n\n"${post.title}"\n\nby ${post.author_name}`,
-        `مویشی صحت پر یہ گفتگو دیکھیں:\n\n"${post.title}"\n\nبذریعہ ${post.author_name}`
-      );
+      const shareMsg = t(`Check out this discussion on Maveshi Sehat:\n\n"${post.title}"\n\nby ${post.author_name}`);
       await Share.share({
         message: shareMsg,
-        title: t('Share Discussion', 'گفتگو شیئر کریں'),
+        title: t('Share Discussion'),
       });
     } catch (error) {
       console.error('Share error:', error);
@@ -192,12 +189,12 @@ export default function CommunityForumScreen() {
     if (!dateStr) return '';
     const seconds = Math.floor((new Date() - new Date(dateStr)) / 1000);
     const interval = Math.floor(seconds / 86400);
-    if (interval >= 1) return interval === 1 ? t('1 day ago', '1 دن پہلے') : `${interval} ${t('days ago', 'دن پہلے')}`;
+    if (interval >= 1) return interval === 1 ? t('1 day ago') : `${interval} ${t('days ago')}`;
     const hours = Math.floor(seconds / 3600);
-    if (hours >= 1) return hours === 1 ? t('1 hour ago', '1 گھنٹہ پہلے') : `${hours} ${t('hours ago', 'گھنٹے پہلے')}`;
+    if (hours >= 1) return hours === 1 ? t('1 hour ago') : `${hours} ${t('hours ago')}`;
     const mins = Math.floor(seconds / 60);
-    if (mins >= 1) return mins === 1 ? t('1 minute ago', '1 منٹ پہلے') : `${mins} ${t('minutes ago', 'منٹ پہلے')}`;
-    return t('just now', 'ابھی ابھی');
+    if (mins >= 1) return mins === 1 ? t('1 minute ago') : `${mins} ${t('minutes ago')}`;
+    return t('just now');
   };
 
   const getAvatarLetter = (name) => {
@@ -237,7 +234,7 @@ export default function CommunityForumScreen() {
               )}
               {item.author_role === 'vet' && (
                 <View style={styles.vetBadgeSmall}>
-                  <Text style={styles.vetBadgeSmallText}>{t('Vet', 'ڈاکٹر')}</Text>
+                  <Text style={styles.vetBadgeSmallText}>{t('Vet')}</Text>
                 </View>
               )}
             </View>
@@ -297,13 +294,13 @@ export default function CommunityForumScreen() {
       <MaterialCommunityIcons name="forum-outline" size={64} color="#CCC" />
       <Text style={styles.emptyText}>
         {searchQuery 
-          ? t('No matching discussions', 'کوئی نتیجہ نہیں ملا') 
-          : t('No discussions yet', 'ابھی کوئی گفتگو نہیں ہے')}
+          ? t('No matching discussions') 
+          : t('No discussions yet')}
       </Text>
       {!searchQuery && (
         <TouchableOpacity style={styles.retryButton} onPress={() => setCreateModalVisible(true)}>
           <Text style={styles.retryButtonText}>
-            {t('Start a Discussion', 'گفتگو شروع کریں')}
+            {t('Start a Discussion')}
           </Text>
         </TouchableOpacity>
       )}
@@ -342,7 +339,7 @@ export default function CommunityForumScreen() {
             onPress={() => setActiveTab('All Posts')}
           >
             <Text style={[styles.tabText, activeTab === 'All Posts' && styles.activeTabText]}>
-              {t('All Posts', 'تمام پوسٹس')}
+              {t('All Posts')}
             </Text>
           </TouchableOpacity>
 
@@ -351,7 +348,7 @@ export default function CommunityForumScreen() {
             onPress={() => setActiveTab('Trending')}
           >
             <Text style={[styles.tabText, activeTab === 'Trending' && styles.activeTabText]}>
-              {t('Trending', 'مقبول')}
+              {t('Trending')}
             </Text>
           </TouchableOpacity>
         </View>
@@ -361,7 +358,7 @@ export default function CommunityForumScreen() {
         <Feather name="search" size={18} color="#888" style={{ marginRight: 8 }} />
         <TextInput
           style={styles.searchInput}
-          placeholder={t('Search discussions...', 'تلاش کریں...')}
+          placeholder={t('Search discussions...')}
           placeholderTextColor="#888"
           value={searchQuery}
           onChangeText={setSearchQuery}
@@ -377,7 +374,7 @@ export default function CommunityForumScreen() {
       {loading && !refreshing ? (
         <View style={styles.loaderContainer}>
           <ActivityIndicator size="large" color="#58D66D" />
-          <Text style={styles.loadingText}>{t('Loading discussions...', 'گفتگو لوڈ ہو رہی ہے...')}</Text>
+          <Text style={styles.loadingText}>{t('Loading discussions...')}</Text>
         </View>
       ) : (
         <FlatList
@@ -401,32 +398,32 @@ export default function CommunityForumScreen() {
           onPress={() => navigation.navigate('Dashboard', { userName, userId })}
         >
           <Feather name="home" size={24} color="#A3E6B2" />
-          <Text style={[styles.navText, { color: '#A3E6B2' }]}>{t('Home', 'ہوم')}</Text>
+          <Text style={[styles.navText, { color: '#A3E6B2' }]}>{t('Home')}</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.navItem}
           onPress={() => navigation.navigate('AiScan', { userName, userId })}
         >
           <MaterialCommunityIcons name="line-scan" size={24} color="#A3E6B2" />
-          <Text style={[styles.navText, { color: '#A3E6B2' }]}>{t('AI Scan', 'اسکین')}</Text>
+          <Text style={[styles.navText, { color: '#A3E6B2' }]}>{t('AI Scan')}</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.navItem}
           onPress={() => navigation.navigate('HealthRecords', { userName, userId })}
         >
           <Feather name="file-text" size={24} color="#A3E6B2" />
-          <Text style={[styles.navText, { color: '#A3E6B2' }]}>{t('Records', 'ریکارڈز')}</Text>
+          <Text style={[styles.navText, { color: '#A3E6B2' }]}>{t('Records')}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.navItem}>
           <Feather name="message-square" size={24} color="#FFE135" />
-          <Text style={[styles.navText, { color: '#FFE135' }]}>{t('Forum', 'فورم')}</Text>
+          <Text style={[styles.navText, { color: '#FFE135' }]}>{t('Forum')}</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.navItem}
           onPress={() => navigation.navigate('Profile', { userId })}
         >
           <Feather name="user" size={24} color="#A3E6B2" />
-          <Text style={[styles.navText, { color: '#A3E6B2' }]}>{t('Profile', 'پروفائل')}</Text>
+          <Text style={[styles.navText, { color: '#A3E6B2' }]}>{t('Profile')}</Text>
         </TouchableOpacity>
       </View>
 
@@ -440,7 +437,7 @@ export default function CommunityForumScreen() {
           <View style={styles.modalContent}>
             <View style={styles.modalHandle} />
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>{t('New Discussion', 'نئی گفتگو')}</Text>
+              <Text style={styles.modalTitle}>{t('New Discussion')}</Text>
               <TouchableOpacity
                 onPress={() => {
                   setCreateModalVisible(false);
@@ -455,10 +452,10 @@ export default function CommunityForumScreen() {
             </View>
 
             <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-              <Text style={styles.formLabel}>{t('Title *', 'عنوان *')}</Text>
+              <Text style={styles.formLabel}>{t('Title *')}</Text>
               <TextInput
                 style={styles.formInput}
-                placeholder={t('Brief title for your discussion', 'گفتگو کا مختصر عنوان')}
+                placeholder={t('Brief title for your discussion')}
                 placeholderTextColor="#999"
                 value={postTitle}
                 onChangeText={setPostTitle}
@@ -466,7 +463,7 @@ export default function CommunityForumScreen() {
                 returnKeyType="next"
               />
 
-              <Text style={styles.formLabel}>{t('Category', 'زمرہ')}</Text>
+              <Text style={styles.formLabel}>{t('Category')}</Text>
               <View style={styles.categoryToggleRow}>
                 <TouchableOpacity
                   style={[
@@ -487,7 +484,7 @@ export default function CommunityForumScreen() {
                       postCategory === 'All Posts' && styles.categoryPillTextActive,
                     ]}
                   >
-                    {t('General', 'عام')}
+                    {t('General')}
                   </Text>
                 </TouchableOpacity>
 
@@ -510,15 +507,15 @@ export default function CommunityForumScreen() {
                       postCategory === 'Trending' && styles.categoryPillTextActive,
                     ]}
                   >
-                    {t('Trending', 'مقبول')}
+                    {t('Trending')}
                   </Text>
                 </TouchableOpacity>
               </View>
 
-              <Text style={styles.formLabel}>{t('Details *', 'تفصیل *')}</Text>
+              <Text style={styles.formLabel}>{t('Details *')}</Text>
               <TextInput
                 style={[styles.formInput, styles.textArea]}
-                placeholder={t('Describe your issue or share advice (English/Urdu)', 'اپنے مسئلے کی وضاحت کریں یا مشورہ دیں (انگریزی/اردو)')}
+                placeholder={t('Describe your issue or share advice (English/Urdu)')}
                 placeholderTextColor="#999"
                 value={postDescription}
                 onChangeText={setPostDescription}
@@ -532,7 +529,7 @@ export default function CommunityForumScreen() {
                 <View style={styles.warningBox}>
                   <Feather name="alert-circle" size={14} color="#FF4D4D" />
                   <Text style={styles.warningText}>
-                    {t('You must be logged in to post a discussion.', 'گفتگو پوسٹ کرنے کے لیے آپ کا لاگ ان ہونا ضروری ہے۔')}
+                    {t('You must be logged in to post a discussion.')}
                   </Text>
                 </View>
               )}
@@ -550,7 +547,7 @@ export default function CommunityForumScreen() {
                 ) : (
                   <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                     <Feather name="send" size={16} color="#FFF" style={{ marginRight: 8 }} />
-                    <Text style={styles.submitButtonText}>{t('Publish', 'شائع کریں')}</Text>
+                    <Text style={styles.submitButtonText}>{t('Publish')}</Text>
                   </View>
                 )}
               </TouchableOpacity>

@@ -4,10 +4,9 @@ const BASE_URL = Platform.OS === 'android' ? 'http://10.0.2.2:5000' : 'http://lo
 
 let profile = {
   userName: 'Muhammad Ahmed',
-  userNameUrdu: 'محمد احمد',
   phone: '+92 300 1234567',
   location: 'Okara, Punjab',
-  language: 'Both',
+  language: 'English',
   hasChosenLanguage: false,
   enforceAdminLanguage: true,
   notificationsEnabled: true,
@@ -48,14 +47,17 @@ export const syncSystemLanguage = async () => {
       if (data) {
         const isEnforced = data.enforceAdminLanguage !== false;
         if (isEnforced) {
-          const targetLang = data.language || 'Both';
+          const targetLang = (data.language === 'Urdu') ? 'Urdu' : 'English';
           if (profile.language !== targetLang || profile.enforceAdminLanguage !== true) {
             updateProfile({ language: targetLang, enforceAdminLanguage: true });
           }
         } else {
           const updates = { enforceAdminLanguage: false };
-          if (!profile.hasChosenLanguage && data.language && profile.language !== data.language) {
-            updates.language = data.language;
+          if (!profile.hasChosenLanguage && data.language) {
+            const chosenLang = (data.language === 'Urdu') ? 'Urdu' : 'English';
+            if (profile.language !== chosenLang) {
+              updates.language = chosenLang;
+            }
           }
           if (profile.enforceAdminLanguage !== false || updates.language) {
             updateProfile(updates);

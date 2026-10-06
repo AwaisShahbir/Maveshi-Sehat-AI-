@@ -20,11 +20,11 @@ export default function WelcomeHeader() {
 
       {/* App Name */}
       <Text style={styles.mainTitle}>Maveshi Sehat AI</Text>
-      <Text style={styles.urduTitle}>مویشی صحت اے آئی</Text>
+      
 
       {/* Subtitle */}
       <Text style={styles.englishSub}>AI-Powered Livestock Healthcare</Text>
-      <Text style={styles.urduSub}>مویشیوں کی صحت کی دیکھ بھال</Text>
+      
 
     </View>
   );

@@ -81,8 +81,8 @@ export default function VaccinationScreen() {
       <View style={styles.headerContainer}>
         <View style={styles.headerTop}>
           <View>
-            <Text style={styles.headerTitle}>{t('Vaccination', 'ویکسینیشن')}</Text>
-            <Text style={styles.headerSubtitle}>{t('Vaccination Schedule', 'ویکسینیشن شیڈول')}</Text>
+            <Text style={styles.headerTitle}>{t('Vaccination')}</Text>
+            <Text style={styles.headerSubtitle}>{t('Vaccination Schedule')}</Text>
           </View>
           <TouchableOpacity style={styles.addButton} activeOpacity={0.8}>
             <Feather name="plus" size={24} color="#FFF" />
@@ -95,7 +95,7 @@ export default function VaccinationScreen() {
             onPress={() => setActiveTab('Upcoming')}
           >
             <Text style={[styles.tabText, activeTab === 'Upcoming' && styles.activeTabText]}>
-              {t(t('Upcoming', 'آنے والے'), 'آنے والے')}
+              {t('Upcoming')}
             </Text>
           </TouchableOpacity>
 
@@ -104,7 +104,7 @@ export default function VaccinationScreen() {
             onPress={() => setActiveTab('Completed')}
           >
             <Text style={[styles.tabText, activeTab === 'Completed' && styles.activeTabText]}>
-              {t(t('Completed', 'مکمل'), 'مکمل')}
+              {t('Completed')}
             </Text>
           </TouchableOpacity>
         </View>
@@ -126,30 +126,30 @@ export default function VaccinationScreen() {
       ) : (
         <View style={styles.emptyContainer}>
           <MaterialCommunityIcons name="needle" size={64} color="#CCC" />
-          <Text style={styles.emptyText}>{t('No vaccinations found', 'کوئی ویکسینیشن نہیں ملی')}</Text>
+          <Text style={styles.emptyText}>{t('No vaccinations found')}</Text>
         </View>
       )}
 
       <View style={[styles.bottomNav, { paddingBottom: Math.max(insets.bottom, 12) }]}>
         <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Dashboard')}>
           <Feather name="home" size={24} color="#FFF" />
-          <Text style={styles.navText}>{t('Home', 'ہوم')}</Text>
+          <Text style={styles.navText}>{t('Home')}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('AiScan', { userName, userId })}>
           <MaterialCommunityIcons name="line-scan" size={24} color="#A3E6B2" />
-          <Text style={[styles.navText, { color: '#A3E6B2' }]}>{t('AI Scan', 'اسکین')}</Text>
+          <Text style={[styles.navText, { color: '#A3E6B2' }]}>{t('AI Scan')}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('HealthRecords', { userName, userId })}>
           <Feather name="file-text" size={24} color="#A3E6B2" />
-          <Text style={[styles.navText, { color: '#A3E6B2' }]}>{t('Records', 'ریکارڈز')}</Text>
+          <Text style={[styles.navText, { color: '#A3E6B2' }]}>{t('Records')}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('CommunityForum', { userName, userId })}>
           <Feather name="message-square" size={24} color="#A3E6B2" />
-          <Text style={[styles.navText, { color: '#A3E6B2' }]}>{t('Forum', 'فورم')}</Text>
+          <Text style={[styles.navText, { color: '#A3E6B2' }]}>{t('Forum')}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Profile', { userId })}>
           <Feather name="user" size={24} color="#A3E6B2" />
-          <Text style={[styles.navText, { color: '#A3E6B2' }]}>{t('Profile', 'پروفائل')}</Text>
+          <Text style={[styles.navText, { color: '#A3E6B2' }]}>{t('Profile')}</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>

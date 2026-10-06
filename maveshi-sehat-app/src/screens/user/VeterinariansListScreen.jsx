@@ -107,7 +107,7 @@ export default function VeterinariansListScreen() {
       setAppointmentDate('');
       setAppointmentTime('');
       
-      Alert.alert(t('Request Sent', 'درخواست بھیج دی گئی'),
+      Alert.alert(t('Request Sent'),
         'Your request has been sent to the vet. You can track its status in your Consultations dashboard.',
         [{ text: 'OK', onPress: () => navigation.navigate('Dashboard') }]
       );
@@ -226,7 +226,7 @@ export default function VeterinariansListScreen() {
       {loading && !refreshing ? (
         <View style={styles.loaderContainer}>
           <ActivityIndicator size="large" color="#58D66D" />
-          <Text style={styles.loadingText}>{t('Fetching vets in your area...', 'آپ کے علاقے میں ڈاکٹر تلاش کیے جا رہے ہیں...')}</Text>
+          <Text style={styles.loadingText}>{t('Fetching vets in your area...')}</Text>
         </View>
       ) : filteredVets.length > 0 ? (
         <FlatList
@@ -241,9 +241,9 @@ export default function VeterinariansListScreen() {
       ) : (
         <View style={styles.emptyContainer}>
           <MaterialCommunityIcons name="doctor" size={64} color="#CCC" />
-          <Text style={styles.emptyText}>{t('No veterinarians found in your area', 'آپ کے علاقے میں کوئی ڈاکٹر نہیں ملا')}</Text>
+          <Text style={styles.emptyText}>{t('No veterinarians found in your area')}</Text>
           <TouchableOpacity style={styles.retryButton} onPress={handleRefresh}>
-            <Text style={styles.retryButtonText}>{t('Refresh', 'تازہ کریں')}</Text>
+            <Text style={styles.retryButtonText}>{t('Refresh')}</Text>
           </TouchableOpacity>
         </View>
       )}

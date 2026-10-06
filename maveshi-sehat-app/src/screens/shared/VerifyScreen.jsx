@@ -1,10 +1,10 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, SafeAreaView, StatusBar, KeyboardAvoidingView, Platform, ScrollView, Alert } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
-import { t } from '../../utils/translate';
+import { t, useTranslation, subscribeTranslation } from '../../utils/translate';
+import fonts from '../../styles/fonts';
 import styles from '../../styles/VerifyScreenStyles';
-
 
 export default function VerifyScreen() {
   const navigation = useNavigation();
@@ -13,6 +13,13 @@ export default function VerifyScreen() {
   const [code, setCode] = useState(['', '', '', '']);
   const [loading, setLoading] = useState(false);
   const inputRefs = [useRef(null), useRef(null), useRef(null), useRef(null)];
+
+  const { isUrdu } = useTranslation();
+  const [, setTick] = useState(0);
+
+  useEffect(() => {
+    return subscribeTranslation(() => setTick(t => t + 1));
+  }, []);
 
   const handleChange = (text, index) => {
     const newCode = [...code];
@@ -33,12 +40,13 @@ export default function VerifyScreen() {
   const handleVerify = async () => {
     const otpValue = code.join('');
     if (otpValue.length < 4) {
-      return Platform.OS === 'web' ? alert('Please enter the 4-digit code.') : Alert.alert('Error', 'Please enter the 4-digit code.');
+      return Alert.alert(t('Error'), t('Please enter the 4-digit code.'));
     }
 
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:5000/verify-otp', {
+      const baseUrl = Platform.OS === 'android' ? 'http://10.0.2.2:5000' : 'http://localhost:5000';
+      const response = await fetch(`${baseUrl}/verify-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, otp: otpValue })
@@ -47,11 +55,7 @@ export default function VerifyScreen() {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || 'Verification failed');
 
-      if (Platform.OS === 'web') {
-        alert('Account Verified Successfully! Welcome to Maveshi Sehat.');
-      } else {
-        Alert.alert('Success', 'Account Verified Successfully! Welcome to Maveshi Sehat.');
-      }
+      Alert.alert(t('Success'), t('Account Verified Successfully! Welcome to Maveshi Sehat.'));
       
       if (role === 'vet') {
         navigation.navigate('VetDashboard', { userName });
@@ -59,11 +63,7 @@ export default function VerifyScreen() {
         navigation.navigate('Dashboard', { userName });
       }
     } catch (error) {
-      if (Platform.OS === 'web') {
-        alert('Verification Error: ' + error.message);
-      } else {
-        Alert.alert('Verification Error', error.message);
-      }
+      Alert.alert(t('Error'), error.message);
     } finally {
       setLoading(false);
     }
@@ -81,19 +81,23 @@ export default function VerifyScreen() {
           <View style={styles.topSection}>
             <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
               <Feather name="chevron-left" size={24} color="#FFFFFF" />
-              <Text style={styles.backText}>Back</Text>
+              <Text style={[styles.backText, isUrdu && { fontFamily: fonts.urduBold }]}>{t('Back')}</Text>
             </TouchableOpacity>
             
             <View style={styles.iconContainer}>
               <Feather name="shield" size={40} color="#FFFFFF" />
             </View>
             
-            <Text style={styles.mainTitle}>Verify Phone</Text>
+            <Text style={[styles.mainTitle, isUrdu && { fontFamily: fonts.urduBold, fontSize: 28, lineHeight: 46 }]}>
+              {t('Verification')}
+            </Text>
           </View>
 
           
           <View style={styles.cardContainer}>
-            <Text style={styles.instructionText}>Enter 4-digit code sent to</Text>
+            <Text style={[styles.instructionText, isUrdu && { fontFamily: fonts.urduRegular }]}>
+              {t('Enter OTP')}
+            </Text>
             <Text style={styles.phoneNumber}>{email || '+92 300 1234567'}</Text>
 
             
@@ -113,12 +117,10 @@ export default function VerifyScreen() {
             </View>
 
             
-            <Text style={styles.timerText}>
-              Resend code in <Text style={styles.timerHighlight}>60s</Text>
-            </Text>
-            
             <TouchableOpacity>
-              <Text style={styles.resendLink}>{t('Resend OTP', 'دوبارہ بھیجیں')}</Text>
+              <Text style={[styles.resendLink, isUrdu && { fontFamily: fonts.urduBold }]}>
+                {t('Resend Code')}
+              </Text>
             </TouchableOpacity>
 
             
@@ -128,6 +130,9 @@ export default function VerifyScreen() {
               onPress={handleVerify}
               disabled={loading}
             >
+              <Text style={[styles.verifyBtnText || { color: '#FFF', fontSize: 16, fontWeight: 'bold' }, isUrdu && { fontFamily: fonts.urduBold }]}>
+                {loading ? t('Loading...') : t('Verify Code')}
+              </Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
@@ -135,4 +140,3 @@ export default function VerifyScreen() {
     </SafeAreaView>
   );
 }
-

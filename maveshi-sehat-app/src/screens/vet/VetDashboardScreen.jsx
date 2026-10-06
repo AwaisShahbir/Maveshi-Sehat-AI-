@@ -128,7 +128,7 @@ export default function VetDashboardScreen() {
               style={styles.reviewBtn}
               onPress={() => navigation.navigate('VetConsultations', { userName, userId })}
             >
-              <Text style={styles.reviewBtnText}>{t('Review Case', 'کیس دیکھیں')}</Text>
+              <Text style={styles.reviewBtnText}>{t('Review Case')}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -192,33 +192,33 @@ export default function VetDashboardScreen() {
               <MaterialCommunityIcons name="clipboard-text-outline" size={24} color="#58D66D" />
             </View>
             <Text style={styles.statValue}>{loading ? '-' : stats.cases}</Text>
-            <Text style={styles.statLabel}>{t('Cases', 'کیسز')}</Text>
+            <Text style={styles.statLabel}>{t('Cases')}</Text>
           </View>
           <View style={styles.statCard}>
             <View style={styles.statIconRow}>
               <Feather name="clock" size={24} color="#F5B041" />
             </View>
             <Text style={[styles.statValue, { color: '#F5B041' }]}>{loading ? '-' : stats.pending}</Text>
-            <Text style={styles.statLabel}>{t('Pending', 'زیر التواء')}</Text>
+            <Text style={styles.statLabel}>{t('Pending')}</Text>
           </View>
           <View style={styles.statCard}>
             <View style={styles.statIconRow}>
               <Feather name="check-circle" size={24} color="#58D66D" />
             </View>
             <Text style={styles.statValue}>{loading ? '-' : stats.resolved}</Text>
-            <Text style={styles.statLabel}>{t('Resolved', 'حل شدہ')}</Text>
+            <Text style={styles.statLabel}>{t('Resolved')}</Text>
           </View>
           <View style={styles.statCard}>
             <View style={styles.statIconRow}>
               <Feather name="star" size={24} color="#F5B041" />
             </View>
             <Text style={[styles.statValue, { color: '#F5B041' }]}>{stats.rating}</Text>
-            <Text style={styles.statLabel}>{t('Rating', 'درجہ بندی')}</Text>
+            <Text style={styles.statLabel}>{t('Rating')}</Text>
           </View>
         </View>
 
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>{t('New Cases', 'نئے کیسز')}</Text>
+          <Text style={styles.sectionTitle}>{t('New Cases')}</Text>
           <TouchableOpacity onPress={() => navigation.navigate('VetCases')}>
             <Text style={styles.viewAllBtn}>View All →</Text>
           </TouchableOpacity>
@@ -237,7 +237,7 @@ export default function VetDashboardScreen() {
         </View>
 
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>{t('Quick Actions', 'فوری اعمال')}</Text>
+          <Text style={styles.sectionTitle}>{t('Quick Actions')}</Text>
         </View>
 
         <View style={styles.quickActionsGrid}>

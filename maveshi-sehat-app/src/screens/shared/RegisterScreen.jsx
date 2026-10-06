@@ -1,14 +1,21 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, SafeAreaView, StatusBar, KeyboardAvoidingView, Platform, ScrollView, Alert, Modal, FlatList } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
-import { t, tSplit } from '../../utils/translate';
+import { t, useTranslation, subscribeTranslation } from '../../utils/translate';
 import fonts from '../../styles/fonts';
 import styles from '../../styles/RegisterScreenStyles';
 
 
 export default function RegisterScreen() {
   const navigation = useNavigation();
+  const { isUrdu } = useTranslation();
+  const [, setTick] = useState(0);
+
+  useEffect(() => {
+    return subscribeTranslation(() => setTick(t => t + 1));
+  }, []);
+
   const [role, setRole] = useState('farmer'); 
   const [fullName, setFullName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -187,21 +194,23 @@ export default function RegisterScreen() {
               hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
             >
               <Feather name="chevron-left" size={24} color="#FFFFFF" />
-              <Text style={styles.backText}>{t('Back', 'واپس')}</Text>
+              <Text style={[styles.backText, isUrdu && { fontFamily: fonts.urduBold }]}>{t('Back')}</Text>
             </TouchableOpacity>
-            <Text style={styles.mainTitle}>{t('Create Account', 'اکاؤنٹ بنائیں')}</Text>
+            <Text style={[styles.mainTitle, isUrdu && { fontFamily: fonts.urduBold, fontSize: 28, lineHeight: 46 }]}>
+              {t('Create Account')}
+            </Text>
           </View>
 
           
           <View style={styles.cardContainer}>
             
             
-            <Text style={styles.label}>{t('Full Name', 'نام')}</Text>
+            <Text style={[styles.label, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Full Name')}</Text>
             <View style={styles.inputContainer}>
               <Feather name="user" size={20} color="#4CB85C" style={styles.inputIcon} />
               <TextInput 
                 style={styles.input}
-                placeholder={t('Enter Full Name', 'پورا نام درج کریں')}
+                placeholder={t('Enter Full Name')}
                 placeholderTextColor="#999"
                 value={fullName}
                 onChangeText={setFullName}
@@ -209,12 +218,12 @@ export default function RegisterScreen() {
             </View>
 
             
-            <Text style={styles.label}>{t('Email Address', 'ای میل')}</Text>
+            <Text style={[styles.label, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Email Address')}</Text>
             <View style={styles.inputContainer}>
               <Feather name="mail" size={20} color="#4CB85C" style={styles.inputIcon} />
               <TextInput 
                 style={styles.input}
-                placeholder={t('Email', 'ای میل درج کریں')}
+                placeholder={t('Email')}
                 placeholderTextColor="#999"
                 keyboardType="email-address"
                 autoCapitalize="none"
@@ -224,7 +233,7 @@ export default function RegisterScreen() {
             </View>
 
             
-            <Text style={styles.label}>{t('Phone Number', 'فون نمبر')}</Text>
+            <Text style={[styles.label, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Phone Number')}</Text>
             <View style={styles.inputContainer}>
               <Feather name="phone" size={20} color="#4CB85C" style={styles.inputIcon} />
               <TextInput 
@@ -238,25 +247,25 @@ export default function RegisterScreen() {
             </View>
 
             
-            <Text style={styles.label}>{t('District', 'ضلع')}</Text>
+            <Text style={[styles.label, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('District')}</Text>
             <TouchableOpacity style={styles.inputContainer} activeOpacity={0.8} onPress={() => setDistrictModalVisible(true)}>
               <Feather name="map-pin" size={20} color="#4CB85C" style={styles.inputIcon} />
               <Text style={[styles.input, { height: 'auto', paddingTop: 0, color: district ? '#333' : '#999' }]}>
-                {district || t('Select District', 'ضلع منتخب کریں')}
+                {district || t('Select District')}
               </Text>
               <Feather name="chevron-down" size={20} color="#999" />
             </TouchableOpacity>
 
             
-            <Text style={styles.label}>{t('Role', 'کردار')}</Text>
+            <Text style={[styles.label, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Role')}</Text>
             <View style={styles.roleContainer}>
               <TouchableOpacity 
                 style={[styles.roleButton, role === 'farmer' && styles.roleButtonActive]}
                 onPress={() => setRole('farmer')}
                 activeOpacity={0.8}
               >
-                <Text style={[styles.roleText, role === 'farmer' && styles.roleTextActive]}>
-                  {t('Farmer', 'کسان')}
+                <Text style={[styles.roleText, role === 'farmer' && styles.roleTextActive, isUrdu && { fontFamily: fonts.urduRegular }]}>
+                  {t('Farmer')}
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity 
@@ -264,8 +273,8 @@ export default function RegisterScreen() {
                 onPress={() => setRole('vet')}
                 activeOpacity={0.8}
               >
-                <Text style={[styles.roleText, role === 'vet' && styles.roleTextActive]}>
-                  {t('Vet', 'ڈاکٹر')}
+                <Text style={[styles.roleText, role === 'vet' && styles.roleTextActive, isUrdu && { fontFamily: fonts.urduRegular }]}>
+                  {t('Vet')}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -274,7 +283,7 @@ export default function RegisterScreen() {
             {role === 'vet' && (
               <>
                 
-                <Text style={styles.label}>{t('License Number (PVMC)', 'لائسنس نمبر')}</Text>
+                <Text style={[styles.label, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('PVMC License Number')}</Text>
                 <View style={styles.inputContainer}>
                   <Feather name="file-text" size={20} color="#4CB85C" style={styles.inputIcon} />
                   <TextInput 
@@ -287,7 +296,7 @@ export default function RegisterScreen() {
                 </View>
 
                 
-                <Text style={styles.label}>{t('Specialization', 'مہارت')}</Text>
+                <Text style={[styles.label, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Specialization')}</Text>
                 <View style={styles.inputContainer}>
                   <Feather name="award" size={20} color="#4CB85C" style={styles.inputIcon} />
                   <TextInput 
@@ -327,7 +336,7 @@ export default function RegisterScreen() {
                 >
                   <Feather name={uploading ? "loader" : "upload-cloud"} size={22} color="#4CB85C" style={{ marginRight: 8 }} />
                   <Text style={{ color: '#4CB85C', fontWeight: 'bold', fontSize: 14 }}>
-                    {uploading ? t('Uploading...', 'اپ لوڈ ہو رہا ہے...') : (licenseFileName ? `Selected: ${licenseFileName}` : t('Upload Document', 'دستاویز اپ لوڈ کریں'))}
+                    {uploading ? t('Uploading...') : (licenseFileName ? `Selected: ${licenseFileName}` : t('Upload Document'))}
                   </Text>
                   {Platform.OS === 'web' && (
                     <input 
@@ -343,12 +352,12 @@ export default function RegisterScreen() {
             )}
 
             
-            <Text style={styles.label}>{t('Password', 'پاس ورڈ')}</Text>
+            <Text style={[styles.label, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Password')}</Text>
             <View style={styles.inputContainer}>
               <Feather name="lock" size={20} color="#4CB85C" style={styles.inputIcon} />
               <TextInput 
                 style={styles.input}
-                placeholder={t('Enter password', 'پاس ورڈ درج کریں')}
+                placeholder={t('Enter password')}
                 placeholderTextColor="#999"
                 secureTextEntry={true}
                 value={password}
@@ -357,12 +366,12 @@ export default function RegisterScreen() {
             </View>
 
             
-            <Text style={styles.label}>{t('Confirm Password', 'پاس ورڈ کی تصدیق')}</Text>
+            <Text style={[styles.label, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Confirm Password')}</Text>
             <View style={styles.inputContainer}>
               <Feather name="lock" size={20} color="#4CB85C" style={styles.inputIcon} />
               <TextInput 
                 style={styles.input}
-                placeholder={t('Confirm Password', 'پاس ورڈ کی تصدیق')}
+                placeholder={t('Confirm Password')}
                 placeholderTextColor="#999"
                 secureTextEntry={true}
                 value={confirmPassword}
@@ -385,51 +394,22 @@ export default function RegisterScreen() {
               onPress={handleRegister}
               disabled={loading}
             >
-              <Text style={styles.registerBtnText}>
-                {loading ? t('Creating Account...', 'اکاؤنٹ بن رہا ہے...') : t('Create Account', 'اکاؤنٹ بنائیں')}
+              <Text style={[styles.registerBtnText, isUrdu && { fontFamily: fonts.urduBold }]}>
+                {loading ? t('Creating Account...') : t('Create Account')}
               </Text>
             </TouchableOpacity>
 
             
-            {(() => {
-              const alreadyHelp = tSplit('Already have an account?', 'پہلے سے اکاؤنٹ ہے؟');
-              const logLink = tSplit('Login', 'لاگ اِن');
-              return (
-                <View style={styles.loginContainer}>
-                  {alreadyHelp.isBoth ? (
-                    <View style={{ alignItems: 'center' }}>
-                      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                        <Text style={styles.loginText}>{alreadyHelp.en} </Text>
-                        <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-                          <Text style={styles.loginLink}>{logLink.en}</Text>
-                        </TouchableOpacity>
-                      </View>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }}>
-                        <Text style={[styles.loginText, { fontFamily: fonts.urduRegular, fontSize: 13, lineHeight: 28 }]}>
-                          {alreadyHelp.ur}{' '}
-                        </Text>
-                        <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-                          <Text style={[styles.loginLink, { fontFamily: fonts.urduBold, fontSize: 13, lineHeight: 28 }]}>
-                            {logLink.ur}
-                          </Text>
-                        </TouchableOpacity>
-                      </View>
-                    </View>
-                  ) : (
-                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
-                      <Text style={[styles.loginText, alreadyHelp.isUrdu && { fontFamily: fonts.urduRegular, fontSize: 13, lineHeight: 22 }]}>
-                        {alreadyHelp.display}{' '}
-                      </Text>
-                      <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-                        <Text style={[styles.loginLink, logLink.isUrdu && { fontFamily: fonts.urduBold, fontSize: 13, lineHeight: 22 }]}>
-                          {logLink.display}
-                        </Text>
-                      </TouchableOpacity>
-                    </View>
-                  )}
-                </View>
-              );
-            })()}
+            <View style={styles.loginContainer}>
+              <Text style={[styles.loginText, isUrdu && { fontFamily: fonts.urduRegular }]}>
+                {t('Already have an account?')}{' '}
+              </Text>
+              <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+                <Text style={[styles.loginLink, isUrdu && { fontFamily: fonts.urduBold }]}>
+                  {t('Login')}
+                </Text>
+              </TouchableOpacity>
+            </View>
 
           </View>
         </ScrollView>
@@ -439,7 +419,7 @@ export default function RegisterScreen() {
       <Modal visible={isDistrictModalVisible} transparent={true} animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>{t('Select District', 'ضلع منتخب کریں')}</Text>
+            <Text style={[styles.modalTitle, isUrdu && { fontFamily: fonts.urduBold }]}>{t('Select District')}</Text>
             <FlatList
               data={districts}
               keyExtractor={(item) => item}
@@ -456,7 +436,7 @@ export default function RegisterScreen() {
               )}
             />
             <TouchableOpacity style={styles.modalCloseBtn} onPress={() => setDistrictModalVisible(false)}>
-              <Text style={styles.modalCloseText}>Cancel</Text>
+              <Text style={[styles.modalCloseText, isUrdu && { fontFamily: fonts.urduBold }]}>{t('Cancel')}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -466,14 +446,14 @@ export default function RegisterScreen() {
       <Modal visible={isUploadModalVisible} transparent={true} animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>{t('Upload License', 'لائسنس اپ لوڈ کریں')}</Text>
+            <Text style={[styles.modalTitle, isUrdu && { fontFamily: fonts.urduBold }]}>{t('Upload Document')}</Text>
             
             <TouchableOpacity 
               style={styles.modalUploadItem}
               onPress={() => handleMockUploadMobile('camera')}
             >
               <Feather name="camera" size={20} color="#4CB85C" style={{ marginRight: 12 }} />
-              <Text style={[styles.modalItemText, { textAlign: 'left' }]}>{t('Scan Card (Camera)', 'کیمرہ')}</Text>
+              <Text style={[styles.modalItemText, { textAlign: 'left' }, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Take Photo')}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity 
@@ -481,7 +461,7 @@ export default function RegisterScreen() {
               onPress={() => handleMockUploadMobile('gallery')}
             >
               <Feather name="image" size={20} color="#4CB85C" style={{ marginRight: 12 }} />
-              <Text style={[styles.modalItemText, { textAlign: 'left' }]}>{t('Choose from Gallery', 'گیلری')}</Text>
+              <Text style={[styles.modalItemText, { textAlign: 'left' }, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Upload from Gallery')}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity 
@@ -489,11 +469,11 @@ export default function RegisterScreen() {
               onPress={() => handleMockUploadMobile('pdf')}
             >
               <Feather name="file-text" size={20} color="#4CB85C" style={{ marginRight: 12 }} />
-              <Text style={[styles.modalItemText, { textAlign: 'left' }]}>{t('Select PDF File', 'پی ڈی ایف دستاویز')}</Text>
+              <Text style={[styles.modalItemText, { textAlign: 'left' }, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Select PDF File')}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.modalCloseBtn} onPress={() => setUploadModalVisible(false)}>
-              <Text style={styles.modalCloseText}>{t('Cancel', 'منسوخ کریں۔')}</Text>
+              <Text style={[styles.modalCloseText, isUrdu && { fontFamily: fonts.urduBold }]}>{t('Cancel')}</Text>
             </TouchableOpacity>
           </View>
         </View>

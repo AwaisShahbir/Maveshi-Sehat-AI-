@@ -35,7 +35,7 @@ export default function CartScreen() {
 
   
   const [buyerName, setBuyerName] = useState(profile.userName || 'Muhammad Ahmed');
-  const [buyerNameUrdu, setBuyerNameUrdu] = useState(profile.userNameUrdu || 'محمد احمد');
+  
   const [phone, setPhone] = useState(profile.phone || '+92 300 1234567');
   const [location, setLocation] = useState(
     profile.location === 'Okara, Punjab' 
@@ -81,7 +81,6 @@ export default function CartScreen() {
 
       const orderPayload = {
         buyerName: buyerName,
-        buyerNameUrdu: buyerNameUrdu,
         pharmacyId: primaryPharmacyId,
         totalPrice: total,
         paymentMethod: paymentMethod === 'COD' ? 'COD' : 'JazzCash / EasyPaisa',
@@ -105,7 +104,7 @@ export default function CartScreen() {
 
       Alert.alert(
         t('Success'), 
-        t(`Order ${data.id} placed successfully!`, `آرڈر ${data.id} کامیابی سے موصول ہو گیا ہے!`),
+        t(`Order ${data.id} placed successfully!`),
         [
           { 
             text: 'OK', 
@@ -209,7 +208,7 @@ export default function CartScreen() {
           <Feather name="chevron-left" size={26} color="#FFF" />
         </TouchableOpacity>
         <View style={styles.headerTitleBlock}>
-          <Text style={styles.headerTitle}>{t('Shopping Cart', 'خریداری کی ٹوکری')}</Text>
+          <Text style={styles.headerTitle}>{t('Shopping Cart')}</Text>
         </View>
         <View style={{ width: 26 }} />
       </View>

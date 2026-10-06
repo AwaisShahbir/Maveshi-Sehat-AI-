@@ -17,7 +17,8 @@ import Feather from 'react-native-vector-icons/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { getRecords, subscribe, loadRecords } from '../../utils/recordsStore';
 import { getProfile, subscribeProfile } from '../../utils/profileStore';
-import { t, getLocalizedDescription, getLocalizedFirstAid } from '../../utils/translate';
+import { t, useTranslation, subscribeTranslation, getLocalizedDescription, getLocalizedFirstAid } from '../../utils/translate';
+import fonts from '../../styles/fonts';
 import styles from '../../styles/HealthRecordsScreenStyles';
 
 export default function HealthRecordsScreen() {
@@ -27,6 +28,9 @@ export default function HealthRecordsScreen() {
   const [activeUserName, setActiveUserName] = useState(params.userName || getProfile().userName);
   const userName = activeUserName;
   const userId = params.userId || null;
+
+  const { isUrdu } = useTranslation();
+  const [, setTick] = useState(0);
 
   
   const [records, setRecords] = useState(getRecords());
@@ -60,9 +64,14 @@ export default function HealthRecordsScreen() {
       setRecords(updatedRecords);
     });
 
+    const unsubscribeTranslation = subscribeTranslation(() => {
+      setTick(t => t + 1);
+    });
+
     return () => {
       unsubscribeProfile();
       unsubscribeRecords();
+      unsubscribeTranslation();
     };
   }, []);
 
@@ -114,15 +123,15 @@ export default function HealthRecordsScreen() {
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>{t('Health Records', 'صحت کے ریکارڈ')}</Text>
+          <Text style={[styles.headerTitle, isUrdu && { fontFamily: fonts.urduBold }]}>{t('Health Records')}</Text>
                     
           
           <View style={styles.searchBarRow}>
             <View style={styles.searchContainer}>
               <Feather name="search" size={20} color="#999" style={styles.searchIcon} />
               <TextInput
-                style={styles.searchInput}
-                placeholder={t('Search records...', 'تلاش کریں...')}
+                style={[styles.searchInput, isUrdu && { fontFamily: fonts.urduRegular }]}
+                placeholder={t('Search records...')}
                 placeholderTextColor="#999"
                 value={searchQuery}
                 onChangeText={setSearchQuery}
@@ -156,9 +165,10 @@ export default function HealthRecordsScreen() {
               >
                 <Text style={[
                   styles.filterChipText, 
-                  activeFilter === filter && styles.filterChipTextActive
+                  activeFilter === filter && styles.filterChipTextActive,
+                  isUrdu && { fontFamily: fonts.urduRegular }
                 ]}>
-                  {t(filter, filter === 'All' ? 'سب' : (filter === 'Active' ? 'سرگرم' : (filter === 'Under Treatment' ? 'زیر علاج' : (filter === 'Recovered' ? 'صحت یاب' : 'صحت مند'))))}
+                  {t(filter)}
                 </Text>
               </TouchableOpacity>
             ))}
@@ -169,15 +179,15 @@ export default function HealthRecordsScreen() {
         <View style={styles.statsCardRow}>
           <View style={styles.statCard}>
             <Text style={styles.statValue}>{totalScans}</Text>
-            <Text style={styles.statLabel}>{t('Total Scans', 'کل اسکینز')}</Text>
+            <Text style={[styles.statLabel, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Total Scans')}</Text>
           </View>
           <View style={styles.statCard}>
             <Text style={[styles.statValue, { color: '#FF4D4D' }]}>{activeCases}</Text>
-            <Text style={styles.statLabel}>{t('Active Cases', 'سرگرم بیماریاں')}</Text>
+            <Text style={[styles.statLabel, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Active Cases')}</Text>
           </View>
           <View style={styles.statCard}>
             <Text style={[styles.statValue, { color: '#4CB85C' }]}>{healthyCount}</Text>
-            <Text style={styles.statLabel}>{t('Healthy', 'صحت مند')}</Text>
+            <Text style={[styles.statLabel, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Healthy')}</Text>
           </View>
         </View>
 
@@ -197,9 +207,9 @@ export default function HealthRecordsScreen() {
 
                 
                 <View style={styles.detailsContainer}>
-                  <Text style={styles.diseaseTitle}>{t(rec.disease, rec.diseaseUrdu)}</Text>
-                  <Text style={styles.animalSub}>
-                    {rec.animalId} • {rec.timeAgo === 'Just now' ? t('Just now', 'ابھی ابھی') : rec.timeAgo}
+                  <Text style={[styles.diseaseTitle, isUrdu && { fontFamily: fonts.urduBold }]}>{t(rec.disease)}</Text>
+                  <Text style={[styles.animalSub, isUrdu && { fontFamily: fonts.urduRegular }]}>
+                    {rec.animalId} • {rec.timeAgo === 'Just now' ? t('Just now') : rec.timeAgo}
                   </Text>
                   
                   
@@ -210,9 +220,10 @@ export default function HealthRecordsScreen() {
                     ]}>
                       <Text style={[
                         styles.badgeText, 
-                        { color: rec.risk === 'High Risk' ? '#FF4D4D' : (rec.risk === 'Medium Risk' ? '#FF9500' : '#4CB85C') }
+                        { color: rec.risk === 'High Risk' ? '#FF4D4D' : (rec.risk === 'Medium Risk' ? '#FF9500' : '#4CB85C') },
+                        isUrdu && { fontFamily: fonts.urduRegular }
                       ]}>
-                        {rec.risk === 'High Risk' ? t('High Risk', 'شدید خطرہ') : (rec.risk === 'Medium Risk' ? t('Medium Risk', 'درمیانہ خطرہ') : t('Low Risk', 'کم خطرہ'))}
+                        {t(rec.risk)}
                       </Text>
                     </View>
 
@@ -222,9 +233,10 @@ export default function HealthRecordsScreen() {
                     ]}>
                       <Text style={[
                         styles.badgeText, 
-                        { color: rec.status === 'Active' ? '#666' : (rec.status === 'Under Treatment' ? '#FF9500' : '#4CB85C') }
+                        { color: rec.status === 'Active' ? '#666' : (rec.status === 'Under Treatment' ? '#FF9500' : '#4CB85C') },
+                        isUrdu && { fontFamily: fonts.urduRegular }
                       ]}>
-                        {rec.status === 'Active' ? t('Active', 'سرگرم') : (rec.status === 'Under Treatment' ? t('Under Treatment', 'زیر علاج') : t('Healthy', 'صحت مند'))}
+                        {t(rec.status)}
                       </Text>
                     </View>
                   </View>
@@ -239,7 +251,7 @@ export default function HealthRecordsScreen() {
           ) : (
             <View style={styles.emptyContainer}>
               <Feather name="info" size={32} color="#ccc" style={{ marginBottom: 12 }} />
-              <Text style={styles.emptyText}>{t('No records found matching criteria', 'کوئی ریکارڈ نہیں ملا')}</Text>
+              <Text style={[styles.emptyText, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('No records found matching criteria')}</Text>
             </View>
           )}
         </View>
@@ -260,7 +272,7 @@ export default function HealthRecordsScreen() {
             {selectedRecord && (
               <>
                 <View style={styles.modalHeader}>
-                  <Text style={styles.modalTitle}>{t('Animal Record', 'تفصیل ریکارڈ')} ({selectedRecord.animalId})</Text>
+                  <Text style={[styles.modalTitle, isUrdu && { fontFamily: fonts.urduBold }]}>{t('Animal Record')} ({selectedRecord.animalId})</Text>
                   <TouchableOpacity onPress={() => setDetailModalVisible(false)}>
                     <Feather name="x" size={24} color="#333" />
                   </TouchableOpacity>
@@ -277,11 +289,11 @@ export default function HealthRecordsScreen() {
                   
                   <View style={styles.detailHeaderInfo}>
                     <View style={{ flex: 1 }}>
-                      <Text style={styles.detailDisease}>{t(selectedRecord.disease, selectedRecord.diseaseUrdu)}</Text>
+                      <Text style={[styles.detailDisease, isUrdu && { fontFamily: fonts.urduBold }]}>{t(selectedRecord.disease)}</Text>
                     </View>
                     <View style={[styles.badge, { backgroundColor: selectedRecord.bg, alignSelf: 'flex-start', marginLeft: 8 }]}>
-                      <Text style={[styles.badgeText, { color: selectedRecord.color }]}>
-                        {selectedRecord.status === 'Active' ? t('Active', 'سرگرم') : (selectedRecord.status === 'Under Treatment' ? t('Under Treatment', 'زیر علاج') : t('Healthy', 'صحت مند'))}
+                      <Text style={[styles.badgeText, { color: selectedRecord.color }, isUrdu && { fontFamily: fonts.urduRegular }]}>
+                        {t(selectedRecord.status)}
                       </Text>
                     </View>
                   </View>
@@ -289,21 +301,21 @@ export default function HealthRecordsScreen() {
                   
                   <View style={styles.detailTable}>
                     <View style={styles.tableRow}>
-                      <Text style={styles.tableLabel}>{t('Animal Type:', 'جانور کی قسم:')}</Text>
-                      <Text style={styles.tableVal}>{t(selectedRecord.animalType, selectedRecord.animalType === 'Cow' ? 'گائے' : 'بھینس')}</Text>
+                      <Text style={[styles.tableLabel, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Animal Type:')}</Text>
+                      <Text style={[styles.tableVal, isUrdu && { fontFamily: fonts.urduRegular }]}>{t(selectedRecord.animalType)}</Text>
                     </View>
                     <View style={styles.tableRow}>
-                      <Text style={styles.tableLabel}>{t('Date & Time:', 'تاریخ اور وقت:')}</Text>
+                      <Text style={[styles.tableLabel, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Date & Time:')}</Text>
                       <Text style={styles.tableVal}>{selectedRecord.date}</Text>
                     </View>
                     <View style={styles.tableRow}>
-                      <Text style={styles.tableLabel}>{t('Confidence:', 'اعتماد:')}</Text>
+                      <Text style={[styles.tableLabel, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Confidence:')}</Text>
                       <Text style={styles.tableVal}>{selectedRecord.confidence}</Text>
                     </View>
                     <View style={styles.tableRow}>
-                      <Text style={styles.tableLabel}>{t('Risk Level:', 'خطرے کا لیول:')}</Text>
-                      <Text style={[styles.tableVal, { color: selectedRecord.color, fontWeight: 'bold' }]}>
-                        {selectedRecord.risk === 'High Risk' ? t('High Risk', 'شدید خطرہ') : (selectedRecord.risk === 'Medium Risk' ? t('Medium Risk', 'درمیانہ خطرہ') : t('Low Risk', 'کم خطرہ'))}
+                      <Text style={[styles.tableLabel, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Risk Level:')}</Text>
+                      <Text style={[styles.tableVal, { color: selectedRecord.color, fontWeight: 'bold' }, isUrdu && { fontFamily: fonts.urduRegular }]}>
+                        {t(selectedRecord.risk)}
                       </Text>
                     </View>
                   </View>
@@ -311,19 +323,19 @@ export default function HealthRecordsScreen() {
                   
                   {selectedRecord.description && (
                     <>
-                      <Text style={styles.sectionTitleModal}>{t('Clinical Description:', 'طبی تفصیل:')}</Text>
-                      <Text style={styles.detailTextModal}>{getLocalizedDescription(selectedRecord.disease, selectedRecord.description)}</Text>
+                      <Text style={[styles.sectionTitleModal, isUrdu && { fontFamily: fonts.urduBold }]}>{t('Clinical Description:')}</Text>
+                      <Text style={[styles.detailTextModal, isUrdu && { fontFamily: fonts.urduRegular }]}>{getLocalizedDescription(selectedRecord.disease, selectedRecord.description)}</Text>
                     </>
                   )}
 
                   
                   {selectedRecord.firstAid && selectedRecord.firstAid.length > 0 && (
                     <>
-                      <Text style={styles.sectionTitleModal}>{t('First Aid / Treatment:', 'ابتدائی طبی امداد:')}</Text>
+                      <Text style={[styles.sectionTitleModal, isUrdu && { fontFamily: fonts.urduBold }]}>{t('First Aid / Treatment:')}</Text>
                       {getLocalizedFirstAid(selectedRecord.disease, selectedRecord.firstAid).map((tip, idx) => (
                         <View key={idx} style={styles.bulletRowModal}>
                           <Text style={styles.bulletDotModal}>•</Text>
-                          <Text style={styles.bulletTextModal}>{tip}</Text>
+                          <Text style={[styles.bulletTextModal, isUrdu && { fontFamily: fonts.urduRegular }]}>{tip}</Text>
                         </View>
                       ))}
                     </>
@@ -339,7 +351,7 @@ export default function HealthRecordsScreen() {
                   }}
                 >
                   <Feather name="message-circle" size={18} color="#FFF" style={{ marginRight: 8 }} />
-                  <Text style={styles.consultVetBtnTextModal}>{t('Consult Veterinarian', 'ڈاکٹر سے رابطہ کریں')}</Text>
+                  <Text style={[styles.consultVetBtnTextModal, isUrdu && { fontFamily: fonts.urduBold }]}>{t('Consult Veterinarian')}</Text>
                 </TouchableOpacity>
               </>
             )}
@@ -352,23 +364,23 @@ export default function HealthRecordsScreen() {
         <View style={styles.bottomNav}>
           <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Dashboard')}>
             <Feather name="home" size={24} color="#A3E6B2" />
-            <Text style={[styles.navText, { color: '#A3E6B2' }]}>{t('Home', 'ہوم')}</Text>
+            <Text style={[styles.navText, { color: '#A3E6B2' }, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Home')}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('AiScan', { userName, userId })}>
             <MaterialCommunityIcons name="line-scan" size={24} color="#A3E6B2" />
-            <Text style={[styles.navText, { color: '#A3E6B2' }]}>{t('AI Scan', 'اسکین')}</Text>
+            <Text style={[styles.navText, { color: '#A3E6B2' }, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('AI Scan')}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.navItem}>
             <Feather name="file-text" size={24} color="#FFF" />
-            <Text style={[styles.navText, { color: '#FFF' }]}>{t('Records', 'ریکارڈز')}</Text>
+            <Text style={[styles.navText, { color: '#FFF' }, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Records')}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('CommunityForum', { userName, userId })}>
             <Feather name="message-square" size={24} color="#A3E6B2" />
-            <Text style={[styles.navText, { color: '#A3E6B2' }]}>{t('Forum', 'فورم')}</Text>
+            <Text style={[styles.navText, { color: '#A3E6B2' }, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Forum')}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Profile', { userId })}>
             <Feather name="user" size={24} color="#A3E6B2" />
-            <Text style={[styles.navText, { color: '#A3E6B2' }]}>{t('Profile', 'پروفائل')}</Text>
+            <Text style={[styles.navText, { color: '#A3E6B2' }, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Profile')}</Text>
           </TouchableOpacity>
         </View>
       </View>

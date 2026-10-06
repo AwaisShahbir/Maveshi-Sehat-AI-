@@ -29,7 +29,7 @@ const MOCK_IMAGES = [
     id: '1',
     type: 'Cow',
     status: 'Lumpy Skin Disease',
-    statusUrdu: 'لمپی سکن کی بیماری',
+    
     confidence: '94.8%',
     severity: 'High Severity',
     severityColor: '#FF4D4D',
@@ -48,7 +48,7 @@ const MOCK_IMAGES = [
     id: '2',
     type: 'Cow',
     status: 'Healthy (No Symptoms)',
-    statusUrdu: 'صحت مند (کوئی علامات نہیں)',
+    
     confidence: '98.5%',
     severity: 'No Stress',
     severityColor: '#4CB85C',
@@ -65,7 +65,7 @@ const MOCK_IMAGES = [
     id: '3',
     type: 'Buffalo',
     status: 'Foot and Mouth Disease',
-    statusUrdu: 'منہ کھر کی بیماری',
+    
     confidence: '91.2%',
     severity: 'Severe Stress',
     severityColor: '#FF9500',
@@ -83,7 +83,7 @@ const MOCK_IMAGES = [
     id: '4',
     type: 'Buffalo',
     status: 'Healthy (No Symptoms)',
-    statusUrdu: 'صحت مند (کوئی علامات نہیں)',
+    
     confidence: '99.1%',
     severity: 'No Stress',
     severityColor: '#4CB85C',
@@ -152,8 +152,8 @@ export default function AiScanScreen() {
 
   const handleTakePhoto = () => {
     if (!animalType) {
-      Alert.alert(t('Select Animal', 'جانور منتخب کریں'), 
-        'Please select an animal type first.\nبراہ کرم پہلے جانور کی قسم منتخب کریں۔'
+      Alert.alert(t('Select Animal'), 
+        'Please select an animal type first.'
       );
       return;
     }
@@ -192,8 +192,8 @@ export default function AiScanScreen() {
 
   const handleChooseFromGallery = () => {
     if (!animalType) {
-      Alert.alert(t('Select Animal', 'جانور منتخب کریں'), 
-        'Please select an animal type first.\nبراہ کرم پہلے جانور کی قسم منتخب کریں۔'
+      Alert.alert(t('Select Animal'), 
+        'Please select an animal type first.'
       );
       return;
     }
@@ -237,16 +237,16 @@ export default function AiScanScreen() {
     startScanAnimation();
 
     
-    setScanProgressText(t('Uploading Image to Maveshi AI...', 'تصویر اپ لوڈ ہو رہی ہے...'));
+    setScanProgressText(t('Uploading Image to Maveshi AI...'));
     
     
     setTimeout(() => {
-      setScanProgressText(t('Analyzing Symptoms...', 'علامات کا تجزیہ کیا جا رہا ہے...'));
+      setScanProgressText(t('Analyzing Symptoms...'));
     }, 1200);
 
     
     setTimeout(() => {
-      setScanProgressText(t('Generating Health Diagnosis...', 'تشخیص تیار کی جا رہی ہے...'));
+      setScanProgressText(t('Generating Health Diagnosis...'));
     }, 2400);
 
     
@@ -257,7 +257,7 @@ export default function AiScanScreen() {
       const DISEASES = [
         {
           status: 'Lumpy Skin Disease',
-          statusUrdu: 'لمپی سکن کی بیماری',
+          
           confidence: `${(85 + Math.random() * 12).toFixed(1)}%`,
           severity: 'High Severity',
           severityColor: '#FF4D4D',
@@ -272,7 +272,7 @@ export default function AiScanScreen() {
         },
         {
           status: 'Foot and Mouth Disease',
-          statusUrdu: 'منہ کھر کی بیماری',
+          
           confidence: `${(85 + Math.random() * 12).toFixed(1)}%`,
           severity: 'Severe Stress',
           severityColor: '#FF9500',
@@ -287,7 +287,7 @@ export default function AiScanScreen() {
         },
         {
           status: 'Mastitis',
-          statusUrdu: 'تھنوں کی سوزش',
+          
           confidence: `${(80 + Math.random() * 15).toFixed(1)}%`,
           severity: 'Medium Risk',
           severityColor: '#FFB020',
@@ -302,7 +302,7 @@ export default function AiScanScreen() {
         },
         {
           status: 'Healthy (No Symptoms)',
-          statusUrdu: 'صحت مند (کوئی علامات نہیں)',
+          
           confidence: `${(95 + Math.random() * 4).toFixed(1)}%`,
           severity: 'No Stress',
           severityColor: '#4CB85C',
@@ -327,7 +327,7 @@ export default function AiScanScreen() {
         animalId: generatedAnimalId,
         animalType: animalType,
         disease: isHealthy ? 'Healthy' : randomOutcome.status,
-        diseaseUrdu: isHealthy ? 'صحت مند' : randomOutcome.statusUrdu,
+        
         confidence: randomOutcome.confidence,
         timeAgo: 'Just now',
         date: new Date().toLocaleString(),
@@ -374,14 +374,14 @@ export default function AiScanScreen() {
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
             <Feather name="chevron-left" size={24} color="#FFF" />
-            <Text style={styles.backText}>{t('Back', 'پیچھے')}</Text>
+            <Text style={styles.backText}>{t('Back')}</Text>
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>{t('AI Disease Detection', 'بیماری کی تشخیص')}</Text>
+          <Text style={styles.headerTitle}>{t('AI Disease Detection')}</Text>
                   </View>
 
         
         <View style={styles.mainCard}>
-          <Text style={styles.fieldLabel}>{t('Select Animal Type', 'جانور کی قسم منتخب کریں')}</Text>
+          <Text style={styles.fieldLabel}>{t('Select Animal Type')}</Text>
           
           
           <TouchableOpacity 
@@ -389,7 +389,7 @@ export default function AiScanScreen() {
             onPress={() => setShowDropdown(!showDropdown)}
           >
             <Text style={[styles.dropdownText, !animalType && styles.dropdownPlaceholder]}>
-              {animalType ? t(animalType, animalType === 'Cow' ? 'گائے' : 'بھینس') : t('Select', 'منتخب کریں')}
+              {animalType ? t(animalType) : t('Select')}
             </Text>
             <Feather name={showDropdown ? 'chevron-up' : 'chevron-down'} size={20} color="#666" />
           </TouchableOpacity>
@@ -417,14 +417,14 @@ export default function AiScanScreen() {
                 <View style={[styles.uploadIconBg, { backgroundColor: '#E8F8EA' }]}>
                   <Feather name="camera" size={28} color="#4CB85C" />
                 </View>
-                <Text style={[styles.uploadTitle, { color: '#333' }]}>{t('Take Photo', 'تصویر لیں')}</Text>
+                <Text style={[styles.uploadTitle, { color: '#333' }]}>{t('Take Photo')}</Text>
                               </TouchableOpacity>
 
               <TouchableOpacity style={[styles.uploadCard, { borderColor: '#F5B041' }]} onPress={handleChooseFromGallery}>
                 <View style={[styles.uploadIconBg, { backgroundColor: '#FFF5E5' }]}>
                   <Feather name="image" size={28} color="#F5B041" />
                 </View>
-                <Text style={[styles.uploadTitle, { color: '#333' }]}>{t('From Gallery', 'گیلری سے')}</Text>
+                <Text style={[styles.uploadTitle, { color: '#333' }]}>{t('From Gallery')}</Text>
                               </TouchableOpacity>
             </View>
           ) : (
@@ -448,12 +448,12 @@ export default function AiScanScreen() {
               {!isScanning && !showReport && (
                 <View style={styles.previewActionRow}>
                   <TouchableOpacity style={styles.changeBtn} onPress={handleReset}>
-                    <Text style={styles.changeBtnText}>{t('Change Photo', 'تصویر بدلیں')}</Text>
+                    <Text style={styles.changeBtnText}>{t('Change Photo')}</Text>
                   </TouchableOpacity>
                   
                   <TouchableOpacity style={styles.analyzeBtn} onPress={handleAnalyze}>
                     <MaterialCommunityIcons name="line-scan" size={20} color="#FFF" style={{ marginRight: 6 }} />
-                    <Text style={styles.analyzeBtnText}>{t('Analyze Image', 'تجزیہ کریں')}</Text>
+                    <Text style={styles.analyzeBtnText}>{t('Analyze Image')}</Text>
                   </TouchableOpacity>
                 </View>
               )}
@@ -465,34 +465,34 @@ export default function AiScanScreen() {
         {showReport && scanResult && (
           <View style={styles.reportCard}>
             <View style={styles.reportHeader}>
-              <Text style={styles.reportTitle}>{t('Health Status Report', 'صحت کی رپورٹ')}</Text>
+              <Text style={styles.reportTitle}>{t('Health Status Report')}</Text>
               <View style={[styles.severityBadge, { backgroundColor: scanResult.severityBg }]}>
                 <Text style={[styles.severityText, { color: scanResult.severityColor }]}>
-                  {scanResult.severity === 'High Severity' ? t('High Severity', 'شدید بیماری') : (scanResult.severity === 'Severe Stress' ? t('Severe Stress', 'سخت دباؤ') : (scanResult.severity === 'Medium Risk' ? t('Medium Risk', 'درمیانہ خطرہ') : t('No Stress', 'کوئی خطرہ نہیں')))}
+                  {scanResult.severity === 'High Severity' ? t('High Severity') : (scanResult.severity === 'Severe Stress' ? t('Severe Stress') : (scanResult.severity === 'Medium Risk' ? t('Medium Risk') : t('No Stress')))}
                 </Text>
               </View>
             </View>
 
             <View style={styles.resultDetails}>
               <View style={styles.resultRow}>
-                <Text style={styles.resultLabel}>{t('Animal ID:', 'شناختی نمبر:')}</Text>
+                <Text style={styles.resultLabel}>{t('Animal ID:')}</Text>
                 <Text style={[styles.resultVal, { color: '#FFB020', fontWeight: 'bold' }]}>
                   {scanResult.generatedAnimalId}
                 </Text>
               </View>
               <View style={styles.resultRow}>
-                <Text style={styles.resultLabel}>{t('Diagnosis:', 'تشخیص:')}</Text>
+                <Text style={styles.resultLabel}>{t('Diagnosis:')}</Text>
                 <Text style={styles.resultVal}>{t(scanResult.status, scanResult.statusUrdu)}</Text>
               </View>
               <View style={styles.resultRow}>
-                <Text style={styles.resultLabel}>{t('Confidence Score:', 'اعتماد کا اسکور:')}</Text>
+                <Text style={styles.resultLabel}>{t('Confidence Score:')}</Text>
                 <Text style={[styles.resultVal, { color: '#333' }]}>{scanResult.confidence}</Text>
               </View>
               
-              <Text style={styles.descTitle}>{t('Clinical Description:', 'طبی تفصیل:')}</Text>
+              <Text style={styles.descTitle}>{t('Clinical Description:')}</Text>
               <Text style={styles.descText}>{getLocalizedDescription(scanResult.status, scanResult.description)}</Text>
               
-              <Text style={styles.aidTitle}>{t('Recommended First Aid:', 'ابتدائی طبی امداد:')}</Text>
+              <Text style={styles.aidTitle}>{t('Recommended First Aid:')}</Text>
               {getLocalizedFirstAid(scanResult.status, scanResult.firstAid).map((tip, idx) => (
                 <View key={idx} style={styles.bulletRow}>
                   <Text style={styles.bulletDot}>•</Text>
@@ -504,7 +504,7 @@ export default function AiScanScreen() {
             <View style={styles.reportActions}>
               <TouchableOpacity style={styles.resetBtn} onPress={handleReset}>
                 <Feather name="refresh-cw" size={16} color="#666" style={{ marginRight: 6 }} />
-                <Text style={styles.resetBtnText}>{t('Scan Again', 'دوبارہ اسکین')}</Text>
+                <Text style={styles.resetBtnText}>{t('Scan Again')}</Text>
               </TouchableOpacity>
 
               <TouchableOpacity 
@@ -512,7 +512,7 @@ export default function AiScanScreen() {
                 onPress={() => navigation.navigate('VeterinariansList', { userName, initialRecord: scanResult })}
               >
                 <Feather name="message-circle" size={16} color="#FFF" style={{ marginRight: 6 }} />
-                <Text style={styles.consultBtnText}>{t('Consult Vet', 'ڈاکٹر سے رابطہ')}</Text>
+                <Text style={styles.consultBtnText}>{t('Consult Vet')}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -528,7 +528,7 @@ export default function AiScanScreen() {
             <Text style={styles.tipText}>• Ensure good lighting</Text>
             <Text style={styles.tipText}>• Capture affected area clearly</Text>
             <Text style={styles.tipText}>• Keep camera steady</Text>
-            <Text style={[styles.tipText, { marginTop: 8, fontWeight: 'bold' }]}>{t('• روشنی اچھی ہو', 'واضح تصویر لیں')}</Text>
+            <Text style={[styles.tipText, { marginTop: 8, fontWeight: 'bold' }]}>{t('• Ensure good lighting')}</Text>
           </View>
         </View>
 
@@ -546,7 +546,7 @@ export default function AiScanScreen() {
         <View style={styles.modalBg}>
           <View style={styles.modalContainer}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>{t('Choose Sample Photo', 'تصویر منتخب کریں')}</Text>
+              <Text style={styles.modalTitle}>{t('Choose Sample Photo')}</Text>
               <TouchableOpacity onPress={() => setPickerModalVisible(false)}>
                 <Feather name="x" size={24} color="#333" />
               </TouchableOpacity>

@@ -155,20 +155,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    flexWrap: 'wrap',
-    marginTop: 8,
-    marginBottom: 20,
+    marginTop: 14,
+    marginBottom: 16,
   },
   registerText: {
     color: '#777',
     fontSize: 14,
-    textAlign: 'center',
   },
   registerLink: {
     color: '#4CB85C',
     fontSize: 14,
     fontWeight: 'bold',
-    textAlign: 'center',
   },
 });
 
