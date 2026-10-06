@@ -60,12 +60,12 @@ export default function LoginScreen() {
       if (mappedRole === 'farmer') {
         navigation.reset({
           index: 0,
-          routes: [{ name: 'UserHome' }],
+          routes: [{ name: 'Dashboard' }],
         });
       } else {
         navigation.reset({
           index: 0,
-          routes: [{ name: 'VetHome' }],
+          routes: [{ name: 'VetDashboard' }],
         });
       }
     } catch (err) {
