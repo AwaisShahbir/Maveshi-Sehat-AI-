@@ -155,39 +155,64 @@ export default function HealthRecordsScreen() {
         <View style={styles.statsCardRow}>
           <View style={styles.statCard}>
             <Text style={styles.statValue}>{totalScans}</Text>
-            <Text style={[styles.statLabel, isUrdu && { fontFamily: fonts.urduBold, fontSize: 13, includeFontPadding: false }]}>{t('Total Scans')}</Text>
+            <Text 
+              numberOfLines={1} 
+              adjustsFontSizeToFit 
+              style={[styles.statLabel, isUrdu && { fontFamily: fonts.urduBold, fontSize: 11.5, includeFontPadding: false }]}
+            >
+              {t('Total Scans')}
+            </Text>
           </View>
           <View style={styles.statCard}>
-            <Text style={[styles.statValue, { color: '#FF4D4D' }]}>{activeCases}</Text>
-            <Text style={[styles.statLabel, isUrdu && { fontFamily: fonts.urduBold, fontSize: 13, includeFontPadding: false }]}>{t('Active Cases')}</Text>
+            <Text style={[styles.statValue, { color: '#E53E3E' }]}>{activeCases}</Text>
+            <Text 
+              numberOfLines={1} 
+              adjustsFontSizeToFit 
+              style={[styles.statLabel, isUrdu && { fontFamily: fonts.urduBold, fontSize: 11.5, includeFontPadding: false }]}
+            >
+              {t('Active Cases')}
+            </Text>
           </View>
           <View style={styles.statCard}>
-            <Text style={[styles.statValue, { color: '#4CB85C' }]}>{healthyCount}</Text>
-            <Text style={[styles.statLabel, isUrdu && { fontFamily: fonts.urduBold, fontSize: 13, includeFontPadding: false }]}>{t('Healthy')}</Text>
+            <Text style={[styles.statValue, { color: '#359D5B' }]}>{healthyCount}</Text>
+            <Text 
+              numberOfLines={1} 
+              adjustsFontSizeToFit 
+              style={[styles.statLabel, isUrdu && { fontFamily: fonts.urduBold, fontSize: 11.5, includeFontPadding: false }]}
+            >
+              {t('Healthy')}
+            </Text>
           </View>
         </View>
 
-        {/* ── Filter Chips Row (Toggled via Sliders button) ── */}
+        {/* ── Filter Chips (Horizontal Single-Line Scroll) ── */}
         {showFilterOptions && (
-          <View style={styles.filterChipsRow}>
-            {['All', 'Active', 'Under Treatment', 'Recovered', 'Healthy'].map((filter) => (
-              <TouchableOpacity
-                key={filter}
-                style={[
-                  styles.filterChip, 
-                  activeFilter === filter && styles.filterChipActive
-                ]}
-                onPress={() => setActiveFilter(filter)}
-              >
-                <Text style={[
-                  styles.filterChipText, 
-                  activeFilter === filter && styles.filterChipTextActive,
-                  isUrdu && { fontFamily: fonts.urduBold, fontSize: 13, includeFontPadding: false }
-                ]}>
-                  {t(filter)}
-                </Text>
-              </TouchableOpacity>
-            ))}
+          <View style={styles.filterWrapper}>
+            <ScrollView 
+              horizontal 
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.filterScrollContent}
+            >
+              {['All', 'Active', 'Under Treatment', 'Recovered', 'Healthy'].map((filter) => (
+                <TouchableOpacity
+                  key={filter}
+                  style={[
+                    styles.filterChip, 
+                    activeFilter === filter && styles.filterChipActive
+                  ]}
+                  onPress={() => setActiveFilter(filter)}
+                  activeOpacity={0.8}
+                >
+                  <Text style={[
+                    styles.filterChipText, 
+                    activeFilter === filter && styles.filterChipTextActive,
+                    isUrdu && { fontFamily: fonts.urduBold, fontSize: 13, includeFontPadding: false }
+                  ]}>
+                    {t(filter)}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
           </View>
         )}
 
