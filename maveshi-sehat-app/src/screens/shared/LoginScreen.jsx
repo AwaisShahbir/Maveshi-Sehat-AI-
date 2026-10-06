@@ -3,7 +3,8 @@ import { View, Text, TextInput, TouchableOpacity, SafeAreaView, StatusBar, Keybo
 import { useNavigation } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
 import { updateProfile } from '../../utils/profileStore';
-import { t } from '../../utils/translate';
+import { t, tSplit } from '../../utils/translate';
+import fonts from '../../styles/fonts';
 import styles from '../../styles/LoginScreenStyles';
 
 
@@ -79,9 +80,33 @@ export default function LoginScreen() {
               hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
             >
               <Feather name="chevron-left" size={24} color="#FFFFFF" />
-              <Text style={styles.backText}>Back</Text>
+              {(() => {
+                const backItem = tSplit('Back', 'واپس');
+                return backItem.isBoth ? (
+                  <View style={{ marginLeft: 4 }}>
+                    <Text style={styles.backText}>{backItem.en}</Text>
+                    <Text style={[styles.backText, { fontFamily: fonts.urduBold, fontSize: 13, lineHeight: 20 }]}>{backItem.ur}</Text>
+                  </View>
+                ) : (
+                  <Text style={[styles.backText, backItem.isUrdu && { fontFamily: fonts.urduBold, fontSize: 14, lineHeight: 22 }]}>
+                    {backItem.display}
+                  </Text>
+                );
+              })()}
             </TouchableOpacity>
-            <Text style={styles.mainTitle}>Welcome Back</Text>
+            {(() => {
+              const titleItem = tSplit('Welcome Back', 'خوش آمدید');
+              return titleItem.isBoth ? (
+                <View>
+                  <Text style={styles.mainTitle}>{titleItem.en}</Text>
+                  <Text style={styles.urduTitle}>{titleItem.ur}</Text>
+                </View>
+              ) : (
+                <Text style={[styles.mainTitle, titleItem.isUrdu && { fontFamily: fonts.urduBold, fontSize: 28, lineHeight: 46 }]}>
+                  {titleItem.display}
+                </Text>
+              );
+            })()}
           </View>
 
           
@@ -127,7 +152,7 @@ export default function LoginScreen() {
               <Feather name="lock" size={20} color="#4CB85C" style={styles.inputIcon} />
               <TextInput 
                 style={styles.input}
-                placeholder="Enter password"
+                placeholder={t('Enter password', 'پاس ورڈ درج کریں')}
                 placeholderTextColor="#999"
                 secureTextEntry={!passwordVisible}
                 value={password}
@@ -161,17 +186,50 @@ export default function LoginScreen() {
               disabled={loading}
             >
               <Text style={styles.loginButtonText}>
-                {loading ? 'Logging in...' : 'لاگ ان / Login'}
+                {loading ? t('Logging in...', 'لاگ ان ہو رہا ہے...') : t('Login', 'لاگ اِن')}
               </Text>
             </TouchableOpacity>
 
             
-            <View style={styles.registerContainer}>
-              <Text style={styles.registerText}>Don't have an account? </Text>
-              <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-                <Text style={styles.registerLink}>{t('Register', 'رجسٹر')}</Text>
-              </TouchableOpacity>
-            </View>
+            {(() => {
+              const loginHelp = tSplit("Don't have an account?", 'اکاؤنٹ نہیں ہے؟');
+              const regLink = tSplit('Register', 'رجسٹر کریں');
+              return (
+                <View style={styles.registerContainer}>
+                  {loginHelp.isBoth ? (
+                    <View style={{ alignItems: 'center' }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <Text style={styles.registerText}>{loginHelp.en} </Text>
+                        <TouchableOpacity onPress={() => navigation.navigate('Register')}>
+                          <Text style={styles.registerLink}>{regLink.en}</Text>
+                        </TouchableOpacity>
+                      </View>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }}>
+                        <Text style={[styles.registerText, { fontFamily: fonts.urduRegular, fontSize: 13, lineHeight: 28 }]}>
+                          {loginHelp.ur}{' '}
+                        </Text>
+                        <TouchableOpacity onPress={() => navigation.navigate('Register')}>
+                          <Text style={[styles.registerLink, { fontFamily: fonts.urduBold, fontSize: 13, lineHeight: 28 }]}>
+                            {regLink.ur}
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  ) : (
+                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+                      <Text style={[styles.registerText, loginHelp.isUrdu && { fontFamily: fonts.urduRegular, fontSize: 13, lineHeight: 22 }]}>
+                        {loginHelp.display}{' '}
+                      </Text>
+                      <TouchableOpacity onPress={() => navigation.navigate('Register')}>
+                        <Text style={[styles.registerLink, regLink.isUrdu && { fontFamily: fonts.urduBold, fontSize: 13, lineHeight: 22 }]}>
+                          {regLink.display}
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                  )}
+                </View>
+              );
+            })()}
 
           </View>
         </ScrollView>

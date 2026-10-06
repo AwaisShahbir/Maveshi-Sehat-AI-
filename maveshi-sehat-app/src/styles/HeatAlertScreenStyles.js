@@ -1,4 +1,5 @@
 import { StyleSheet, Platform, StatusBar } from 'react-native';
+import fonts from './fonts';
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: '#F8FAF9' },
@@ -33,9 +34,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   headerTitle: { fontSize: 24, fontWeight: 'bold', color: '#FFF' },
-  headerTitleUrdu: { fontSize: 15, fontWeight: 'bold', color: '#FFF', opacity: 0.95, marginTop: 1 },
+  headerTitleUrdu: { fontFamily: fonts.urduBold, fontSize: 17, fontWeight: 'bold', color: '#FFF', opacity: 0.95, marginTop: 2, lineHeight: 28 },
   headerSubtitle: { fontSize: 12, color: 'rgba(255,255,255,0.92)', marginTop: 2 },
-  headerSubtitleUrdu: { fontSize: 11, color: 'rgba(255,255,255,0.92)', marginTop: 1 },
+  headerSubtitleUrdu: { fontFamily: fonts.urduRegular, fontSize: 13, color: 'rgba(255,255,255,0.92)', marginTop: 2, lineHeight: 22 },
 
   locationBanner: {
     backgroundColor: '#FFF',

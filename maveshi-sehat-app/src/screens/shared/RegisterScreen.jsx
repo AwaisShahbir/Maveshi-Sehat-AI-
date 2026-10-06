@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, SafeAreaView, StatusBar, KeyboardAvoidingView, Platform, ScrollView, Alert, Modal, FlatList } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
-import { t } from '../../utils/translate';
+import { t, tSplit } from '../../utils/translate';
+import fonts from '../../styles/fonts';
 import styles from '../../styles/RegisterScreenStyles';
 
 
@@ -186,9 +187,9 @@ export default function RegisterScreen() {
               hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
             >
               <Feather name="chevron-left" size={24} color="#FFFFFF" />
-              <Text style={styles.backText}>Back</Text>
+              <Text style={styles.backText}>{t('Back', 'واپس')}</Text>
             </TouchableOpacity>
-            <Text style={styles.mainTitle}>Create Account</Text>
+            <Text style={styles.mainTitle}>{t('Create Account', 'اکاؤنٹ بنائیں')}</Text>
           </View>
 
           
@@ -200,7 +201,7 @@ export default function RegisterScreen() {
               <Feather name="user" size={20} color="#4CB85C" style={styles.inputIcon} />
               <TextInput 
                 style={styles.input}
-                placeholder="Enter your name"
+                placeholder={t('Enter Full Name', 'پورا نام درج کریں')}
                 placeholderTextColor="#999"
                 value={fullName}
                 onChangeText={setFullName}
@@ -213,7 +214,7 @@ export default function RegisterScreen() {
               <Feather name="mail" size={20} color="#4CB85C" style={styles.inputIcon} />
               <TextInput 
                 style={styles.input}
-                placeholder="Enter your email"
+                placeholder={t('Email', 'ای میل درج کریں')}
                 placeholderTextColor="#999"
                 keyboardType="email-address"
                 autoCapitalize="none"
@@ -241,7 +242,7 @@ export default function RegisterScreen() {
             <TouchableOpacity style={styles.inputContainer} activeOpacity={0.8} onPress={() => setDistrictModalVisible(true)}>
               <Feather name="map-pin" size={20} color="#4CB85C" style={styles.inputIcon} />
               <Text style={[styles.input, { height: 'auto', paddingTop: 0, color: district ? '#333' : '#999' }]}>
-                {district || 'Select District'}
+                {district || t('Select District', 'ضلع منتخب کریں')}
               </Text>
               <Feather name="chevron-down" size={20} color="#999" />
             </TouchableOpacity>
@@ -255,7 +256,7 @@ export default function RegisterScreen() {
                 activeOpacity={0.8}
               >
                 <Text style={[styles.roleText, role === 'farmer' && styles.roleTextActive]}>
-                  {t('Farmer', 'کسان/مالک')}
+                  {t('Farmer', 'کسان')}
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity 
@@ -326,7 +327,7 @@ export default function RegisterScreen() {
                 >
                   <Feather name={uploading ? "loader" : "upload-cloud"} size={22} color="#4CB85C" style={{ marginRight: 8 }} />
                   <Text style={{ color: '#4CB85C', fontWeight: 'bold', fontSize: 14 }}>
-                    {uploading ? 'Uploading / اپ لوڈ ہو رہا ہے...' : (licenseFileName ? `Selected: ${licenseFileName}` :t('Upload Document', 'دستاویز اپ لوڈ کریں'))}
+                    {uploading ? t('Uploading...', 'اپ لوڈ ہو رہا ہے...') : (licenseFileName ? `Selected: ${licenseFileName}` : t('Upload Document', 'دستاویز اپ لوڈ کریں'))}
                   </Text>
                   {Platform.OS === 'web' && (
                     <input 
@@ -347,7 +348,7 @@ export default function RegisterScreen() {
               <Feather name="lock" size={20} color="#4CB85C" style={styles.inputIcon} />
               <TextInput 
                 style={styles.input}
-                placeholder="Enter password"
+                placeholder={t('Enter password', 'پاس ورڈ درج کریں')}
                 placeholderTextColor="#999"
                 secureTextEntry={true}
                 value={password}
@@ -361,7 +362,7 @@ export default function RegisterScreen() {
               <Feather name="lock" size={20} color="#4CB85C" style={styles.inputIcon} />
               <TextInput 
                 style={styles.input}
-                placeholder="Re-enter password"
+                placeholder={t('Confirm Password', 'پاس ورڈ کی تصدیق')}
                 placeholderTextColor="#999"
                 secureTextEntry={true}
                 value={confirmPassword}
@@ -384,15 +385,51 @@ export default function RegisterScreen() {
               onPress={handleRegister}
               disabled={loading}
             >
+              <Text style={styles.registerBtnText}>
+                {loading ? t('Creating Account...', 'اکاؤنٹ بن رہا ہے...') : t('Create Account', 'اکاؤنٹ بنائیں')}
+              </Text>
             </TouchableOpacity>
 
             
-            <View style={styles.loginContainer}>
-              <Text style={styles.loginText}>Already have an account? </Text>
-              <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-                <Text style={styles.loginLink}>{t('Login', 'لاگ ان')}</Text>
-              </TouchableOpacity>
-            </View>
+            {(() => {
+              const alreadyHelp = tSplit('Already have an account?', 'پہلے سے اکاؤنٹ ہے؟');
+              const logLink = tSplit('Login', 'لاگ اِن');
+              return (
+                <View style={styles.loginContainer}>
+                  {alreadyHelp.isBoth ? (
+                    <View style={{ alignItems: 'center' }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <Text style={styles.loginText}>{alreadyHelp.en} </Text>
+                        <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+                          <Text style={styles.loginLink}>{logLink.en}</Text>
+                        </TouchableOpacity>
+                      </View>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }}>
+                        <Text style={[styles.loginText, { fontFamily: fonts.urduRegular, fontSize: 13, lineHeight: 28 }]}>
+                          {alreadyHelp.ur}{' '}
+                        </Text>
+                        <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+                          <Text style={[styles.loginLink, { fontFamily: fonts.urduBold, fontSize: 13, lineHeight: 28 }]}>
+                            {logLink.ur}
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  ) : (
+                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+                      <Text style={[styles.loginText, alreadyHelp.isUrdu && { fontFamily: fonts.urduRegular, fontSize: 13, lineHeight: 22 }]}>
+                        {alreadyHelp.display}{' '}
+                      </Text>
+                      <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+                        <Text style={[styles.loginLink, logLink.isUrdu && { fontFamily: fonts.urduBold, fontSize: 13, lineHeight: 22 }]}>
+                          {logLink.display}
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                  )}
+                </View>
+              );
+            })()}
 
           </View>
         </ScrollView>
@@ -402,7 +439,7 @@ export default function RegisterScreen() {
       <Modal visible={isDistrictModalVisible} transparent={true} animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Select District</Text>
+            <Text style={styles.modalTitle}>{t('Select District', 'ضلع منتخب کریں')}</Text>
             <FlatList
               data={districts}
               keyExtractor={(item) => item}

@@ -1,4 +1,5 @@
 import { StyleSheet, Platform } from 'react-native';
+import fonts from './fonts';
 
 const styles = StyleSheet.create({
   safeArea: {
@@ -11,6 +12,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
+    paddingBottom: 24,
   },
   topSection: {
     backgroundColor: '#58D66D',
@@ -33,11 +35,13 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 32,
     fontWeight: 'bold',
-    marginBottom: 8,
+    marginBottom: 4,
   },
   urduTitle: {
     color: '#FFFFFF',
-    fontSize: 22,
+    fontSize: 24,
+    fontFamily: fonts.urduBold,
+    lineHeight: 40,
   },
   cardContainer: {
     backgroundColor: '#FFFFFF',
@@ -151,15 +155,20 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
+    flexWrap: 'wrap',
+    marginTop: 8,
+    marginBottom: 20,
   },
   registerText: {
     color: '#777',
     fontSize: 14,
+    textAlign: 'center',
   },
   registerLink: {
     color: '#4CB85C',
     fontSize: 14,
     fontWeight: 'bold',
+    textAlign: 'center',
   },
 });
 

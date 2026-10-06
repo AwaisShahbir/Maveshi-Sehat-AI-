@@ -1,4 +1,5 @@
 import { StyleSheet } from 'react-native';
+import fonts from './fonts';
 
 const styles = StyleSheet.create({
   container: {
@@ -53,11 +54,13 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   urduTitle: {
-    fontSize: 20,
-    fontWeight: '600',
+    fontFamily: fonts.urduBold,
+    fontSize: 22,
+    fontWeight: '700',
     color: 'rgba(255,255,255,0.9)',
     marginBottom: 20,
     textAlign: 'center',
+    lineHeight: 38,
   },
   englishSub: {
     fontSize: 13,
@@ -67,9 +70,11 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3,
   },
   urduSub: {
+    fontFamily: fonts.urduRegular,
     fontSize: 14,
     color: 'rgba(255,255,255,0.75)',
     textAlign: 'center',
+    lineHeight: 28,
   },
 });
 

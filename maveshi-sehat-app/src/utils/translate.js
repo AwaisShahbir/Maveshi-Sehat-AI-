@@ -1,7 +1,105 @@
 import { getProfile } from './profileStore.js';
 
-// In-memory translation cache (pre-warmed with key terms for instant synchronous render)
+// In-memory translation cache (pre-warmed with comprehensive UI dictionary for instant render)
 const translationCache = new Map([
+  // Core Navigation & App Shell
+  ['Home', 'ہوم'],
+  ['AI Scan', 'اے آئی اسکین'],
+  ['Scan', 'اسکین'],
+  ['Records', 'ریکارڈز'],
+  ['Forum', 'فورم'],
+  ['Profile', 'پروفائل'],
+  ['Marketplace', 'مارکیٹ'],
+  ['Heat Alert', 'گرمی کا الرٹ'],
+  ['Consultations', 'مشاورت'],
+  ['Notifications', 'اطلاعات'],
+  ['Settings', 'ترتیبات'],
+  ['Back', 'واپس'],
+
+  // Authentication & Onboarding
+  ['Welcome Back', 'خوش آمدید'],
+  ['Login', 'لاگ اِن'],
+  ['Register', 'رجسٹر کریں'],
+  ['Login As', 'لاگ ان بطور'],
+  ['Owner', 'مالک'],
+  ['Farmer', 'کسان'],
+  ['Vet', 'ڈاکٹر'],
+  ['Veterinarian', 'ویٹرنری ڈاکٹر'],
+  ['Phone Number', 'فون نمبر'],
+  ['Password', 'پاس ورڈ'],
+  ['Confirm Password', 'پاس ورڈ کی تصدیق'],
+  ['Forgot Password?', 'پاس ورڈ بھول گئے؟'],
+  ["Don't have an account?", 'اکاؤنٹ نہیں ہے؟'],
+  ['Already have an account?', 'پہلے سے اکاؤنٹ ہے؟'],
+  ['Create Account', 'اکاؤنٹ بنائیں'],
+  ['Logging in...', 'لاگ ان ہو رہا ہے...'],
+  ['Creating Account...', 'اکاؤنٹ بن رہا ہے...'],
+  ['Full Name', 'پورا نام'],
+  ['Full Name (English)', 'پورا نام (انگریزی)'],
+  ['Urdu Name', 'نام (اردو)'],
+  ['Email', 'ای میل'],
+  ['District', 'ضلع'],
+  ['Select District', 'ضلع منتخب کریں'],
+  ['Role', 'کردار'],
+  ['PVMC License Number', 'پی وی ایم سی لائسنس نمبر'],
+  ['Specialization', 'شعبہ تخصص'],
+  ['Experience (Years)', 'تجربہ (سال)'],
+  ['Upload Document', 'دستاویز اپ لوڈ کریں'],
+  ['Uploading...', 'اپ لوڈ ہو رہا ہے...'],
+  ['Enter password', 'پاس ورڈ درج کریں'],
+  ['Enter Full Name', 'پورا نام درج کریں'],
+  ['Enter Phone Number', 'فون نمبر درج کریں'],
+  ['Enter Location (City, Province)', 'مقام درج کریں (شہر، صوبہ)'],
+  ['Verification', 'تصدیق'],
+  ['Verify Code', 'کوڈ کی تصدیق کریں'],
+  ['Enter OTP', 'او ٹی پی درج کریں'],
+  ['Resend Code', 'کوڈ دوبارہ بھیجیں'],
+
+  // Language & Profile
+  ['Language', 'زبان'],
+  ['Choose Your Language', 'زبان کا انتخاب کریں'],
+  ['Select Language', 'زبان منتخب کریں'],
+  ['English', 'English'],
+  ['Urdu', 'اردو'],
+  ['Both (English and Urdu)', 'Both (English and Urdu)'],
+  ['Personal Information', 'ذاتی معلومات'],
+  ['Edit Profile', 'پروفائل تبدیل کریں'],
+  ['Save Changes', 'تبدیلیاں محفوظ کریں'],
+  ['Saved successfully', 'کامیابی سے محفوظ ہو گیا'],
+  ['Help & Support', 'مدد اور رہنمائی'],
+  ['Terms & Privacy', 'شرائط و ضوابط'],
+  ['Log Out', 'لاگ آؤٹ'],
+  ['Are you sure you want to log out?', 'کیا آپ واقعی لاگ آؤٹ کرنا چاہتے ہیں؟'],
+  ['Set by Admin', 'ایڈمن کے زیر انتظام'],
+  ['Managed by Admin', 'ایڈمن کنٹرولڈ'],
+  ['Location', 'مقام'],
+  ['City', 'شہر'],
+  ['Account', 'اکاؤنٹ'],
+
+  // Dashboard & Livestock
+  ['Assalam-o-Alaikum', 'السلام علیکم'],
+  ['Livestock', 'مویشی'],
+  ['Total Animals', 'کل جانور'],
+  ['Healthy Animals', 'صحت مند جانور'],
+  ['Healthy', 'صحت مند'],
+  ['Infected', 'بیمار'],
+  ['Sick', 'بیمار'],
+  ['Active Cases', 'زیر علاج کیسز'],
+  ['Quick Actions', 'فوری اقدامات'],
+  ['Scan Disease', 'بیماری اسکین کریں'],
+  ['Ask Community', 'کمیونٹی سے پوچھیں'],
+  ['Find Veterinarian', 'ڈاکٹر تلاش کریں'],
+  ['Order Medicines', 'ادویات منگوائیں'],
+  ['Recent Scans', 'حالیہ اسکینز'],
+  ['Recent AI Scans', 'حالیہ اے آئی اسکینز'],
+  ['View All', 'سب دیکھیں'],
+  ['No recent scans found', 'کوئی حالیہ اسکین نہیں ملا'],
+  ['Animal Health', 'جانوروں کی صحت'],
+  ['Vaccination Due', 'ویکسین کا وقت'],
+  ['Weather Alert', 'موسمی الرٹ'],
+  ['Veterinarians', 'ڈاکٹرز'],
+
+  // Heat Stress & Weather
   ['Heat Stress Alert', 'ہیٹ اسٹریس الرٹ'],
   ['Real-Time Livestock THI Index & Weather', 'مویشیوں کے لیے بروقت THI انڈیکس اور موسم'],
   ['Current Detected Location', 'موجودہ معلوم شدہ مقام'],
@@ -21,13 +119,6 @@ const translationCache = new Map([
   ['Veterinary Advisory', 'حفاظتی تدابیر و رہنمائی'],
   ['7-Day Forecast', '7 روزہ پیشن گوئی'],
   ['Today', 'آج'],
-  ['Sun', 'اتوار'],
-  ['Mon', 'پیر'],
-  ['Tue', 'منگل'],
-  ['Wed', 'بدھ'],
-  ['Thu', 'جمعرات'],
-  ['Fri', 'جمعہ'],
-  ['Sat', 'ہفتہ'],
   ['Select Farm Location', 'فارم کا مقام منتخب کریں'],
   ['Heat stress calculation relies on your area weather', 'ہیٹ اسٹریس کا حساب آپ کے علاقے کے موسم پر ہوتا ہے'],
   ['Detecting Location...', 'مقام تلاش ہو رہا ہے...'],
@@ -35,18 +126,82 @@ const translationCache = new Map([
   ['Search any district or city...', 'شہر یا ضلع تلاش کریں...'],
   ['Major Livestock Hubs (Pakistan)', 'پاکستان کے اہم لائیو اسٹاک اضلاع'],
   ['Calculating Heat Stress for your area...', 'آپ کے علاقے کے لیے ہیٹ اسٹریس لوڈ ہو رہا ہے...'],
-  ['Home', 'ہوم'],
-  ['AI Scan', 'اسکین'],
-  ['Records', 'ریکارڈز'],
-  ['Forum', 'فورم'],
-  ['Profile', 'پروفائل'],
-  ['Assalam-o-Alaikum', 'السلام علیکم'],
-  ['Livestock', 'مویشی'],
-  ['Healthy', 'صحت مند'],
-  ['Farmer', 'کسان'],
-  ['Veterinarian', 'ڈاکٹر'],
-  ['Consultations', 'مشاورت'],
-  ['Notifications', 'اطلاعات'],
+
+  // AI Scan & Diseases
+  ['Take Photo', 'تصویر لیں'],
+  ['Upload from Gallery', 'گیلری سے منتخب کریں'],
+  ['Take Clear Picture', 'صاف تصویر لیں'],
+  ['Analyzing Animal...', 'جانور کا معائنہ ہو رہا ہے...'],
+  ['Detection Result', 'تشخیصی نتیجہ'],
+  ['Confidence', 'درستگی کا تناسب'],
+  ['Confidence:', 'درستگی کا تناسب:'],
+  ['Symptoms', 'علامات'],
+  ['Symptoms:', 'علامات:'],
+  ['First Aid / Treatment', 'ابتدائی طبی امداد و علاج'],
+  ['First Aid / Treatment:', 'ابتدائی طبی امداد:'],
+  ['First Aid Treatment', 'ابتدائی طبی امداد'],
+  ['Consult Vet Now', 'ابھی ڈاکٹر سے رابطہ کریں'],
+  ['Save to Records', 'ریکارڈ میں محفوظ کریں'],
+  ['Animal Type', 'جانور کی قسم'],
+  ['Animal Type:', 'جانور کی قسم:'],
+  ['Cow', 'گائے'],
+  ['Buffalo', 'بھینس'],
+  ['Goat', 'بکری'],
+  ['Sheep', 'بھیڑ'],
+  ['Lumpy Skin Disease', 'لمپی اسکن بیماری'],
+  ['Foot and Mouth Disease', 'منہ کھر کی بیماری'],
+  ['Mastitis', 'تھنوں کی بیماری (ساڑو)'],
+
+  // Vet Portal
+  ['Vet Dashboard', 'ڈاکٹر ڈیش بورڈ'],
+  ['Active Consultations', 'زیر غور مشاورت'],
+  ['Pending Requests', 'زیر التواء درخواستیں'],
+  ['Prescriptions', 'نسخہ جات'],
+  ['Patient Records', 'مریضوں کے ریکارڈ'],
+  ['Write Prescription', 'نسخہ لکھیں'],
+  ['Diagnosis', 'تشخیص'],
+  ['Diagnosis (English)', 'تشخیص (انگریزی)'],
+  ['Treatment Plan', 'طریقہ علاج'],
+  ['Dosage', 'خوراک کی مقدار'],
+  ['Send Prescription', 'نسخہ ارسال کریں'],
+  ['Verified Veterinarian', 'تصدیق شدہ ویٹرنری ڈاکٹر'],
+  ['Available for Consultations', 'مشاورت کے لیے دستیاب'],
+  ['Book Consultation', 'مشاورت بک کریں'],
+  ['Total Prescriptions', 'کل نسخہ جات'],
+
+  // Forum & Community
+  ['Community Forum', 'کمیونٹی فورم'],
+  ['Discussions', 'گفتگو'],
+  ['Start Discussion', 'نئی گفتگو شروع کریں'],
+  ['Search discussions...', 'تلاش کریں...'],
+  ['Brief title for your discussion', 'گفتگو کا مختصر عنوان'],
+  ['Describe your issue or share advice (English/Urdu)', 'اپنے مسئلے کی وضاحت کریں یا مشورہ دیں (انگریزی/اردو)'],
+  ['Reply', 'جواب دیں'],
+  ['Replies', 'جوابات'],
+  ['Post Reply', 'جواب ارسال کریں'],
+  ['No discussions yet', 'ابھی تک کوئی گفتگو نہیں'],
+
+  // Marketplace & Cart
+  ['Search medicines...', 'دوائیں تلاش کریں...'],
+  ['Add to Cart', 'ٹوکری میں شامل کریں'],
+  ['Cart', 'ٹوکری'],
+  ['Checkout', 'آرڈر مکمل کریں'],
+  ['Total Amount', 'کل رقم'],
+  ['Cash on Delivery', 'کیش آن ڈیلیوری'],
+  ['Payment Method', 'ادائیگی کا طریقہ'],
+
+  // Common Actions & Modals
+  ['Save', 'محفوظ کریں'],
+  ['Cancel', 'منسوخ کریں'],
+  ['Delete', 'حذف کریں'],
+  ['Edit', 'ترمیم کریں'],
+  ['Submit', 'جمع کروائیں'],
+  ['Done', 'مکمل'],
+  ['Close', 'بند کریں'],
+  ['Search', 'تلاش کریں'],
+  ['Loading...', 'لوڈ ہو رہا ہے...'],
+  ['Success', 'کامیابی'],
+  ['Error', 'خرابی'],
 ]);
 
 let translationListeners = [];
@@ -103,6 +258,11 @@ export const translateText = async (text, targetLang = 'ur') => {
 /**
  * Universal translation function.
  * Translates English text automatically using the Translation API and cached translations.
+ * 
+ * Rules:
+ * - English mode: Pure English only.
+ * - Urdu mode: Pure Urdu only.
+ * - Both mode: English on line 1, Urdu written strictly below on line 2 (separated by \n, never /).
  */
 export const t = (en, urFallback) => {
   if (!en) return '';
@@ -127,10 +287,10 @@ export const t = (en, urFallback) => {
     return translatedUr || en;
   }
 
-  // 'Both' mode
+  // 'Both' mode: Urdu placed just below English
   if (lang === 'Both') {
     if (translatedUr && translatedUr !== en) {
-      return `${en} / ${translatedUr}`;
+      return `${en}\n${translatedUr}`;
     }
     return en;
   }
@@ -139,8 +299,8 @@ export const t = (en, urFallback) => {
 };
 
 /**
- * Structured helper for clean UI rendering without ugly slash wrapping
- * Returns { en, ur, isBoth, isUrdu, isEnglish }
+ * Structured helper for clean UI rendering without inline single-line collisions.
+ * Returns { en, ur, isBoth, isUrdu, isEnglish, display }
  */
 export const tSplit = (en, urFallback) => {
   if (!en) return { en: '', ur: '', display: '' };
@@ -162,7 +322,7 @@ export const tSplit = (en, urFallback) => {
     isBoth: lang === 'Both',
     isUrdu: lang === 'Urdu',
     isEnglish: lang === 'English',
-    display: lang === 'Urdu' ? (ur || cleanEn) : (lang === 'Both' ? `${cleanEn} / ${ur}` : cleanEn)
+    display: lang === 'Urdu' ? (ur || cleanEn) : (lang === 'Both' ? `${cleanEn}\n${ur || cleanEn}` : cleanEn)
   };
 };
 
@@ -186,7 +346,7 @@ export const getLocalizedDescription = (disease, defaultDesc) => {
   }
 
   if (lang === 'Urdu') return urduDesc;
-  if (lang === 'Both') return `${defaultDesc} / ${urduDesc}`;
+  if (lang === 'Both') return `${defaultDesc}\n${urduDesc}`;
   return defaultDesc;
 };
 
@@ -226,7 +386,28 @@ export const getLocalizedFirstAid = (disease, defaultTips = []) => {
 
   if (lang === 'Urdu') return urduTips;
   if (lang === 'Both') {
-    return defaultTips.map((tip, idx) => `${tip} / ${urduTips[idx] || ''}`);
+    return defaultTips.map((tip, idx) => {
+      const urTip = urduTips[idx];
+      return urTip ? `${tip}\n${urTip}` : tip;
+    });
   }
   return defaultTips;
+};
+
+/**
+ * Checks if a string contains Urdu/Arabic characters
+ */
+export const isUrduText = (text) => {
+  if (typeof text !== 'string') return false;
+  return /[\u0600-\u06FF\u0750-\u077F\uFB50-\uFDFF\uFE70-\uFEFF]/.test(text);
+};
+
+export default {
+  t,
+  tSplit,
+  translateText,
+  useTranslation,
+  getLocalizedDescription,
+  getLocalizedFirstAid,
+  isUrduText
 };

@@ -164,7 +164,7 @@ export default function ProfileScreen() {
           </View>
         </View>
 
-        <Text style={styles.groupTitle}>{t('Account', 'کھاتہ / اکاؤنٹ')}</Text>
+        <Text style={styles.groupTitle}>{t('Account', 'اکاؤنٹ')}</Text>
         <View style={styles.settingsGroup}>
           <TouchableOpacity style={styles.settingsItem} onPress={() => setEditModalVisible(true)}>
             <View style={[styles.itemIconBg, { backgroundColor: '#E8F8EA' }]}>
@@ -192,7 +192,7 @@ export default function ProfileScreen() {
               <Feather name="map-pin" size={18} color="#58D66D" />
             </View>
             <View style={styles.itemDetails}>
-              <Text style={styles.itemTitle}>{t('Location', 'مقام / پتہ')}</Text>
+              <Text style={styles.itemTitle}>{t('Location', 'مقام')}</Text>
               <Text style={styles.itemVal}>{profile.location}</Text>
             </View>
             <Feather name="chevron-right" size={18} color="#888" />
@@ -336,7 +336,7 @@ export default function ProfileScreen() {
                 keyboardType="phone-pad"
               />
 
-              <Text style={styles.inputLabel}>{t('Location', 'مقام / پتہ')}</Text>
+              <Text style={styles.inputLabel}>{t('Location', 'مقام')}</Text>
               <TextInput
                 style={styles.textInput}
                 value={editLocation}

@@ -142,15 +142,20 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
+    flexWrap: 'wrap',
+    marginTop: 8,
+    marginBottom: 20,
   },
   loginText: {
     color: '#777',
     fontSize: 14,
+    textAlign: 'center',
   },
   loginLink: {
     color: '#4CB85C',
     fontSize: 14,
     fontWeight: 'bold',
+    textAlign: 'center',
   },
   modalOverlay: {
     flex: 1,

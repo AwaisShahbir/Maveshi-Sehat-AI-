@@ -1,4 +1,5 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Platform, StatusBar } from 'react-native';
+import fonts from './fonts';
 
 const styles = StyleSheet.create({
   root: {
@@ -56,22 +57,26 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   urduTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: 'rgba(255,255,255,0.88)',
-    marginBottom: 22,
+    fontFamily: fonts.urduBold,
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#84f285',
+    marginBottom: 20,
     textAlign: 'center',
+    lineHeight: 38,
   },
   englishSub: {
     fontSize: 13,
-    color: 'rgba(255,255,255,0.6)',
+    color: 'rgba(255,255,255,0.7)',
     marginBottom: 4,
     textAlign: 'center',
   },
   urduSub: {
+    fontFamily: fonts.urduRegular,
     fontSize: 14,
-    color: 'rgba(255,255,255,0.6)',
+    color: 'rgba(255,255,255,0.85)',
     textAlign: 'center',
+    lineHeight: 28,
   },
 
   /* ── Bottom section ── */
@@ -113,16 +118,18 @@ const styles = StyleSheet.create({
   /* ── Language Selection Modal ── */
   langBadgeBtn: {
     position: 'absolute',
-    top: 14,
-    right: 14,
+    top: Platform.OS === 'android' ? (StatusBar.currentHeight || 24) + 8 : 16,
+    right: 20,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    backgroundColor: 'rgba(255,255,255,0.18)',
+    paddingHorizontal: 14,
+    paddingVertical: 7,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.25)',
+    borderColor: 'rgba(255,255,255,0.3)',
+    zIndex: 999,
+    elevation: 8,
   },
   langBadgeText: {
     color: '#FFF',

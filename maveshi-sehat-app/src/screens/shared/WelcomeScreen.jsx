@@ -124,7 +124,7 @@ export default function WelcomeScreen() {
               ? 'پاکستان بھر میں 10,000+ مویشی پال حضرات کا بھروسہ'
               : currentLang === 'English'
               ? 'Trusted by 10,000+ livestock owners across Pakistan'
-              : 'Trusted by 10,000+ livestock owners across Pakistan / پاکستان بھر میں بااعتماد'}
+              : 'Trusted by 10,000+ livestock owners across Pakistan\nپاکستان بھر میں بااعتماد'}
           </Text>
         </View>
 

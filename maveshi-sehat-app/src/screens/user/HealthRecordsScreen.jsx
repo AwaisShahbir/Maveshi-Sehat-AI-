@@ -289,7 +289,7 @@ export default function HealthRecordsScreen() {
                   
                   <View style={styles.detailTable}>
                     <View style={styles.tableRow}>
-                      <Text style={styles.tableLabel}>{t('Animal Type:', 'قسم / نوعیت:')}</Text>
+                      <Text style={styles.tableLabel}>{t('Animal Type:', 'جانور کی قسم:')}</Text>
                       <Text style={styles.tableVal}>{t(selectedRecord.animalType, selectedRecord.animalType === 'Cow' ? 'گائے' : 'بھینس')}</Text>
                     </View>
                     <View style={styles.tableRow}>
@@ -297,7 +297,7 @@ export default function HealthRecordsScreen() {
                       <Text style={styles.tableVal}>{selectedRecord.date}</Text>
                     </View>
                     <View style={styles.tableRow}>
-                      <Text style={styles.tableLabel}>{t('Confidence:', 'یقینیت / اعتماد:')}</Text>
+                      <Text style={styles.tableLabel}>{t('Confidence:', 'اعتماد:')}</Text>
                       <Text style={styles.tableVal}>{selectedRecord.confidence}</Text>
                     </View>
                     <View style={styles.tableRow}>
