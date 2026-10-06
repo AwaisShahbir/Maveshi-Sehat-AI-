@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, SafeAreaView, StatusBar, KeyboardAvoidingView, Platform, ScrollView, Alert, Modal, FlatList } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, SafeAreaView, StatusBar, KeyboardAvoidingView, Platform, ScrollView, Alert, Modal, FlatList, BackHandler } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
 import { t, useTranslation, subscribeTranslation } from '../../utils/translate';
@@ -11,6 +11,23 @@ export default function RegisterScreen() {
   const navigation = useNavigation();
   const { isUrdu } = useTranslation();
   const [, setTick] = useState(0);
+
+  const handleBack = () => {
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+    } else {
+      navigation.navigate('Welcome');
+    }
+  };
+
+  useEffect(() => {
+    const onHardwareBack = () => {
+      handleBack();
+      return true;
+    };
+    const sub = BackHandler.addEventListener('hardwareBackPress', onHardwareBack);
+    return () => sub.remove();
+  }, [navigation]);
 
   useEffect(() => {
     return subscribeTranslation(() => setTick(t => t + 1));
@@ -189,8 +206,9 @@ export default function RegisterScreen() {
           
           <View style={styles.topSection}>
             <TouchableOpacity 
-              onPress={() => navigation.goBack()} 
+              onPress={handleBack} 
               style={styles.backButton}
+              activeOpacity={0.7}
               hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
             >
               <Feather name="chevron-left" size={24} color="#FFFFFF" />

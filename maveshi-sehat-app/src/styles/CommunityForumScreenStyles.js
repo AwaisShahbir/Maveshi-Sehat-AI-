@@ -159,7 +159,7 @@ const styles = StyleSheet.create({
   descriptionText: {
     fontSize: 13,
     color: '#555',
-    lineHeight: 19,
+    lineHeight: 22,
     marginBottom: 14,
   },
   cardFooter: {

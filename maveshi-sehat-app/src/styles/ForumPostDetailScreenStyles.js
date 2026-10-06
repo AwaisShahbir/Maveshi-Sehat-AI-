@@ -232,7 +232,7 @@ const styles = StyleSheet.create({
   commentBodyText: {
     fontSize: 13,
     color: '#444',
-    lineHeight: 19,
+    lineHeight: 22,
     marginBottom: 10,
   },
   commentActionsRow: {

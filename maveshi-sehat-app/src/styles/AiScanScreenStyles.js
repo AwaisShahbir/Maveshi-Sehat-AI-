@@ -203,12 +203,12 @@ const styles = StyleSheet.create({
   resultVal: { fontSize: 13, color: '#333', fontWeight: '700' },
   
   descTitle: { fontSize: 13, fontWeight: 'bold', color: '#333', marginTop: 12, marginBottom: 4 },
-  descText: { fontSize: 12, color: '#555', lineHeight: 18 },
+  descText: { fontSize: 12, color: '#555', lineHeight: 22 },
   
   aidTitle: { fontSize: 13, fontWeight: 'bold', color: '#333', marginTop: 12, marginBottom: 6 },
-  bulletRow: { flexDirection: 'row', marginBottom: 4, paddingRight: 10 },
-  bulletDot: { fontSize: 14, color: '#4CB85C', marginRight: 6, marginTop: -2 },
-  bulletText: { fontSize: 12, color: '#555', lineHeight: 16, flex: 1 },
+  bulletRow: { flexDirection: 'row', marginBottom: 6, paddingRight: 10, alignItems: 'flex-start' },
+  bulletDot: { fontSize: 14, color: '#4CB85C', marginRight: 6, marginTop: 2 },
+  bulletText: { fontSize: 12, color: '#555', lineHeight: 22, flex: 1 },
 
   reportActions: {
     flexDirection: 'row',

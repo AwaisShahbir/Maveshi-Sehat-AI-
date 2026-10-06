@@ -489,14 +489,14 @@ export default function AiScanScreen() {
                 <Text style={[styles.resultVal, { color: '#333' }]}>{scanResult.confidence}</Text>
               </View>
               
-              <Text style={styles.descTitle}>{t('Clinical Description:')}</Text>
-              <Text style={styles.descText}>{getLocalizedDescription(scanResult.status, scanResult.description)}</Text>
+              <Text style={[styles.descTitle, isUrdu && { fontFamily: fonts.urduBold, fontSize: 15 }]}>{t('Clinical Description:')}</Text>
+              <Text style={[styles.descText, isUrdu && { fontFamily: fonts.urduRegular, fontSize: 14, lineHeight: 28 }]}>{getLocalizedDescription(scanResult.status, scanResult.description)}</Text>
               
-              <Text style={styles.aidTitle}>{t('Recommended First Aid:')}</Text>
+              <Text style={[styles.aidTitle, isUrdu && { fontFamily: fonts.urduBold, fontSize: 15 }]}>{t('Recommended First Aid:')}</Text>
               {getLocalizedFirstAid(scanResult.status, scanResult.firstAid).map((tip, idx) => (
-                <View key={idx} style={styles.bulletRow}>
-                  <Text style={styles.bulletDot}>•</Text>
-                  <Text style={styles.bulletText}>{tip}</Text>
+                <View key={idx} style={[styles.bulletRow, { alignItems: 'flex-start' }]}>
+                  <Text style={[styles.bulletDot, isUrdu && { marginTop: 4 }]}>•</Text>
+                  <Text style={[styles.bulletText, isUrdu && { fontFamily: fonts.urduRegular, fontSize: 14, lineHeight: 28 }]}>{tip}</Text>
                 </View>
               ))}
             </View>

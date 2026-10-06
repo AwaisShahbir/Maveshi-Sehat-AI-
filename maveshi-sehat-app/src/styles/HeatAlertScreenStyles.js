@@ -244,9 +244,9 @@ const styles = StyleSheet.create({
     marginVertical: 8,
   },
   advisoryBodyUr: {
-    fontSize: 12,
+    fontSize: 13,
     color: '#664400',
-    lineHeight: 20,
+    lineHeight: 24,
     textAlign: 'right',
   },
 

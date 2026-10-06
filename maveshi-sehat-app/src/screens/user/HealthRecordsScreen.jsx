@@ -323,19 +323,19 @@ export default function HealthRecordsScreen() {
                   
                   {selectedRecord.description && (
                     <>
-                      <Text style={[styles.sectionTitleModal, isUrdu && { fontFamily: fonts.urduBold }]}>{t('Clinical Description:')}</Text>
-                      <Text style={[styles.detailTextModal, isUrdu && { fontFamily: fonts.urduRegular }]}>{getLocalizedDescription(selectedRecord.disease, selectedRecord.description)}</Text>
+                      <Text style={[styles.sectionTitleModal, isUrdu && { fontFamily: fonts.urduBold, fontSize: 16, lineHeight: 28 }]}>{t('Clinical Description:')}</Text>
+                      <Text style={[styles.detailTextModal, isUrdu && { fontFamily: fonts.urduRegular, fontSize: 15, lineHeight: 28 }]}>{getLocalizedDescription(selectedRecord.disease, selectedRecord.description)}</Text>
                     </>
                   )}
 
                   
                   {selectedRecord.firstAid && selectedRecord.firstAid.length > 0 && (
                     <>
-                      <Text style={[styles.sectionTitleModal, isUrdu && { fontFamily: fonts.urduBold }]}>{t('First Aid / Treatment:')}</Text>
+                      <Text style={[styles.sectionTitleModal, isUrdu && { fontFamily: fonts.urduBold, fontSize: 16, lineHeight: 28 }]}>{t('First Aid / Treatment:')}</Text>
                       {getLocalizedFirstAid(selectedRecord.disease, selectedRecord.firstAid).map((tip, idx) => (
                         <View key={idx} style={styles.bulletRowModal}>
-                          <Text style={styles.bulletDotModal}>•</Text>
-                          <Text style={[styles.bulletTextModal, isUrdu && { fontFamily: fonts.urduRegular }]}>{tip}</Text>
+                          <Text style={[styles.bulletDotModal, isUrdu && { marginTop: 4 }]}>•</Text>
+                          <Text style={[styles.bulletTextModal, isUrdu && { fontFamily: fonts.urduRegular, fontSize: 15, lineHeight: 28 }]}>{tip}</Text>
                         </View>
                       ))}
                     </>
