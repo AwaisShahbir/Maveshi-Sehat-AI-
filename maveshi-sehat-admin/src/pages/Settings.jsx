@@ -572,7 +572,6 @@ export default function Settings({ onProfileUpdate }) {
                   >
                     <option value="English">English</option>
                     <option value="Urdu">Urdu</option>
-                    <option value="Both">Both (English & Urdu)</option>
                   </select>
                   <span className="settings-slider-hint" style={{ marginTop: '4px', display: 'block' }}>
                     {enforceAdminLanguage 

@@ -264,7 +264,11 @@ export default function RegisterScreen() {
                 onPress={() => setRole('farmer')}
                 activeOpacity={0.8}
               >
-                <Text style={[styles.roleText, role === 'farmer' && styles.roleTextActive, isUrdu && { fontFamily: fonts.urduRegular }]}>
+                <Text style={[
+                  styles.roleText, 
+                  role === 'farmer' && styles.roleTextActive, 
+                  isUrdu && { fontFamily: fonts.urduRegular, fontSize: 17, lineHeight: 28, includeFontPadding: false }
+                ]}>
                   {t('Farmer')}
                 </Text>
               </TouchableOpacity>
@@ -273,7 +277,11 @@ export default function RegisterScreen() {
                 onPress={() => setRole('vet')}
                 activeOpacity={0.8}
               >
-                <Text style={[styles.roleText, role === 'vet' && styles.roleTextActive, isUrdu && { fontFamily: fonts.urduRegular }]}>
+                <Text style={[
+                  styles.roleText, 
+                  role === 'vet' && styles.roleTextActive, 
+                  isUrdu && { fontFamily: fonts.urduRegular, fontSize: 17, lineHeight: 28, includeFontPadding: false }
+                ]}>
                   {t('Vet')}
                 </Text>
               </TouchableOpacity>

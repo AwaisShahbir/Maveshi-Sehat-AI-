@@ -70,11 +70,12 @@ const styles = StyleSheet.create({
   },
   roleButton: {
     flex: 1,
-    paddingVertical: 14,
+    height: 52,
+    justifyContent: 'center',
+    alignItems: 'center',
     borderRadius: 16,
     borderWidth: 1,
     borderColor: '#E0E0E0',
-    alignItems: 'center',
     backgroundColor: '#FFFFFF',
   },
   roleButtonActive: {
@@ -85,6 +86,7 @@ const styles = StyleSheet.create({
     color: '#666',
     fontSize: 14,
     fontWeight: '600',
+    textAlign: 'center',
   },
   roleTextActive: {
     color: '#4CB85C',
@@ -121,8 +123,9 @@ const styles = StyleSheet.create({
   },
   loginButton: {
     backgroundColor: '#58D66D',
-    paddingVertical: 18,
+    height: 58,
     borderRadius: 16,
+    justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#58D66D',
     shadowOffset: { width: 0, height: 4 },

@@ -100,14 +100,20 @@ export default function LoginScreen() {
 
           <View style={styles.cardContainer}>
             
-            <Text style={[styles.label, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Login As')}</Text>
+            <Text style={[styles.label, isUrdu && { fontFamily: fonts.urduBold, fontSize: 15, marginTop: 14, marginBottom: 6, includeFontPadding: false }]}>
+              {t('Login As')}
+            </Text>
             <View style={styles.roleContainer}>
               <TouchableOpacity 
                 style={[styles.roleButton, role === 'owner' && styles.roleButtonActive]}
                 onPress={() => setRole('owner')}
                 activeOpacity={0.8}
               >
-                <Text style={[styles.roleText, role === 'owner' && styles.roleTextActive, isUrdu && { fontFamily: fonts.urduRegular }]}>
+                <Text style={[
+                  styles.roleText, 
+                  role === 'owner' && styles.roleTextActive, 
+                  isUrdu && { fontFamily: fonts.urduRegular, fontSize: 17, lineHeight: 26, includeFontPadding: false }
+                ]}>
                   {t('Owner')}
                 </Text>
               </TouchableOpacity>
@@ -116,13 +122,19 @@ export default function LoginScreen() {
                 onPress={() => setRole('vet')}
                 activeOpacity={0.8}
               >
-                <Text style={[styles.roleText, role === 'vet' && styles.roleTextActive, isUrdu && { fontFamily: fonts.urduRegular }]}>
+                <Text style={[
+                  styles.roleText, 
+                  role === 'vet' && styles.roleTextActive, 
+                  isUrdu && { fontFamily: fonts.urduRegular, fontSize: 17, lineHeight: 26, includeFontPadding: false }
+                ]}>
                   {t('Vet')}
                 </Text>
               </TouchableOpacity>
             </View>
 
-            <Text style={[styles.label, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Phone Number')}</Text>
+            <Text style={[styles.label, isUrdu && { fontFamily: fonts.urduBold, fontSize: 15, marginTop: 14, marginBottom: 6, includeFontPadding: false }]}>
+              {t('Phone Number')}
+            </Text>
             <View style={styles.inputContainer}>
               <Feather name="phone" size={20} color="#4CB85C" style={styles.inputIcon} />
               <TextInput 
@@ -135,7 +147,9 @@ export default function LoginScreen() {
               />
             </View>
 
-            <Text style={[styles.label, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Password')}</Text>
+            <Text style={[styles.label, isUrdu && { fontFamily: fonts.urduBold, fontSize: 15, marginTop: 14, marginBottom: 6, includeFontPadding: false }]}>
+              {t('Password')}
+            </Text>
             <View style={styles.inputContainer}>
               <Feather name="lock" size={20} color="#4CB85C" style={styles.inputIcon} />
               <TextInput 
@@ -152,7 +166,7 @@ export default function LoginScreen() {
             </View>
 
             <TouchableOpacity>
-              <Text style={[styles.forgotPassword, isUrdu && { fontFamily: fonts.urduRegular }]}>
+              <Text style={[styles.forgotPassword, isUrdu && { fontFamily: fonts.urduRegular, fontSize: 15, includeFontPadding: false }]}>
                 {t('Forgot Password?')}
               </Text>
             </TouchableOpacity>
@@ -170,17 +184,17 @@ export default function LoginScreen() {
               onPress={handleLogin}
               disabled={loading}
             >
-              <Text style={[styles.loginButtonText, isUrdu && { fontFamily: fonts.urduBold }]}>
+              <Text style={[styles.loginButtonText, isUrdu && { fontFamily: fonts.urduBold, fontSize: 19, includeFontPadding: false }]}>
                 {loading ? t('Logging in...') : t('Login')}
               </Text>
             </TouchableOpacity>
 
             <View style={styles.registerContainer}>
-              <Text style={[styles.registerText, isUrdu && { fontFamily: fonts.urduRegular }]}>
+              <Text style={[styles.registerText, isUrdu && { fontFamily: fonts.urduRegular, fontSize: 15, includeFontPadding: false }]}>
                 {t("Don't have an account?")}{' '}
               </Text>
               <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-                <Text style={[styles.registerLink, isUrdu && { fontFamily: fonts.urduBold }]}>
+                <Text style={[styles.registerLink, isUrdu && { fontFamily: fonts.urduBold, fontSize: 15, includeFontPadding: false }]}>
                   {t('Register')}
                 </Text>
               </TouchableOpacity>
