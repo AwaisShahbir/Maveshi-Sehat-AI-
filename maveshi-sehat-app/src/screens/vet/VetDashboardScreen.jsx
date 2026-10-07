@@ -268,6 +268,13 @@ export default function VetDashboardScreen() {
             </View>
             <Text style={styles.actionTitle}>Health Records</Text>
           </TouchableOpacity>
+
+          <TouchableOpacity style={styles.actionCard} onPress={() => navigation.navigate('Chatbot')}>
+            <View style={[styles.actionIconBox, { backgroundColor: '#E8F8EA' }]}>
+              <MaterialCommunityIcons name="stethoscope" size={28} color="#4CB85C" />
+            </View>
+            <Text style={styles.actionTitle}>AI Assistant</Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
 

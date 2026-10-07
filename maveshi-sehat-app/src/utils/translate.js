@@ -45,7 +45,9 @@ export const CORE_UI_KEYS = [
   'Confidence', 'Confidence:', 'Animal Type', 'Animal Type:', 'Cow', 'Buffalo', 'Goat', 'Sheep',
   'Symptoms', 'Symptoms:', 'First Aid', 'First Aid / Treatment', 'First Aid / Treatment:',
   'Risk Level:', 'High Risk', 'Medium Risk', 'Low Risk', 'Date & Time:', 'Cancel', 'Close',
-  'Search', 'Loading...', 'Success', 'Error', 'Save to Records', 'Consult Vet Now'
+  'Search', 'Loading...', 'Success', 'Error', 'Save to Records', 'Consult Vet Now',
+  'Health Records', 'Search records...', 'Total Scans', 'All', 'Active', 'Under Treatment', 'Recovered',
+  'Sehat Assistant', 'Ask Sehat Assistant', 'Instant AI guidance for your animals', 'AI Assistant', 'Clear Chat', 'Suggested Questions'
 ];
 
 /**

@@ -2,10 +2,10 @@ import { StyleSheet, Platform, StatusBar } from 'react-native';
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: '#F8FAF9' },
-  scrollContent: { paddingBottom: 110 },
+  scrollContent: { paddingBottom: 120 },
   
   header: {
-    backgroundColor: '#359D5B',
+    backgroundColor: '#4CB85C',
     paddingHorizontal: 20,
     paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 0) + 16 : 16,
     paddingBottom: 48,
@@ -13,7 +13,6 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 28,
   },
   headerTitle: { fontSize: 24, fontWeight: '700', color: '#FFF' },
-  headerUrdu: { fontSize: 16, color: '#E8F8EA', marginTop: 4, fontWeight: '500' },
 
   searchBarRow: {
     flexDirection: 'row',
@@ -74,7 +73,7 @@ const styles = StyleSheet.create({
     height: 84,
     borderRadius: 16,
     paddingVertical: 8,
-    paddingHorizontal: 6,
+    paddingHorizontal: 2,
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#173623',
@@ -85,9 +84,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#EDF2EE',
   },
-  statValue: { fontSize: 22, fontWeight: '800', color: '#222' },
+  statValue: { fontSize: 20, fontWeight: '800', color: '#222' },
   statLabel: { fontSize: 11, color: '#666', marginTop: 2, fontWeight: '600', textAlign: 'center' },
-  statUrdu: { fontSize: 9, color: '#999', marginTop: 2 },
 
   filterWrapper: {
     marginBottom: 16,
@@ -109,8 +107,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   filterChipActive: {
-    backgroundColor: '#359D5B',
-    borderColor: '#359D5B',
+    backgroundColor: '#4CB85C',
+    borderColor: '#4CB85C',
+    shadowColor: '#4CB85C',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 2,
   },
   filterChipText: { fontSize: 12, color: '#555', fontWeight: '600' },
   filterChipTextActive: { color: '#FFF', fontWeight: 'bold' },
@@ -185,7 +188,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     paddingTop: 10,
-    paddingBottom: Platform.OS === 'ios' ? 28 : 22,
+    paddingBottom: Platform.OS === 'android' ? 24 : 22,
   },
   navItem: { alignItems: 'center', justifyContent: 'center', minWidth: 50 },
   navText: { fontSize: 11, color: '#FFF', marginTop: 2, fontWeight: '600' },

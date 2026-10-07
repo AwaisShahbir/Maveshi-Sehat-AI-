@@ -117,14 +117,11 @@ export default function HealthRecordsScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor="#58D66D" />
-      
+      <StatusBar barStyle="light-content" backgroundColor="#4CB85C" />
       
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        
         <View style={styles.header}>
           <Text style={[styles.headerTitle, isUrdu && { fontFamily: fonts.urduBold }]}>{t('Health Records')}</Text>
-                    
           
           <View style={styles.searchBarRow}>
             <View style={styles.searchContainer}>
@@ -146,7 +143,7 @@ export default function HealthRecordsScreen() {
               style={[styles.filterBtn, showFilterOptions && styles.filterBtnActive]}
               onPress={() => setShowFilterOptions(!showFilterOptions)}
             >
-              <Feather name="sliders" size={20} color={showFilterOptions ? '#FFF' : '#58D66D'} />
+              <Feather name="sliders" size={20} color={showFilterOptions ? '#FFF' : '#4CB85C'} />
             </TouchableOpacity>
           </View>
         </View>
@@ -157,8 +154,7 @@ export default function HealthRecordsScreen() {
             <Text style={styles.statValue}>{totalScans}</Text>
             <Text 
               numberOfLines={1} 
-              adjustsFontSizeToFit 
-              style={[styles.statLabel, isUrdu && { fontFamily: fonts.urduBold, fontSize: 11.5, includeFontPadding: false }]}
+              style={[styles.statLabel, isUrdu && { fontFamily: fonts.urduBold, fontSize: 11 }]}
             >
               {t('Total Scans')}
             </Text>
@@ -167,25 +163,23 @@ export default function HealthRecordsScreen() {
             <Text style={[styles.statValue, { color: '#E53E3E' }]}>{activeCases}</Text>
             <Text 
               numberOfLines={1} 
-              adjustsFontSizeToFit 
-              style={[styles.statLabel, isUrdu && { fontFamily: fonts.urduBold, fontSize: 11.5, includeFontPadding: false }]}
+              style={[styles.statLabel, isUrdu && { fontFamily: fonts.urduBold, fontSize: 11 }]}
             >
               {t('Active Cases')}
             </Text>
           </View>
           <View style={styles.statCard}>
-            <Text style={[styles.statValue, { color: '#359D5B' }]}>{healthyCount}</Text>
+            <Text style={[styles.statValue, { color: '#4CB85C' }]}>{healthyCount}</Text>
             <Text 
               numberOfLines={1} 
-              adjustsFontSizeToFit 
-              style={[styles.statLabel, isUrdu && { fontFamily: fonts.urduBold, fontSize: 11.5, includeFontPadding: false }]}
+              style={[styles.statLabel, isUrdu && { fontFamily: fonts.urduBold, fontSize: 11 }]}
             >
               {t('Healthy')}
             </Text>
           </View>
         </View>
 
-        {/* ── Filter Chips (Horizontal Single-Line Scroll) ── */}
+        {/* ── Filter Chips ── */}
         {showFilterOptions && (
           <View style={styles.filterWrapper}>
             <ScrollView 
@@ -206,7 +200,7 @@ export default function HealthRecordsScreen() {
                   <Text style={[
                     styles.filterChipText, 
                     activeFilter === filter && styles.filterChipTextActive,
-                    isUrdu && { fontFamily: fonts.urduBold, fontSize: 13, includeFontPadding: false }
+                    isUrdu && { fontFamily: fonts.urduBold }
                   ]}>
                     {t(filter)}
                   </Text>
@@ -216,12 +210,10 @@ export default function HealthRecordsScreen() {
           </View>
         )}
 
-        
         <View style={styles.recordsListContainer}>
           {filteredRecords.length > 0 ? (
             filteredRecords.map((rec) => (
               <TouchableOpacity key={rec.id} style={styles.recordCard} onPress={() => handleOpenRecordDetail(rec)}>
-                
                 <View style={[styles.iconContainer, { backgroundColor: rec.bg, overflow: 'hidden' }]}>
                   {rec.uri ? (
                     <Image source={{ uri: rec.uri }} style={{ width: 44, height: 44, resizeMode: 'cover' }} />
@@ -230,13 +222,11 @@ export default function HealthRecordsScreen() {
                   )}
                 </View>
 
-                
                 <View style={styles.detailsContainer}>
                   <Text style={[styles.diseaseTitle, isUrdu && { fontFamily: fonts.urduBold }]}>{t(rec.disease)}</Text>
                   <Text style={[styles.animalSub, isUrdu && { fontFamily: fonts.urduRegular }]}>
                     {rec.animalId} • {rec.timeAgo === 'Just now' ? t('Just now') : rec.timeAgo}
                   </Text>
-                  
                   
                   <View style={styles.badgesRow}>
                     <View style={[
@@ -267,7 +257,6 @@ export default function HealthRecordsScreen() {
                   </View>
                 </View>
 
-                
                 <View style={styles.rightContainer}>
                   <Text style={styles.confidenceText}>{rec.confidence}</Text>
                 </View>
@@ -389,23 +378,23 @@ export default function HealthRecordsScreen() {
         <View style={styles.bottomNav}>
           <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Dashboard')}>
             <Feather name="home" size={24} color="#A3E6B2" />
-            <Text style={[styles.navText, { color: '#A3E6B2' }, isUrdu && { fontFamily: fonts.urduBold, fontSize: 12, includeFontPadding: false }]}>{t('Home')}</Text>
+            <Text style={[styles.navText, { color: '#A3E6B2' }, isUrdu && { fontFamily: fonts.urduBold, fontSize: 11 }]}>{t('Home')}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('AiScan', { userName, userId })}>
             <MaterialCommunityIcons name="line-scan" size={24} color="#A3E6B2" />
-            <Text style={[styles.navText, { color: '#A3E6B2' }, isUrdu && { fontFamily: fonts.urduBold, fontSize: 12, includeFontPadding: false }]}>{t('AI Scan')}</Text>
+            <Text style={[styles.navText, { color: '#A3E6B2' }, isUrdu && { fontFamily: fonts.urduBold, fontSize: 11 }]}>{t('AI Scan')}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.navItem}>
             <Feather name="file-text" size={24} color="#FFF" />
-            <Text style={[styles.navText, { color: '#FFF' }, isUrdu && { fontFamily: fonts.urduBold, fontSize: 12, includeFontPadding: false }]}>{t('Records')}</Text>
+            <Text style={[styles.navText, { color: '#FFF' }, isUrdu && { fontFamily: fonts.urduBold, fontSize: 11 }]}>{t('Records')}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('CommunityForum', { userName, userId })}>
             <Feather name="message-square" size={24} color="#A3E6B2" />
-            <Text style={[styles.navText, { color: '#A3E6B2' }, isUrdu && { fontFamily: fonts.urduBold, fontSize: 12, includeFontPadding: false }]}>{t('Forum')}</Text>
+            <Text style={[styles.navText, { color: '#A3E6B2' }, isUrdu && { fontFamily: fonts.urduBold, fontSize: 11 }]}>{t('Forum')}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Profile', { userId })}>
             <Feather name="user" size={24} color="#A3E6B2" />
-            <Text style={[styles.navText, { color: '#A3E6B2' }, isUrdu && { fontFamily: fonts.urduBold, fontSize: 12, includeFontPadding: false }]}>{t('Profile')}</Text>
+            <Text style={[styles.navText, { color: '#A3E6B2' }, isUrdu && { fontFamily: fonts.urduBold, fontSize: 11 }]}>{t('Profile')}</Text>
           </TouchableOpacity>
         </View>
       </View>

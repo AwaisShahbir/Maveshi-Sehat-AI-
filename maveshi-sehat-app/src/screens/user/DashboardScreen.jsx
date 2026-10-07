@@ -6,12 +6,14 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import LinearGradient from 'react-native-linear-gradient';
 import { getRecords, subscribe, loadRecords } from '../../utils/recordsStore';
 import { getProfile, subscribeProfile } from '../../utils/profileStore';
-import { t } from '../../utils/translate';
+import { t, useTranslation } from '../../utils/translate';
+import fonts from '../../styles/fonts';
 import styles from '../../styles/DashboardScreenStyles';
 
 export default function DashboardScreen() {
   const navigation = useNavigation();
   const route = useRoute();
+  const { isUrdu } = useTranslation();
   const params = route.params || {};
 
   
@@ -203,6 +205,24 @@ export default function DashboardScreen() {
           </View>
         </View>
 
+        {/* Sehat Assistant AI Chatbot Banner */}
+        <TouchableOpacity
+          style={styles.aiBanner}
+          onPress={() => navigation.navigate('Chatbot')}
+          activeOpacity={0.85}
+        >
+          <View style={styles.aiBannerLeft}>
+            <View style={styles.aiBannerIcon}>
+              <MaterialCommunityIcons name="stethoscope" size={24} color="#FFF" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.aiBannerTitle}>{t('Ask Sehat Assistant')}</Text>
+              <Text style={styles.aiBannerSub}>{t('Instant AI guidance for your animals')}</Text>
+            </View>
+          </View>
+          <Feather name="chevron-right" size={20} color="#4CB85C" />
+        </TouchableOpacity>
+
         
         <View style={styles.cardContainer}>
           <View style={styles.sectionHeader}>
@@ -270,23 +290,23 @@ export default function DashboardScreen() {
       <View style={styles.bottomNav}>
         <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Dashboard')}>
           <Feather name="home" size={24} color="#FFF" />
-          <Text style={styles.navText}>{t('Home')}</Text>
+          <Text style={[styles.navText, { color: '#FFF' }, isUrdu && { fontFamily: fonts.urduBold }]}>{t('Home')}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('AiScan', { userName, userId })}>
           <MaterialCommunityIcons name="line-scan" size={24} color="#A3E6B2" />
-          <Text style={[styles.navText, { color: '#A3E6B2' }]}>{t('AI Scan')}</Text>
+          <Text style={[styles.navText, { color: '#A3E6B2' }, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('AI Scan')}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('HealthRecords', { userName, userId })}>
           <Feather name="file-text" size={24} color="#A3E6B2" />
-          <Text style={[styles.navText, { color: '#A3E6B2' }]}>{t('Records')}</Text>
+          <Text style={[styles.navText, { color: '#A3E6B2' }, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Records')}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('CommunityForum', { userName, userId })}>
           <Feather name="message-square" size={24} color="#A3E6B2" />
-          <Text style={[styles.navText, { color: '#A3E6B2' }]}>{t('Forum')}</Text>
+          <Text style={[styles.navText, { color: '#A3E6B2' }, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Forum')}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Profile', { userName, userId })}>
           <Feather name="user" size={24} color="#A3E6B2" />
-          <Text style={[styles.navText, { color: '#A3E6B2' }]}>{t('Profile')}</Text>
+          <Text style={[styles.navText, { color: '#A3E6B2' }, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Profile')}</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>

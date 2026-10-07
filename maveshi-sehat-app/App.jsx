@@ -28,6 +28,7 @@ import ProfileScreen from './src/screens/user/ProfileScreen';
 import MarketplaceScreen from './src/screens/user/MarketplaceScreen';
 import CartScreen from './src/screens/user/CartScreen';
 import VaccinationScreen from './src/screens/user/VaccinationScreen';
+import ChatbotScreen from './src/screens/user/ChatbotScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -68,6 +69,7 @@ export default function App() {
         <Stack.Screen name="Chat" component={ChatScreen} />
         <Stack.Screen name="CommunityForum" component={CommunityForumScreen} />
         <Stack.Screen name="ForumPostDetail" component={ForumPostDetailScreen} />
+        <Stack.Screen name="Chatbot" component={ChatbotScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

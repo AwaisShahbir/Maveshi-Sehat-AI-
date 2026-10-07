@@ -131,6 +131,10 @@ app.get('/', (req, res) => {
   res.send('Maveshi Sehat AI API is running!');
 });
 
+// AI Chatbot ("Sehat Assistant") routes
+const chatbotRoutes = require('./routes/chatbot')(pool);
+app.use('/api/chat', chatbotRoutes);
+
 // High-reliability Translation API with in-memory caching and batching
 const backendTranslationCache = new Map();
 

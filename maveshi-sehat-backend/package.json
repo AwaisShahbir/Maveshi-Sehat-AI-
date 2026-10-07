@@ -11,14 +11,21 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "@google-cloud/text-to-speech": "^7.1.1",
+    "@google/generative-ai": "^0.24.1",
     "@vitalets/google-translate-api": "^9.2.1",
+    "axios": "^1.20.0",
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
+    "form-data": "^4.0.6",
+    "google-tts-api": "^2.0.2",
+    "groq-sdk": "^1.6.0",
     "jsonwebtoken": "^9.0.3",
     "multer": "^2.1.1",
     "nodemailer": "^8.0.7",
+    "openai": "^7.28.0",
     "pg": "^8.21.0",
     "socket.io": "^4.8.3"
   }
