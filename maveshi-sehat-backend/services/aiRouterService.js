@@ -54,25 +54,35 @@ const detectUserLanguage = (text) => {
 const buildLanguageDirective = (userMessage) => {
   const lang = detectUserLanguage(userMessage);
 
+  const sharedConstraints = `
+CRITICAL PERSONA & SCOPE RULES:
+1. MALE FORMAL VOICE ONLY: Always use masculine formal grammatical gender (e.g. "main kar sakta hoon", "madad karoon ga", "bata sakta hoon", "میں کر سکتا ہوں"). NEVER use feminine grammar ("karti hoon", "sakti hoon", "کرتی ہوں", "سکتی ہوں").
+2. CONCISENESS: Answer ONLY what the user asked. Keep answers direct and short. If the user asks a simple greeting or asks if you can speak Roman Urdu, reply in 1-2 friendly sentences without unprompted lectures or feature dumping.
+3. COWS & BUFFALOES ONLY: Focus strictly on Cows (گائے) and Buffaloes (بھینس). Do NOT mention goats, sheep, or other animals.
+4. APP NAVIGATION LINKS: If guiding the user to a feature or if they ask to open/find a section, include a navigation link in the exact format: [Button Text](app:ScreenName), where ScreenName is one of: VeterinariansList, AiScan, HealthRecords, Vaccination, Marketplace, HeatAlert, CommunityForum, MyConsultations.`;
+
   if (lang === 'ur_script') {
     return `[MANDATORY SCRIPT & LANGUAGE DIRECTIVE]:
 The user's input is in URDU SCRIPT (اردو رسم الخط).
 You MUST respond 100% in proper Urdu script (اردو رسم الخط).
-Do NOT use Roman Urdu or full English.`;
+Do NOT use Roman Urdu or full English.
+${sharedConstraints}`;
   } else if (lang === 'roman_urdu') {
     return `[MANDATORY SCRIPT & LANGUAGE DIRECTIVE]:
-The user's input is in ROMAN URDU (Latin alphabet, e.g. "app kaise hain?", "meri cow ko bukhar hai").
+The user's input is in ROMAN URDU (Latin alphabet, e.g. "app kaise hain?", "meri cow ko bukhar hai", "kia ap roman urdu me baat kr skte hain?").
 You MUST respond 100% in ROMAN URDU using ONLY the English/Latin alphabet.
 CRITICAL:
 1. NEVER use any Arabic/Urdu script letters (کوئی اردو رسم الخط استعمال نہ کریں).
-2. DO NOT respond in pure English. Respond in polite, friendly Roman Urdu (e.g. "Walaikum Assalam! Main theek hoon. Aap ke janwar ko kya masla hai?").`;
+2. DO NOT respond in pure English. Respond in polite, friendly Roman Urdu (e.g. "Jee haan, bilkul! Main aap se Roman Urdu mein baat kar sakta hoon. Aap bataiye, aap ki gaye ya bhains ke baray mein kya masla hai?").
+${sharedConstraints}`;
   } else {
     return `[MANDATORY SCRIPT & LANGUAGE DIRECTIVE]:
 The user's input is in ENGLISH.
 You MUST respond 100% in proper, grammatically correct ENGLISH.
 CRITICAL:
 1. NEVER insert any Arabic/Urdu script letters (NO اردو رسم الخط).
-2. Do NOT mix random Urdu words. Keep the response completely in professional English.`;
+2. Do NOT mix random Urdu words. Keep the response completely in professional English.
+${sharedConstraints}`;
   }
 };
 

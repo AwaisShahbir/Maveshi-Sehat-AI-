@@ -30,14 +30,14 @@ const SUGGESTIONS = {
   en: [
     { id: '1', title: '🐮 Cow has high fever & low milk' },
     { id: '2', title: '🩺 Connect me to registered vet in Lahore' },
-    { id: '3', title: '🩹 Lumpy skin disease first aid' },
-    { id: '4', title: '💉 Recommended vaccination schedule' },
+    { id: '3', title: '🐃 Buffalo is off-feed & sluggish' },
+    { id: '4', title: '💉 Cow & buffalo vaccination schedule' },
   ],
   ur: [
     { id: '1', title: '🐮 گائے کو تیز بخار اور دودھ میں کمی ہے' },
     { id: '2', title: '🩺 لاہور میں رجسٹرڈ ویٹرنری ڈاکٹر سے رابطہ کروائیں' },
-    { id: '3', title: '🩹 لمپی سکن کی بیماری کی ابتدائی طبی امداد' },
-    { id: '4', title: '💉 مویشیوں کے حفاظتی ٹیکوں کا شیڈول' },
+    { id: '3', title: '🐃 بھینس چارہ نہیں کھا رہی اور سست ہے' },
+    { id: '4', title: '💉 گائے اور بھینس کے حفاظتی ٹیکوں کا شیڈول' },
   ],
 };
 
@@ -59,14 +59,54 @@ export default function ChatbotScreen() {
   // Pulse animation for recording
   const pulseAnim = useRef(new Animated.Value(1)).current;
 
-  // Initialize initial greeting
+  // Handle in-app deep navigation to screens
+  const handleNavigate = (screenTarget) => {
+    if (!screenTarget) return;
+    const cleanTarget = screenTarget.trim();
+
+    const screenMap = {
+      'VeterinariansList': 'VeterinariansList',
+      'Veterinarians': 'VeterinariansList',
+      'vets': 'VeterinariansList',
+      'doctors': 'VeterinariansList',
+      'AiScan': 'AiScan',
+      'aiscan': 'AiScan',
+      'scan': 'AiScan',
+      'HealthRecords': 'HealthRecords',
+      'healthrecords': 'HealthRecords',
+      'records': 'HealthRecords',
+      'Vaccination': 'Vaccination',
+      'vaccination': 'Vaccination',
+      'Marketplace': 'Marketplace',
+      'marketplace': 'Marketplace',
+      'pharmacy': 'Marketplace',
+      'HeatAlert': 'HeatAlert',
+      'heatalert': 'HeatAlert',
+      'heat': 'HeatAlert',
+      'CommunityForum': 'CommunityForum',
+      'forum': 'CommunityForum',
+      'MyConsultations': 'MyConsultations',
+      'consultations': 'MyConsultations',
+      'Dashboard': 'Dashboard',
+      'Profile': 'Profile',
+    };
+
+    const target = screenMap[cleanTarget] || cleanTarget;
+    try {
+      navigation.navigate(target);
+    } catch (e) {
+      console.warn('Navigation failed for screen:', cleanTarget, e);
+    }
+  };
+
+  // Initialize initial greeting (Male formal, Cow & Buffalo focus)
   useEffect(() => {
     const currentProfile = getProfile();
     setProfile(currentProfile);
 
     const greetingText = isUrdu
-      ? 'السلام علیکم! میں صحت اسسٹنٹ ہوں، مویشی صحت کا آفیشل AI معاون۔ میں آپ کی گائے، بھینس، بکری یا دیگر مویشیوں کی صحت، بیماریوں اور خوراک کے متعلق کیا مدد کر سکتا ہوں؟'
-      : 'Assalam-o-Alaikum! I am Sehat Assistant, the official AI guide of Maveshi Sehat AI. How can I help your cattle, dairy animals, goats, or sheep today?';
+      ? 'السلام علیکم! میں صحت اسسٹنٹ ہوں، مویشی صحت کا آفیشل AI معاون۔ میں آپ کی گائے یا بھینس کے متعلق کیا مدد کر سکتا ہوں؟'
+      : 'Assalam-o-Alaikum! I am Sehat Assistant, the official AI guide of Maveshi Sehat AI. How can I help with your cows or buffaloes today?';
 
     setMessages([
       {
@@ -357,8 +397,8 @@ export default function ChatbotScreen() {
           style: 'destructive',
           onPress: () => {
             const initialGreeting = isUrdu
-              ? 'السلام علیکم! میں صحت اسسٹنٹ ہوں۔ آپ کے جانوروں کی کیا مدد کروں؟'
-              : 'Assalam-o-Alaikum! I am Sehat Assistant. How can I help your livestock today?';
+              ? 'السلام علیکم! میں صحت اسسٹنٹ ہوں۔ آپ کی گائے یا بھینس کے متعلق کیا مدد کروں؟'
+              : 'Assalam-o-Alaikum! I am Sehat Assistant. How can I help with your cows or buffaloes today?';
             setMessages([
               {
                 id: 'welcome-reset',
@@ -371,6 +411,173 @@ export default function ChatbotScreen() {
           },
         },
       ]
+    );
+  };
+
+  // Renders inline bold text and action links within a line
+  const renderInlineSpans = (text, lineKey) => {
+    const tokenRegex = /(\[[^\]]+\]\((?:app:|nav:|action:)[^)]+\)|\*\*[^*]+\*\*)/g;
+    const parts = text.split(tokenRegex);
+
+    return parts.map((part, spanIdx) => {
+      if (!part) return null;
+
+      // Inline action link: [Button Label](app:ScreenName)
+      const linkMatch = part.match(/^\[([^\]]+)\]\((?:app:|nav:|action:)([^)]+)\)$/);
+      if (linkMatch) {
+        const [, label, screenName] = linkMatch;
+        return (
+          <TouchableOpacity
+            key={`span-link-${lineKey}-${spanIdx}`}
+            style={styles.inlineActionBtn}
+            onPress={() => handleNavigate(screenName)}
+            activeOpacity={0.8}
+          >
+            <Feather name="arrow-up-right" size={12} color="#FFFFFF" style={{ marginRight: 3 }} />
+            <Text style={[styles.inlineActionText, isUrdu && { fontFamily: fonts.urduBold }]}>
+              {label}
+            </Text>
+          </TouchableOpacity>
+        );
+      }
+
+      // Bold span: **bold text**
+      if (part.startsWith('**') && part.endsWith('**') && part.length >= 4) {
+        const boldContent = part.slice(2, -2);
+        return (
+          <Text
+            key={`span-b-${lineKey}-${spanIdx}`}
+            style={[
+              { fontWeight: '700', color: '#0F172A' },
+              isUrdu && { fontFamily: fonts.urduBold },
+            ]}
+          >
+            {boldContent}
+          </Text>
+        );
+      }
+
+      // Plain text span
+      return (
+        <Text
+          key={`span-t-${lineKey}-${spanIdx}`}
+          style={[
+            styles.assistantMessageText,
+            isUrdu && { fontFamily: fonts.urduRegular },
+          ]}
+        >
+          {part}
+        </Text>
+      );
+    });
+  };
+
+  // Parses raw message content into styled headers, list items, cards, and paragraphs
+  const renderMessageContent = (item) => {
+    const isUser = item.role === 'user';
+    if (isUser) {
+      return (
+        <Text style={[styles.messageText, styles.userMessageText]}>
+          {item.content}
+        </Text>
+      );
+    }
+
+    const lines = (item.content || '').split('\n');
+
+    return (
+      <View style={{ width: '100%' }}>
+        {lines.map((line, lineIdx) => {
+          const trimmed = line.trim();
+          if (!trimmed) {
+            return <View key={`spacer-${lineIdx}`} style={{ height: 4 }} />;
+          }
+
+          // 1. Standalone Action Card Button: [Label](app:ScreenName)
+          const actionCardMatch = trimmed.match(/^\[([^\]]+)\]\((?:app:|nav:|action:)([^)]+)\)$/);
+          if (actionCardMatch) {
+            const [, label, screenName] = actionCardMatch;
+            return (
+              <TouchableOpacity
+                key={`card-${lineIdx}`}
+                style={styles.actionCardBtn}
+                onPress={() => handleNavigate(screenName)}
+                activeOpacity={0.8}
+              >
+                <View style={styles.actionCardLeft}>
+                  <Feather name="external-link" size={15} color="#166534" />
+                  <Text style={[styles.actionCardText, isUrdu && { fontFamily: fonts.urduBold }]}>
+                    {label}
+                  </Text>
+                </View>
+                <Feather name="chevron-right" size={18} color="#166534" />
+              </TouchableOpacity>
+            );
+          }
+
+          // 2. Markdown Headings: ###, ##, #
+          if (trimmed.startsWith('#')) {
+            const headingText = trimmed.replace(/^#+\s*/, '');
+            return (
+              <Text
+                key={`h-${lineIdx}`}
+                style={[
+                  styles.markdownHeader,
+                  isUrdu && { fontFamily: fonts.urduBold, textAlign: 'right' },
+                ]}
+              >
+                {renderInlineSpans(headingText, lineIdx)}
+              </Text>
+            );
+          }
+
+          // 3. Bullet points: * or -
+          if (/^[*•-]\s+/.test(trimmed)) {
+            const bulletContent = trimmed.replace(/^[*•-]\s+/, '');
+            return (
+              <View key={`b-${lineIdx}`} style={styles.bulletRow}>
+                <View style={styles.bulletDot} />
+                <View style={styles.bulletTextContainer}>
+                  <Text style={[styles.bulletText, isUrdu && { fontFamily: fonts.urduRegular }]}>
+                    {renderInlineSpans(bulletContent, lineIdx)}
+                  </Text>
+                </View>
+              </View>
+            );
+          }
+
+          // 4. Numbered list: 1. , 2. 
+          const numberedMatch = trimmed.match(/^(\d+)\.\s+(.*)$/);
+          if (numberedMatch) {
+            const [, num, numContent] = numberedMatch;
+            return (
+              <View key={`n-${lineIdx}`} style={styles.bulletRow}>
+                <Text style={styles.bulletNumber}>{num}.</Text>
+                <View style={styles.bulletTextContainer}>
+                  <Text style={[styles.bulletText, isUrdu && { fontFamily: fonts.urduRegular }]}>
+                    {renderInlineSpans(numContent, lineIdx)}
+                  </Text>
+                </View>
+              </View>
+            );
+          }
+
+          // 5. Regular paragraph line
+          return (
+            <View key={`p-${lineIdx}`} style={styles.paragraphBlock}>
+              <Text
+                style={[
+                  styles.messageText,
+                  styles.assistantMessageText,
+                  isUrdu && { fontFamily: fonts.urduRegular, lineHeight: 24 },
+                ]}
+              >
+                {renderInlineSpans(trimmed, lineIdx)}
+              </Text>
+            </View>
+          );
+        })}
+      </View>
     );
   };
 
@@ -395,15 +602,7 @@ export default function ChatbotScreen() {
             isUser ? styles.userBubble : styles.assistantBubble,
           ]}
         >
-          <Text
-            style={[
-              styles.messageText,
-              isUser ? styles.userMessageText : styles.assistantMessageText,
-              isUrdu && { fontFamily: fonts.urduRegular, lineHeight: 24 },
-            ]}
-          >
-            {item.content}
-          </Text>
+          {renderMessageContent(item)}
 
           <View style={styles.bubbleFooter}>
             <Text
