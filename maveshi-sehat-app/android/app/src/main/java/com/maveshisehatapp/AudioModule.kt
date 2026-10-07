@@ -21,6 +21,16 @@ class AudioModule(private val reactContext: ReactApplicationContext) : ReactCont
 
     override fun getName(): String = "AudioModule"
 
+    @ReactMethod
+    fun addListener(eventName: String) {
+        // Required by React Native NativeEventEmitter
+    }
+
+    @ReactMethod
+    fun removeListeners(count: Int) {
+        // Required by React Native NativeEventEmitter
+    }
+
     private fun sendEvent(eventName: String, params: Any?) {
         try {
             reactContext
