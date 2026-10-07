@@ -184,4 +184,4 @@ This project is licensed under the MIT License — see the [LICENSE](LICENSE) fi
 
 ---
 
-**Developed with ❤️ for Pakistani Livestock Farmers & Dairy Caregivers by Awais Shahbir**
+**Developed with ❤️ for Pakistani Livestock Farmers & Dairy Caregivers by Awais Shahbir & team**
