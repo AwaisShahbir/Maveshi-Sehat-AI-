@@ -325,19 +325,23 @@ export default function ChatbotScreen() {
             throw new Error(data.error || 'Voice transcription failed');
           }
         } catch (voiceErr) {
-          console.warn('Voice API error, using voice sample query:', voiceErr);
-          const voiceSample = isUrdu
-            ? 'لاہور میں مویشی صحت پر رجسٹرڈ ویٹرنری ڈاکٹر کون ہیں؟'
-            : 'Connect me to the vet available in Lahore registered on Maveshi Sehat AI';
-          handleSend(voiceSample);
+          console.warn('Voice API error:', voiceErr);
+          Alert.alert(
+            isUrdu ? 'آواز ریکارڈ نہیں ہو سکی' : 'Voice Message Error',
+            isUrdu 
+              ? 'آواز کی منتقلی میں مسئلہ پیش آیا۔ براہ کرم مائیک کے قریب واضح بول کر دوبارہ کوشش کریں۔'
+              : 'Could not transcribe your voice message. Please speak clearly into the microphone and try again.'
+          );
         } finally {
           setLoading(false);
         }
       } else {
-        const voiceSample = isUrdu
-          ? 'لاہور میں مویشی صحت پر رجسٹرڈ ویٹرنری ڈاکٹر کون ہیں؟'
-          : 'Connect me to the vet available in Lahore registered on Maveshi Sehat AI';
-        handleSend(voiceSample);
+        Alert.alert(
+          isUrdu ? 'ریکارڈنگ نہیں ہو سکی' : 'Recording Error',
+          isUrdu 
+            ? 'ریکارڈنگ بہت مختصر تھی یا محفوظ نہیں ہو سکی۔ براہ کرم دوبارہ کوشش کریں۔'
+            : 'Recording was too short or could not be saved. Please tap the mic and speak.'
+        );
       }
     }
   };

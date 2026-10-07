@@ -1,10 +1,10 @@
 const fs = require('fs');
-const Groq = require('groq-sdk');
 const OpenAI = require('openai');
+const Groq = require('groq-sdk');
 
 /**
- * Transcribes audio file to text using Groq Whisper (Primary, fast & free)
- * with graceful fallback to OpenAI Whisper.
+ * Transcribes audio file to text using OpenAI Whisper (Primary)
+ * with graceful fallback to Groq Whisper (Fallback).
  *
  * @param {string} audioFilePath - Local path of the recorded audio file (m4a, mp3, wav, etc.)
  * @returns {Promise<{ transcript: string, language?: string }>}
@@ -14,7 +14,29 @@ const transcribeAudio = async (audioFilePath) => {
     throw new Error(`Audio file does not exist at: ${audioFilePath}`);
   }
 
-  // 1. Try Groq Whisper (Free, high-speed, excellent Urdu & English support)
+  // 1. Try OpenAI Whisper (Industry standard precision for Urdu, Roman Urdu & English)
+  if (process.env.OPENAI_API_KEY) {
+    try {
+      const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+      const fileStream = fs.createReadStream(audioFilePath);
+      const transcription = await openai.audio.transcriptions.create({
+        file: fileStream,
+        model: 'whisper-1',
+        prompt: 'مویشی، گائے، بھینس، بکری، مویشی صحت، ڈاکٹر، Livestock dairy farming query in Urdu or English',
+      });
+
+      if (transcription && transcription.text && transcription.text.trim().length > 0) {
+        console.log('🎤 OpenAI Whisper transcription success:', transcription.text);
+        return {
+          transcript: transcription.text.trim(),
+        };
+      }
+    } catch (openAiErr) {
+      console.warn('OpenAI Whisper STT failed, falling back to Groq Whisper:', openAiErr.message);
+    }
+  }
+
+  // 2. Try Groq Whisper (Ultra fast free fallback)
   if (process.env.GROQ_API_KEY) {
     try {
       const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
@@ -32,27 +54,7 @@ const transcribeAudio = async (audioFilePath) => {
         };
       }
     } catch (groqErr) {
-      console.warn('Groq Whisper STT failed, checking OpenAI fallback:', groqErr.message);
-    }
-  }
-
-  // 2. Fallback to OpenAI Whisper if OPENAI_API_KEY is available and has credits
-  if (process.env.OPENAI_API_KEY) {
-    try {
-      const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-      const fileStream = fs.createReadStream(audioFilePath);
-      const transcription = await openai.audio.transcriptions.create({
-        file: fileStream,
-        model: 'whisper-1',
-      });
-
-      if (transcription && transcription.text) {
-        return {
-          transcript: transcription.text.trim(),
-        };
-      }
-    } catch (openAiErr) {
-      console.warn('OpenAI Whisper STT also failed:', openAiErr.message);
+      console.warn('Groq Whisper STT also failed:', groqErr.message);
     }
   }
 
