@@ -4,56 +4,137 @@ import android.media.AudioAttributes
 import android.media.MediaPlayer
 import android.media.MediaRecorder
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import com.facebook.react.bridge.*
+import com.facebook.react.modules.core.DeviceEventManagerModule
 import java.io.File
+import java.net.HttpURLConnection
+import java.net.URL
 
 class AudioModule(private val reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
 
     private var mediaPlayer: MediaPlayer? = null
     private var mediaRecorder: MediaRecorder? = null
     private var currentRecordPath: String? = null
+    private val mainHandler = Handler(Looper.getMainLooper())
 
     override fun getName(): String = "AudioModule"
 
+    private fun sendEvent(eventName: String, params: Any?) {
+        try {
+            reactContext
+                .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
+                .emit(eventName, params)
+        } catch (ignored: Exception) {}
+    }
+
+    private fun downloadUrlToTempFile(primaryUrl: String): File {
+        val urlsToTry = mutableListOf(primaryUrl)
+        if (primaryUrl.contains("10.0.2.2:5000")) {
+            urlsToTry.add(primaryUrl.replace("10.0.2.2:5000", "127.0.0.1:5000"))
+            urlsToTry.add(primaryUrl.replace("10.0.2.2:5000", "localhost:5000"))
+        } else if (primaryUrl.contains("localhost:5000") || primaryUrl.contains("127.0.0.1:5000")) {
+            urlsToTry.add(primaryUrl.replace("localhost:5000", "10.0.2.2:5000").replace("127.0.0.1:5000", "10.0.2.2:5000"))
+        }
+
+        var lastException: Exception? = null
+        for (u in urlsToTry) {
+            try {
+                val tempFile = File(reactContext.cacheDir, "audio_play_${System.currentTimeMillis()}.mp3")
+                val connection = URL(u).openConnection() as HttpURLConnection
+                connection.connectTimeout = 5000
+                connection.readTimeout = 15000
+                connection.instanceFollowRedirects = true
+                val responseCode = connection.responseCode
+                if (responseCode in 200..299) {
+                    connection.inputStream.use { input ->
+                        tempFile.outputStream().use { output ->
+                            input.copyTo(output)
+                        }
+                    }
+                    if (tempFile.exists() && tempFile.length() > 0) {
+                        return tempFile
+                    }
+                }
+            } catch (e: Exception) {
+                lastException = e
+            }
+        }
+        throw lastException ?: java.io.IOException("Failed to download audio from $primaryUrl")
+    }
+
     @ReactMethod
     fun playSound(url: String, promise: Promise) {
-        try {
-            stopCurrentPlayback()
+        Thread {
+            try {
+                mainHandler.post { stopCurrentPlayback() }
 
-            mediaPlayer = MediaPlayer().apply {
-                setAudioAttributes(
-                    AudioAttributes.Builder()
-                        .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
-                        .setUsage(AudioAttributes.USAGE_MEDIA)
-                        .build()
-                )
-                setDataSource(url)
-                setOnPreparedListener { mp ->
-                    mp.start()
-                    promise.resolve(true)
+                val localFile: File = if (url.startsWith("http://") || url.startsWith("https://")) {
+                    downloadUrlToTempFile(url)
+                } else if (url.startsWith("file://")) {
+                    File(url.removePrefix("file://"))
+                } else {
+                    File(url)
                 }
-                setOnCompletionListener { mp ->
-                    mp.release()
-                    mediaPlayer = null
+
+                if (!localFile.exists() || localFile.length() == 0L) {
+                    mainHandler.post {
+                        sendEvent("onAudioPlaybackFinished", null)
+                        promise.reject("FILE_NOT_FOUND", "Audio file is empty or does not exist")
+                    }
+                    return@Thread
                 }
-                setOnErrorListener { mp, what, extra ->
-                    mp.release()
-                    mediaPlayer = null
-                    promise.reject("PLAYBACK_ERROR", "MediaPlayer error: what=$what, extra=$extra")
-                    true
+
+                mainHandler.post {
+                    try {
+                        val player = MediaPlayer()
+                        player.setAudioAttributes(
+                            AudioAttributes.Builder()
+                                .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
+                                .setUsage(AudioAttributes.USAGE_MEDIA)
+                                .build()
+                        )
+                        player.setDataSource(localFile.absolutePath)
+                        player.setOnPreparedListener { mp ->
+                            mp.start()
+                            promise.resolve(true)
+                        }
+                        player.setOnCompletionListener { mp ->
+                            mp.release()
+                            mediaPlayer = null
+                            sendEvent("onAudioPlaybackFinished", null)
+                        }
+                        player.setOnErrorListener { mp, what, extra ->
+                            mp.release()
+                            mediaPlayer = null
+                            sendEvent("onAudioPlaybackFinished", null)
+                            promise.reject("PLAYBACK_ERROR", "MediaPlayer error: what=$what, extra=$extra")
+                            true
+                        }
+                        mediaPlayer = player
+                        player.prepareAsync()
+                    } catch (innerEx: Exception) {
+                        stopCurrentPlayback()
+                        sendEvent("onAudioPlaybackFinished", null)
+                        promise.reject("PLAYBACK_ERROR", innerEx.message, innerEx)
+                    }
                 }
-                prepareAsync()
+            } catch (e: Exception) {
+                mainHandler.post {
+                    stopCurrentPlayback()
+                    sendEvent("onAudioPlaybackFinished", null)
+                    promise.reject("PLAYBACK_ERROR", e.message, e)
+                }
             }
-        } catch (e: Exception) {
-            stopCurrentPlayback()
-            promise.reject("PLAYBACK_ERROR", e.message, e)
-        }
+        }.start()
     }
 
     @ReactMethod
     fun stopSound(promise: Promise) {
         try {
             stopCurrentPlayback()
+            sendEvent("onAudioPlaybackFinished", null)
             promise.resolve(true)
         } catch (e: Exception) {
             promise.reject("STOP_ERROR", e.message, e)
@@ -108,8 +189,11 @@ class AudioModule(private val reactContext: ReactApplicationContext) : ReactCont
             }
             mediaRecorder = null
 
+            val path = currentRecordPath
+            val file = if (path != null) File(path) else null
             val map = Arguments.createMap()
-            map.putString("filePath", currentRecordPath ?: "")
+            map.putString("filePath", file?.absolutePath ?: "")
+            map.putDouble("fileSize", (file?.length() ?: 0L).toDouble())
             promise.resolve(map)
         } catch (e: Exception) {
             promise.reject("STOP_RECORD_ERROR", e.message, e)

@@ -14,6 +14,8 @@ import {
   ScrollView,
   Animated,
   NativeModules,
+  NativeEventEmitter,
+  PermissionsAndroid,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
@@ -25,6 +27,24 @@ import styles from '../../styles/ChatbotScreenStyles';
 
 const { AudioModule } = NativeModules;
 const BASE_URL = Platform.OS === 'android' ? 'http://10.0.2.2:5000' : 'http://localhost:5000';
+
+// High reliability fetcher with automatic host fallback for Android (10.0.2.2 <-> localhost <-> 127.0.0.1)
+const tryFetch = async (endpoint, options = {}) => {
+  const hosts = Platform.OS === 'android'
+    ? ['http://10.0.2.2:5000', 'http://localhost:5000', 'http://127.0.0.1:5000']
+    : ['http://localhost:5000'];
+
+  let lastErr = null;
+  for (const host of hosts) {
+    try {
+      const res = await fetch(`${host}${endpoint}`, options);
+      return res;
+    } catch (e) {
+      lastErr = e;
+    }
+  }
+  throw lastErr;
+};
 
 const SUGGESTIONS = {
   en: [
@@ -162,6 +182,27 @@ export default function ChatbotScreen() {
     };
   }, [isRecording]);
 
+  // Listen for native audio playback completion to toggle "Listen" / "Stop" button state
+  useEffect(() => {
+    let sub = null;
+    try {
+      if (AudioModule) {
+        const eventEmitter = new NativeEventEmitter(AudioModule);
+        sub = eventEmitter.addListener('onAudioPlaybackFinished', () => {
+          setPlayingMsgId(null);
+        });
+      }
+    } catch (e) {
+      console.warn('NativeEventEmitter setup error:', e);
+    }
+
+    return () => {
+      if (sub && sub.remove) {
+        sub.remove();
+      }
+    };
+  }, []);
+
   const handlePlayAudio = async (item) => {
     if (!item) return;
 
@@ -179,7 +220,7 @@ export default function ChatbotScreen() {
       let audioUrl = item.audioUrl;
       if (!audioUrl) {
         setLoadingAudioId(item.id);
-        const ttsRes = await fetch(`${BASE_URL}/api/chat/tts`, {
+        const ttsRes = await tryFetch('/api/chat/tts', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ text: item.content }),
@@ -241,7 +282,7 @@ export default function ChatbotScreen() {
           content: m.content,
         }));
 
-      const response = await fetch(`${BASE_URL}/api/chat/message`, {
+      const response = await tryFetch('/api/chat/message', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -296,6 +337,32 @@ export default function ChatbotScreen() {
 
   const handleVoiceToggle = async () => {
     if (!isRecording) {
+      if (Platform.OS === 'android') {
+        try {
+          const granted = await PermissionsAndroid.request(
+            PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
+            {
+              title: isUrdu ? 'مائیکروفون کی اجازت' : 'Microphone Permission',
+              message: isUrdu
+                ? 'صوتی پیغام بھیجنے کے لیے مائیکروفون کی اجازت درکار ہے۔'
+                : 'Microphone permission is required to send voice messages.',
+              buttonPositive: 'OK',
+            }
+          );
+          if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
+            Alert.alert(
+              isUrdu ? 'اجازت درکار ہے' : 'Permission Required',
+              isUrdu
+                ? 'براہ کرم مائیکروفون کی اجازت دیں تاکہ آواز ریکارڈ ہو سکے۔'
+                : 'Please allow microphone access to record voice.'
+            );
+            return;
+          }
+        } catch (permErr) {
+          console.warn('Microphone permission error:', permErr);
+        }
+      }
+
       try {
         if (AudioModule && AudioModule.startRecording) {
           await AudioModule.startRecording();
@@ -303,7 +370,10 @@ export default function ChatbotScreen() {
         setIsRecording(true);
       } catch (err) {
         console.warn('Microphone start recording error:', err);
-        setIsRecording(true);
+        Alert.alert(
+          isUrdu ? 'مائیک کی خرابی' : 'Microphone Error',
+          isUrdu ? 'مائیک شروع کرنے میں مسئلہ پیش آیا۔' : 'Failed to start microphone recording.'
+        );
       }
     } else {
       setIsRecording(false);
@@ -336,7 +406,7 @@ export default function ChatbotScreen() {
               }))
           ));
 
-          const response = await fetch(`${BASE_URL}/api/chat/voice`, {
+          const response = await tryFetch('/api/chat/voice', {
             method: 'POST',
             body: formData,
           });
@@ -358,8 +428,12 @@ export default function ChatbotScreen() {
               time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
             };
             setMessages((prev) => [...prev, userMsg, assistantMsg]);
+
+            // Automatically play voice response of Sehat Assistant immediately
             if (data.audioUrl) {
-              handlePlayAudio(assistantMsg);
+              setTimeout(() => {
+                handlePlayAudio(assistantMsg);
+              }, 300);
             }
           } else {
             throw new Error(data.error || 'Voice transcription failed');
