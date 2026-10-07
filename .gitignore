@@ -1,27 +1,35 @@
-.idea/
-.vscode/
+# Dependencies
 node_modules/
+maveshi-sehat-admin/node_modules/
+maveshi-sehat-backend/node_modules/
+maveshi-sehat-app/node_modules/
+maveshi-sehat-pharmacy/node_modules/
+
+# Build artifacts & distribution
+dist/
+build/
+maveshi-sehat-admin/dist/
+maveshi-sehat-pharmacy/dist/
+maveshi-sehat-app/android/.gradle/
+maveshi-sehat-app/android/build/
+maveshi-sehat-app/android/app/build/
+maveshi-sehat-app/android/app/.cxx/
+maveshi-sehat-app/android/local.properties
+
+# Environment & credentials
+.env
+*.env
+*.log
+
+# IDE & Agent system
 .agent/
 .agents/
 .gemini/
 .gsd/
-.postman/
-maveshi-sehat-app/android/app/.cxx/
-maveshi-sehat-admin/dist/
-maveshi-sehat-admin/node_modules/
-maveshi-sehat-backend/node_modules/
-maveshi-sehat-app/node_modules/
-*.log
-scratch/
-GSD-STYLE.md
-PROJECT_RULES.md
-VERSION
-adapters/
-model_capabilities.yaml
-package-lock.json
-package.json
-postman/
-scripts/
-maveshi-sehat-backend/scratch_*.js
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+*.tmp
 
 
