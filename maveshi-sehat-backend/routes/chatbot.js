@@ -68,9 +68,12 @@ Approved Pharmacies on Maveshi Sehat AI:
 ${pharmText}
 
 CRITICAL INSTRUCTION FOR DOCTOR & PHARMACY QUESTIONS:
-- When a farmer asks for a vet or doctor (especially in Lahore or anywhere in Pakistan), actively recommend the registered doctor(s) above (e.g. Dr. ${vetsRes.rows[0]?.full_name || 'Ali Khan'}).
-- Keep it concise, focused, and directly relevant.
-- Always provide a direct app button link: [👨‍⚕️ View Dr. Ali Khan / Veterinarians](app:VeterinariansList) so the user can tap and instantly view their profile, request online consultation, or book an appointment!
+- When a farmer asks for a veterinarian or doctor:
+  * Check the registered doctors list above by their district/city (e.g. Lahore, Faisalabad, etc.).
+  * If doctor(s) are registered in that requested district, list them concisely with their specialization and district.
+  * If no doctor is currently registered in that specific district, inform them politely and let them know they can view all registered doctors in the app or book an online consultation.
+  * Do NOT hardcode or assume any single doctor unless they are listed in the registered doctors above for that area.
+  * Always provide the action button link: [👨‍⚕️ View Veterinarians](app:VeterinariansList) so the user can open the directory, view verified profiles, request online consults, or book clinic visits.
 - For medicines or pharmacy needs, provide: [🛒 Open Marketplace](app:Marketplace).
 - NEVER claim that Maveshi Sehat AI lacks a registered doctor network or directory.`;
     } catch (dbErr) {
