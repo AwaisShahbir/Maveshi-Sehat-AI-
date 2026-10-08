@@ -225,26 +225,27 @@ export default function RegisterScreen() {
           <View style={styles.cardContainer}>
             
             
+            {/* Full Name */}
             <Text style={[styles.label, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Full Name')}</Text>
             <View style={styles.inputContainer}>
-              <Feather name="user" size={20} color="#4CB85C" style={styles.inputIcon} />
+              <Feather name="user" size={20} color="#3B82F6" style={styles.inputIcon} />
               <TextInput 
                 style={styles.input}
                 placeholder={t('Enter Full Name')}
-                placeholderTextColor="#999"
+                placeholderTextColor={colors.inputPlaceholder}
                 value={fullName}
                 onChangeText={setFullName}
               />
             </View>
 
-            
+            {/* Email */}
             <Text style={[styles.label, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Email Address')}</Text>
             <View style={styles.inputContainer}>
-              <Feather name="mail" size={20} color="#4CB85C" style={styles.inputIcon} />
+              <Feather name="mail" size={20} color="#F59E0B" style={styles.inputIcon} />
               <TextInput 
                 style={styles.input}
                 placeholder={t('Email')}
-                placeholderTextColor="#999"
+                placeholderTextColor={colors.inputPlaceholder}
                 keyboardType="email-address"
                 autoCapitalize="none"
                 value={email}
@@ -252,31 +253,31 @@ export default function RegisterScreen() {
               />
             </View>
 
-            
+            {/* Phone Number */}
             <Text style={[styles.label, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Phone Number')}</Text>
             <View style={styles.inputContainer}>
-              <Feather name="phone" size={20} color="#4CB85C" style={styles.inputIcon} />
+              <Feather name="phone" size={20} color="#10B981" style={styles.inputIcon} />
               <TextInput 
                 style={styles.input}
                 placeholder="+92 300 1234567"
-                placeholderTextColor="#999"
+                placeholderTextColor={colors.inputPlaceholder}
                 keyboardType="phone-pad"
                 value={phoneNumber}
                 onChangeText={setPhoneNumber}
               />
             </View>
 
-            
+            {/* District */}
             <Text style={[styles.label, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('District')}</Text>
             <TouchableOpacity style={styles.inputContainer} activeOpacity={0.8} onPress={() => setDistrictModalVisible(true)}>
-              <Feather name="map-pin" size={20} color="#4CB85C" style={styles.inputIcon} />
-              <Text style={[styles.input, { height: 'auto', paddingTop: 0, color: district ? '#333' : '#999' }]}>
+              <Feather name="map-pin" size={20} color="#EF4444" style={styles.inputIcon} />
+              <Text style={[styles.input, { height: 'auto', paddingTop: 0, color: district ? colors.inputText : colors.inputPlaceholder }]}>
                 {district || t('Select District')}
               </Text>
-              <Feather name="chevron-down" size={20} color="#999" />
+              <Feather name="chevron-down" size={20} color={colors.textSecondary} />
             </TouchableOpacity>
 
-            
+            {/* Role Selection */}
             <Text style={[styles.label, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Role')}</Text>
             <View style={styles.roleContainer}>
               <TouchableOpacity 
@@ -308,50 +309,51 @@ export default function RegisterScreen() {
             </View>
 
 
+            {/* Vet Specific Fields */}
             {role === 'vet' && (
               <>
-                
+                {/* PVMC License */}
                 <Text style={[styles.label, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('PVMC License Number')}</Text>
                 <View style={styles.inputContainer}>
-                  <Feather name="file-text" size={20} color="#4CB85C" style={styles.inputIcon} />
+                  <Feather name="file-text" size={20} color="#06B6D4" style={styles.inputIcon} />
                   <TextInput 
                     style={styles.input}
                     placeholder="Enter PVMC License Number"
-                    placeholderTextColor="#999"
+                    placeholderTextColor={colors.inputPlaceholder}
                     value={pvmcNumber}
                     onChangeText={setPvmcNumber}
                   />
                 </View>
 
-                
+                {/* Specialization */}
                 <Text style={[styles.label, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Specialization')}</Text>
                 <View style={styles.inputContainer}>
-                  <Feather name="award" size={20} color="#4CB85C" style={styles.inputIcon} />
+                  <Feather name="award" size={20} color="#8B5CF6" style={styles.inputIcon} />
                   <TextInput 
                     style={styles.input}
                     placeholder="e.g. Livestock Generalist, Dairy Cattle"
-                    placeholderTextColor="#999"
+                    placeholderTextColor={colors.inputPlaceholder}
                     value={specialization}
                     onChangeText={setSpecialization}
                   />
                 </View>
 
-                
+                {/* Experience */}
                 <View style={styles.inputContainer}>
-                  <Feather name="clock" size={20} color="#4CB85C" style={styles.inputIcon} />
+                  <Feather name="clock" size={20} color="#F97316" style={styles.inputIcon} />
                   <TextInput 
                     style={styles.input}
                     placeholder="e.g. 5"
-                    placeholderTextColor="#999"
+                    placeholderTextColor={colors.inputPlaceholder}
                     keyboardType="numeric"
                     value={experienceYears}
                     onChangeText={setExperienceYears}
                   />
                 </View>
 
-                
+                {/* Document Upload */}
                 <TouchableOpacity 
-                  style={[styles.inputContainer, { justifyContent: 'center', backgroundColor: '#E8F8EA', borderColor: '#4CB85C', borderStyle: 'dashed' }]}
+                  style={[styles.inputContainer, { justifyContent: 'center', backgroundColor: isDark ? 'rgba(16, 185, 129, 0.12)' : '#ECFDF5', borderColor: '#10B981', borderStyle: 'dashed' }]}
                   activeOpacity={0.8}
                   onPress={() => {
                     if (Platform.OS === 'web') {
@@ -362,8 +364,8 @@ export default function RegisterScreen() {
                   }}
                   disabled={uploading}
                 >
-                  <Feather name={uploading ? "loader" : "upload-cloud"} size={22} color="#4CB85C" style={{ marginRight: 8 }} />
-                  <Text style={{ color: '#4CB85C', fontWeight: 'bold', fontSize: 14 }}>
+                  <Feather name={uploading ? "loader" : "upload-cloud"} size={22} color="#10B981" style={{ marginRight: 8 }} />
+                  <Text style={{ color: '#10B981', fontWeight: 'bold', fontSize: 14 }}>
                     {uploading ? t('Uploading...') : (licenseFileName ? `Selected: ${licenseFileName}` : t('Upload Document'))}
                   </Text>
                   {Platform.OS === 'web' && (
@@ -379,28 +381,28 @@ export default function RegisterScreen() {
               </>
             )}
 
-            
+            {/* Password */}
             <Text style={[styles.label, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Password')}</Text>
             <View style={styles.inputContainer}>
-              <Feather name="lock" size={20} color="#4CB85C" style={styles.inputIcon} />
+              <Feather name="lock" size={20} color="#6366F1" style={styles.inputIcon} />
               <TextInput 
                 style={styles.input}
                 placeholder={t('Enter password')}
-                placeholderTextColor="#999"
+                placeholderTextColor={colors.inputPlaceholder}
                 secureTextEntry={true}
                 value={password}
                 onChangeText={setPassword}
               />
             </View>
 
-            
+            {/* Confirm Password */}
             <Text style={[styles.label, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Confirm Password')}</Text>
             <View style={styles.inputContainer}>
-              <Feather name="lock" size={20} color="#4CB85C" style={styles.inputIcon} />
+              <Feather name="lock" size={20} color="#6366F1" style={styles.inputIcon} />
               <TextInput 
                 style={styles.input}
                 placeholder={t('Confirm Password')}
-                placeholderTextColor="#999"
+                placeholderTextColor={colors.inputPlaceholder}
                 secureTextEntry={true}
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
@@ -459,7 +461,7 @@ export default function RegisterScreen() {
                     setDistrictModalVisible(false);
                   }}
                 >
-                  <Text style={[styles.modalItemText, district === item && { color: '#4CB85C', fontWeight: 'bold' }]}>{item}</Text>
+                  <Text style={[styles.modalItemText, district === item && { color: colors.primary, fontWeight: 'bold' }]}>{item}</Text>
                 </TouchableOpacity>
               )}
             />
@@ -470,7 +472,7 @@ export default function RegisterScreen() {
         </View>
       </Modal>
 
-      
+      {/* Upload Choice Modal */}
       <Modal visible={isUploadModalVisible} transparent={true} animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
@@ -480,7 +482,7 @@ export default function RegisterScreen() {
               style={styles.modalUploadItem}
               onPress={() => handleMockUploadMobile('camera')}
             >
-              <Feather name="camera" size={20} color="#4CB85C" style={{ marginRight: 12 }} />
+              <Feather name="camera" size={20} color="#3B82F6" style={{ marginRight: 12 }} />
               <Text style={[styles.modalItemText, { textAlign: 'left' }, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Take Photo')}</Text>
             </TouchableOpacity>
 
@@ -488,7 +490,7 @@ export default function RegisterScreen() {
               style={styles.modalUploadItem}
               onPress={() => handleMockUploadMobile('gallery')}
             >
-              <Feather name="image" size={20} color="#4CB85C" style={{ marginRight: 12 }} />
+              <Feather name="image" size={20} color="#10B981" style={{ marginRight: 12 }} />
               <Text style={[styles.modalItemText, { textAlign: 'left' }, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Upload from Gallery')}</Text>
             </TouchableOpacity>
 
@@ -496,7 +498,7 @@ export default function RegisterScreen() {
               style={styles.modalUploadItem}
               onPress={() => handleMockUploadMobile('pdf')}
             >
-              <Feather name="file-text" size={20} color="#4CB85C" style={{ marginRight: 12 }} />
+              <Feather name="file-text" size={20} color="#8B5CF6" style={{ marginRight: 12 }} />
               <Text style={[styles.modalItemText, { textAlign: 'left' }, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Select PDF File')}</Text>
             </TouchableOpacity>
 

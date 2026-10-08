@@ -5,7 +5,7 @@ export const getStyles = (colors = LIGHT_THEME, isDark = false) => {
   return StyleSheet.create({
     container: { 
       flex: 1, 
-      backgroundColor: colors.background 
+      backgroundColor: isDark ? colors.headerBackground : colors.primary 
     },
     header: { 
       flexDirection: 'row', 

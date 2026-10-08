@@ -213,17 +213,17 @@ export default function MarketplaceScreen() {
 
         
         <View style={styles.searchContainer}>
-          <Feather name="search" size={18} color="#888" style={styles.searchIcon} />
+          <Feather name="search" size={18} color="#FFF" style={styles.searchIcon} />
           <TextInput
             style={styles.searchInput}
             placeholder={t('Search medicines...')}
-            placeholderTextColor="#888"
+            placeholderTextColor="rgba(255,255,255,0.75)"
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
           {searchQuery.length > 0 && (
             <TouchableOpacity onPress={() => setSearchQuery('')}>
-              <Feather name="x" size={18} color="#888" />
+              <Feather name="x" size={18} color="#FFF" />
             </TouchableOpacity>
           )}
         </View>

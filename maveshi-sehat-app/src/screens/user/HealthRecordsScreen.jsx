@@ -81,10 +81,11 @@ export default function HealthRecordsScreen() {
   
   const filteredRecords = records.filter((rec) => {
     
+    const searchLower = (searchQuery || '').toLowerCase();
     const matchesSearch = 
-      rec.animalId.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      rec.disease.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      rec.diseaseUrdu.includes(searchQuery);
+      (rec.animalId || '').toLowerCase().includes(searchLower) ||
+      (rec.disease || '').toLowerCase().includes(searchLower) ||
+      (rec.diseaseUrdu ? rec.diseaseUrdu.includes(searchQuery) : false);
 
     
     let matchesFilter = true;
@@ -122,7 +123,11 @@ export default function HealthRecordsScreen() {
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="light-content" backgroundColor={isDark ? colors.headerBackground : colors.primary} />
       
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        style={{ flex: 1, backgroundColor: colors.background }}
+        contentContainerStyle={styles.scrollContent} 
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.header}>
           <Text style={[styles.headerTitle, isUrdu && { fontFamily: fonts.urduBold }]}>{t('Health Records')}</Text>
           

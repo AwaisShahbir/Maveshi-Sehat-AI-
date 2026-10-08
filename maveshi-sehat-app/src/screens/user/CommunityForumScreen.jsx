@@ -31,7 +31,6 @@ export default function CommunityForumScreen() {
   const navigation = useNavigation();
   const route = useRoute();
   const params = route.params || {};
-  const insets = useSafeAreaInsets();
 
   const [profile, setProfile] = useState(getProfile());
   const userName = profile.userName || params.userName || '';
@@ -357,18 +356,18 @@ export default function CommunityForumScreen() {
       </View>
 
       <View style={styles.searchBarContainer}>
-        <Feather name="search" size={18} color="#888" style={{ marginRight: 8 }} />
+        <Feather name="search" size={18} color={colors.textSecondary} style={{ marginRight: 8 }} />
         <TextInput
           style={styles.searchInput}
           placeholder={t('Search discussions...')}
-          placeholderTextColor="#888"
+          placeholderTextColor={colors.inputPlaceholder}
           value={searchQuery}
           onChangeText={setSearchQuery}
           returnKeyType="search"
         />
         {searchQuery.length > 0 && (
           <TouchableOpacity onPress={() => setSearchQuery('')}>
-            <Feather name="x" size={18} color="#888" />
+            <Feather name="x" size={18} color={colors.textSecondary} />
           </TouchableOpacity>
         )}
       </View>

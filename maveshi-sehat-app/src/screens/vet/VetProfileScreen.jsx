@@ -67,7 +67,7 @@ export default function VetProfileScreen() {
       <TouchableOpacity style={styles.menuItem} onPress={onPress}>
         <View style={styles.menuLeft}>
           <View style={styles.menuIconBox}>
-            <Feather name={icon} size={20} color="#58D66D" />
+            <Feather name={icon} size={20} color={colors.primary} />
           </View>
           <Text style={styles.menuTitle}>{leftText}</Text>
         </View>
@@ -75,7 +75,7 @@ export default function VetProfileScreen() {
           {rightElement || (
             <>
               {rightText ? <Text style={styles.menuSubtitle}>{rightText}</Text> : null}
-              <Feather name="chevron-right" size={20} color="#CCC" />
+              <Feather name="chevron-right" size={20} color={colors.textSecondary} />
             </>
           )}
         </View>
@@ -90,7 +90,11 @@ export default function VetProfileScreen() {
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="light-content" backgroundColor={isDark ? colors.headerBackground : colors.primary} />
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+      <ScrollView 
+        showsVerticalScrollIndicator={false} 
+        style={{ flex: 1, backgroundColor: colors.background }}
+        contentContainerStyle={styles.scrollContent}
+      >
         
         <View style={styles.headerSection}>
           <View style={styles.headerTop}>
@@ -108,10 +112,10 @@ export default function VetProfileScreen() {
             </View>
             
             <Text style={styles.profileName}>{userName}</Text>
-                        <Text style={styles.specializationText}>{profile.specialization || 'Livestock Disease Specialist'}</Text>
+            <Text style={styles.specializationText}>{profile.specialization || 'Livestock Disease Specialist'}</Text>
             
             <View style={styles.verifiedBadge}>
-              <MaterialCommunityIcons name="check-decagram" size={16} color="#58D66D" style={{ marginRight: 6 }} />
+              <MaterialCommunityIcons name="check-decagram" size={16} color={colors.primary} style={{ marginRight: 6 }} />
               <Text style={styles.verifiedText}>{t('Verified Vet')}</Text>
             </View>
           </View>
@@ -295,7 +299,7 @@ export default function VetProfileScreen() {
                   {item.label}
                 </Text>
                 {profile.language === item.id && (
-                  <Feather name="check" size={20} color="#58D66D" />
+                  <Feather name="check" size={20} color={colors.primary} />
                 )}
               </TouchableOpacity>
             ))}

@@ -5,7 +5,7 @@ export const getStyles = (colors = LIGHT_THEME, isDark = false) => {
   return StyleSheet.create({
     safeArea: {
       flex: 1,
-      backgroundColor: colors.background,
+      backgroundColor: isDark ? colors.headerBackground : colors.primary,
     },
     scrollContent: {
       paddingBottom: 110,
@@ -102,17 +102,19 @@ export const getStyles = (colors = LIGHT_THEME, isDark = false) => {
       overflow: 'hidden',
     },
     dropdownItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
       paddingVertical: 14,
       paddingHorizontal: 16,
       borderBottomWidth: 1,
       borderBottomColor: colors.border,
-      minHeight: 48,
-      justifyContent: 'center',
+      minHeight: 50,
     },
     dropdownItemText: {
-      fontSize: 14,
+      fontSize: 15,
       color: colors.textPrimary,
-      fontWeight: '600',
+      fontWeight: '700',
     },
 
     uploadRow: {

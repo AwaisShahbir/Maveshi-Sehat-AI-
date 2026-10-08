@@ -56,6 +56,19 @@ export default function MyConsultationsScreen() {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error);
 
+      let initialRecord = null;
+      if (consult.ai_record_data) {
+        if (typeof consult.ai_record_data === 'object') {
+          initialRecord = consult.ai_record_data;
+        } else {
+          try {
+            initialRecord = JSON.parse(consult.ai_record_data);
+          } catch (e) {
+            initialRecord = null;
+          }
+        }
+      }
+
       navigation.navigate('Chat', {
         conversationId: data.id,
         partnerName: consult.vet_name,
@@ -63,7 +76,7 @@ export default function MyConsultationsScreen() {
         userName: profile.userName || 'Farmer',
         userRole: 'farmer',
         vetId: consult.vet_id,
-        initialRecord: consult.ai_record_data ? JSON.parse(consult.ai_record_data) : null
+        initialRecord
       });
     } catch (error) {
       Alert.alert('Error', 'Could not start chat.');
@@ -116,14 +129,17 @@ export default function MyConsultationsScreen() {
       </View>
 
       {loading ? (
-        <ActivityIndicator size="large" color={colors.primary} style={{ marginTop: 50 }} />
+        <View style={{ flex: 1, backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center' }}>
+          <ActivityIndicator size="large" color={colors.primary} />
+        </View>
       ) : consultations.length === 0 ? (
-        <View style={styles.emptyState}>
+        <View style={[styles.emptyState, { flex: 1, backgroundColor: colors.background }]}>
           <Feather name="calendar" size={48} color={colors.textSecondary} />
           <Text style={styles.emptyText}>No consultations found</Text>
         </View>
       ) : (
         <FlatList 
+          style={{ flex: 1, backgroundColor: colors.background }}
           data={consultations} 
           keyExtractor={(i) => i.id.toString()} 
           renderItem={renderItem} 

@@ -86,6 +86,19 @@ export default function VetConsultationsScreen() {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error);
 
+      let initialRecord = null;
+      if (item.ai_record_data) {
+        if (typeof item.ai_record_data === 'object') {
+          initialRecord = item.ai_record_data;
+        } else {
+          try {
+            initialRecord = JSON.parse(item.ai_record_data);
+          } catch (e) {
+            initialRecord = null;
+          }
+        }
+      }
+
       navigation.navigate('Chat', {
         conversationId: data.id,
         partnerName: item.farmer_name,
@@ -93,7 +106,7 @@ export default function VetConsultationsScreen() {
         userName: userName,
         userRole: 'vet',
         vetId: userId,
-        initialRecord: item.ai_record_data ? (typeof item.ai_record_data === 'string' ? JSON.parse(item.ai_record_data) : item.ai_record_data) : null
+        initialRecord
       });
     } catch (error) {
       console.error('Error opening chat', error);
@@ -217,11 +230,11 @@ export default function VetConsultationsScreen() {
         </View>
 
         <View style={styles.searchContainer}>
-          <Feather name="search" size={20} color="#888" style={styles.searchIcon} />
+          <Feather name="search" size={20} color="#FFF" style={styles.searchIcon} />
           <TextInput
             style={styles.searchInput}
             placeholder="Search owner or issue..."
-            placeholderTextColor="#888"
+            placeholderTextColor="rgba(255,255,255,0.75)"
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
@@ -248,7 +261,7 @@ export default function VetConsultationsScreen() {
           <Text style={styles.statLabel}>Pending</Text>
         </View>
         <View style={styles.statBox}>
-          <Text style={[styles.statNum, { color: '#58D66D' }]}>{loading ? '-' : stats.active}</Text>
+          <Text style={[styles.statNum, { color: colors.primary }]}>{loading ? '-' : stats.active}</Text>
           <Text style={styles.statLabel}>Active</Text>
         </View>
         <View style={styles.statBox}>
@@ -258,9 +271,12 @@ export default function VetConsultationsScreen() {
       </View>
 
       {loading && !refreshing ? (
-        <ActivityIndicator size="large" color="#58D66D" style={{ marginTop: 40 }} />
+        <View style={{ flex: 1, backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center' }}>
+          <ActivityIndicator size="large" color={colors.primary} />
+        </View>
       ) : (
         <FlatList
+          style={{ flex: 1, backgroundColor: colors.background }}
           data={filteredConsultations}
           renderItem={renderConversationCard}
           keyExtractor={(item) => item.id.toString()}

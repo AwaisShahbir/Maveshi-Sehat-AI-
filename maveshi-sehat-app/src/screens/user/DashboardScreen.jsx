@@ -114,13 +114,14 @@ export default function DashboardScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor="#58D66D" />
+      <StatusBar barStyle="light-content" backgroundColor={isDark ? '#0B1120' : '#059669'} />
       
       <ScrollView 
+        style={{ flex: 1, backgroundColor: colors.background }}
         contentContainerStyle={styles.scrollContent} 
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#58D66D']} />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} />
         }
       >
         
@@ -223,7 +224,7 @@ export default function DashboardScreen() {
               <Text style={styles.aiBannerSub}>{t('Instant AI guidance for your animals')}</Text>
             </View>
           </View>
-          <Feather name="chevron-right" size={20} color="#4CB85C" />
+          <Feather name="chevron-right" size={20} color={colors.primary} />
         </TouchableOpacity>
 
         

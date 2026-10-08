@@ -52,11 +52,11 @@ export default function WelcomeScreen() {
 
   return (
     <LinearGradient
-      colors={isDark ? ['#0B1120', '#0F172A', '#1E293B', '#0F172A', '#0B1120'] : ['#064E3B', '#065F46', '#047857', '#065F46', '#064E3B']}
-      locations={[0, 0.25, 0.5, 0.75, 1]}
+      colors={isDark ? ['#0B1120', '#0F172A', '#1E293B', '#0F172A', '#0B1120'] : ['#041D10', '#07331B', '#136737', '#1A7A43', '#136737', '#07331B', '#041D10']}
+      locations={isDark ? [0, 0.25, 0.5, 0.75, 1] : [0, 0.18, 0.38, 0.5, 0.62, 0.82, 1.0]}
       style={styles.root}
     >
-      <StatusBar barStyle="light-content" backgroundColor={isDark ? '#0B1120' : '#064E3B'} />
+      <StatusBar barStyle="light-content" backgroundColor={isDark ? '#0B1120' : '#041D10'} />
 
       <SafeAreaView style={styles.safeArea}>
 
@@ -67,7 +67,7 @@ export default function WelcomeScreen() {
             onPress={() => setShowLanguageModal(true)}
             activeOpacity={0.75}
           >
-            <Feather name="globe" size={14} color="#58D66D" />
+            <Feather name="globe" size={14} color="#10B981" />
             <Text style={styles.langBadgeText}>
               {currentLang === 'Urdu' ? 'UR' : 'EN'}
             </Text>
@@ -162,7 +162,7 @@ export default function WelcomeScreen() {
                 </Text>
 
                 {currentLang === item.id && (
-                  <Feather name="check" size={20} color="#58D66D" />
+                  <Feather name="check" size={20} color="#10B981" />
                 )}
               </TouchableOpacity>
             ))}

@@ -6,7 +6,7 @@ export const getStyles = (colors = LIGHT_THEME, isDark = false) => {
   return StyleSheet.create({
     safeArea: { 
       flex: 1, 
-      backgroundColor: colors.background 
+      backgroundColor: isDark ? colors.headerBackground : PALETTE.amber500 
     },
     scrollContent: { 
       paddingBottom: 90 

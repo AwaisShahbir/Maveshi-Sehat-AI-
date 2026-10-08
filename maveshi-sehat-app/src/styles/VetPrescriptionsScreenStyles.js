@@ -5,8 +5,7 @@ export const getStyles = (colors = LIGHT_THEME, isDark = false) => {
   return StyleSheet.create({
     safeArea: { 
       flex: 1, 
-      backgroundColor: colors.background, 
-      paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 
+      backgroundColor: isDark ? colors.headerBackground : colors.primary, 
     },
     header: { 
       backgroundColor: isDark ? colors.headerBackground : colors.primary, 
@@ -53,7 +52,7 @@ export const getStyles = (colors = LIGHT_THEME, isDark = false) => {
     tabTextActive: { color: colors.primary },
     tabTextInactive: { color: isDark ? colors.textSecondary : '#FFF' },
 
-    historyContainer: { flex: 1 },
+    historyContainer: { flex: 1, backgroundColor: colors.background },
     searchContainer: { 
       margin: 16, 
       backgroundColor: colors.inputBackground, 

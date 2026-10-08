@@ -168,18 +168,21 @@ export default function VetCasesScreen() {
           <TextInput
             style={styles.searchInput}
             placeholder="Search owner or disease..."
-            placeholderTextColor="#888"
+            placeholderTextColor="rgba(255,255,255,0.75)"
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
-          <Feather name="mic" size={20} color="#888" style={styles.micIcon} />
+          <Feather name="mic" size={20} color="#FFF" style={styles.micIcon} />
         </View>
       </View>
 
       {loading && !refreshing ? (
-        <ActivityIndicator size="large" color="#58D66D" style={{ marginTop: 40 }} />
+        <View style={{ flex: 1, backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center' }}>
+          <ActivityIndicator size="large" color={colors.primary} />
+        </View>
       ) : (
         <FlatList
+          style={{ flex: 1, backgroundColor: colors.background }}
           data={filteredCases}
           renderItem={renderCaseCard}
           keyExtractor={item => item.id.toString()}

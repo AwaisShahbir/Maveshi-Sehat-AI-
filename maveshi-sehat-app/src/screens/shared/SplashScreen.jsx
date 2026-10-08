@@ -19,11 +19,11 @@ export default function SplashScreen() {
 
   return (
     <LinearGradient
-      colors={['#071C0F', '#0E4224', '#1A6B3A', '#0E4224', '#071C0F']}
-      locations={[0, 0.25, 0.5, 0.75, 1]}
+      colors={['#041D10', '#07331B', '#136737', '#1A7A43', '#136737', '#07331B', '#041D10']}
+      locations={[0, 0.18, 0.38, 0.5, 0.62, 0.82, 1.0]}
       style={styles.root}
     >
-      <StatusBar barStyle="light-content" backgroundColor="#071C0F" hidden />
+      <StatusBar barStyle="light-content" backgroundColor="#041D10" hidden={false} />
 
       <View style={styles.content}>
         <View style={styles.logoCircle}>

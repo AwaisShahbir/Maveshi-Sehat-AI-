@@ -54,12 +54,19 @@ export default function VaccinationScreen() {
   const filteredVaccines = vaccinations;
 
   const renderVaccineItem = ({ item }) => {
-    const data = typeof item.vaccination_data === 'string' ? JSON.parse(item.vaccination_data) : item.vaccination_data;
+    let data = item.vaccination_data;
+    if (typeof data === 'string') {
+      try {
+        data = JSON.parse(data);
+      } catch (e) {
+        data = null;
+      }
+    }
     if (!data) return null;
     return (
       <View style={styles.card}>
         <View style={styles.iconContainer}>
-          <Feather name="check-circle" size={24} color="#4CB85C" />
+          <Feather name="check-circle" size={24} color="#10B981" />
         </View>
         <View style={styles.detailsContainer}>
           <Text style={styles.vaccineTitle}>{data.vaccineName}</Text>

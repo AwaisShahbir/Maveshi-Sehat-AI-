@@ -372,7 +372,11 @@ export default function AiScanScreen() {
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="light-content" backgroundColor={isDark ? colors.headerBackground : colors.primary} />
       
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        style={{ flex: 1, backgroundColor: colors.background }}
+        contentContainerStyle={styles.scrollContent} 
+        showsVerticalScrollIndicator={false}
+      >
         
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
@@ -398,37 +402,54 @@ export default function AiScanScreen() {
           </TouchableOpacity>
 
           
+          {/* Dropdown Options */}
           {showDropdown && (
             <View style={styles.dropdownList}>
               <TouchableOpacity 
                 style={styles.dropdownItem} 
                 onPress={() => handleSelectAnimal('Cow')}
+                activeOpacity={0.7}
               >
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <MaterialCommunityIcons name="cow" size={22} color={colors.primary} style={{ marginRight: 10 }} />
+                  <Text style={styles.dropdownItemText}>{t('Cow')}</Text>
+                </View>
+                {animalType === 'Cow' && (
+                  <Feather name="check" size={18} color={colors.primary} />
+                )}
               </TouchableOpacity>
               <TouchableOpacity 
                 style={[styles.dropdownItem, { borderBottomWidth: 0 }]} 
                 onPress={() => handleSelectAnimal('Buffalo')}
+                activeOpacity={0.7}
               >
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <MaterialCommunityIcons name="cow" size={22} color={colors.primary} style={{ marginRight: 10 }} />
+                  <Text style={styles.dropdownItemText}>{t('Buffalo')}</Text>
+                </View>
+                {animalType === 'Buffalo' && (
+                  <Feather name="check" size={18} color={colors.primary} />
+                )}
               </TouchableOpacity>
             </View>
           )}
 
-          
+          {/* Upload / Capture Section */}
           {!selectedImage ? (
             <View style={styles.uploadRow}>
-              <TouchableOpacity style={[styles.uploadCard, { borderColor: '#4CB85C' }]} onPress={handleTakePhoto}>
-                <View style={[styles.uploadIconBg, { backgroundColor: '#E8F8EA' }]}>
-                  <Feather name="camera" size={28} color="#4CB85C" />
+              <TouchableOpacity style={[styles.uploadCard, { borderColor: colors.primary }]} onPress={handleTakePhoto}>
+                <View style={[styles.uploadIconBg, { backgroundColor: colors.primaryLight }]}>
+                  <Feather name="camera" size={28} color={colors.primary} />
                 </View>
-                <Text style={[styles.uploadTitle, { color: '#333' }]}>{t('Take Photo')}</Text>
-                              </TouchableOpacity>
+                <Text style={[styles.uploadTitle, { color: colors.textPrimary }]}>{t('Take Photo')}</Text>
+              </TouchableOpacity>
 
-              <TouchableOpacity style={[styles.uploadCard, { borderColor: '#F5B041' }]} onPress={handleChooseFromGallery}>
-                <View style={[styles.uploadIconBg, { backgroundColor: '#FFF5E5' }]}>
-                  <Feather name="image" size={28} color="#F5B041" />
+              <TouchableOpacity style={[styles.uploadCard, { borderColor: colors.accentAmber }]} onPress={handleChooseFromGallery}>
+                <View style={[styles.uploadIconBg, { backgroundColor: colors.accentAmberLight }]}>
+                  <Feather name="image" size={28} color={colors.accentAmber} />
                 </View>
-                <Text style={[styles.uploadTitle, { color: '#333' }]}>{t('From Gallery')}</Text>
-                              </TouchableOpacity>
+                <Text style={[styles.uploadTitle, { color: colors.textPrimary }]}>{t('From Gallery')}</Text>
+              </TouchableOpacity>
             </View>
           ) : (
             

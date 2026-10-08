@@ -233,6 +233,7 @@ export default function VeterinariansListScreen() {
         </View>
       ) : filteredVets.length > 0 ? (
         <FlatList
+          style={{ flex: 1, backgroundColor: colors.background }}
           data={filteredVets}
           renderItem={renderVetCard}
           keyExtractor={(item) => item.id.toString()}

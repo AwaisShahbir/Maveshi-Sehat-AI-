@@ -67,6 +67,7 @@ export default function App() {
           <Stack.Screen name="VetHealthRecords" component={VetHealthRecordsScreen} />
           <Stack.Screen name="VetProfile" component={VetProfileScreen} />
           <Stack.Screen name="VetNotificationCenter" component={VetNotificationCenterScreen} />
+          <Stack.Screen name="Notifications" component={VetNotificationCenterScreen} />
           <Stack.Screen name="MyConsultations" component={MyConsultationsScreen} />
           <Stack.Screen name="Chat" component={ChatScreen} />
           <Stack.Screen name="CommunityForum" component={CommunityForumScreen} />

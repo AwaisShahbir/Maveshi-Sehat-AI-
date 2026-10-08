@@ -142,7 +142,11 @@ export default function VetDashboardScreen() {
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="light-content" backgroundColor={isDark ? colors.headerBackground : colors.primary} />
       
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        style={{ flex: 1, backgroundColor: colors.background }}
+        contentContainerStyle={styles.scrollContent} 
+        showsVerticalScrollIndicator={false}
+      >
         
         <View style={styles.headerBg}>
           <View style={styles.headerTop}>
@@ -244,40 +248,51 @@ export default function VetDashboardScreen() {
 
         <View style={styles.quickActionsGrid}>
           <TouchableOpacity style={styles.actionCard} onPress={() => navigation.navigate('VetCases')}>
-            <View style={[styles.actionIconBox, { backgroundColor: '#E8F8EA' }]}>
-              <Feather name="clipboard" size={28} color="#4CB85C" />
+            <View style={[styles.actionIconBox, { backgroundColor: isDark ? 'rgba(59, 130, 246, 0.15)' : '#EFF6FF' }]}>
+              <Feather name="clipboard" size={28} color="#3B82F6" />
             </View>
-            <Text style={styles.actionTitle}>All Cases</Text>
+            <Text style={styles.actionTitle}>{t('All Cases')}</Text>
           </TouchableOpacity>
           
           <TouchableOpacity style={styles.actionCard} onPress={() => navigation.navigate('VetConsultations', { userName, userId })}>
-            <View style={[styles.actionIconBox, { backgroundColor: '#E8F8EA' }]}>
-              <Feather name="message-square" size={28} color="#4CB85C" />
+            <View style={[styles.actionIconBox, { backgroundColor: isDark ? 'rgba(16, 185, 129, 0.15)' : '#ECFDF5' }]}>
+              <Feather name="message-square" size={28} color="#10B981" />
             </View>
-            <Text style={styles.actionTitle}>Consultations</Text>
+            <Text style={styles.actionTitle}>{t('Consultations')}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.actionCard} onPress={() => navigation.navigate('VetPrescriptions', { userName, userId })}>
-            <View style={[styles.actionIconBox, { backgroundColor: '#FFF5E5' }]}>
-              <Feather name="file-text" size={28} color="#F5B041" />
+            <View style={[styles.actionIconBox, { backgroundColor: isDark ? 'rgba(245, 158, 11, 0.15)' : '#FFFBEB' }]}>
+              <Feather name="file-text" size={28} color="#F59E0B" />
             </View>
-            <Text style={styles.actionTitle}>Prescriptions</Text>
+            <Text style={styles.actionTitle}>{t('Prescriptions')}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.actionCard} onPress={() => navigation.navigate('VetHealthRecords')}>
-            <View style={[styles.actionIconBox, { backgroundColor: '#F0E6FF' }]}>
-              <Feather name="activity" size={28} color="#9B51E0" />
+            <View style={[styles.actionIconBox, { backgroundColor: isDark ? 'rgba(139, 92, 246, 0.15)' : '#F5F3FF' }]}>
+              <Feather name="activity" size={28} color="#8B5CF6" />
             </View>
-            <Text style={styles.actionTitle}>Health Records</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.actionCard} onPress={() => navigation.navigate('Chatbot')}>
-            <View style={[styles.actionIconBox, { backgroundColor: '#E8F8EA' }]}>
-              <MaterialCommunityIcons name="stethoscope" size={28} color="#4CB85C" />
-            </View>
-            <Text style={styles.actionTitle}>AI Assistant</Text>
+            <Text style={styles.actionTitle}>{t('Health Records')}</Text>
           </TouchableOpacity>
         </View>
+
+        {/* Sehat Assistant AI Chatbot Banner (Matches Owner Dashboard) */}
+        <TouchableOpacity
+          style={styles.aiBanner}
+          onPress={() => navigation.navigate('Chatbot')}
+          activeOpacity={0.85}
+        >
+          <View style={styles.aiBannerLeft}>
+            <View style={styles.aiBannerIcon}>
+              <MaterialCommunityIcons name="stethoscope" size={24} color="#FFF" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.aiBannerTitle}>{t('Ask Sehat Assistant')}</Text>
+              <Text style={styles.aiBannerSub}>{t('Instant AI guidance for your animals')}</Text>
+            </View>
+          </View>
+          <Feather name="chevron-right" size={20} color={colors.primary} />
+        </TouchableOpacity>
       </ScrollView>
 
       <View style={styles.bottomNav}>

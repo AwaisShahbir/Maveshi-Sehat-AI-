@@ -157,11 +157,11 @@ export default function LoginScreen() {
               {t('Phone Number')}
             </Text>
             <View style={styles.inputContainer}>
-              <Feather name="phone" size={20} color="#4CB85C" style={styles.inputIcon} />
+              <Feather name="phone" size={20} color="#10B981" style={styles.inputIcon} />
               <TextInput
                 style={styles.input}
                 placeholder="+92 300 1234567"
-                placeholderTextColor="#999"
+                placeholderTextColor={colors.inputPlaceholder}
                 keyboardType="phone-pad"
                 value={phoneNumber}
                 onChangeText={setPhoneNumber}
@@ -172,17 +172,17 @@ export default function LoginScreen() {
               {t('Password')}
             </Text>
             <View style={styles.inputContainer}>
-              <Feather name="lock" size={20} color="#4CB85C" style={styles.inputIcon} />
+              <Feather name="lock" size={20} color="#6366F1" style={styles.inputIcon} />
               <TextInput
                 style={styles.input}
                 placeholder={t('Enter password')}
-                placeholderTextColor="#999"
+                placeholderTextColor={colors.inputPlaceholder}
                 secureTextEntry={!passwordVisible}
                 value={password}
                 onChangeText={setPassword}
               />
               <TouchableOpacity onPress={() => setPasswordVisible(!passwordVisible)} style={styles.eyeIcon}>
-                <Feather name={passwordVisible ? "eye-off" : "eye"} size={20} color="#888" />
+                <Feather name={passwordVisible ? "eye-off" : "eye"} size={20} color={colors.textSecondary} />
               </TouchableOpacity>
             </View>
 

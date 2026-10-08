@@ -5,7 +5,7 @@ export const getStyles = (colors = LIGHT_THEME, isDark = false) => {
   return StyleSheet.create({
     safeArea: {
       flex: 1,
-      backgroundColor: colors.background,
+      backgroundColor: isDark ? '#0B1120' : '#059669',
     },
     scrollContent: {
       paddingBottom: 110,

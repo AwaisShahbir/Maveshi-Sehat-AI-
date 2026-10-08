@@ -122,9 +122,13 @@ export default function ProfileScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor="#58D66D" />
+      <StatusBar barStyle="light-content" backgroundColor={isDark ? '#0B1120' : '#059669'} />
       
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        style={{ flex: 1, backgroundColor: colors.background }}
+        contentContainerStyle={styles.scrollContent} 
+        showsVerticalScrollIndicator={false}
+      >
         
         <View style={styles.header}>
           <Text style={[styles.headerTitle, isUrdu && { fontFamily: fonts.urduBold }]}>
@@ -141,7 +145,7 @@ export default function ProfileScreen() {
             <View style={styles.userInfo}>
               <Text style={styles.userName}>{profile.userName}</Text>
               <View style={styles.roleBadge}>
-                <Feather name="user" size={12} color="#58D66D" style={{ marginRight: 4 }} />
+                <Feather name="user" size={12} color={colors.primary} style={{ marginRight: 4 }} />
                 <Text style={[styles.roleText, isUrdu && { fontFamily: fonts.urduRegular }]}>
                   {t('Farmer')}
                 </Text>
@@ -149,7 +153,7 @@ export default function ProfileScreen() {
             </View>
 
             <TouchableOpacity style={styles.editIconBtn} onPress={() => setEditModalVisible(true)}>
-              <Feather name="edit-2" size={18} color="#58D66D" />
+              <Feather name="edit-2" size={18} color={colors.primary} />
             </TouchableOpacity>
           </View>
 
@@ -385,7 +389,7 @@ export default function ProfileScreen() {
                   {item.label}
                 </Text>
                 {currentLang === item.id && (
-                  <Feather name="check" size={20} color="#58D66D" />
+                  <Feather name="check" size={20} color={colors.primary} />
                 )}
               </TouchableOpacity>
             ))}

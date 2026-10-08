@@ -5,7 +5,7 @@ export const getStyles = (colors = LIGHT_THEME, isDark = false) => {
   return StyleSheet.create({
     safeArea: { 
       flex: 1, 
-      backgroundColor: colors.background 
+      backgroundColor: isDark ? colors.headerBackground : colors.primary 
     },
     headerBg: { 
       backgroundColor: isDark ? colors.headerBackground : colors.primary, 
@@ -123,6 +123,49 @@ export const getStyles = (colors = LIGHT_THEME, isDark = false) => {
     actionIconBox: { width: 52, height: 52, borderRadius: 26, justifyContent: 'center', alignItems: 'center', marginBottom: 12 },
     actionTitle: { fontSize: 15, fontWeight: '700', color: colors.textPrimary, textAlign: 'center' },
     actionSub: { fontSize: 12, color: colors.textSecondary, marginTop: 4 },
+    // AI Banner
+    aiBanner: {
+      backgroundColor: colors.card,
+      borderRadius: 20,
+      marginHorizontal: 12,
+      marginTop: 4,
+      marginBottom: 20,
+      padding: 16,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      borderWidth: 1,
+      borderColor: isDark ? colors.secondaryBorder : 'rgba(37, 99, 235, 0.2)',
+      shadowColor: '#2563EB',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: isDark ? 0.25 : 0.08,
+      shadowRadius: 10,
+      elevation: 3,
+    },
+    aiBannerLeft: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      flex: 1,
+      gap: 12,
+    },
+    aiBannerIcon: {
+      width: 48,
+      height: 48,
+      borderRadius: 16,
+      backgroundColor: colors.secondary,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    aiBannerTitle: {
+      fontSize: 15,
+      fontWeight: '800',
+      color: colors.textPrimary,
+    },
+    aiBannerSub: {
+      fontSize: 12,
+      color: colors.textSecondary,
+      marginTop: 2,
+    },
     emptyContainer: { alignItems: 'center', paddingVertical: 30 },
     emptyText: { color: colors.textSecondary, fontSize: 14 },
     bottomNav: { 

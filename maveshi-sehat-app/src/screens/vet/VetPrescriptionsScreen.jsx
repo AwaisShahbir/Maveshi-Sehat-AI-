@@ -80,15 +80,21 @@ export default function VetPrescriptionsScreen() {
   };
 
   const renderHistory = () => (
-    <View style={styles.historyContainer}>
-      <View style={styles.searchContainer}>
+    <View style={[styles.historyContainer, { backgroundColor: colors.background }]}>
+      <View style={[styles.searchContainer, { flexDirection: 'row', alignItems: 'center' }]}>
+        <Feather name="search" size={18} color={colors.textSecondary} style={{ marginRight: 8 }} />
         <TextInput
-          style={styles.searchInput}
+          style={[styles.searchInput, { flex: 1 }]}
           placeholder="Search by owner, diagnosis, ID..."
-          placeholderTextColor="#888"
+          placeholderTextColor={colors.inputPlaceholder}
           value={searchQuery}
           onChangeText={setSearchQuery}
         />
+        {searchQuery !== '' && (
+          <TouchableOpacity onPress={() => setSearchQuery('')}>
+            <Feather name="x" size={18} color={colors.textSecondary} />
+          </TouchableOpacity>
+        )}
       </View>
 
       <View style={styles.statsRow}>
@@ -122,7 +128,14 @@ export default function VetPrescriptionsScreen() {
   );
 
   const renderPrescriptionCard = (item, index) => {
-    const data = typeof item.prescription_data === 'string' ? JSON.parse(item.prescription_data) : item.prescription_data;
+    let data = item.prescription_data;
+    if (typeof data === 'string') {
+      try {
+        data = JSON.parse(data);
+      } catch (e) {
+        data = null;
+      }
+    }
     if (!data) return null;
     return (
       <View key={index} style={styles.historyCard}>
@@ -130,17 +143,21 @@ export default function VetPrescriptionsScreen() {
           <Text style={styles.historyFarmerName}>{item.farmer_name || 'Farmer'}</Text>
           <Text style={styles.historyDate}>{new Date(item.created_at).toLocaleDateString()}</Text>
         </View>
-        <Text style={styles.historyDiagnosis}>Diagnosis: {data.diagnosis}</Text>
+        <Text style={styles.historyDiagnosis}>Diagnosis: {data.diagnosis || 'General Treatment'}</Text>
         <View style={styles.historyDivider} />
-        {data.medicines && data.medicines.map((m, i) => (
-          <Text key={i} style={styles.historyMedicineText}>• {m.name} - {m.dosage} ({m.duration})</Text>
+        {data.medicines && Array.isArray(data.medicines) && data.medicines.map((m, i) => (
+          <Text key={i} style={styles.historyMedicineText}>• {m.name || 'Medicine'} - {m.dosage || ''} ({m.duration || ''})</Text>
         ))}
       </View>
     );
   };
 
   const renderWriteNew = () => (
-    <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.writeNewContainer}>
+    <ScrollView 
+      showsVerticalScrollIndicator={false} 
+      style={{ flex: 1, backgroundColor: colors.background }}
+      contentContainerStyle={styles.writeNewContainer}
+    >
       <View style={styles.formSection}>
         <View style={styles.sectionTitleRow}>
           <Feather name="user" size={16} color="#888" />
@@ -263,9 +280,13 @@ export default function VetPrescriptionsScreen() {
           <View style={styles.titleContainer}>
             <Text style={styles.headerTitle}>Prescriptions</Text>
           </View>
-          <TouchableOpacity style={styles.newBtn} onPress={() => setActiveTab('Write New')}>
-            <Text style={styles.newBtnText}>+ New</Text>
-          </TouchableOpacity>
+          {activeTab === 'History' ? (
+            <TouchableOpacity style={styles.newBtn} onPress={() => setActiveTab('Write New')}>
+              <Text style={styles.newBtnText}>+ New</Text>
+            </TouchableOpacity>
+          ) : (
+            <View style={{ width: 44 }} />
+          )}
         </View>
 
         <View style={styles.tabsContainer}>

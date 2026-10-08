@@ -5,8 +5,7 @@ export const getStyles = (colors = LIGHT_THEME, isDark = false) => {
   return StyleSheet.create({
     safeArea: { 
       flex: 1, 
-      backgroundColor: colors.background, 
-      paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 
+      backgroundColor: isDark ? colors.headerBackground : colors.primary, 
     },
     header: { 
       backgroundColor: isDark ? colors.headerBackground : colors.primary, 
@@ -47,12 +46,12 @@ export const getStyles = (colors = LIGHT_THEME, isDark = false) => {
     searchContainer: { 
       flexDirection: 'row', 
       alignItems: 'center', 
-      backgroundColor: 'rgba(255,255,255,0.18)', 
+      backgroundColor: 'rgba(255,255,255,0.2)', 
       borderRadius: 22, 
       paddingHorizontal: 16, 
       height: 48, 
       borderWidth: 1, 
-      borderColor: 'rgba(255,255,255,0.25)' 
+      borderColor: 'rgba(255,255,255,0.3)' 
     },
     searchIcon: { marginRight: 10, color: '#FFF' },
     searchInput: { flex: 1, fontSize: 14, color: '#FFF' },
