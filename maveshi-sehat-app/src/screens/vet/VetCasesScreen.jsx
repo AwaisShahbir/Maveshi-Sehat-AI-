@@ -156,9 +156,11 @@ export default function VetCasesScreen() {
                 style={[styles.tabBtn, activeTab === tab && styles.tabBtnActive]}
                 onPress={() => setActiveTab(tab)}
               >
-                {tab === 'Pending' && <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>{t('Pending')}</Text>}
-                {tab === 'Urgent' && <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}><View style={styles.dotUrgent}/>{t('Urgent')}</Text>}
-                {tab === 'Resolved' && <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}><View style={styles.dotResolved}/> Resolved</Text>}
+                {tab === 'Urgent' && <View style={styles.dotUrgent} />}
+                {tab === 'Resolved' && <View style={styles.dotResolved} />}
+                <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>
+                  {t(tab)}
+                </Text>
               </TouchableOpacity>
             ))}
           </ScrollView>

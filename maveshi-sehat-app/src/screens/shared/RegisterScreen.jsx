@@ -339,6 +339,7 @@ export default function RegisterScreen() {
                 </View>
 
                 {/* Experience */}
+                <Text style={[styles.label, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Experience (Years)')}</Text>
                 <View style={styles.inputContainer}>
                   <Feather name="clock" size={20} color="#F97316" style={styles.inputIcon} />
                   <TextInput 
@@ -352,6 +353,7 @@ export default function RegisterScreen() {
                 </View>
 
                 {/* Document Upload */}
+                <Text style={[styles.label, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Verification Document')}</Text>
                 <TouchableOpacity 
                   style={[styles.inputContainer, { justifyContent: 'center', backgroundColor: isDark ? 'rgba(16, 185, 129, 0.12)' : '#ECFDF5', borderColor: '#10B981', borderStyle: 'dashed' }]}
                   activeOpacity={0.8}
