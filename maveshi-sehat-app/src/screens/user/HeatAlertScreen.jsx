@@ -15,8 +15,8 @@ import {
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import { getProfile, subscribeProfile } from '../../utils/profileStore.js';
-import { t, tSplit, translateText, subscribeTranslation } from '../../utils/translate.js';
+import { getProfile, subscribeProfile } from '../../utils/profileStore';
+import { t, tSplit, translateText, subscribeTranslation } from '../../utils/translate';
 import { useTheme } from '../../utils/themeContext';
 import { getStyles } from '../../styles/HeatAlertScreenStyles';
 

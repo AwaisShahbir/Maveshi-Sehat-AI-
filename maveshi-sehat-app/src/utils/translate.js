@@ -176,6 +176,17 @@ export const t = (enText) => {
 };
 
 /**
+ * Splits string for bilingual display
+ */
+export const tSplit = (enText) => {
+  if (!enText || typeof enText !== 'string') return { en: '', ur: '' };
+  return {
+    en: enText,
+    ur: t(enText)
+  };
+};
+
+/**
  * Hook helper for functional components
  */
 export const useTranslation = () => {

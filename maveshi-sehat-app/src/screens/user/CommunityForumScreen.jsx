@@ -68,10 +68,10 @@ export default function CommunityForumScreen() {
       const response = await fetch(`${BASE_URL}/api/forum/posts?category=${categoryParam}`);
       if (!response.ok) throw new Error('Failed to fetch posts');
       const data = await response.json();
-      setPosts(data);
+      setPosts(Array.isArray(data) ? data : (data?.posts || []));
     } catch (error) {
-      console.error('Error fetching posts:', error);
-      Alert.alert('Connection Error', 'Could not load posts. Please check your internet connection.');
+      console.log('Error fetching posts:', error);
+      setPosts([]);
     } finally {
       setLoading(false);
       setRefreshing(false);

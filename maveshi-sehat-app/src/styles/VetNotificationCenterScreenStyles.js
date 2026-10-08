@@ -10,7 +10,7 @@ export const getStyles = (colors = LIGHT_THEME, isDark = false) => {
     header: { 
       backgroundColor: isDark ? colors.headerBackground : colors.primary, 
       paddingHorizontal: 20, 
-      paddingTop: 12, 
+      paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 0) + 18 : 22, 
       paddingBottom: 22,
       borderBottomLeftRadius: 24,
       borderBottomRightRadius: 24,
@@ -125,8 +125,34 @@ export const getStyles = (colors = LIGHT_THEME, isDark = false) => {
     footerRight: { flexDirection: 'row', alignItems: 'center' },
     timeText: { fontSize: 12, color: colors.textSecondary, marginRight: 12 },
     actionBtnText: { fontSize: 13, fontWeight: '800' },
-    emptyContainer: { alignItems: 'center', marginTop: 60 },
-    emptyText: { marginTop: 16, fontSize: 16, color: colors.textSecondary, fontWeight: '600' }
+    emptyContainer: { 
+      alignItems: 'center', 
+      justifyContent: 'center',
+      marginTop: 60,
+      paddingHorizontal: 32,
+    },
+    emptyIconCircle: {
+      width: 80,
+      height: 80,
+      borderRadius: 40,
+      backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : '#F3F4F6',
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginBottom: 18,
+    },
+    emptyTitle: { 
+      fontSize: 18, 
+      fontWeight: '800', 
+      color: colors.textPrimary,
+      marginBottom: 8,
+    },
+    emptyText: { 
+      fontSize: 14, 
+      color: colors.textSecondary, 
+      fontWeight: '500',
+      textAlign: 'center',
+      lineHeight: 20,
+    }
   });
 };
 

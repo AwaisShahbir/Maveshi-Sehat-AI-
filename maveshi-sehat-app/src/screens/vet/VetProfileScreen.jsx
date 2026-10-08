@@ -107,7 +107,7 @@ export default function VetProfileScreen() {
                 <Text style={styles.avatarText}>{initial}</Text>
               </View>
               <TouchableOpacity style={styles.editAvatarBtn} onPress={() => setActiveModal('editProfile')}>
-                <Feather name="edit-2" size={12} color="#FFF" />
+                <Feather name="edit-2" size={15} color={colors.primary} />
               </TouchableOpacity>
             </View>
             

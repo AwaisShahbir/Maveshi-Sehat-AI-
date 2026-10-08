@@ -10,7 +10,7 @@ export const getStyles = (colors = LIGHT_THEME, isDark = false) => {
     header: { 
       backgroundColor: isDark ? colors.headerBackground : colors.primary, 
       paddingHorizontal: 20, 
-      paddingTop: 12, 
+      paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 0) + 18 : 22, 
       paddingBottom: 22,
       borderBottomLeftRadius: 24,
       borderBottomRightRadius: 24,

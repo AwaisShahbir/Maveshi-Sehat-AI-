@@ -14,7 +14,7 @@ export const getStyles = (colors = LIGHT_THEME, isDark = false) => {
     headerTop: { 
       backgroundColor: isDark ? colors.headerBackground : colors.primary, 
       paddingHorizontal: 20, 
-      paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 0) + 10 : 20, 
+      paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 0) + 18 : 24, 
       paddingBottom: 20, 
       flexDirection: 'row', 
       alignItems: 'center', 

@@ -150,12 +150,8 @@ export default function VetDashboardScreen() {
         
         <View style={styles.headerBg}>
           <View style={styles.headerTop}>
-            <TouchableOpacity onPress={handleComingSoon} style={{ zIndex: 1 }}>
-              <Feather name="menu" size={24} color="#FFF" />
-            </TouchableOpacity>
-            
             <View style={styles.titleContainer}>
-              <Text style={styles.headerTitle}>Dashboard</Text>
+              <Text style={styles.headerTitle}>{t('Dashboard')}</Text>
             </View>
 
             <View style={styles.headerRight}>
@@ -223,6 +219,24 @@ export default function VetDashboardScreen() {
           </View>
         </View>
 
+        {/* Sehat Assistant AI Chatbot Banner (Directly above New Cases) */}
+        <TouchableOpacity
+          style={[styles.aiBanner, { marginTop: 16, marginBottom: 8 }]}
+          onPress={() => navigation.navigate('Chatbot')}
+          activeOpacity={0.85}
+        >
+          <View style={styles.aiBannerLeft}>
+            <View style={styles.aiBannerIcon}>
+              <MaterialCommunityIcons name="stethoscope" size={24} color="#FFF" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.aiBannerTitle}>{t('Ask Sehat Assistant')}</Text>
+              <Text style={styles.aiBannerSub}>{t('Instant AI guidance for your animals')}</Text>
+            </View>
+          </View>
+          <Feather name="chevron-right" size={20} color={colors.primary} />
+        </TouchableOpacity>
+
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>{t('New Cases')}</Text>
           <TouchableOpacity onPress={() => navigation.navigate('VetCases')}>
@@ -275,24 +289,6 @@ export default function VetDashboardScreen() {
             <Text style={styles.actionTitle}>{t('Health Records')}</Text>
           </TouchableOpacity>
         </View>
-
-        {/* Sehat Assistant AI Chatbot Banner (Matches Owner Dashboard) */}
-        <TouchableOpacity
-          style={styles.aiBanner}
-          onPress={() => navigation.navigate('Chatbot')}
-          activeOpacity={0.85}
-        >
-          <View style={styles.aiBannerLeft}>
-            <View style={styles.aiBannerIcon}>
-              <MaterialCommunityIcons name="stethoscope" size={24} color="#FFF" />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.aiBannerTitle}>{t('Ask Sehat Assistant')}</Text>
-              <Text style={styles.aiBannerSub}>{t('Instant AI guidance for your animals')}</Text>
-            </View>
-          </View>
-          <Feather name="chevron-right" size={20} color={colors.primary} />
-        </TouchableOpacity>
       </ScrollView>
 
       <View style={styles.bottomNav}>
