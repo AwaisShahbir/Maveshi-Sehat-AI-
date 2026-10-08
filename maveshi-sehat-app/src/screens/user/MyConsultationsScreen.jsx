@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, SafeAreaView, FlatList, TouchableOpacity, ActivityIndicator, Platform, Alert } from 'react-native';
+import { View, Text, SafeAreaView, FlatList, TouchableOpacity, ActivityIndicator, Platform, Alert, StatusBar } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
 import { getProfile } from '../../utils/profileStore';
-import styles from '../../styles/MyConsultationsScreenStyles';
+import { useTheme } from '../../utils/themeContext';
+import { getStyles } from '../../styles/MyConsultationsScreenStyles';
 
 export default function MyConsultationsScreen() {
+  const { colors, isDark } = useTheme();
+  const styles = React.useMemo(() => getStyles(colors, isDark), [colors, isDark]);
   const navigation = useNavigation();
   const profile = getProfile();
   const [consultations, setConsultations] = useState([]);
@@ -74,8 +77,16 @@ export default function MyConsultationsScreen() {
           <Text style={styles.vetName}>{item.vet_name}</Text>
           <Text style={styles.typeText}>{item.type === 'online_chat' ? 'Online Consultation' : 'Physical Appointment'}</Text>
         </View>
-        <View style={[styles.statusBadge, { backgroundColor: item.status === 'approved' ? '#E8F8EA' : item.status === 'rejected' ? '#FFEBEB' : '#FFF3CD' }]}>
-          <Text style={[styles.statusText, { color: item.status === 'approved' ? '#58D66D' : item.status === 'rejected' ? '#FF3B30' : '#856404' }]}>
+        <View style={[styles.statusBadge, { 
+          backgroundColor: item.status === 'approved' 
+            ? (isDark ? 'rgba(16, 185, 129, 0.15)' : '#E8F8EA') 
+            : item.status === 'rejected' 
+            ? (isDark ? 'rgba(239, 68, 68, 0.15)' : '#FFEBEB') 
+            : (isDark ? 'rgba(245, 158, 11, 0.15)' : '#FFF3CD') 
+        }]}>
+          <Text style={[styles.statusText, { 
+            color: item.status === 'approved' ? colors.primary : item.status === 'rejected' ? '#EF4444' : '#F59E0B' 
+          }]}>
             {item.status.toUpperCase()}
           </Text>
         </View>
@@ -85,7 +96,7 @@ export default function MyConsultationsScreen() {
       {item.appointment_date && <Text style={styles.dateText}>Date: {new Date(item.appointment_date).toLocaleString()}</Text>}
 
       {item.status === 'approved' && item.type === 'online_chat' && (
-        <TouchableOpacity style={styles.chatBtn} onPress={() => handleStartChat(item)}>
+        <TouchableOpacity style={styles.chatBtn} onPress={() => handleStartChat(item)} activeOpacity={0.8}>
           <Feather name="message-square" size={16} color="#FFF" style={{ marginRight: 8 }} />
           <Text style={styles.chatBtnText}>Open Chat</Text>
         </TouchableOpacity>
@@ -95,23 +106,30 @@ export default function MyConsultationsScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor={isDark ? colors.headerBackground : colors.primary} />
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Feather name="arrow-left" size={24} color="#333" />
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+          <Feather name="arrow-left" size={24} color="#FFF" />
         </TouchableOpacity>
         <Text style={styles.title}>My Consultations</Text>
-        <View style={{ width: 24 }} />
+        <View style={{ width: 44 }} />
       </View>
 
       {loading ? (
-        <ActivityIndicator size="large" color="#58D66D" style={{ marginTop: 50 }} />
+        <ActivityIndicator size="large" color={colors.primary} style={{ marginTop: 50 }} />
       ) : consultations.length === 0 ? (
         <View style={styles.emptyState}>
-          <Feather name="calendar" size={48} color="#ccc" />
+          <Feather name="calendar" size={48} color={colors.textSecondary} />
           <Text style={styles.emptyText}>No consultations found</Text>
         </View>
       ) : (
-        <FlatList data={consultations} keyExtractor={(i) => i.id.toString()} renderItem={renderItem} contentContainerStyle={{ padding: 16 }} />
+        <FlatList 
+          data={consultations} 
+          keyExtractor={(i) => i.id.toString()} 
+          renderItem={renderItem} 
+          contentContainerStyle={{ padding: 16, paddingBottom: 40 }} 
+          showsVerticalScrollIndicator={false}
+        />
       )}
     </SafeAreaView>
   );

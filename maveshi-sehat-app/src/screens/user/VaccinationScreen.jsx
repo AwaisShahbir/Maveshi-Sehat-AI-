@@ -14,11 +14,14 @@ import Feather from 'react-native-vector-icons/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { t } from '../../utils/translate';
-import styles from '../../styles/VaccinationScreenStyles';
+import { useTheme } from '../../utils/themeContext';
+import { getStyles } from '../../styles/VaccinationScreenStyles';
 
 const MOCK_VACCINES = [];
 
 export default function VaccinationScreen() {
+  const { colors, isDark } = useTheme();
+  const styles = React.useMemo(() => getStyles(colors, isDark), [colors, isDark]);
   const navigation = useNavigation();
   const route = useRoute();
   const params = route.params || {};
@@ -76,7 +79,7 @@ export default function VaccinationScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor="#F5B041" />
+      <StatusBar barStyle="light-content" backgroundColor={isDark ? colors.headerBackground : '#F5A623'} />
 
       <View style={styles.headerContainer}>
         <View style={styles.headerTop}>
@@ -132,24 +135,24 @@ export default function VaccinationScreen() {
 
       <View style={[styles.bottomNav, { paddingBottom: Math.max(insets.bottom, 12) }]}>
         <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Dashboard')}>
-          <Feather name="home" size={24} color="#FFF" />
-          <Text style={styles.navText}>{t('Home')}</Text>
+          <Feather name="home" size={24} color={colors.primaryLight} />
+          <Text style={[styles.navText, { color: colors.primaryLight }]}>{t('Home')}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('AiScan', { userName, userId })}>
-          <MaterialCommunityIcons name="line-scan" size={24} color="#A3E6B2" />
-          <Text style={[styles.navText, { color: '#A3E6B2' }]}>{t('AI Scan')}</Text>
+          <MaterialCommunityIcons name="line-scan" size={24} color={colors.primaryLight} />
+          <Text style={[styles.navText, { color: colors.primaryLight }]}>{t('AI Scan')}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('HealthRecords', { userName, userId })}>
-          <Feather name="file-text" size={24} color="#A3E6B2" />
-          <Text style={[styles.navText, { color: '#A3E6B2' }]}>{t('Records')}</Text>
+          <Feather name="file-text" size={24} color={colors.primaryLight} />
+          <Text style={[styles.navText, { color: colors.primaryLight }]}>{t('Records')}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('CommunityForum', { userName, userId })}>
-          <Feather name="message-square" size={24} color="#A3E6B2" />
-          <Text style={[styles.navText, { color: '#A3E6B2' }]}>{t('Forum')}</Text>
+          <Feather name="message-square" size={24} color={colors.primaryLight} />
+          <Text style={[styles.navText, { color: colors.primaryLight }]}>{t('Forum')}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Profile', { userId })}>
-          <Feather name="user" size={24} color="#A3E6B2" />
-          <Text style={[styles.navText, { color: '#A3E6B2' }]}>{t('Profile')}</Text>
+          <Feather name="user" size={24} color={colors.primaryLight} />
+          <Text style={[styles.navText, { color: colors.primaryLight }]}>{t('Profile')}</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>

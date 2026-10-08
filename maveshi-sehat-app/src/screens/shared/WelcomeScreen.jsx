@@ -5,13 +5,16 @@ import LinearGradient from 'react-native-linear-gradient';
 import Feather from 'react-native-vector-icons/Feather';
 import { getProfile, subscribeProfile, setUserLanguage } from '../../utils/profileStore';
 import { t, useTranslation, subscribeTranslation } from '../../utils/translate';
+import { useTheme } from '../../utils/themeContext';
 import fonts from '../../styles/fonts';
-import styles from '../../styles/WelcomeScreenStyles';
+import { getStyles } from '../../styles/WelcomeScreenStyles';
 
 const logoImg = require('../../../assets/images/maveshi_sehat_logo.png');
 
 export default function WelcomeScreen() {
   const navigation = useNavigation();
+  const { colors, isDark } = useTheme();
+  const styles = React.useMemo(() => getStyles(colors, isDark), [colors, isDark]);
   const [profile, setProfile] = useState(getProfile());
   const [showLanguageModal, setShowLanguageModal] = useState(false);
   const { isUrdu } = useTranslation();
@@ -49,11 +52,11 @@ export default function WelcomeScreen() {
 
   return (
     <LinearGradient
-      colors={['#071C0F', '#0E4224', '#1A6B3A', '#0E4224', '#071C0F']}
+      colors={isDark ? ['#0B1120', '#0F172A', '#1E293B', '#0F172A', '#0B1120'] : ['#064E3B', '#065F46', '#047857', '#065F46', '#064E3B']}
       locations={[0, 0.25, 0.5, 0.75, 1]}
       style={styles.root}
     >
-      <StatusBar barStyle="light-content" backgroundColor="#071C0F" />
+      <StatusBar barStyle="light-content" backgroundColor={isDark ? '#0B1120' : '#064E3B'} />
 
       <SafeAreaView style={styles.safeArea}>
 

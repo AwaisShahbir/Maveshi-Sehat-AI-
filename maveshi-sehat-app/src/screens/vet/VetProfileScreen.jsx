@@ -5,9 +5,12 @@ import Feather from 'react-native-vector-icons/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { getProfile, updateProfile, subscribeProfile } from '../../utils/profileStore';
 import { t } from '../../utils/translate';
-import styles from '../../styles/VetProfileScreenStyles';
+import { useTheme } from '../../utils/themeContext';
+import { getStyles } from '../../styles/VetProfileScreenStyles';
 
 export default function VetProfileScreen() {
+  const { colors, isDark, toggleTheme } = useTheme();
+  const styles = React.useMemo(() => getStyles(colors, isDark), [colors, isDark]);
   const navigation = useNavigation();
   const route = useRoute();
   const params = route.params || {};
@@ -85,7 +88,7 @@ export default function VetProfileScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor="#58D66D" />
+      <StatusBar barStyle="light-content" backgroundColor={isDark ? colors.headerBackground : colors.primary} />
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         
@@ -165,11 +168,21 @@ export default function VetProfileScreen() {
             <View style={styles.menuDivider} />
             {renderMenuItem('bell', 'Notifications', null, 
               <Switch
-                trackColor={{ false: '#EAEAEA', true: '#58D66D' }}
+                trackColor={{ false: isDark ? '#334155' : '#EAEAEA', true: colors.primary }}
                 thumbColor="#FFF"
                 ios_backgroundColor="#EAEAEA"
                 onValueChange={() => setNotificationsEnabled(!notificationsEnabled)}
                 value={notificationsEnabled}
+              />
+            )}
+            <View style={styles.menuDivider} />
+            {renderMenuItem('moon', 'Dark Mode', null, 
+              <Switch
+                trackColor={{ false: isDark ? '#334155' : '#EAEAEA', true: colors.primary }}
+                thumbColor="#FFF"
+                ios_backgroundColor="#EAEAEA"
+                onValueChange={toggleTheme}
+                value={isDark}
               />
             )}
             <View style={styles.menuDivider} />
@@ -292,26 +305,26 @@ export default function VetProfileScreen() {
 
       <View style={styles.bottomNav}>
         <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('VetDashboard')}>
-          <MaterialCommunityIcons name="home-variant-outline" size={26} color="#999" />
-          <Text style={styles.navText}>Home</Text>
+          <MaterialCommunityIcons name="home-variant-outline" size={26} color={colors.textSecondary} />
+          <Text style={[styles.navText, { color: colors.textSecondary }]}>Home</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('VetCases')}>
-          <MaterialCommunityIcons name="clipboard-text-outline" size={26} color="#999" />
-          <Text style={styles.navText}>Cases</Text>
+          <MaterialCommunityIcons name="clipboard-text-outline" size={26} color={colors.textSecondary} />
+          <Text style={[styles.navText, { color: colors.textSecondary }]}>Cases</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('VetConsultations')}>
-          <MaterialCommunityIcons name="message-text-outline" size={26} color="#999" />
-          <Text style={styles.navText}>Consult</Text>
+          <MaterialCommunityIcons name="message-text-outline" size={26} color={colors.textSecondary} />
+          <Text style={[styles.navText, { color: colors.textSecondary }]}>Consult</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('VetHealthRecords')}>
-          <MaterialCommunityIcons name="pulse" size={26} color="#999" />
-          <Text style={styles.navText}>Records</Text>
+          <MaterialCommunityIcons name="pulse" size={26} color={colors.textSecondary} />
+          <Text style={[styles.navText, { color: colors.textSecondary }]}>Records</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.navItem} onPress={() => {}}>
           <View style={[styles.navProfile, styles.navProfileActive]}>
             <Text style={[styles.navProfileText, styles.navProfileTextActive]}>{initial}</Text>
           </View>
-          <Text style={[styles.navText, { color: '#58D66D' }]}>Profile</Text>
+          <Text style={[styles.navText, { color: colors.primary, fontWeight: '700' }]}>Profile</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>

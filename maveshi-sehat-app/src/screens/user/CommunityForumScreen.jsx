@@ -18,14 +18,16 @@ import {
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getProfile, subscribeProfile } from '../../utils/profileStore';
 import { t } from '../../utils/translate';
-import styles from '../../styles/CommunityForumScreenStyles';
+import { useTheme } from '../../utils/themeContext';
+import { getStyles } from '../../styles/CommunityForumScreenStyles';
 
 const BASE_URL = Platform.OS === 'android' ? 'http://10.0.2.2:5000' : 'http://localhost:5000';
 
 export default function CommunityForumScreen() {
+  const { colors, isDark } = useTheme();
+  const styles = React.useMemo(() => getStyles(colors, isDark), [colors, isDark]);
   const navigation = useNavigation();
   const route = useRoute();
   const params = route.params || {};
@@ -311,7 +313,7 @@ export default function CommunityForumScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor="#58D66D" />
+      <StatusBar barStyle="light-content" backgroundColor={isDark ? colors.headerBackground : colors.primary} />
 
       <View style={styles.headerContainer}>
         <View style={styles.headerTop}>
@@ -397,22 +399,22 @@ export default function CommunityForumScreen() {
           style={styles.navItem}
           onPress={() => navigation.navigate('Dashboard', { userName, userId })}
         >
-          <Feather name="home" size={24} color="#A3E6B2" />
-          <Text style={[styles.navText, { color: '#A3E6B2' }]}>{t('Home')}</Text>
+          <Feather name="home" size={24} color={colors.primaryLight} />
+          <Text style={[styles.navText, { color: colors.primaryLight }]}>{t('Home')}</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.navItem}
           onPress={() => navigation.navigate('AiScan', { userName, userId })}
         >
-          <MaterialCommunityIcons name="line-scan" size={24} color="#A3E6B2" />
-          <Text style={[styles.navText, { color: '#A3E6B2' }]}>{t('AI Scan')}</Text>
+          <MaterialCommunityIcons name="line-scan" size={24} color={colors.primaryLight} />
+          <Text style={[styles.navText, { color: colors.primaryLight }]}>{t('AI Scan')}</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.navItem}
           onPress={() => navigation.navigate('HealthRecords', { userName, userId })}
         >
-          <Feather name="file-text" size={24} color="#A3E6B2" />
-          <Text style={[styles.navText, { color: '#A3E6B2' }]}>{t('Records')}</Text>
+          <Feather name="file-text" size={24} color={colors.primaryLight} />
+          <Text style={[styles.navText, { color: colors.primaryLight }]}>{t('Records')}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.navItem}>
           <Feather name="message-square" size={24} color="#FFE135" />
@@ -422,8 +424,8 @@ export default function CommunityForumScreen() {
           style={styles.navItem}
           onPress={() => navigation.navigate('Profile', { userId })}
         >
-          <Feather name="user" size={24} color="#A3E6B2" />
-          <Text style={[styles.navText, { color: '#A3E6B2' }]}>{t('Profile')}</Text>
+          <Feather name="user" size={24} color={colors.primaryLight} />
+          <Text style={[styles.navText, { color: colors.primaryLight }]}>{t('Profile')}</Text>
         </TouchableOpacity>
       </View>
 

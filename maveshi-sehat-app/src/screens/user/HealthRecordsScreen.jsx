@@ -18,12 +18,15 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import { getRecords, subscribe, loadRecords } from '../../utils/recordsStore';
 import { getProfile, subscribeProfile } from '../../utils/profileStore';
 import { t, useTranslation, subscribeTranslation, getLocalizedDescription, getLocalizedFirstAid } from '../../utils/translate';
+import { useTheme } from '../../utils/themeContext';
 import fonts from '../../styles/fonts';
-import styles from '../../styles/HealthRecordsScreenStyles';
+import { getStyles } from '../../styles/HealthRecordsScreenStyles';
 
 export default function HealthRecordsScreen() {
   const navigation = useNavigation();
   const route = useRoute();
+  const { colors, isDark } = useTheme();
+  const styles = React.useMemo(() => getStyles(colors, isDark), [colors, isDark]);
   const params = route.params || {};
   const [activeUserName, setActiveUserName] = useState(params.userName || getProfile().userName);
   const userName = activeUserName;
@@ -117,7 +120,7 @@ export default function HealthRecordsScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor="#4CB85C" />
+      <StatusBar barStyle="light-content" backgroundColor={isDark ? colors.headerBackground : colors.primary} />
       
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
@@ -125,11 +128,11 @@ export default function HealthRecordsScreen() {
           
           <View style={styles.searchBarRow}>
             <View style={styles.searchContainer}>
-              <Feather name="search" size={20} color="#999" style={styles.searchIcon} />
+              <Feather name="search" size={20} color={colors.textMuted} style={styles.searchIcon} />
               <TextInput
                 style={[styles.searchInput, isUrdu && { fontFamily: fonts.urduRegular }]}
                 placeholder={t('Search records...')}
-                placeholderTextColor="#999"
+                placeholderTextColor={colors.inputPlaceholder}
                 value={searchQuery}
                 onChangeText={setSearchQuery}
               />
@@ -377,24 +380,24 @@ export default function HealthRecordsScreen() {
       <View style={styles.bottomNavContainer}>
         <View style={styles.bottomNav}>
           <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Dashboard')}>
-            <Feather name="home" size={24} color="#A3E6B2" />
-            <Text style={[styles.navText, { color: '#A3E6B2' }, isUrdu && { fontFamily: fonts.urduBold, fontSize: 11 }]}>{t('Home')}</Text>
+            <Feather name="home" size={24} color={colors.navInactive} />
+            <Text style={[styles.navText, { color: colors.navInactive }, isUrdu && { fontFamily: fonts.urduBold, fontSize: 11 }]}>{t('Home')}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('AiScan', { userName, userId })}>
-            <MaterialCommunityIcons name="line-scan" size={24} color="#A3E6B2" />
-            <Text style={[styles.navText, { color: '#A3E6B2' }, isUrdu && { fontFamily: fonts.urduBold, fontSize: 11 }]}>{t('AI Scan')}</Text>
+            <MaterialCommunityIcons name="line-scan" size={24} color={colors.navInactive} />
+            <Text style={[styles.navText, { color: colors.navInactive }, isUrdu && { fontFamily: fonts.urduBold, fontSize: 11 }]}>{t('AI Scan')}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.navItem}>
-            <Feather name="file-text" size={24} color="#FFF" />
-            <Text style={[styles.navText, { color: '#FFF' }, isUrdu && { fontFamily: fonts.urduBold, fontSize: 11 }]}>{t('Records')}</Text>
+            <Feather name="file-text" size={24} color={colors.navActive} />
+            <Text style={[styles.navText, { color: colors.navActive, fontWeight: '700' }, isUrdu && { fontFamily: fonts.urduBold, fontSize: 11 }]}>{t('Records')}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('CommunityForum', { userName, userId })}>
-            <Feather name="message-square" size={24} color="#A3E6B2" />
-            <Text style={[styles.navText, { color: '#A3E6B2' }, isUrdu && { fontFamily: fonts.urduBold, fontSize: 11 }]}>{t('Forum')}</Text>
+            <Feather name="message-square" size={24} color={colors.navInactive} />
+            <Text style={[styles.navText, { color: colors.navInactive }, isUrdu && { fontFamily: fonts.urduBold, fontSize: 11 }]}>{t('Forum')}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Profile', { userId })}>
-            <Feather name="user" size={24} color="#A3E6B2" />
-            <Text style={[styles.navText, { color: '#A3E6B2' }, isUrdu && { fontFamily: fonts.urduBold, fontSize: 11 }]}>{t('Profile')}</Text>
+            <Feather name="user" size={24} color={colors.navInactive} />
+            <Text style={[styles.navText, { color: colors.navInactive }, isUrdu && { fontFamily: fonts.urduBold, fontSize: 11 }]}>{t('Profile')}</Text>
           </TouchableOpacity>
         </View>
       </View>

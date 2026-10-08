@@ -3,10 +3,12 @@ import { View, Text, TextInput, TouchableOpacity, SafeAreaView, StatusBar, Keybo
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
 import { t } from '../../utils/translate';
-import styles from '../../styles/VerifyScreenStyles';
-
+import { useTheme } from '../../utils/themeContext';
+import { getStyles } from '../../styles/VerifyScreenStyles';
 
 export default function VerifyScreen() {
+  const { colors, isDark } = useTheme();
+  const styles = React.useMemo(() => getStyles(colors, isDark), [colors, isDark]);
   const navigation = useNavigation();
   const route = useRoute();
   const { email, role, userName } = route.params || {};
@@ -72,7 +74,7 @@ export default function VerifyScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor="#58D66D" />
+      <StatusBar barStyle="light-content" backgroundColor={isDark ? colors.headerBackground : colors.primary} />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.container}

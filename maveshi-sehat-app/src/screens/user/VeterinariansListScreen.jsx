@@ -8,12 +8,15 @@ import Feather from 'react-native-vector-icons/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { getProfile, subscribeProfile } from '../../utils/profileStore';
 import { t } from '../../utils/translate';
+import { useTheme } from '../../utils/themeContext';
 import LinearGradient from 'react-native-linear-gradient';
-import styles from '../../styles/VeterinariansListScreenStyles';
+import { getStyles } from '../../styles/VeterinariansListScreenStyles';
 
 export default function VeterinariansListScreen() {
   const navigation = useNavigation();
   const route = useRoute();
+  const { colors, isDark } = useTheme();
+  const styles = React.useMemo(() => getStyles(colors, isDark), [colors, isDark]);
   const params = route.params || {};
 
   const [profile, setProfile] = useState(getProfile());
@@ -198,7 +201,7 @@ export default function VeterinariansListScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor="#58D66D" />
+      <StatusBar barStyle="light-content" backgroundColor={isDark ? colors.headerBackground : colors.primary} />
       
       <View style={styles.headerArea}>
         <View style={styles.headerTop}>

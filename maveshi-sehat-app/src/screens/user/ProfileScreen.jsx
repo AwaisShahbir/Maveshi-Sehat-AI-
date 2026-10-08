@@ -18,8 +18,9 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import { getProfile, updateProfile, subscribeProfile } from '../../utils/profileStore';
 import { getRecords, subscribe, loadRecords } from '../../utils/recordsStore';
 import { t, useTranslation, subscribeTranslation } from '../../utils/translate';
+import { useTheme } from '../../utils/themeContext';
 import fonts from '../../styles/fonts';
-import styles from '../../styles/ProfileScreenStyles';
+import { getStyles } from '../../styles/ProfileScreenStyles';
 
 export default function ProfileScreen() {
   const navigation = useNavigation();
@@ -27,9 +28,11 @@ export default function ProfileScreen() {
   const params = route.params || {};
   const userId = params.userId || 'user_123';
 
+  const { isDark, colors, toggleTheme } = useTheme();
+  const styles = React.useMemo(() => getStyles(colors, isDark), [colors, isDark]);
+
   const [profile, setProfile] = useState(getProfile());
   const [records, setRecords] = useState(getRecords());
-  const [isDarkMode, setIsDarkMode] = useState(false);
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [langModalVisible, setLangModalVisible] = useState(false);
 
@@ -170,35 +173,35 @@ export default function ProfileScreen() {
         <Text style={[styles.groupTitle, isUrdu && { fontFamily: fonts.urduBold }]}>{t('Account')}</Text>
         <View style={styles.settingsGroup}>
           <TouchableOpacity style={styles.settingsItem} onPress={() => setEditModalVisible(true)}>
-            <View style={[styles.itemIconBg, { backgroundColor: '#E8F8EA' }]}>
-              <Feather name="user" size={18} color="#58D66D" />
+            <View style={[styles.itemIconBg, { backgroundColor: colors.secondaryLight }]}>
+              <Feather name="user" size={18} color={colors.secondary} />
             </View>
             <View style={styles.itemDetails}>
               <Text style={[styles.itemTitle, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Edit Profile')}</Text>
             </View>
-            <Feather name="chevron-right" size={18} color="#888" />
+            <Feather name="chevron-right" size={18} color={colors.textMuted} />
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.settingsItem} onPress={() => setEditModalVisible(true)}>
-            <View style={[styles.itemIconBg, { backgroundColor: '#E8F8EA' }]}>
-              <Feather name="phone-call" size={18} color="#58D66D" />
+            <View style={[styles.itemIconBg, { backgroundColor: colors.primaryLight }]}>
+              <Feather name="phone-call" size={18} color={colors.primary} />
             </View>
             <View style={styles.itemDetails}>
               <Text style={[styles.itemTitle, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Phone Number')}</Text>
               <Text style={styles.itemVal}>{profile.phone}</Text>
             </View>
-            <Feather name="chevron-right" size={18} color="#888" />
+            <Feather name="chevron-right" size={18} color={colors.textMuted} />
           </TouchableOpacity>
 
           <TouchableOpacity style={[styles.settingsItem, { borderBottomWidth: 0 }]} onPress={() => setEditModalVisible(true)}>
-            <View style={[styles.itemIconBg, { backgroundColor: '#E8F8EA' }]}>
-              <Feather name="map-pin" size={18} color="#58D66D" />
+            <View style={[styles.itemIconBg, { backgroundColor: colors.accentAmberLight }]}>
+              <Feather name="map-pin" size={18} color={colors.accentAmber} />
             </View>
             <View style={styles.itemDetails}>
               <Text style={[styles.itemTitle, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Location')}</Text>
               <Text style={styles.itemVal}>{profile.location}</Text>
             </View>
-            <Feather name="chevron-right" size={18} color="#888" />
+            <Feather name="chevron-right" size={18} color={colors.textMuted} />
           </TouchableOpacity>
         </View>
 
@@ -215,8 +218,8 @@ export default function ProfileScreen() {
               }
             }}
           >
-            <View style={[styles.itemIconBg, { backgroundColor: '#E8F8EA' }]}>
-              <Feather name="globe" size={18} color="#58D66D" />
+            <View style={[styles.itemIconBg, { backgroundColor: colors.accentPurpleLight }]}>
+              <Feather name="globe" size={18} color={colors.accentPurple} />
             </View>
             <View style={styles.itemDetails}>
               <Text style={[styles.itemTitle, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Language')}</Text>
@@ -225,17 +228,17 @@ export default function ProfileScreen() {
               </Text>
             </View>
             {profile.enforceAdminLanguage ? (
-              <Text style={{ fontSize: 11, color: '#94a3b8', fontStyle: 'italic' }}>
+              <Text style={{ fontSize: 11, color: colors.textMuted, fontStyle: 'italic' }}>
                 {t('Set by Admin')}
               </Text>
             ) : (
-              <Feather name="chevron-right" size={18} color="#888" />
+              <Feather name="chevron-right" size={18} color={colors.textMuted} />
             )}
           </TouchableOpacity>
 
           <View style={styles.settingsItem}>
-            <View style={[styles.itemIconBg, { backgroundColor: '#E8F8EA' }]}>
-              <Feather name="bell" size={18} color="#58D66D" />
+            <View style={[styles.itemIconBg, { backgroundColor: colors.accentRedLight }]}>
+              <Feather name="bell" size={18} color={colors.accentRed} />
             </View>
             <View style={styles.itemDetails}>
               <Text style={[styles.itemTitle, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Notifications')}</Text>
@@ -243,22 +246,22 @@ export default function ProfileScreen() {
             <Switch
               value={profile.notificationsEnabled}
               onValueChange={toggleNotifications}
-              trackColor={{ false: '#dcdcdc', true: '#58D66D' }}
+              trackColor={{ false: isDark ? '#334155' : '#CBD5E1', true: colors.primary }}
               thumbColor={'#FFF'}
             />
           </View>
 
           <View style={[styles.settingsItem, { borderBottomWidth: 0 }]}>
-            <View style={[styles.itemIconBg, { backgroundColor: '#E8F8EA' }]}>
-              <Feather name="moon" size={18} color="#58D66D" />
+            <View style={[styles.itemIconBg, { backgroundColor: colors.secondaryLight }]}>
+              <Feather name={isDark ? "moon" : "sun"} size={18} color={colors.secondary} />
             </View>
             <View style={styles.itemDetails}>
               <Text style={[styles.itemTitle, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Dark Mode')}</Text>
             </View>
             <Switch
-              value={isDarkMode}
-              onValueChange={setIsDarkMode}
-              trackColor={{ false: '#dcdcdc', true: '#58D66D' }}
+              value={isDark}
+              onValueChange={toggleTheme}
+              trackColor={{ false: isDark ? '#334155' : '#CBD5E1', true: colors.primary }}
               thumbColor={'#FFF'}
             />
           </View>
@@ -267,23 +270,23 @@ export default function ProfileScreen() {
         <Text style={[styles.groupTitle, isUrdu && { fontFamily: fonts.urduBold }]}>{t('Support')}</Text>
         <View style={styles.settingsGroup}>
           <TouchableOpacity style={styles.settingsItem}>
-            <View style={[styles.itemIconBg, { backgroundColor: '#E8F8EA' }]}>
-              <Feather name="shield" size={18} color="#58D66D" />
+            <View style={[styles.itemIconBg, { backgroundColor: colors.accentTealLight }]}>
+              <Feather name="shield" size={18} color={colors.accentTeal} />
             </View>
             <View style={styles.itemDetails}>
               <Text style={[styles.itemTitle, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Terms & Privacy')}</Text>
             </View>
-            <Feather name="chevron-right" size={18} color="#888" />
+            <Feather name="chevron-right" size={18} color={colors.textMuted} />
           </TouchableOpacity>
 
           <TouchableOpacity style={[styles.settingsItem, { borderBottomWidth: 0 }]}>
-            <View style={[styles.itemIconBg, { backgroundColor: '#E8F8EA' }]}>
-              <Feather name="help-circle" size={18} color="#58D66D" />
+            <View style={[styles.itemIconBg, { backgroundColor: colors.secondaryLight }]}>
+              <Feather name="help-circle" size={18} color={colors.secondary} />
             </View>
             <View style={styles.itemDetails}>
               <Text style={[styles.itemTitle, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Help & Support')}</Text>
             </View>
-            <Feather name="chevron-right" size={18} color="#888" />
+            <Feather name="chevron-right" size={18} color={colors.textMuted} />
           </TouchableOpacity>
         </View>
 
@@ -393,24 +396,24 @@ export default function ProfileScreen() {
       <View style={styles.bottomNavContainer}>
         <View style={styles.bottomNav}>
           <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Dashboard')}>
-            <Feather name="home" size={24} color="#A3E6B2" />
-            <Text style={[styles.navText, { color: '#A3E6B2' }, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Home')}</Text>
+            <Feather name="home" size={24} color={colors.navInactive} />
+            <Text style={[styles.navText, { color: colors.navInactive }, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Home')}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('AiScan', { userName: profile.userName, userId })}>
-            <MaterialCommunityIcons name="line-scan" size={24} color="#A3E6B2" />
-            <Text style={[styles.navText, { color: '#A3E6B2' }, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('AI Scan')}</Text>
+            <MaterialCommunityIcons name="line-scan" size={24} color={colors.navInactive} />
+            <Text style={[styles.navText, { color: colors.navInactive }, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('AI Scan')}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('HealthRecords', { userName: profile.userName, userId })}>
-            <Feather name="file-text" size={24} color="#A3E6B2" />
-            <Text style={[styles.navText, { color: '#A3E6B2' }, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Records')}</Text>
+            <Feather name="file-text" size={24} color={colors.navInactive} />
+            <Text style={[styles.navText, { color: colors.navInactive }, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Records')}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('CommunityForum', { userName: profile.userName, userId })}>
-            <Feather name="message-square" size={24} color="#A3E6B2" />
-            <Text style={[styles.navText, { color: '#A3E6B2' }, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Forum')}</Text>
+            <Feather name="message-square" size={24} color={colors.navInactive} />
+            <Text style={[styles.navText, { color: colors.navInactive }, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Forum')}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.navItem}>
-            <Feather name="user" size={24} color="#FFF" />
-            <Text style={[styles.navText, { color: '#FFF' }, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Profile')}</Text>
+            <Feather name="user" size={24} color={colors.navActive} />
+            <Text style={[styles.navText, { color: colors.navActive, fontWeight: '700' }, isUrdu && { fontFamily: fonts.urduBold }]}>{t('Profile')}</Text>
           </TouchableOpacity>
         </View>
       </View>

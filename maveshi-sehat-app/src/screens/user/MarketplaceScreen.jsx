@@ -9,7 +9,8 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import { getProfile } from '../../utils/profileStore';
 import { useTranslation } from '../../utils/translate';
 import { addToCart, getCartCount, subscribeCart } from '../../utils/cartStore';
-import styles from '../../styles/MarketplaceScreenStyles';
+import { useTheme } from '../../utils/themeContext';
+import { getStyles } from '../../styles/MarketplaceScreenStyles';
 
 const getImageUrl = (url) => {
   if (!url) return null;
@@ -20,6 +21,8 @@ const getImageUrl = (url) => {
 };
 
 export default function MarketplaceScreen() {
+  const { colors, isDark } = useTheme();
+  const styles = React.useMemo(() => getStyles(colors, isDark), [colors, isDark]);
   const { t } = useTranslation();
   const navigation = useNavigation();
   const route = useRoute();
@@ -280,24 +283,24 @@ export default function MarketplaceScreen() {
       
       <View style={styles.bottomNav}>
         <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Dashboard')}>
-          <Feather name="home" size={22} color="#A3E6B2" />
-          <Text style={[styles.navText, { color: '#A3E6B2' }]}>{t('Home')}</Text>
+          <Feather name="home" size={22} color={colors.primaryLight} />
+          <Text style={[styles.navText, { color: colors.primaryLight }]}>{t('Home')}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('AiScan')}>
-          <MaterialCommunityIcons name="line-scan" size={22} color="#A3E6B2" />
-          <Text style={[styles.navText, { color: '#A3E6B2' }]}>{t('AI Scan')}</Text>
+          <MaterialCommunityIcons name="line-scan" size={22} color={colors.primaryLight} />
+          <Text style={[styles.navText, { color: colors.primaryLight }]}>{t('AI Scan')}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('HealthRecords')}>
-          <Feather name="file-text" size={22} color="#A3E6B2" />
-          <Text style={[styles.navText, { color: '#A3E6B2' }]}>{t('Records')}</Text>
+          <Feather name="file-text" size={22} color={colors.primaryLight} />
+          <Text style={[styles.navText, { color: colors.primaryLight }]}>{t('Records')}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('CommunityForum')}>
-          <Feather name="message-square" size={22} color="#A3E6B2" />
-          <Text style={[styles.navText, { color: '#A3E6B2' }]}>{t('Forum')}</Text>
+          <Feather name="message-square" size={22} color={colors.primaryLight} />
+          <Text style={[styles.navText, { color: colors.primaryLight }]}>{t('Forum')}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Profile')}>
-          <Feather name="user" size={22} color="#A3E6B2" />
-          <Text style={[styles.navText, { color: '#A3E6B2' }]}>{t('Profile')}</Text>
+          <Feather name="user" size={22} color={colors.primaryLight} />
+          <Text style={[styles.navText, { color: colors.primaryLight }]}>{t('Profile')}</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>

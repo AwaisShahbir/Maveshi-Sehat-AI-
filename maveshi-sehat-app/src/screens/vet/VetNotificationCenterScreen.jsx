@@ -3,9 +3,12 @@ import { View, Text, SafeAreaView, FlatList, TouchableOpacity, StatusBar, Scroll
 import { useNavigation } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import styles from '../../styles/VetNotificationCenterScreenStyles';
+import { useTheme } from '../../utils/themeContext';
+import { getStyles } from '../../styles/VetNotificationCenterScreenStyles';
 
 export default function VetNotificationCenterScreen() {
+  const { colors, isDark } = useTheme();
+  const styles = React.useMemo(() => getStyles(colors, isDark), [colors, isDark]);
   const navigation = useNavigation();
   
   
@@ -71,7 +74,7 @@ export default function VetNotificationCenterScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor="#58D66D" />
+      <StatusBar barStyle="light-content" backgroundColor={isDark ? colors.headerBackground : colors.primary} />
       
       <View style={styles.header}>
         <View style={styles.headerTopRow}>

@@ -17,7 +17,8 @@ import Feather from 'react-native-vector-icons/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { getProfile, subscribeProfile } from '../../utils/profileStore.js';
 import { t, tSplit, translateText, subscribeTranslation } from '../../utils/translate.js';
-import styles from '../../styles/HeatAlertScreenStyles';
+import { useTheme } from '../../utils/themeContext';
+import { getStyles } from '../../styles/HeatAlertScreenStyles';
 
 // Major livestock dairy hubs for quick tap (names in English only - translated dynamically)
 const QUICK_DISTRICTS = [
@@ -71,6 +72,8 @@ const getAdvisoryText = (level) => {
 };
 
 export default function HeatAlertScreen() {
+  const { colors, isDark } = useTheme();
+  const styles = React.useMemo(() => getStyles(colors, isDark), [colors, isDark]);
   const navigation = useNavigation();
   const route = useRoute();
   const params = route.params || {};
@@ -315,7 +318,7 @@ export default function HeatAlertScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor="#F5A623" />
+      <StatusBar barStyle="light-content" backgroundColor={isDark ? colors.headerBackground : '#F5A623'} />
 
       {/* Top Header */}
       <View style={styles.header}>
@@ -669,36 +672,36 @@ export default function HeatAlertScreen() {
       <View style={styles.bottomNavContainer}>
         <View style={styles.bottomNav}>
           <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Dashboard')}>
-            <Feather name="home" size={24} color="#A3E6B2" />
-            <Text style={[styles.navText, { color: '#A3E6B2' }]}>{t('Home')}</Text>
+            <Feather name="home" size={24} color={colors.primaryLight} />
+            <Text style={[styles.navText, { color: colors.primaryLight }]}>{t('Home')}</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.navItem}
             onPress={() => navigation.navigate('AiScan', { userName, userId })}
           >
-            <MaterialCommunityIcons name="line-scan" size={24} color="#A3E6B2" />
-            <Text style={[styles.navText, { color: '#A3E6B2' }]}>{t('AI Scan')}</Text>
+            <MaterialCommunityIcons name="line-scan" size={24} color={colors.primaryLight} />
+            <Text style={[styles.navText, { color: colors.primaryLight }]}>{t('AI Scan')}</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.navItem}
             onPress={() => navigation.navigate('HealthRecords', { userName, userId })}
           >
-            <Feather name="file-text" size={24} color="#A3E6B2" />
-            <Text style={[styles.navText, { color: '#A3E6B2' }]}>{t('Records')}</Text>
+            <Feather name="file-text" size={24} color={colors.primaryLight} />
+            <Text style={[styles.navText, { color: colors.primaryLight }]}>{t('Records')}</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.navItem}
             onPress={() => navigation.navigate('CommunityForum', { userName, userId })}
           >
-            <Feather name="message-square" size={24} color="#A3E6B2" />
-            <Text style={[styles.navText, { color: '#A3E6B2' }]}>{t('Forum')}</Text>
+            <Feather name="message-square" size={24} color={colors.primaryLight} />
+            <Text style={[styles.navText, { color: colors.primaryLight }]}>{t('Forum')}</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.navItem}
             onPress={() => navigation.navigate('Profile', { userId })}
           >
-            <Feather name="user" size={24} color="#A3E6B2" />
-            <Text style={[styles.navText, { color: '#A3E6B2' }]}>{t('Profile')}</Text>
+            <Feather name="user" size={24} color={colors.primaryLight} />
+            <Text style={[styles.navText, { color: colors.primaryLight }]}>{t('Profile')}</Text>
           </TouchableOpacity>
         </View>
       </View>

@@ -4,10 +4,12 @@ import { useNavigation } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
 import { t, useTranslation, subscribeTranslation } from '../../utils/translate';
 import fonts from '../../styles/fonts';
-import styles from '../../styles/RegisterScreenStyles';
-
+import { useTheme } from '../../utils/themeContext';
+import { getStyles } from '../../styles/RegisterScreenStyles';
 
 export default function RegisterScreen() {
+  const { colors, isDark } = useTheme();
+  const styles = React.useMemo(() => getStyles(colors, isDark), [colors, isDark]);
   const navigation = useNavigation();
   const { isUrdu } = useTranslation();
   const [, setTick] = useState(0);
@@ -197,7 +199,7 @@ export default function RegisterScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor="#58D66D" />
+      <StatusBar barStyle="light-content" backgroundColor={isDark ? colors.headerBackground : colors.primary} />
       <KeyboardAvoidingView 
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.container}

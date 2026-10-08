@@ -4,12 +4,15 @@ import { useNavigation } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
 import { updateProfile } from '../../utils/profileStore';
 import { t, useTranslation, subscribeTranslation } from '../../utils/translate';
+import { useTheme } from '../../utils/themeContext';
 import fonts from '../../styles/fonts';
-import styles from '../../styles/LoginScreenStyles';
+import { getStyles } from '../../styles/LoginScreenStyles';
 
 export default function LoginScreen() {
   const navigation = useNavigation();
   const { isUrdu } = useTranslation();
+  const { colors, isDark } = useTheme();
+  const styles = React.useMemo(() => getStyles(colors, isDark), [colors, isDark]);
   const [, setTick] = useState(0);
 
   const [role, setRole] = useState('owner');
@@ -94,7 +97,7 @@ export default function LoginScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor="#58D66D" />
+      <StatusBar barStyle="light-content" backgroundColor={isDark ? colors.headerBackground : colors.primary} />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.container}

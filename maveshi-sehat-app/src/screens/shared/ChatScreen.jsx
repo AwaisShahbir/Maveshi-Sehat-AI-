@@ -22,9 +22,8 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import io from 'socket.io-client';
 import { pick, types, isCancel } from '@react-native-documents/picker';
 import { t } from '../../utils/translate';
-import styles from '../../styles/ChatScreenStyles';
-
-
+import { useTheme } from '../../utils/themeContext';
+import { getStyles } from '../../styles/ChatScreenStyles';
 
 const MOCK_SYMPTOM_IMAGES = [
   { id: '1', title: 'Cow Close-up', url: 'https://images.unsplash.com/photo-1570042225831-d98fa7577f1e?w=600' },
@@ -33,6 +32,8 @@ const MOCK_SYMPTOM_IMAGES = [
 ];
 
 export default function ChatScreen() {
+  const { colors, isDark } = useTheme();
+  const styles = React.useMemo(() => getStyles(colors, isDark), [colors, isDark]);
   const navigation = useNavigation();
   const route = useRoute();
   const params = route.params || {};
@@ -452,9 +453,9 @@ export default function ChatScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor="#58D66D" />
+      <StatusBar barStyle="light-content" backgroundColor={isDark ? colors.headerBackground : colors.primary} />
 
-      
+      {/* Modern Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
           <Feather name="chevron-left" size={24} color="#FFF" />

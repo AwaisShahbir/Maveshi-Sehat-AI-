@@ -20,8 +20,9 @@ import Feather from 'react-native-vector-icons/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { addRecord } from '../../utils/recordsStore';
 import { t, getLocalizedDescription, getLocalizedFirstAid } from '../../utils/translate';
+import { useTheme } from '../../utils/themeContext';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
-import styles from '../../styles/AiScanScreenStyles';
+import { getStyles } from '../../styles/AiScanScreenStyles';
 
 
 const MOCK_IMAGES = [
@@ -101,6 +102,8 @@ const MOCK_IMAGES = [
 export default function AiScanScreen() {
   const navigation = useNavigation();
   const route = useRoute();
+  const { colors, isDark } = useTheme();
+  const styles = React.useMemo(() => getStyles(colors, isDark), [colors, isDark]);
   const params = route.params || {};
   const userName = params.userName || 'Muhammad Ahmed';
   const userId = params.userId || null;
@@ -367,7 +370,7 @@ export default function AiScanScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor="#58D66D" />
+      <StatusBar barStyle="light-content" backgroundColor={isDark ? colors.headerBackground : colors.primary} />
       
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         
@@ -584,24 +587,24 @@ export default function AiScanScreen() {
       <View style={styles.bottomNavContainer}>
         <View style={styles.bottomNav}>
           <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Dashboard')}>
-            <Feather name="home" size={24} color="#A3E6B2" />
-            <Text style={[styles.navText, { color: '#A3E6B2' }]}>Home</Text>
+            <Feather name="home" size={24} color={colors.navInactive} />
+            <Text style={[styles.navText, { color: colors.navInactive }]}>Home</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.navItem}>
-            <MaterialCommunityIcons name="line-scan" size={24} color="#FFF" />
-            <Text style={[styles.navText, { color: '#FFF' }]}>AI Scan</Text>
+            <MaterialCommunityIcons name="line-scan" size={24} color={colors.navActive} />
+            <Text style={[styles.navText, { color: colors.navActive, fontWeight: '700' }]}>AI Scan</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('HealthRecords', { userName, userId })}>
-            <Feather name="file-text" size={24} color="#A3E6B2" />
-            <Text style={[styles.navText, { color: '#A3E6B2' }]}>Records</Text>
+            <Feather name="file-text" size={24} color={colors.navInactive} />
+            <Text style={[styles.navText, { color: colors.navInactive }]}>Records</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('CommunityForum', { userName, userId })}>
-            <Feather name="message-square" size={24} color="#A3E6B2" />
-            <Text style={[styles.navText, { color: '#A3E6B2' }]}>Forum</Text>
+            <Feather name="message-square" size={24} color={colors.navInactive} />
+            <Text style={[styles.navText, { color: colors.navInactive }]}>Forum</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Profile', { userId })}>
-            <Feather name="user" size={24} color="#A3E6B2" />
-            <Text style={[styles.navText, { color: '#A3E6B2' }]}>Profile</Text>
+            <Feather name="user" size={24} color={colors.navInactive} />
+            <Text style={[styles.navText, { color: colors.navInactive }]}>Profile</Text>
           </TouchableOpacity>
         </View>
       </View>

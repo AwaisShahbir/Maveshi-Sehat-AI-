@@ -10,7 +10,8 @@ let profile = {
   hasChosenLanguage: false,
   enforceAdminLanguage: true,
   notificationsEnabled: true,
-  consultationsCount: 12
+  consultationsCount: 12,
+  isDarkMode: false
 };
 
 let listeners = [];
@@ -26,6 +27,14 @@ export const updateProfile = (newProfile) => {
       console.error("Error in profileStore listener:", e);
     }
   });
+};
+
+export const setDarkMode = (isDark) => {
+  updateProfile({ isDarkMode: Boolean(isDark) });
+};
+
+export const toggleDarkMode = () => {
+  updateProfile({ isDarkMode: !profile.isDarkMode });
 };
 
 export const setUserLanguage = (lang) => {

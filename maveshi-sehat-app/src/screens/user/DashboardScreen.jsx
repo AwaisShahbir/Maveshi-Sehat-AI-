@@ -7,13 +7,16 @@ import LinearGradient from 'react-native-linear-gradient';
 import { getRecords, subscribe, loadRecords } from '../../utils/recordsStore';
 import { getProfile, subscribeProfile } from '../../utils/profileStore';
 import { t, useTranslation } from '../../utils/translate';
+import { useTheme } from '../../utils/themeContext';
 import fonts from '../../styles/fonts';
-import styles from '../../styles/DashboardScreenStyles';
+import { getStyles } from '../../styles/DashboardScreenStyles';
 
 export default function DashboardScreen() {
   const navigation = useNavigation();
   const route = useRoute();
   const { isUrdu } = useTranslation();
+  const { colors, isDark } = useTheme();
+  const styles = React.useMemo(() => getStyles(colors, isDark), [colors, isDark]);
   const params = route.params || {};
 
   
@@ -122,7 +125,7 @@ export default function DashboardScreen() {
       >
         
         <LinearGradient 
-          colors={['#58D66D', '#4CB85C']} 
+          colors={isDark ? ['#0B1120', '#1E293B'] : ['#059669', '#10B981']} 
           style={styles.header}
         >
           <View style={styles.headerTop}>
@@ -145,15 +148,15 @@ export default function DashboardScreen() {
             <View style={styles.statItem}>
               <Text style={styles.statValue}>{stats.livestock}</Text>
               <Text style={styles.statLabel}>{t('Livestock')}</Text>
-                          </View>
+            </View>
             <View style={styles.statItem}>
               <Text style={styles.statValue}>{stats.aiScans}</Text>
               <Text style={styles.statLabel}>{t('AI Scans')}</Text>
-                          </View>
+            </View>
             <View style={styles.statItem}>
               <Text style={styles.statValue}>{stats.healthy}%</Text>
               <Text style={styles.statLabel}>{t('Healthy')}</Text>
-                          </View>
+            </View>
           </View>
         </LinearGradient>
 
@@ -162,46 +165,46 @@ export default function DashboardScreen() {
           <Text style={styles.sectionTitle}>{t('Quick Actions')}</Text>
           <View style={styles.actionGrid}>
             <TouchableOpacity style={styles.actionItem} onPress={() => navigation.navigate('AiScan', { userName, userId })}>
-              <View style={[styles.iconBox, { backgroundColor: '#E8F8EA' }]}>
-                <MaterialCommunityIcons name="line-scan" size={28} color="#4CB85C" />
+              <View style={[styles.iconBox, { backgroundColor: colors.primaryLight }]}>
+                <MaterialCommunityIcons name="line-scan" size={28} color={colors.primary} />
               </View>
               <Text style={styles.actionText}>{t('AI Scan')}</Text>
-                          </TouchableOpacity>
+            </TouchableOpacity>
             
             <TouchableOpacity style={styles.actionItem} onPress={() => navigation.navigate('Vaccination')}>
-              <View style={[styles.iconBox, { backgroundColor: '#FFF5E5' }]}>
-                <MaterialCommunityIcons name="needle" size={28} color="#F5B041" />
+              <View style={[styles.iconBox, { backgroundColor: colors.accentAmberLight }]}>
+                <MaterialCommunityIcons name="needle" size={28} color={colors.accentAmber} />
               </View>
               <Text style={styles.actionText}>{t('Vaccination')}</Text>
-                          </TouchableOpacity>
+            </TouchableOpacity>
 
             <TouchableOpacity style={styles.actionItem} onPress={() => navigation.navigate('VeterinariansList', { userName, userId })}>
-              <View style={[styles.iconBox, { backgroundColor: '#E8F8EA' }]}>
-                <Feather name="users" size={26} color="#4CB85C" />
+              <View style={[styles.iconBox, { backgroundColor: colors.secondaryLight }]}>
+                <Feather name="users" size={26} color={colors.secondary} />
               </View>
               <Text style={styles.actionText}>{t('Veterinarians')}</Text>
-                          </TouchableOpacity>
+            </TouchableOpacity>
 
             <TouchableOpacity style={styles.actionItem} onPress={() => navigation.navigate('MyConsultations')}>
-              <View style={[styles.iconBox, { backgroundColor: '#E8F8EA' }]}>
-                <Feather name="calendar" size={26} color="#4CB85C" />
+              <View style={[styles.iconBox, { backgroundColor: isDark ? 'rgba(124, 58, 237, 0.15)' : '#F5F3FF' }]}>
+                <Feather name="calendar" size={26} color={colors.accentPurple} />
               </View>
               <Text style={styles.actionText}>{t('Consultations')}</Text>
-                          </TouchableOpacity>
+            </TouchableOpacity>
 
             <TouchableOpacity style={styles.actionItem} onPress={() => navigation.navigate('HeatAlert', { userName, userId })}>
-              <View style={[styles.iconBox, { backgroundColor: '#FFF5E5' }]}>
-                <Feather name="thermometer" size={28} color="#F5B041" />
+              <View style={[styles.iconBox, { backgroundColor: isDark ? 'rgba(234, 88, 12, 0.15)' : '#FFF7ED' }]}>
+                <Feather name="thermometer" size={28} color="#EA580C" />
               </View>
               <Text style={styles.actionText}>{t('Heat Alert')}</Text>
-                          </TouchableOpacity>
+            </TouchableOpacity>
 
             <TouchableOpacity style={styles.actionItem} onPress={() => navigation.navigate('Marketplace', { userName, userId })}>
-              <View style={[styles.iconBox, { backgroundColor: '#E8F8EA' }]}>
-                <Feather name="shopping-bag" size={26} color="#4CB85C" />
+              <View style={[styles.iconBox, { backgroundColor: colors.accentTealLight }]}>
+                <Feather name="shopping-bag" size={26} color={colors.accentTeal} />
               </View>
               <Text style={styles.actionText}>{t('Marketplace')}</Text>
-                          </TouchableOpacity>
+            </TouchableOpacity>
           </View>
         </View>
 
@@ -265,21 +268,21 @@ export default function DashboardScreen() {
         </View>
 
         
-        <View style={[styles.cardContainer, { backgroundColor: '#F5B041', marginBottom: 100, elevation: 2 }]}>
+        <View style={[styles.cardContainer, { backgroundColor: isDark ? '#78350F' : '#F59E0B', borderColor: isDark ? '#B45309' : '#FBBF24', marginBottom: 100, elevation: 3 }]}>
           <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
-            <View style={{ backgroundColor: 'rgba(255,255,255,0.2)', padding: 10, borderRadius: 12, marginRight: 12 }}>
+            <View style={{ backgroundColor: 'rgba(255,255,255,0.22)', padding: 10, borderRadius: 14, marginRight: 12 }}>
               <Feather name="trending-up" size={24} color="#FFF" />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#FFF', marginBottom: 4 }}>Heat Stress Warning</Text>
-              <Text style={{ fontSize: 12, color: 'rgba(255,255,255,0.9)', marginBottom: 12, lineHeight: 18 }}>
-                THI Index: 78 - Moderate stress expected today
+              <Text style={{ fontSize: 16, fontWeight: '800', color: '#FFF', marginBottom: 4 }}>{t('Heat Stress Warning')}</Text>
+              <Text style={{ fontSize: 12, color: 'rgba(255,255,255,0.95)', marginBottom: 12, lineHeight: 18 }}>
+                THI Index: 78 - Moderate heat stress expected today
               </Text>
               <TouchableOpacity 
-                style={{ backgroundColor: 'rgba(255,255,255,0.3)', alignSelf: 'flex-start', paddingHorizontal: 16, paddingVertical: 6, borderRadius: 20 }}
+                style={{ backgroundColor: 'rgba(255,255,255,0.28)', alignSelf: 'flex-start', paddingHorizontal: 16, paddingVertical: 7, borderRadius: 20 }}
                 onPress={() => navigation.navigate('HeatAlert', { userName, userId })}
               >
-                <Text style={{ color: '#FFF', fontSize: 12, fontWeight: '600' }}>View Details</Text>
+                <Text style={{ color: '#FFF', fontSize: 12, fontWeight: '700' }}>{t('View Details')}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -289,24 +292,24 @@ export default function DashboardScreen() {
       
       <View style={styles.bottomNav}>
         <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Dashboard')}>
-          <Feather name="home" size={24} color="#FFF" />
-          <Text style={[styles.navText, { color: '#FFF' }, isUrdu && { fontFamily: fonts.urduBold }]}>{t('Home')}</Text>
+          <Feather name="home" size={24} color={colors.navActive} />
+          <Text style={[styles.navText, { color: colors.navActive, fontWeight: '700' }, isUrdu && { fontFamily: fonts.urduBold }]}>{t('Home')}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('AiScan', { userName, userId })}>
-          <MaterialCommunityIcons name="line-scan" size={24} color="#A3E6B2" />
-          <Text style={[styles.navText, { color: '#A3E6B2' }, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('AI Scan')}</Text>
+          <MaterialCommunityIcons name="line-scan" size={24} color={colors.navInactive} />
+          <Text style={[styles.navText, { color: colors.navInactive }, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('AI Scan')}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('HealthRecords', { userName, userId })}>
-          <Feather name="file-text" size={24} color="#A3E6B2" />
-          <Text style={[styles.navText, { color: '#A3E6B2' }, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Records')}</Text>
+          <Feather name="file-text" size={24} color={colors.navInactive} />
+          <Text style={[styles.navText, { color: colors.navInactive }, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Records')}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('CommunityForum', { userName, userId })}>
-          <Feather name="message-square" size={24} color="#A3E6B2" />
-          <Text style={[styles.navText, { color: '#A3E6B2' }, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Forum')}</Text>
+          <Feather name="message-square" size={24} color={colors.navInactive} />
+          <Text style={[styles.navText, { color: colors.navInactive }, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Forum')}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Profile', { userName, userId })}>
-          <Feather name="user" size={24} color="#A3E6B2" />
-          <Text style={[styles.navText, { color: '#A3E6B2' }, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Profile')}</Text>
+          <Feather name="user" size={24} color={colors.navInactive} />
+          <Text style={[styles.navText, { color: colors.navInactive }, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Profile')}</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>

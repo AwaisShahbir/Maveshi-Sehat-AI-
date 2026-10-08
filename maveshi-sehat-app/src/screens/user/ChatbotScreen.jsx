@@ -22,8 +22,9 @@ import Feather from 'react-native-vector-icons/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { getProfile } from '../../utils/profileStore';
 import { t, useTranslation } from '../../utils/translate';
+import { useTheme } from '../../utils/themeContext';
 import fonts from '../../styles/fonts';
-import styles from '../../styles/ChatbotScreenStyles';
+import { getStyles } from '../../styles/ChatbotScreenStyles';
 
 const { AudioModule } = NativeModules;
 const BASE_URL = Platform.OS === 'android' ? 'http://10.0.2.2:5000' : 'http://localhost:5000';
@@ -64,6 +65,8 @@ const SUGGESTIONS = {
 export default function ChatbotScreen() {
   const navigation = useNavigation();
   const { isUrdu } = useTranslation();
+  const { colors, isDark } = useTheme();
+  const styles = React.useMemo(() => getStyles(colors, isDark), [colors, isDark]);
   const flatListRef = useRef(null);
 
   const [profile, setProfile] = useState(getProfile());
@@ -733,7 +736,7 @@ export default function ChatbotScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor="#4CB85C" />
+      <StatusBar barStyle="light-content" backgroundColor={isDark ? colors.headerBackground : colors.primary} />
 
       {/* Header */}
       <View style={styles.header}>
@@ -748,7 +751,7 @@ export default function ChatbotScreen() {
 
           <View style={styles.avatarContainer}>
             <View style={styles.avatar}>
-              <MaterialCommunityIcons name="stethoscope" size={24} color="#4CB85C" />
+              <MaterialCommunityIcons name="stethoscope" size={24} color={colors.primary} />
             </View>
             <View style={styles.onlineBadge} />
           </View>
@@ -871,7 +874,7 @@ export default function ChatbotScreen() {
                 isUrdu && { fontFamily: fonts.urduRegular, textAlign: 'right' },
               ]}
               placeholder={isUrdu ? 'صحت اسسٹنٹ سے سوال پوچھیں...' : 'Ask Sehat Assistant a question...'}
-              placeholderTextColor="#94A3B8"
+              placeholderTextColor={colors.inputPlaceholder}
               value={inputText}
               onChangeText={setInputText}
               multiline
@@ -890,7 +893,7 @@ export default function ChatbotScreen() {
               <Feather
                 name={isRecording ? 'square' : 'mic'}
                 size={20}
-                color={isRecording ? '#EF4444' : '#4CB85C'}
+                color={isRecording ? '#EF4444' : colors.primary}
               />
             </TouchableOpacity>
 

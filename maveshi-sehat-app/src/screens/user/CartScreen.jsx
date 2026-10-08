@@ -11,7 +11,8 @@ import { useTranslation } from '../../utils/translate';
 import { 
   getCart, getCartTotal, updateQuantity, removeFromCart, clearCart, subscribeCart 
 } from '../../utils/cartStore';
-import styles from '../../styles/CartScreenStyles';
+import { useTheme } from '../../utils/themeContext';
+import { getStyles } from '../../styles/CartScreenStyles';
 
 const getImageUrl = (url) => {
   if (!url) return null;
@@ -22,6 +23,8 @@ const getImageUrl = (url) => {
 };
 
 export default function CartScreen() {
+  const { colors, isDark } = useTheme();
+  const styles = React.useMemo(() => getStyles(colors, isDark), [colors, isDark]);
   const { t } = useTranslation();
   const navigation = useNavigation();
   const route = useRoute();
@@ -200,9 +203,9 @@ export default function CartScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor="#58D66D" />
+      <StatusBar barStyle={isDark ? "light-content" : "light-content"} backgroundColor={isDark ? colors.headerBackground : colors.primary} />
 
-      
+      {/* Modern Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
           <Feather name="chevron-left" size={26} color="#FFF" />
