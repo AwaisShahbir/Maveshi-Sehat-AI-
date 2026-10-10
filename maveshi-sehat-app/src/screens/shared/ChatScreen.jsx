@@ -51,6 +51,10 @@ export default function ChatScreen() {
 
   const { conversationId, partnerName, partnerRole, userName, userRole, vetId } = params;
   const consultationHistory = Array.isArray(params.consultations) ? params.consultations : [];
+  const getConsultationName = (consultationId = selectedConsultationId) => {
+    const consultation = consultationHistory.find(item => String(item.id) === String(consultationId));
+    return consultation?.reason?.trim() || 'Consultation';
+  };
 
   
   const [messages, setMessages] = useState([]);
@@ -316,8 +320,7 @@ export default function ChatScreen() {
 
   const handleReopenConversation = async () => {
     try {
-      const selectedConsultation = consultationHistory.find(item => item.id === selectedConsultationId);
-      const consultationName = selectedConsultation?.reason?.trim() || 'Consultation';
+      const consultationName = getConsultationName();
       const response = await fetch(`${baseUrl}/api/chat/conversation/reopen`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -337,7 +340,7 @@ export default function ChatScreen() {
       }
       setConversationStatus('active');
       const newConsultation = data.consultation;
-      const newConsultationName = newConsultation?.reason || consultationName;
+      const newConsultationName = newConsultation?.reason?.trim() || consultationName;
       handleSendMessage(
         `📋 ${newConsultationName} consultation has been started.`,
         null,
@@ -359,7 +362,10 @@ export default function ChatScreen() {
       hour: '2-digit',
       minute: '2-digit'
     });
-    const messageText = typeof item.message === 'string' ? item.message.trim() : '';
+    let messageText = typeof item.message === 'string' ? item.message.trim() : '';
+    if (messageText === '📋 A new consultation has been started.') {
+      messageText = `📋 ${getConsultationName(item.consultation_id)} consultation has been started.`;
+    }
     const hasImage = typeof item.image_url === 'string' && item.image_url.trim().length > 0;
     const imageFailed = !!failedImageIds[item.id];
 
