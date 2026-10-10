@@ -2512,11 +2512,35 @@ app.get('/api/vet/prescriptions', async (req, res) => {
 
 app.get('/api/vet/farmers', async (req, res) => {
   try {
+    const { vetId, search } = req.query;
+    const normalizedSearch = String(search || '').trim();
+    if (!vetId) {
+      return res.status(400).json({ error: 'vetId is required' });
+    }
+    if (normalizedSearch.length < 2) {
+      return res.json({ farmers: [] });
+    }
+
     const result = await pool.query(
       `SELECT id, full_name, phone_number, district
        FROM users
        WHERE role = 'farmer'
-       ORDER BY full_name ASC`
+         AND full_name ILIKE $1
+         AND (
+           EXISTS (
+             SELECT 1
+             FROM conversations c
+             WHERE c.farmer_id = users.id AND c.vet_id = $2
+           )
+           OR EXISTS (
+             SELECT 1
+             FROM consultations consultation
+             WHERE consultation.farmer_id = users.id AND consultation.vet_id = $2
+           )
+         )
+       ORDER BY full_name ASC
+       LIMIT 10`,
+      [`%${normalizedSearch}%`, vetId]
     );
     res.json({ farmers: result.rows });
   } catch (err) {

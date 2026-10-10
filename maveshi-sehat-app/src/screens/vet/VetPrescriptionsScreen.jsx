@@ -53,6 +53,8 @@ export default function VetPrescriptionsScreen() {
   const [patientInfo, setPatientInfo] = useState({ ownerName: '', animal: '' });
   const [farmers, setFarmers] = useState([]);
   const [selectedFarmer, setSelectedFarmer] = useState(null);
+  const [searchingFarmers, setSearchingFarmers] = useState(false);
+  const [farmerSearchError, setFarmerSearchError] = useState('');
   const [diagnosisEng, setDiagnosisEng] = useState('');
   const [diagnosisUrdu, setDiagnosisUrdu] = useState('');
   const [medicines, setMedicines] = useState([{ name: '', dose: '', frequency: '', days: '' }]);
@@ -60,8 +62,20 @@ export default function VetPrescriptionsScreen() {
 
   useEffect(() => {
     const fetchFarmers = async () => {
+      const profile = getProfile();
+      const vetId = profile?.userId || params.userId;
+      const query = patientInfo.ownerName.trim();
+      if (!vetId || query.length < 2 || selectedFarmer) {
+        setFarmers([]);
+        setFarmerSearchError('');
+        return;
+      }
+
+      setSearchingFarmers(true);
       try {
-        const response = await fetch(`${baseUrl}/api/vet/farmers`);
+        const response = await fetch(
+          `${baseUrl}/api/vet/farmers?vetId=${encodeURIComponent(vetId)}&search=${encodeURIComponent(query)}`
+        );
         const responseText = await response.text();
         let data;
         try {
@@ -71,16 +85,20 @@ export default function VetPrescriptionsScreen() {
         }
         if (!response.ok) throw new Error(data.error || 'Failed to fetch farmers');
         setFarmers(Array.isArray(data) ? data : (data.farmers || []));
+        setFarmerSearchError('');
       } catch (err) {
         console.error('Error fetching farmers:', err);
-        Alert.alert('Unable to load farmers', err.message || 'Please check the server connection and try again.');
+        setFarmers([]);
+        setFarmerSearchError(err.message || 'Unable to search farmers.');
+      } finally {
+        setSearchingFarmers(false);
       }
     };
 
-    if (activeTab === 'Write New' && farmers.length === 0) {
-      fetchFarmers();
-    }
-  }, [activeTab]);
+    if (activeTab !== 'Write New') return undefined;
+    const timer = setTimeout(fetchFarmers, 300);
+    return () => clearTimeout(timer);
+  }, [activeTab, patientInfo.ownerName, selectedFarmer]);
 
   const farmerSuggestions = useMemo(() => {
     const query = patientInfo.ownerName.trim().toLowerCase();
@@ -306,8 +324,12 @@ export default function VetPrescriptionsScreen() {
             </View>
           )}
         </View>
-        {patientInfo.ownerName.trim() && !selectedFarmer && farmerSuggestions.length === 0 && farmers.length > 0 && (
-          <Text style={styles.helperText}>Choose a farmer from the registered suggestions.</Text>
+        {searchingFarmers && <Text style={styles.helperText}>Searching your contacted farmers...</Text>}
+        {!searchingFarmers && farmerSearchError ? (
+          <Text style={styles.errorText}>{farmerSearchError}</Text>
+        ) : null}
+        {!searchingFarmers && !farmerSearchError && patientInfo.ownerName.trim().length >= 2 && !selectedFarmer && farmerSuggestions.length === 0 && (
+          <Text style={styles.helperText}>No contacted farmer found with this name.</Text>
         )}
 
         <Text style={styles.inputLabel}>{t('Animal')}</Text>

@@ -191,6 +191,7 @@ export const getStyles = (colors = LIGHT_THEME, isDark = false) => {
     suggestionName: { color: colors.textPrimary, fontWeight: '700', fontSize: 14 },
     suggestionMeta: { color: colors.textSecondary, fontSize: 11, marginTop: 2 },
     helperText: { color: '#D97706', fontSize: 12, marginTop: -10, marginBottom: 12 },
+    errorText: { color: '#DC2626', fontSize: 12, marginTop: -10, marginBottom: 12 },
     addMedicineBtn: { color: colors.primary, fontWeight: '800', fontSize: 14 },
     medicineCard: { 
       backgroundColor: colors.surfaceAlt, 
