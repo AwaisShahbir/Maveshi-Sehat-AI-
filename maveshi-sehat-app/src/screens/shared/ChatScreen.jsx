@@ -51,8 +51,9 @@ export default function ChatScreen() {
 
   const { conversationId, partnerName, partnerRole, userName, userRole, vetId } = params;
   const consultationHistory = Array.isArray(params.consultations) ? params.consultations : [];
-  const initialConsultation = consultationHistory.find(item => item.status === 'approved')
-    || consultationHistory.find(item => item.status === 'pending')
+  const initialConsultation = [...consultationHistory]
+    .sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0))
+    .find(item => item.status === 'approved' || item.status === 'pending')
     || consultationHistory[0]
     || null;
 
@@ -510,8 +511,27 @@ export default function ChatScreen() {
 
   const renderConsultationSummary = () => {
     if (consultationHistory.length === 0) return null;
+    const selectedConsultation = consultationHistory.find(item => item.id === selectedConsultationId);
+    const isLive = selectedConsultation?.status === 'approved';
     return (
       <View style={styles.consultationSummary}>
+        <View style={[styles.liveConsultationBanner, !isLive && styles.liveConsultationBannerMuted]}>
+          <View style={styles.liveConsultationIcon}>
+            <View style={styles.liveConsultationDot} />
+          </View>
+          <View style={styles.liveConsultationDetails}>
+            <Text style={styles.liveConsultationLabel}>{isLive ? 'LIVE CONSULTATION' : 'CONSULTATION'}</Text>
+            <Text style={styles.liveConsultationReason} numberOfLines={2}>
+              {selectedConsultation?.reason || 'Select a consultation below'}
+            </Text>
+            {selectedConsultation?.created_at && (
+              <Text style={styles.liveConsultationDate}>
+                Started {new Date(selectedConsultation.created_at).toLocaleDateString()}
+              </Text>
+            )}
+          </View>
+          <Feather name={isLive ? 'radio' : 'clipboard'} size={20} color={isLive ? '#FFF' : colors.primary} />
+        </View>
         <View style={styles.consultationSummaryHeader}>
           <View>
             <Text style={styles.consultationSummaryTitle}>Consultation history</Text>
@@ -544,7 +564,9 @@ export default function ChatScreen() {
                   {new Date(consultation.created_at).toLocaleDateString()}
                 </Text>
               </View>
-              <Text style={[styles.consultationHistoryStatus, { color: statusColor }]}>{statusLabel}</Text>
+              <Text style={[styles.consultationHistoryStatus, { color: statusColor }]}>
+                {selectedConsultationId === consultation.id && statusLabel === 'Active' ? 'LIVE NOW' : statusLabel}
+              </Text>
             </TouchableOpacity>
           );
         })}
