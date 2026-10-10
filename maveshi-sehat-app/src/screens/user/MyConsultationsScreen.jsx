@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { View, Text, SafeAreaView, FlatList, TouchableOpacity, ActivityIndicator, Platform, Alert, StatusBar } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
@@ -47,7 +47,7 @@ export default function MyConsultationsScreen() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          farmerId: 1,
+          farmerId: profile.userId || 2,
           farmerName: profile.userName || 'Farmer',
           vetId: consult.vet_id
         })
@@ -76,19 +76,52 @@ export default function MyConsultationsScreen() {
         userName: profile.userName || 'Farmer',
         userRole: 'farmer',
         vetId: consult.vet_id,
-        initialRecord
+        initialRecord,
+        consultations: consult.consultations || [consult]
       });
     } catch (error) {
       Alert.alert('Error', 'Could not start chat.');
     }
   };
 
+  const groupedConsultations = useMemo(() => {
+    const online = consultations.filter(item => item.type === 'online_chat');
+    const physical = consultations.filter(item => item.type !== 'online_chat');
+    const grouped = new Map();
+
+    online.forEach(consultation => {
+      const key = String(consultation.vet_id);
+      const existing = grouped.get(key);
+      if (existing) {
+        existing.consultations.push(consultation);
+      } else {
+        grouped.set(key, { ...consultation, consultations: [consultation] });
+      }
+    });
+
+    const chatGroups = Array.from(grouped.values()).map(group => {
+      const hasApproved = group.consultations.some(item => item.status === 'approved');
+      const hasPending = group.consultations.some(item => item.status === 'pending');
+      const hasRejected = !hasApproved && !hasPending && group.consultations.some(item => item.status === 'rejected');
+      return {
+        ...group,
+        status: hasApproved ? 'approved' : hasPending ? 'pending' : hasRejected ? 'rejected' : 'completed',
+      };
+    });
+
+    return [...chatGroups, ...physical];
+  }, [consultations]);
+
   const renderItem = ({ item }) => (
     <View style={styles.card}>
       <View style={styles.headerRow}>
         <View>
           <Text style={styles.vetName}>{item.vet_name}</Text>
-          <Text style={styles.typeText}>{item.type === 'online_chat' ? 'Online Consultation' : 'Physical Appointment'}</Text>
+          <Text style={styles.typeText}>
+            {item.type === 'online_chat'
+              ? `${item.consultations?.length || 1} Online Consultation${(item.consultations?.length || 1) === 1 ? '' : 's'}`
+              : 'Physical Appointment'}
+          </Text>
         </View>
         <View style={[styles.statusBadge, { 
           backgroundColor: item.status === 'approved' 
@@ -100,7 +133,7 @@ export default function MyConsultationsScreen() {
           <Text style={[styles.statusText, { 
             color: item.status === 'approved' ? colors.primary : item.status === 'rejected' ? '#EF4444' : '#F59E0B' 
           }]}>
-            {item.status.toUpperCase()}
+            {(item.status === 'completed' ? 'RESOLVED' : item.status).toUpperCase()}
           </Text>
         </View>
       </View>
@@ -108,10 +141,10 @@ export default function MyConsultationsScreen() {
       <Text style={styles.reasonText}>Reason: {item.reason}</Text>
       {item.appointment_date && <Text style={styles.dateText}>Date: {new Date(item.appointment_date).toLocaleString()}</Text>}
 
-      {item.status === 'approved' && item.type === 'online_chat' && (
+      {item.type === 'online_chat' && item.status !== 'pending' && item.status !== 'rejected' && (
         <TouchableOpacity style={styles.chatBtn} onPress={() => handleStartChat(item)} activeOpacity={0.8}>
           <Feather name="message-square" size={16} color="#FFF" style={{ marginRight: 8 }} />
-          <Text style={styles.chatBtnText}>Open Chat</Text>
+          <Text style={styles.chatBtnText}>{item.status === 'completed' ? 'View Chat' : 'Open Chat'}</Text>
         </TouchableOpacity>
       )}
     </View>
@@ -140,7 +173,7 @@ export default function MyConsultationsScreen() {
       ) : (
         <FlatList 
           style={{ flex: 1, backgroundColor: colors.background }}
-          data={consultations} 
+          data={groupedConsultations}
           keyExtractor={(i) => i.id.toString()} 
           renderItem={renderItem} 
           contentContainerStyle={{ padding: 16, paddingBottom: 40 }} 
