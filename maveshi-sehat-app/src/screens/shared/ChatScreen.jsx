@@ -559,8 +559,6 @@ export default function ChatScreen() {
             const resolved = consultation.status === 'completed' || consultation.status === 'resolved';
             const pending = consultation.status === 'pending';
             const selectable = !resolved && !(pending && userRole === 'farmer');
-            const statusLabel = pending ? 'Pending' : resolved ? 'Resolved' : 'Active';
-            const statusColor = pending ? '#D97706' : resolved ? '#64748B' : colors.primary;
             return (
               <TouchableOpacity
                 key={consultation.id || index}
@@ -579,7 +577,6 @@ export default function ChatScreen() {
                   </Text>
                 </View>
                 <View style={styles.consultationPickerStatus}>
-                  <Text style={[styles.consultationPickerStatusText, { color: statusColor }]}>{statusLabel}</Text>
                   <Feather name={selectable ? 'chevron-right' : 'lock'} size={16} color={colors.textSecondary} />
                 </View>
               </TouchableOpacity>

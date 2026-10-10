@@ -2475,9 +2475,10 @@ app.get('/api/consultations/farmer/:id', async (req, res) => {
     const result = await pool.query(
       `SELECT c.*,
               CASE
-                WHEN c.status = 'completed' OR conversation.status = 'resolved' THEN 'completed'
+                WHEN c.status = 'completed' THEN 'completed'
+                WHEN c.status = 'approved' AND conversation.status = 'resolved' THEN 'completed'
                 WHEN c.status = 'pending' THEN 'pending'
-                ELSE 'approved'
+                ELSE c.status
               END AS status,
               conversation.status AS conversation_status,
               u.full_name as vet_name, u.specialization as vet_specialization
@@ -2501,9 +2502,10 @@ app.get('/api/consultations/vet/:id', async (req, res) => {
     const result = await pool.query(
       `SELECT c.*,
               CASE
-                WHEN c.status = 'completed' OR conversation.status = 'resolved' THEN 'resolved'
+                WHEN c.status = 'completed' THEN 'completed'
+                WHEN c.status = 'approved' AND conversation.status = 'resolved' THEN 'completed'
                 WHEN c.status = 'pending' THEN 'pending'
-                ELSE 'approved'
+                ELSE c.status
               END AS status,
               conversation.status AS conversation_status,
               u.full_name as farmer_name, u.phone_number as farmer_phone
