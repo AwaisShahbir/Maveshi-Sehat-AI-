@@ -517,7 +517,7 @@ export default function ChatScreen() {
           </View>
           <View style={styles.liveConsultationDetails}>
             <Text style={styles.liveConsultationLabel}>
-              {isResolved ? 'CONSULTATION RESOLVED' : 'CONSULTATION STARTED'}
+              {isResolved ? 'CONSULTATION RESOLVED' : 'CURRENT CONSULTATION'}
             </Text>
             <Text style={styles.liveConsultationReason} numberOfLines={2}>
               {selectedConsultation?.reason || 'Selected consultation'}
@@ -530,11 +530,6 @@ export default function ChatScreen() {
           </View>
           <Feather name={isResolved ? 'check-circle' : 'radio'} size={20} color={isResolved ? colors.primary : '#FFF'} />
         </View>
-        <Text style={styles.selectedConsultationText}>
-          {isResolved
-            ? `${selectedConsultation?.reason || 'This consultation'} has been resolved.`
-            : `${selectedConsultation?.reason || 'This consultation'} has been started.`}
-        </Text>
       </View>
     );
   };
