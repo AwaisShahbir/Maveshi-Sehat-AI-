@@ -147,7 +147,7 @@ export default function ChatScreen() {
     }
   }, [loading]);
 
-  const handleSendMessage = (text = '', imageUrl = null, isPrescription = false, prescriptionData = null, isVaccination = false, vaccinationData = null) => {
+  const handleSendMessage = (text = '', imageUrl = null, isPrescription = false, prescriptionData = null, isVaccination = false, vaccinationData = null, consultationIdOverride = null) => {
     const finalMsg = text.trim();
     if (!finalMsg && !imageUrl && !isPrescription && !selectedAttachmentUri && !isVaccination) return;
 
@@ -161,7 +161,7 @@ export default function ChatScreen() {
         prescriptionData,
         isVaccination,
         vaccinationData,
-        consultationId: selectedConsultationId
+        consultationId: consultationIdOverride || selectedConsultationId
       });
       setInputText('');
       setSelectedAttachmentUri(null);
@@ -316,10 +316,12 @@ export default function ChatScreen() {
 
   const handleReopenConversation = async () => {
     try {
+      const selectedConsultation = consultationHistory.find(item => item.id === selectedConsultationId);
+      const consultationName = selectedConsultation?.reason?.trim() || 'Consultation';
       const response = await fetch(`${baseUrl}/api/chat/conversation/reopen`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ conversationId })
+        body: JSON.stringify({ conversationId, reason: consultationName })
       });
       const responseText = await response.text();
       let data = {};
@@ -334,7 +336,17 @@ export default function ChatScreen() {
         throw new Error(data.error || 'Failed to start a new consultation');
       }
       setConversationStatus('active');
-      handleSendMessage('📋 A new consultation has been started.');
+      const newConsultation = data.consultation;
+      const newConsultationName = newConsultation?.reason || consultationName;
+      handleSendMessage(
+        `📋 ${newConsultationName} consultation has been started.`,
+        null,
+        false,
+        null,
+        false,
+        null,
+        newConsultation?.id || null
+      );
     } catch (error) {
       console.error('Error reopening conversation:', error);
       Alert.alert('Unable to start consultation', error.message || 'Please try again.');
