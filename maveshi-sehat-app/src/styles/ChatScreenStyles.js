@@ -189,6 +189,33 @@ export const getStyles = (colors = LIGHT_THEME, isDark = false) => {
       fontWeight: '700',
       marginLeft: 6,
     },
+    consultationStartMarker: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginVertical: 14,
+      paddingHorizontal: 10,
+    },
+    consultationStartLine: {
+      flex: 1,
+      height: 1,
+      backgroundColor: colors.border,
+    },
+    consultationStartContent: {
+      alignItems: 'center',
+      paddingHorizontal: 10,
+    },
+    consultationStartText: {
+      color: colors.primary,
+      fontSize: 11,
+      fontWeight: '800',
+      marginTop: 3,
+      textAlign: 'center',
+    },
+    consultationStartDate: {
+      color: colors.textSecondary,
+      fontSize: 10,
+      marginTop: 2,
+    },
     consultationPickerScreen: { flex: 1, backgroundColor: colors.background },
     consultationPickerHeader: {
       flexDirection: 'row',

@@ -357,6 +357,26 @@ export default function ChatScreen() {
   };
 
   const renderMessageItem = ({ item }) => {
+    if (item.isConsultationMarker) {
+      return (
+        <View style={styles.consultationStartMarker}>
+          <View style={styles.consultationStartLine} />
+          <View style={styles.consultationStartContent}>
+            <MaterialCommunityIcons name="clipboard-check-outline" size={16} color={colors.primary} />
+            <Text style={styles.consultationStartText}>
+              {item.reason} consultation started
+            </Text>
+            {item.created_at && (
+              <Text style={styles.consultationStartDate}>
+                {new Date(item.created_at).toLocaleDateString()}
+              </Text>
+            )}
+          </View>
+          <View style={styles.consultationStartLine} />
+        </View>
+      );
+    }
+
     const isMe = item.sender_id === ourUserId;
     const timeText = new Date(item.created_at).toLocaleTimeString(undefined, {
       hour: '2-digit',
@@ -585,6 +605,31 @@ export default function ChatScreen() {
                 </View>
               </TouchableOpacity>
             );
+
+            const selectedConsultation = consultationHistory.find(
+              item => String(item.id) === String(selectedConsultationId)
+            );
+            const selectedMessageIndex = selectedConsultationId
+              ? messages.findIndex(item => String(item.consultation_id) === String(selectedConsultationId))
+              : -1;
+            const hasConsultationStartMessage = selectedConsultation && messages.some(item =>
+              String(item.consultation_id) === String(selectedConsultationId)
+              && typeof item.message === 'string'
+              && item.message.includes('consultation has been started')
+            );
+            const consultationMarkerIndex = selectedMessageIndex >= 0 ? selectedMessageIndex : 0;
+            const chatMessages = selectedConsultation && !hasConsultationStartMessage
+              ? [
+                  ...messages.slice(0, consultationMarkerIndex),
+                  {
+                    id: `consultation-start-${selectedConsultation.id}`,
+                    isConsultationMarker: true,
+                    reason: selectedConsultation.reason || 'Consultation',
+                    created_at: selectedConsultation.created_at
+                  },
+                  ...messages.slice(consultationMarkerIndex)
+                ]
+              : messages;
           })}
         </ScrollView>
       </SafeAreaView>
@@ -637,13 +682,12 @@ export default function ChatScreen() {
         >
           <FlatList
             ref={flatListRef}
-            data={messages}
+            data={chatMessages}
             renderItem={renderMessageItem}
             keyExtractor={(item) => item.id.toString()}
             contentContainerStyle={styles.messagesList}
             showsVerticalScrollIndicator={false}
             onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
-            ListHeaderComponent={renderConsultationSummary}
             ListEmptyComponent={
               <View style={styles.emptyChat}>
                 <View style={styles.emptyChatIcon}>
