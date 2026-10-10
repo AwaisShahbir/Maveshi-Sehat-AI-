@@ -605,36 +605,36 @@ export default function ChatScreen() {
                 </View>
               </TouchableOpacity>
             );
-
-            const selectedConsultation = consultationHistory.find(
-              item => String(item.id) === String(selectedConsultationId)
-            );
-            const selectedMessageIndex = selectedConsultationId
-              ? messages.findIndex(item => String(item.consultation_id) === String(selectedConsultationId))
-              : -1;
-            const hasConsultationStartMessage = selectedConsultation && messages.some(item =>
-              String(item.consultation_id) === String(selectedConsultationId)
-              && typeof item.message === 'string'
-              && item.message.includes('consultation has been started')
-            );
-            const consultationMarkerIndex = selectedMessageIndex >= 0 ? selectedMessageIndex : 0;
-            const chatMessages = selectedConsultation && !hasConsultationStartMessage
-              ? [
-                  ...messages.slice(0, consultationMarkerIndex),
-                  {
-                    id: `consultation-start-${selectedConsultation.id}`,
-                    isConsultationMarker: true,
-                    reason: selectedConsultation.reason || 'Consultation',
-                    created_at: selectedConsultation.created_at
-                  },
-                  ...messages.slice(consultationMarkerIndex)
-                ]
-              : messages;
           })}
         </ScrollView>
       </SafeAreaView>
     </Modal>
   );
+
+  const selectedConsultation = consultationHistory.find(
+    item => String(item.id) === String(selectedConsultationId)
+  );
+  const selectedMessageIndex = selectedConsultationId
+    ? messages.findIndex(item => String(item?.consultation_id) === String(selectedConsultationId))
+    : -1;
+  const hasConsultationStartMessage = selectedConsultation && messages.some(item =>
+    String(item?.consultation_id) === String(selectedConsultationId)
+    && typeof item?.message === 'string'
+    && item.message.includes('consultation has been started')
+  );
+  const consultationMarkerIndex = selectedMessageIndex >= 0 ? selectedMessageIndex : 0;
+  const chatMessages = selectedConsultation && !hasConsultationStartMessage
+    ? [
+        ...messages.slice(0, consultationMarkerIndex),
+        {
+          id: `consultation-start-${selectedConsultation.id}`,
+          isConsultationMarker: true,
+          reason: selectedConsultation.reason || 'Consultation',
+          created_at: selectedConsultation.created_at
+        },
+        ...messages.slice(consultationMarkerIndex)
+      ]
+    : messages;
 
   return (
     <SafeAreaView style={styles.safeArea}>
