@@ -2475,10 +2475,11 @@ app.get('/api/consultations/farmer/:id', async (req, res) => {
     const result = await pool.query(
       `SELECT c.*,
               CASE
-                WHEN c.status = 'completed' THEN 'completed'
-                WHEN c.status = 'approved' AND conversation.status = 'resolved' THEN 'completed'
-                WHEN c.status = 'pending' THEN 'pending'
-                ELSE c.status
+                WHEN LOWER(TRIM(c.status)) = 'completed' THEN 'completed'
+                WHEN LOWER(TRIM(c.status)) = 'approved'
+                  AND LOWER(TRIM(COALESCE(conversation.status, ''))) = 'resolved' THEN 'completed'
+                WHEN LOWER(TRIM(c.status)) = 'pending' THEN 'pending'
+                ELSE LOWER(TRIM(c.status))
               END AS status,
               conversation.status AS conversation_status,
               u.full_name as vet_name, u.specialization as vet_specialization
@@ -2502,10 +2503,11 @@ app.get('/api/consultations/vet/:id', async (req, res) => {
     const result = await pool.query(
       `SELECT c.*,
               CASE
-                WHEN c.status = 'completed' THEN 'completed'
-                WHEN c.status = 'approved' AND conversation.status = 'resolved' THEN 'completed'
-                WHEN c.status = 'pending' THEN 'pending'
-                ELSE c.status
+                WHEN LOWER(TRIM(c.status)) = 'completed' THEN 'completed'
+                WHEN LOWER(TRIM(c.status)) = 'approved'
+                  AND LOWER(TRIM(COALESCE(conversation.status, ''))) = 'resolved' THEN 'completed'
+                WHEN LOWER(TRIM(c.status)) = 'pending' THEN 'pending'
+                ELSE LOWER(TRIM(c.status))
               END AS status,
               conversation.status AS conversation_status,
               u.full_name as farmer_name, u.phone_number as farmer_phone

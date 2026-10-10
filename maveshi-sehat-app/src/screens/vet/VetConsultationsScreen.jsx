@@ -22,6 +22,7 @@ export default function VetConsultationsScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState('All'); 
   const [searchQuery, setSearchQuery] = useState('');
+  const normalizeConsultationStatus = (status) => String(status || '').trim().toLowerCase();
 
   const [, forceUpdate] = useState(0);
   useEffect(() => {
@@ -115,7 +116,9 @@ export default function VetConsultationsScreen() {
   };
 
   const handleAction = async (item) => {
-    const pendingConsultation = item.consultations.find(consultation => consultation.status === 'pending');
+    const pendingConsultation = item.consultations.find(
+      consultation => normalizeConsultationStatus(consultation.status) === 'pending'
+    );
     if (pendingConsultation) {
       await handleStatusUpdate(pendingConsultation.id, 'approved');
       openChat({
@@ -150,8 +153,12 @@ export default function VetConsultationsScreen() {
     });
 
     return Array.from(grouped.values()).map(group => {
-      const hasPending = group.consultations.some(item => item.status === 'pending');
-      const hasActive = group.consultations.some(item => item.status === 'approved');
+      const hasPending = group.consultations.some(
+        item => normalizeConsultationStatus(item.status) === 'pending'
+      );
+      const hasActive = group.consultations.some(
+        item => normalizeConsultationStatus(item.status) === 'approved'
+      );
       const status = hasPending ? 'pending' : hasActive ? 'approved' : 'resolved';
       const latest = group.consultations[0];
       return {
@@ -164,7 +171,7 @@ export default function VetConsultationsScreen() {
   }, [consultations]);
 
   const filteredConsultations = farmerChats.filter(item => {
-    const normalizedStatus = item.status === 'completed' ? 'resolved' : item.status;
+    const normalizedStatus = normalizeConsultationStatus(item.status) === 'completed' ? 'resolved' : normalizeConsultationStatus(item.status);
     const isPending = normalizedStatus === 'pending';
     const isActive = normalizedStatus === 'approved';
     const isResolved = normalizedStatus === 'resolved';
@@ -183,8 +190,8 @@ export default function VetConsultationsScreen() {
 
   const getStats = () => {
     return {
-      pending: farmerChats.filter(c => c.status === 'pending').length,
-      active: farmerChats.filter(c => c.status === 'approved').length,
+      pending: farmerChats.filter(c => normalizeConsultationStatus(c.status) === 'pending').length,
+      active: farmerChats.filter(c => normalizeConsultationStatus(c.status) === 'approved').length,
       resolved: farmerChats.filter(c => c.status === 'resolved' || c.status === 'completed').length,
     };
   };
@@ -195,7 +202,7 @@ export default function VetConsultationsScreen() {
       month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
     });
 
-    const normalizedStatus = item.status === 'completed' ? 'resolved' : item.status;
+    const normalizedStatus = normalizeConsultationStatus(item.status) === 'completed' ? 'resolved' : normalizeConsultationStatus(item.status);
     const isPending = normalizedStatus === 'pending';
     const isActive = normalizedStatus === 'approved';
     const isResolved = normalizedStatus === 'resolved';
