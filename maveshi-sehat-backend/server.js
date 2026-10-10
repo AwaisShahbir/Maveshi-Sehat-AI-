@@ -2510,11 +2510,26 @@ app.get('/api/vet/prescriptions', async (req, res) => {
   }
 });
 
+app.get('/api/vet/farmers', async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT id, full_name, phone_number, district
+       FROM users
+       WHERE role = 'farmer'
+       ORDER BY full_name ASC`
+    );
+    res.json({ farmers: result.rows });
+  } catch (err) {
+    console.error('Error fetching farmers for prescription form:', err);
+    res.status(500).json({ error: 'Failed to fetch farmers' });
+  }
+});
+
 app.post('/api/vet/prescriptions', async (req, res) => {
   try {
-    const { vetId, vetName, farmerName, animal, diagnosis, diagnosisUrdu, medicines, notes } = req.body;
-    if (!farmerName || !diagnosis) {
-      return res.status(400).json({ error: 'Farmer name and diagnosis are required' });
+    const { vetId, vetName, farmerId, farmerName, animal, diagnosis, diagnosisUrdu, medicines, notes } = req.body;
+    if ((!farmerId && !farmerName) || !diagnosis) {
+      return res.status(400).json({ error: 'Farmer and diagnosis are required' });
     }
 
     // Resolve vet ID
@@ -2527,21 +2542,23 @@ app.post('/api/vet/prescriptions', async (req, res) => {
     if (!resolvedVetId) return res.status(400).json({ error: 'vetId or vetName is required' });
 
     // Resolve farmer ID
-    const farmerRes = await pool.query("SELECT id FROM users WHERE full_name ILIKE $1 AND role = 'farmer'", [farmerName.trim()]);
+    const farmerRes = farmerId
+      ? await pool.query("SELECT id, full_name FROM users WHERE id = $1 AND role = 'farmer'", [farmerId])
+      : await pool.query("SELECT id, full_name FROM users WHERE full_name ILIKE $1 AND role = 'farmer'", [farmerName.trim()]);
     if (farmerRes.rows.length === 0) {
-      return res.status(404).json({ error: 'Farmer not found. Make sure the owner name matches a registered farmer.' });
+      return res.status(404).json({ error: 'Farmer not found. Select a registered farmer and try again.' });
     }
-    const farmerId = farmerRes.rows[0].id;
+    const resolvedFarmerId = farmerRes.rows[0].id;
 
     // Find or create conversation
     let convRes = await pool.query(
       'SELECT * FROM conversations WHERE farmer_id = $1 AND vet_id = $2',
-      [farmerId, resolvedVetId]
+      [resolvedFarmerId, resolvedVetId]
     );
     if (convRes.rows.length === 0) {
       convRes = await pool.query(
         "INSERT INTO conversations (farmer_id, vet_id, status) VALUES ($1, $2, 'active') RETURNING *",
-        [farmerId, resolvedVetId]
+        [resolvedFarmerId, resolvedVetId]
       );
     }
     const conversationId = convRes.rows[0].id;
