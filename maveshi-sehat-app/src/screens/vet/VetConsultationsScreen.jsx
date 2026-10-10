@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { View, Text, SafeAreaView, FlatList, TouchableOpacity, StatusBar, ActivityIndicator, Platform, TextInput } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
@@ -106,7 +106,8 @@ export default function VetConsultationsScreen() {
         userName: userName,
         userRole: 'vet',
         vetId: userId,
-        initialRecord
+        initialRecord,
+        consultations: item.consultations || [item]
       });
     } catch (error) {
       console.error('Error opening chat', error);
@@ -114,10 +115,18 @@ export default function VetConsultationsScreen() {
   };
 
   const handleAction = async (item) => {
-    if (item.status === 'pending') {
-      await handleStatusUpdate(item.id, 'approved');
-      const updatedItem = { ...item, status: 'approved' };
-      openChat(updatedItem);
+    const pendingConsultation = item.consultations.find(consultation => consultation.status === 'pending');
+    if (pendingConsultation) {
+      await handleStatusUpdate(pendingConsultation.id, 'approved');
+      openChat({
+        ...item,
+        status: 'approved',
+        consultations: item.consultations.map(consultation =>
+          consultation.id === pendingConsultation.id
+            ? { ...consultation, status: 'approved' }
+            : consultation
+        )
+      });
     } else {
       openChat(item);
     }
@@ -125,7 +134,36 @@ export default function VetConsultationsScreen() {
 
   const tabs = ['All', 'Pending', 'Active', 'Resolved'];
 
-  const filteredConsultations = consultations.filter(item => {
+  const farmerChats = useMemo(() => {
+    const grouped = new Map();
+    consultations.forEach(consultation => {
+      const key = String(consultation.farmer_id);
+      const existing = grouped.get(key);
+      if (existing) {
+        existing.consultations.push(consultation);
+        return;
+      }
+      grouped.set(key, {
+        ...consultation,
+        consultations: [consultation],
+      });
+    });
+
+    return Array.from(grouped.values()).map(group => {
+      const hasPending = group.consultations.some(item => item.status === 'pending');
+      const hasActive = group.consultations.some(item => item.status === 'approved');
+      const status = hasPending ? 'pending' : hasActive ? 'approved' : 'resolved';
+      const latest = group.consultations[0];
+      return {
+        ...group,
+        ...latest,
+        status,
+        consultations: group.consultations,
+      };
+    });
+  }, [consultations]);
+
+  const filteredConsultations = farmerChats.filter(item => {
     const normalizedStatus = item.status === 'completed' ? 'resolved' : item.status;
     const isPending = normalizedStatus === 'pending';
     const isActive = normalizedStatus === 'approved';
@@ -145,9 +183,9 @@ export default function VetConsultationsScreen() {
 
   const getStats = () => {
     return {
-      pending: consultations.filter(c => c.status === 'pending').length,
-      active: consultations.filter(c => c.status === 'approved').length,
-      resolved: consultations.filter(c => c.status === 'resolved' || c.status === 'completed').length,
+      pending: farmerChats.filter(c => c.status === 'pending').length,
+      active: farmerChats.filter(c => c.status === 'approved').length,
+      resolved: farmerChats.filter(c => c.status === 'resolved' || c.status === 'completed').length,
     };
   };
   const stats = getStats();
@@ -187,7 +225,9 @@ export default function VetConsultationsScreen() {
           <Text style={styles.animalInfoText}>{animalInfo}</Text>
         </View>
 
-        <Text style={styles.reasonText} numberOfLines={2}>{item.reason}</Text>
+        <Text style={styles.reasonText} numberOfLines={2}>
+          {item.consultations.length > 1 ? `${item.consultations.length} consultations · ` : ''}{item.reason}
+        </Text>
 
         <View style={styles.cardFooter}>
           <View style={styles.statusRow}>

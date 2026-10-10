@@ -50,6 +50,7 @@ export default function ChatScreen() {
   const insets = useSafeAreaInsets();
 
   const { conversationId, partnerName, partnerRole, userName, userRole, vetId } = params;
+  const consultationHistory = Array.isArray(params.consultations) ? params.consultations : [];
 
   
   const [messages, setMessages] = useState([]);
@@ -474,6 +475,42 @@ export default function ChatScreen() {
     );
   };
 
+  const renderConsultationSummary = () => {
+    if (consultationHistory.length === 0) return null;
+    return (
+      <View style={styles.consultationSummary}>
+        <View style={styles.consultationSummaryHeader}>
+          <View>
+            <Text style={styles.consultationSummaryTitle}>Consultation history</Text>
+            <Text style={styles.consultationSummarySubtitle}>
+              {consultationHistory.length} {consultationHistory.length === 1 ? 'consultation' : 'consultations'} in this chat
+            </Text>
+          </View>
+          <MaterialCommunityIcons name="clipboard-text-outline" size={22} color={colors.primary} />
+        </View>
+        {consultationHistory.slice(0, 5).map((consultation, index) => {
+          const resolved = consultation.status === 'completed' || consultation.status === 'resolved';
+          const pending = consultation.status === 'pending';
+          const statusLabel = pending ? 'Pending' : resolved ? 'Resolved' : 'Active';
+          const statusColor = pending ? '#D97706' : resolved ? '#64748B' : colors.primary;
+          return (
+            <View key={consultation.id || index} style={styles.consultationHistoryRow}>
+              <View style={styles.consultationHistoryText}>
+                <Text style={styles.consultationHistoryReason} numberOfLines={1}>
+                  {consultation.reason || 'General consultation'}
+                </Text>
+                <Text style={styles.consultationHistoryDate}>
+                  {new Date(consultation.created_at).toLocaleDateString()}
+                </Text>
+              </View>
+              <Text style={[styles.consultationHistoryStatus, { color: statusColor }]}>{statusLabel}</Text>
+            </View>
+          );
+        })}
+      </View>
+    );
+  };
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="light-content" backgroundColor={isDark ? colors.headerBackground : colors.primary} />
@@ -524,6 +561,7 @@ export default function ChatScreen() {
             contentContainerStyle={styles.messagesList}
             showsVerticalScrollIndicator={false}
             onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
+            ListHeaderComponent={renderConsultationSummary}
             ListEmptyComponent={
               <View style={styles.emptyChat}>
                 <View style={styles.emptyChatIcon}>
