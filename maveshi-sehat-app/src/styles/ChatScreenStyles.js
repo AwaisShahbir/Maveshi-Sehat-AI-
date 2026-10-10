@@ -223,6 +223,7 @@ export const getStyles = (colors = LIGHT_THEME, isDark = false) => {
       padding: 13,
       marginBottom: 10,
     },
+    consultationPickerRowDisabled: { opacity: 0.72 },
     consultationPickerRowIcon: {
       width: 40,
       height: 40,

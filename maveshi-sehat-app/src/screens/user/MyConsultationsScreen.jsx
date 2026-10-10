@@ -141,10 +141,10 @@ export default function MyConsultationsScreen() {
       <Text style={styles.reasonText}>Reason: {item.reason}</Text>
       {item.appointment_date && <Text style={styles.dateText}>Date: {new Date(item.appointment_date).toLocaleString()}</Text>}
 
-      {item.type === 'online_chat' && item.status !== 'pending' && item.status !== 'rejected' && (
+      {item.type === 'online_chat' && item.status === 'approved' && (
         <TouchableOpacity style={styles.chatBtn} onPress={() => handleStartChat(item)} activeOpacity={0.8}>
           <Feather name="message-square" size={16} color="#FFF" style={{ marginRight: 8 }} />
-          <Text style={styles.chatBtnText}>{item.status === 'completed' ? 'View Chat' : 'Open Chat'}</Text>
+          <Text style={styles.chatBtnText}>Open Chat</Text>
         </TouchableOpacity>
       )}
     </View>

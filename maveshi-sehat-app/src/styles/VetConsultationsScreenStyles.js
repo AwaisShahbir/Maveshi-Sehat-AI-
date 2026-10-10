@@ -122,6 +122,8 @@ export const getStyles = (colors = LIGHT_THEME, isDark = false) => {
       paddingHorizontal: 8,
     },
     actionBtnText: { color: colors.primary, fontWeight: '800', fontSize: 14 },
+    resolvedAction: { flexDirection: 'row', alignItems: 'center', minHeight: 36, paddingHorizontal: 8 },
+    resolvedActionText: { color: '#64748B', fontWeight: '800', fontSize: 14, marginLeft: 5 },
     emptyContainer: { alignItems: 'center', marginTop: 60 },
     emptyText: { marginTop: 16, fontSize: 16, color: colors.textSecondary, fontWeight: '600' }
   });

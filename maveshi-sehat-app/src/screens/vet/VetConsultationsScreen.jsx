@@ -237,14 +237,21 @@ export default function VetConsultationsScreen() {
             </Text>
           </View>
           
-          <TouchableOpacity
-            style={styles.actionBtn}
-            onPress={() => handleAction(item)}
-          >
-            <Text style={styles.actionBtnText}>
-              {isPending ? 'Start Consultation →' : isActive ? 'Continue →' : 'View Chat →'}
-            </Text>
-          </TouchableOpacity>
+          {(isPending || isActive) ? (
+            <TouchableOpacity
+              style={styles.actionBtn}
+              onPress={() => handleAction(item)}
+            >
+              <Text style={styles.actionBtnText}>
+                {isPending ? 'Start Consultation →' : 'Continue →'}
+              </Text>
+            </TouchableOpacity>
+          ) : (
+            <View style={styles.resolvedAction}>
+              <Feather name="lock" size={13} color="#64748B" />
+              <Text style={styles.resolvedActionText}>Closed</Text>
+            </View>
+          )}
         </View>
       </View>
     );

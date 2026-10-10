@@ -558,17 +558,19 @@ export default function ChatScreen() {
           {consultationHistory.map((consultation, index) => {
             const resolved = consultation.status === 'completed' || consultation.status === 'resolved';
             const pending = consultation.status === 'pending';
+            const selectable = !resolved;
             const statusLabel = pending ? 'Pending' : resolved ? 'Resolved' : 'Active';
             const statusColor = pending ? '#D97706' : resolved ? '#64748B' : colors.primary;
             return (
               <TouchableOpacity
                 key={consultation.id || index}
-                style={styles.consultationPickerRow}
-                onPress={() => setSelectedConsultationId(consultation.id)}
+                style={[styles.consultationPickerRow, !selectable && styles.consultationPickerRowDisabled]}
+                onPress={() => selectable && setSelectedConsultationId(consultation.id)}
+                disabled={!selectable}
                 activeOpacity={0.8}
               >
                 <View style={styles.consultationPickerRowIcon}>
-                  <MaterialCommunityIcons name="message-text-outline" size={20} color={colors.primary} />
+                  <MaterialCommunityIcons name={selectable ? 'message-text-outline' : 'lock-outline'} size={20} color={selectable ? colors.primary : colors.textSecondary} />
                 </View>
                 <View style={styles.consultationPickerRowDetails}>
                   <Text style={styles.consultationPickerReason}>{consultation.reason || 'General consultation'}</Text>
@@ -578,7 +580,7 @@ export default function ChatScreen() {
                 </View>
                 <View style={styles.consultationPickerStatus}>
                   <Text style={[styles.consultationPickerStatusText, { color: statusColor }]}>{statusLabel}</Text>
-                  <Feather name="chevron-right" size={18} color={colors.textSecondary} />
+                  <Feather name={selectable ? 'chevron-right' : 'lock'} size={16} color={colors.textSecondary} />
                 </View>
               </TouchableOpacity>
             );
