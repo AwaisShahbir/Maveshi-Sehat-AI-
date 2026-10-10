@@ -329,6 +329,25 @@ export default function ChatScreen() {
     }
   };
 
+  const handleReopenConversation = async () => {
+    try {
+      const response = await fetch(`${baseUrl}/api/chat/conversation/reopen`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ conversationId })
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to start a new consultation');
+      }
+      setConversationStatus('active');
+      handleSendMessage('📋 A new consultation has been started.');
+    } catch (error) {
+      console.error('Error reopening conversation:', error);
+      Alert.alert('Unable to start consultation', error.message || 'Please try again.');
+    }
+  };
+
   const renderMessageItem = ({ item }) => {
     const isMe = item.sender_id === ourUserId;
     const timeText = new Date(item.created_at).toLocaleTimeString(undefined, {
@@ -575,9 +594,19 @@ export default function ChatScreen() {
 
           
           {conversationStatus === 'resolved' ? (
-            <View style={[styles.resolvedBanner, { paddingBottom: Math.max(insets.bottom, 14) }]}>
-              <MaterialCommunityIcons name="lock" size={18} color="#666" style={{ marginRight: 6 }} />
-              <Text style={styles.resolvedBannerText}>{t('This consultation is resolved.')}</Text>
+            <View style={[styles.resolvedBanner, { paddingBottom: Math.max(insets.bottom, 10) }]}>
+              <View style={styles.resolvedBannerTextRow}>
+                <MaterialCommunityIcons name="lock" size={17} color="#64748B" style={{ marginRight: 6 }} />
+                <Text style={styles.resolvedBannerText}>This consultation is resolved.</Text>
+              </View>
+              <TouchableOpacity
+                style={styles.reopenButton}
+                onPress={handleReopenConversation}
+                activeOpacity={0.8}
+              >
+                <Feather name="plus-circle" size={15} color="#FFF" style={{ marginRight: 6 }} />
+                <Text style={styles.reopenButtonText}>Start New Consultation</Text>
+              </TouchableOpacity>
             </View>
           ) : (
             <View style={{ paddingBottom: Math.max(insets.bottom, 10) }}>

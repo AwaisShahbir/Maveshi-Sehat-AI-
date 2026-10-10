@@ -2201,7 +2201,38 @@ app.put('/api/chat/conversation/resolve', async (req, res) => {
   }
 });
 
+app.put('/api/chat/conversation/reopen', async (req, res) => {
+  try {
+    const { conversationId } = req.body;
+    if (!conversationId) {
+      return res.status(400).json({ error: 'conversationId is required' });
+    }
 
+    const result = await pool.query(
+      `UPDATE conversations
+       SET status = 'active'
+       WHERE id = $1
+       RETURNING *`,
+      [conversationId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Conversation not found' });
+    }
+
+    await pool.query(
+      `INSERT INTO consultations (farmer_id, vet_id, type, status, reason)
+       VALUES ($1, $2, 'online_chat', 'approved', 'New consultation')
+       ON CONFLICT DO NOTHING`,
+      [result.rows[0].farmer_id, result.rows[0].vet_id]
+    );
+
+    res.status(200).json(result.rows[0]);
+  } catch (err) {
+    console.error('Error reopening conversation:', err);
+    res.status(500).json({ error: 'Server error reopening conversation' });
+  }
+});
 
 
 app.get('/api/forum/posts', async (req, res) => {
