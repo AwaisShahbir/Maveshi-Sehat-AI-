@@ -51,6 +51,10 @@ export default function ChatScreen() {
 
   const { conversationId, partnerName, partnerRole, userName, userRole, vetId } = params;
   const consultationHistory = Array.isArray(params.consultations) ? params.consultations : [];
+  const initialConsultation = consultationHistory.find(item => item.status === 'approved')
+    || consultationHistory.find(item => item.status === 'pending')
+    || consultationHistory[0]
+    || null;
 
   
   const [messages, setMessages] = useState([]);
@@ -62,6 +66,7 @@ export default function ChatScreen() {
   const [prescriptionModalVisible, setPrescriptionModalVisible] = useState(false);
   const [selectedAttachmentUri, setSelectedAttachmentUri] = useState(null);
   const [failedImageIds, setFailedImageIds] = useState({});
+  const [selectedConsultationId, setSelectedConsultationId] = useState(initialConsultation?.id || null);
 
   
   const [diagnosis, setDiagnosis] = useState('');
@@ -176,7 +181,8 @@ export default function ChatScreen() {
         isPrescription,
         prescriptionData,
         isVaccination,
-        vaccinationData
+        vaccinationData,
+        consultationId: selectedConsultationId
       });
       setInputText('');
       setSelectedAttachmentUri(null);
@@ -521,7 +527,15 @@ export default function ChatScreen() {
           const statusLabel = pending ? 'Pending' : resolved ? 'Resolved' : 'Active';
           const statusColor = pending ? '#D97706' : resolved ? '#64748B' : colors.primary;
           return (
-            <View key={consultation.id || index} style={styles.consultationHistoryRow}>
+            <TouchableOpacity
+              key={consultation.id || index}
+              style={[
+                styles.consultationHistoryRow,
+                selectedConsultationId === consultation.id && styles.consultationHistoryRowSelected
+              ]}
+              onPress={() => setSelectedConsultationId(consultation.id)}
+              activeOpacity={0.8}
+            >
               <View style={styles.consultationHistoryText}>
                 <Text style={styles.consultationHistoryReason} numberOfLines={1}>
                   {consultation.reason || 'General consultation'}
@@ -531,9 +545,17 @@ export default function ChatScreen() {
                 </Text>
               </View>
               <Text style={[styles.consultationHistoryStatus, { color: statusColor }]}>{statusLabel}</Text>
-            </View>
+            </TouchableOpacity>
           );
         })}
+        {selectedConsultationId && (
+          <View style={styles.selectedConsultationBanner}>
+            <Feather name="check-circle" size={14} color={colors.primary} />
+            <Text style={styles.selectedConsultationText}>
+              Discussing: {consultationHistory.find(item => item.id === selectedConsultationId)?.reason || 'Selected consultation'}
+            </Text>
+          </View>
+        )}
       </View>
     );
   };

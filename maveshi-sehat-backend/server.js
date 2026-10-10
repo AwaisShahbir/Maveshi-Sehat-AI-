@@ -115,6 +115,7 @@ pool.connect((err, client, release) => {
 
       ALTER TABLE messages ADD COLUMN IF NOT EXISTS is_vaccination BOOLEAN DEFAULT FALSE;
       ALTER TABLE messages ADD COLUMN IF NOT EXISTS vaccination_data JSONB;
+      ALTER TABLE messages ADD COLUMN IF NOT EXISTS consultation_id INT REFERENCES consultations(id) ON DELETE SET NULL;
     `, (migrationErr) => {
       release();
       if (migrationErr) {
@@ -2414,11 +2415,11 @@ io.on('connection', (socket) => {
 
   socket.on('send_message', async (data) => {
     try {
-      const { conversationId, senderId, message, imageUrl, isPrescription, prescriptionData, isVaccination, vaccinationData } = data;
+      const { conversationId, senderId, message, imageUrl, isPrescription, prescriptionData, isVaccination, vaccinationData, consultationId } = data;
 
       const result = await pool.query(
-        `INSERT INTO messages (conversation_id, sender_id, message, image_url, is_prescription, prescription_data, is_vaccination, vaccination_data)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
+        `INSERT INTO messages (conversation_id, sender_id, message, image_url, is_prescription, prescription_data, is_vaccination, vaccination_data, consultation_id)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
         [
           conversationId,
           senderId,
@@ -2427,7 +2428,8 @@ io.on('connection', (socket) => {
           isPrescription || false,
           prescriptionData ? JSON.stringify(prescriptionData) : null,
           isVaccination || false,
-          vaccinationData ? JSON.stringify(vaccinationData) : null
+          vaccinationData ? JSON.stringify(vaccinationData) : null,
+          consultationId || null
         ]
       );
 
