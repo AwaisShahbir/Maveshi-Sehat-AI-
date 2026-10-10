@@ -126,9 +126,10 @@ export default function VetConsultationsScreen() {
   const tabs = ['All', 'Pending', 'Active', 'Resolved'];
 
   const filteredConsultations = consultations.filter(item => {
-    const isPending = item.status === 'pending';
-    const isActive = item.status === 'approved';
-    const isResolved = item.status === 'resolved';
+    const normalizedStatus = item.status === 'completed' ? 'resolved' : item.status;
+    const isPending = normalizedStatus === 'pending';
+    const isActive = normalizedStatus === 'approved';
+    const isResolved = normalizedStatus === 'resolved';
 
     const matchesTab = 
       activeTab === 'All' ? true : 
@@ -146,7 +147,7 @@ export default function VetConsultationsScreen() {
     return {
       pending: consultations.filter(c => c.status === 'pending').length,
       active: consultations.filter(c => c.status === 'approved').length,
-      resolved: consultations.filter(c => c.status === 'resolved').length,
+      resolved: consultations.filter(c => c.status === 'resolved' || c.status === 'completed').length,
     };
   };
   const stats = getStats();
@@ -156,9 +157,10 @@ export default function VetConsultationsScreen() {
       month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
     });
 
-    const isPending = item.status === 'pending';
-    const isActive = item.status === 'approved';
-    const isResolved = item.status === 'resolved';
+    const normalizedStatus = item.status === 'completed' ? 'resolved' : item.status;
+    const isPending = normalizedStatus === 'pending';
+    const isActive = normalizedStatus === 'approved';
+    const isResolved = normalizedStatus === 'resolved';
 
     const statusColor = isPending ? '#FFB020' : isActive ? '#58D66D' : '#888';
     
@@ -195,12 +197,12 @@ export default function VetConsultationsScreen() {
             </Text>
           </View>
           
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.actionBtn}
             onPress={() => handleAction(item)}
           >
             <Text style={styles.actionBtnText}>
-              {isPending ? 'Start Consultation →' : isActive ? 'Continue →' : 'View →'}
+              {isPending ? 'Start Consultation →' : isActive ? 'Continue →' : 'View Chat →'}
             </Text>
           </TouchableOpacity>
         </View>

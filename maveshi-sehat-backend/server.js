@@ -2181,7 +2181,17 @@ app.put('/api/chat/conversation/resolve', async (req, res) => {
       return res.status(400).json({ error: 'conversationId is required' });
     }
     await pool.query(
-      'UPDATE conversations SET status = \'resolved\' WHERE id = $1',
+      `UPDATE conversations
+       SET status = 'resolved'
+       WHERE id = $1`,
+      [conversationId]
+    );
+    await pool.query(
+      `UPDATE consultations
+       SET status = 'completed', updated_at = CURRENT_TIMESTAMP
+       WHERE farmer_id = (SELECT farmer_id FROM conversations WHERE id = $1)
+         AND vet_id = (SELECT vet_id FROM conversations WHERE id = $1)
+         AND status IN ('pending', 'approved')`,
       [conversationId]
     );
     res.status(200).json({ message: 'Conversation marked as resolved' });
@@ -2446,9 +2456,19 @@ app.get('/api/consultations/farmer/:id', async (req, res) => {
 app.get('/api/consultations/vet/:id', async (req, res) => {
   try {
     const result = await pool.query(
-      `SELECT c.*, u.full_name as farmer_name, u.phone_number as farmer_phone 
+      `SELECT c.*,
+              CASE
+                WHEN c.status = 'completed' OR conversation.status = 'resolved' THEN 'resolved'
+                WHEN c.status = 'pending' THEN 'pending'
+                ELSE 'approved'
+              END AS status,
+              conversation.status AS conversation_status,
+              u.full_name as farmer_name, u.phone_number as farmer_phone
        FROM consultations c 
        JOIN users u ON c.farmer_id = u.id 
+       LEFT JOIN conversations conversation
+         ON conversation.farmer_id = c.farmer_id
+        AND conversation.vet_id = c.vet_id
        WHERE c.vet_id = $1 ORDER BY c.created_at DESC`,
       [req.params.id]
     );
