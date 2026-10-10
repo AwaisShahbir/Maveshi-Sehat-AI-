@@ -336,7 +336,15 @@ export default function ChatScreen() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ conversationId })
       });
-      const data = await response.json();
+      const responseText = await response.text();
+      let data = {};
+      try {
+        data = responseText ? JSON.parse(responseText) : {};
+      } catch {
+        throw new Error(
+          `The server returned an invalid response (${response.status}). Please restart the backend and try again.`
+        );
+      }
       if (!response.ok) {
         throw new Error(data.error || 'Failed to start a new consultation');
       }
