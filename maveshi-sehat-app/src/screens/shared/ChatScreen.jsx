@@ -31,6 +31,16 @@ const MOCK_SYMPTOM_IMAGES = [
   { id: '3', title: 'Cow Skin/Wound', url: 'https://images.unsplash.com/photo-1546445317-29f4545e6d5a?w=600' },
 ];
 
+const parseMessageData = (value) => {
+  if (!value) return null;
+  if (typeof value !== 'string') return value;
+  try {
+    return JSON.parse(value);
+  } catch {
+    return null;
+  }
+};
+
 export default function ChatScreen() {
   const { colors, isDark } = useTheme();
   const styles = React.useMemo(() => getStyles(colors, isDark), [colors, isDark]);
@@ -50,6 +60,7 @@ export default function ChatScreen() {
   const [imageModalVisible, setImageModalVisible] = useState(false);
   const [prescriptionModalVisible, setPrescriptionModalVisible] = useState(false);
   const [selectedAttachmentUri, setSelectedAttachmentUri] = useState(null);
+  const [failedImageIds, setFailedImageIds] = useState({});
 
   
   const [diagnosis, setDiagnosis] = useState('');
@@ -325,9 +336,8 @@ export default function ChatScreen() {
     });
 
     if (item.is_prescription) {
-      const data = typeof item.prescription_data === 'string' 
-        ? JSON.parse(item.prescription_data) 
-        : item.prescription_data;
+      const data = parseMessageData(item.prescription_data);
+      if (!data) return null;
 
       return (
         <View style={[styles.prescriptionWrapper, isMe ? styles.alignRight : styles.alignLeft]}>
@@ -384,9 +394,13 @@ export default function ChatScreen() {
     }
 
     if (item.is_vaccination) {
-      const data = typeof item.vaccination_data === 'string'
-        ? JSON.parse(item.vaccination_data)
-        : item.vaccination_data;
+      const data = parseMessageData(item.vaccination_data);
+      if (!data) return null;
+
+      const messageText = typeof item.message === 'string' ? item.message.trim() : '';
+      const hasImage = typeof item.image_url === 'string' && item.image_url.trim().length > 0;
+      if (!messageText && !hasImage) return null;
+      const imageFailed = !!failedImageIds[item.id];
 
       return (
         <View style={[styles.prescriptionWrapper, isMe ? styles.alignRight : styles.alignLeft]}>
@@ -432,17 +446,26 @@ export default function ChatScreen() {
           styles.bubble, 
           isMe ? styles.bubbleMe : styles.bubblePartner
         ]}>
-          {!!item.image_url && (
-            <Image 
-              source={{ uri: item.image_url }} 
-              style={styles.bubbleImage} 
+          {hasImage && !imageFailed && (
+            <Image
+              source={{ uri: item.image_url.trim() }}
+              style={styles.bubbleImage}
               resizeMode="cover"
+              onError={() => setFailedImageIds(prev => ({ ...prev, [item.id]: true }))}
             />
           )}
+          {hasImage && imageFailed && (
+            <View style={styles.attachmentUnavailable}>
+              <Feather name="paperclip" size={16} color={isMe ? '#FFF' : colors.textSecondary} />
+              <Text style={[styles.attachmentUnavailableText, isMe ? styles.messageTextMe : styles.messageTextPartner]}>
+                Attachment unavailable
+              </Text>
+            </View>
+          )}
 
-          {!!item.message && (
+          {!!messageText && (
             <Text style={[styles.messageText, isMe ? styles.messageTextMe : styles.messageTextPartner]}>
-              {item.message}
+              {messageText}
             </Text>
           )}
           <Text style={[styles.messageTime, isMe ? { color: 'rgba(255,255,255,0.7)' } : { color: '#999' }]}>{timeText}</Text>
@@ -460,11 +483,16 @@ export default function ChatScreen() {
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
           <Feather name="chevron-left" size={24} color="#FFF" />
         </TouchableOpacity>
+        <View style={styles.headerAvatar}>
+          <Text style={styles.headerAvatarText}>{(partnerName || 'F').trim().charAt(0).toUpperCase()}</Text>
+          <View style={styles.onlineDot} />
+        </View>
         <View style={styles.headerInfo}>
           <Text style={styles.headerName}>{partnerName}</Text>
-          <Text style={styles.headerRole}>
-            {partnerRole === 'vet' ? 'Large Animal Specialist' :t('Farmer')}
-          </Text>
+          <View style={styles.headerStatusRow}>
+            <View style={styles.headerStatusDot} />
+            <Text style={styles.headerRole}>{partnerRole === 'vet' ? 'Large Animal Specialist' : t('Farmer')}</Text>
+          </View>
         </View>
         <View style={styles.headerActions}>
           <TouchableOpacity style={styles.headerActionBtn}>
@@ -496,6 +524,15 @@ export default function ChatScreen() {
             contentContainerStyle={styles.messagesList}
             showsVerticalScrollIndicator={false}
             onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
+            ListEmptyComponent={
+              <View style={styles.emptyChat}>
+                <View style={styles.emptyChatIcon}>
+                  <MaterialCommunityIcons name="message-text-outline" size={28} color={colors.primary} />
+                </View>
+                <Text style={styles.emptyChatTitle}>Start the consultation</Text>
+                <Text style={styles.emptyChatText}>Send a clear message or attach a photo to help the farmer.</Text>
+              </View>
+            }
           />
 
           

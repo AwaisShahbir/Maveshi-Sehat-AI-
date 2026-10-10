@@ -51,10 +51,44 @@ export default function VetPrescriptionsScreen() {
 
 
   const [patientInfo, setPatientInfo] = useState({ ownerName: '', animal: '' });
+  const [farmers, setFarmers] = useState([]);
+  const [selectedFarmer, setSelectedFarmer] = useState(null);
   const [diagnosisEng, setDiagnosisEng] = useState('');
   const [diagnosisUrdu, setDiagnosisUrdu] = useState('');
   const [medicines, setMedicines] = useState([{ name: '', dose: '', frequency: '', days: '' }]);
   const [notes, setNotes] = useState('');
+
+  useEffect(() => {
+    const fetchFarmers = async () => {
+      try {
+        const response = await fetch(`${baseUrl}/api/vet/farmers`);
+        const responseText = await response.text();
+        let data;
+        try {
+          data = responseText ? JSON.parse(responseText) : {};
+        } catch {
+          throw new Error('The server returned an invalid response. Restart the backend and try again.');
+        }
+        if (!response.ok) throw new Error(data.error || 'Failed to fetch farmers');
+        setFarmers(Array.isArray(data) ? data : (data.farmers || []));
+      } catch (err) {
+        console.error('Error fetching farmers:', err);
+        Alert.alert('Unable to load farmers', err.message || 'Please check the server connection and try again.');
+      }
+    };
+
+    if (activeTab === 'Write New' && farmers.length === 0) {
+      fetchFarmers();
+    }
+  }, [activeTab]);
+
+  const farmerSuggestions = useMemo(() => {
+    const query = patientInfo.ownerName.trim().toLowerCase();
+    if (!query || selectedFarmer) return [];
+    return farmers
+      .filter(farmer => (farmer.full_name || '').toLowerCase().includes(query))
+      .slice(0, 6);
+  }, [farmers, patientInfo.ownerName, selectedFarmer]);
 
   const handleAddMedicine = () => {
     setMedicines([...medicines, { name: '', dose: '', frequency: '', days: '' }]);
@@ -73,8 +107,8 @@ export default function VetPrescriptionsScreen() {
   };
 
   const handleSendPrescription = async () => {
-    if (!patientInfo.ownerName.trim() || !diagnosisEng.trim()) {
-      Alert.alert(t('Missing Info') || 'Missing Info', t('Please fill out owner name and diagnosis.') || 'Please fill out owner name and diagnosis.');
+    if (!selectedFarmer || !diagnosisEng.trim()) {
+      Alert.alert(t('Missing Info') || 'Missing Info', 'Select a farmer from the suggestions and enter a diagnosis.');
       return;
     }
 
@@ -93,6 +127,7 @@ export default function VetPrescriptionsScreen() {
         body: JSON.stringify({
           vetId: profile?.userId || params.userId,
           vetName: profile?.fullName || params.userName,
+          farmerId: selectedFarmer.id,
           farmerName: patientInfo.ownerName.trim(),
           animal: patientInfo.animal.trim(),
           diagnosis: diagnosisEng.trim(),
@@ -117,6 +152,7 @@ export default function VetPrescriptionsScreen() {
 
       // Reset form
       setPatientInfo({ ownerName: '', animal: '' });
+      setSelectedFarmer(null);
       setDiagnosisEng('');
       setDiagnosisUrdu('');
       setMedicines([{ name: '', dose: '', frequency: '', days: '' }]);
@@ -231,12 +267,48 @@ export default function VetPrescriptionsScreen() {
         </View>
 
         <Text style={styles.inputLabel}>{t('Owner Name')}</Text>
-        <TextInput
-          style={styles.inputField}
-          placeholder="e.g. Ahmad Khan"
-          value={patientInfo.ownerName}
-          onChangeText={val => setPatientInfo({ ...patientInfo, ownerName: val })}
-        />
+        <View style={styles.autocompleteContainer}>
+          <View style={styles.autocompleteInputRow}>
+            <Feather name="user" size={17} color={selectedFarmer ? colors.primary : colors.textSecondary} />
+            <TextInput
+              style={styles.autocompleteInput}
+              placeholder="Search registered farmer..."
+              placeholderTextColor={colors.inputPlaceholder}
+              value={patientInfo.ownerName}
+              onChangeText={val => {
+                setSelectedFarmer(null);
+                setPatientInfo({ ...patientInfo, ownerName: val });
+              }}
+            />
+            {selectedFarmer && <Feather name="check-circle" size={18} color={colors.primary} />}
+          </View>
+          {farmerSuggestions.length > 0 && (
+            <View style={styles.suggestionsList}>
+              {farmerSuggestions.map(farmer => (
+                <TouchableOpacity
+                  key={farmer.id}
+                  style={styles.suggestionItem}
+                  onPress={() => {
+                    setSelectedFarmer(farmer);
+                    setPatientInfo({ ...patientInfo, ownerName: farmer.full_name });
+                  }}
+                >
+                  <View style={styles.suggestionAvatar}>
+                    <Text style={styles.suggestionAvatarText}>{farmer.full_name.charAt(0).toUpperCase()}</Text>
+                  </View>
+                  <View style={styles.suggestionDetails}>
+                    <Text style={styles.suggestionName}>{farmer.full_name}</Text>
+                    {!!farmer.district && <Text style={styles.suggestionMeta}>{farmer.district}</Text>}
+                  </View>
+                  <Feather name="chevron-right" size={16} color={colors.textSecondary} />
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
+        </View>
+        {patientInfo.ownerName.trim() && !selectedFarmer && farmerSuggestions.length === 0 && farmers.length > 0 && (
+          <Text style={styles.helperText}>Choose a farmer from the registered suggestions.</Text>
+        )}
 
         <Text style={styles.inputLabel}>{t('Animal')}</Text>
         <TextInput
