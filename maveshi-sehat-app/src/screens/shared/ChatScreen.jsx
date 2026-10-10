@@ -558,7 +558,7 @@ export default function ChatScreen() {
           {consultationHistory.map((consultation, index) => {
             const resolved = consultation.status === 'completed' || consultation.status === 'resolved';
             const pending = consultation.status === 'pending';
-            const selectable = !resolved;
+            const selectable = !resolved && !(pending && userRole === 'farmer');
             const statusLabel = pending ? 'Pending' : resolved ? 'Resolved' : 'Active';
             const statusColor = pending ? '#D97706' : resolved ? '#64748B' : colors.primary;
             return (

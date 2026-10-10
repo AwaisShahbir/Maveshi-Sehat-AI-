@@ -106,6 +106,8 @@ export const getStyles = (colors = LIGHT_THEME, isDark = false) => {
       fontWeight: '800',
       fontSize: 14,
     },
+    pendingNotice: { flexDirection: 'row', alignItems: 'center', marginTop: 12 },
+    pendingNoticeText: { color: '#D97706', fontSize: 13, fontWeight: '700' },
     emptyState: { 
       flex: 1, 
       justifyContent: 'center', 

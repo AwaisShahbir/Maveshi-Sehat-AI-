@@ -147,6 +147,12 @@ export default function MyConsultationsScreen() {
           <Text style={styles.chatBtnText}>Open Chat</Text>
         </TouchableOpacity>
       )}
+      {item.type === 'online_chat' && item.status === 'pending' && (
+        <View style={styles.pendingNotice}>
+          <Feather name="clock" size={15} color="#D97706" style={{ marginRight: 6 }} />
+          <Text style={styles.pendingNoticeText}>Waiting for veterinarian approval</Text>
+        </View>
+      )}
     </View>
   );
 
