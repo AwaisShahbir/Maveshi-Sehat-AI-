@@ -147,15 +147,6 @@ export default function ChatScreen() {
     }
   }, [loading]);
 
-  useEffect(() => {
-    if (params.initialRecord && !inputText) {
-      const rec = params.initialRecord;
-      if (rec.uri) {
-        setSelectedAttachmentUri(rec.uri);
-      }
-    }
-  }, [params.initialRecord]);
-
   const handleSendMessage = (text = '', imageUrl = null, isPrescription = false, prescriptionData = null, isVaccination = false, vaccinationData = null) => {
     const finalMsg = text.trim();
     if (!finalMsg && !imageUrl && !isPrescription && !selectedAttachmentUri && !isVaccination) return;
