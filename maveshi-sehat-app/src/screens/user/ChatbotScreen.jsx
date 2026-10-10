@@ -47,18 +47,33 @@ const tryFetch = async (endpoint, options = {}) => {
   throw lastErr;
 };
 
-const SUGGESTIONS = {
+const FARMER_SUGGESTIONS = {
   en: [
-    { id: '1', title: '🐮 Cow has high fever & low milk' },
-    { id: '2', title: '🩺 Connect me to registered vet in Lahore' },
-    { id: '3', title: '🐃 Buffalo is off-feed & sluggish' },
-    { id: '4', title: '💉 Cow & buffalo vaccination schedule' },
+    { id: '1', title: '🐮 Cow has high fever & low milk yield' },
+    { id: '2', title: '💉 Cow & buffalo seasonal vaccination schedule' },
+    { id: '3', title: '☀️ How to prevent heat stress in dairy cows' },
+    { id: '4', title: '🌾 Best feed formulation to boost milk yield' },
   ],
   ur: [
-    { id: '1', title: '🐮 گائے کو تیز بخار اور دودھ میں کمی ہے' },
-    { id: '2', title: '🩺 لاہور میں رجسٹرڈ ویٹرنری ڈاکٹر سے رابطہ کروائیں' },
-    { id: '3', title: '🐃 بھینس چارہ نہیں کھا رہی اور سست ہے' },
-    { id: '4', title: '💉 گائے اور بھینس کے حفاظتی ٹیکوں کا شیڈول' },
+    { id: '1', title: '🐮 گائے کو تیز بخار ہے اور دودھ کم ہو گیا ہے' },
+    { id: '2', title: '💉 گائے اور بھینس کے حفاظتی ٹیکوں کا شیڈول کیا ہے؟' },
+    { id: '3', title: '☀️ گرمیوں میں مویشیوں کو ہیٹ سٹریس سے کیسے بچائیں؟' },
+    { id: '4', title: '🌾 دودھ کی پیداوار بڑھانے کے لیے بہترین ونڈا اور خوراک' },
+  ],
+};
+
+const VET_SUGGESTIONS = {
+  en: [
+    { id: '1', title: '🩺 Acute Mastitis: First-line antimicrobial & anti-inflammatory' },
+    { id: '2', title: '⚖️ Oxytetracycline dosage & milk withdrawal in 450kg buffalo' },
+    { id: '3', title: '🔬 Differential diagnosis: Petechial hemorrhages & acute fever' },
+    { id: '4', title: '🐄 Post-calving hypocalcemia (Milk Fever) IV calcium infusion rates' },
+  ],
+  ur: [
+    { id: '1', title: '🩺 ایکیوٹ ساڑو: فرسٹ لائن اینٹی بائیوٹک اور اینٹی انفلامیٹری پروٹوکول' },
+    { id: '2', title: '⚖️ 450 کلو بھینس کے لیے آکسی ٹیٹراسائکلین ڈوز اور ملک وتھ ڈراول' },
+    { id: '3', title: '🔬 تیز بخار اور جسم پر خون کے دھبوں کی تفریقی تشخیص (DDx)' },
+    { id: '4', title: '🐄 سوئے کے بعد ملک فیور (Hypocalcemia) میں کیلشیم انفیوژن کی شرح' },
   ],
 };
 
@@ -70,9 +85,11 @@ export default function ChatbotScreen() {
   const flatListRef = useRef(null);
 
   const [profile, setProfile] = useState(getProfile());
+  const isVet = profile.role === 'vet' || profile.role === 'veterinarian';
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState('');
   const [loading, setLoading] = useState(false);
+  const [serviceStatus, setServiceStatus] = useState({ enabled: true });
   const [isRecording, setIsRecording] = useState(false);
   const [recordingSeconds, setRecordingSeconds] = useState(0);
   const [playingMsgId, setPlayingMsgId] = useState(null);
@@ -82,10 +99,58 @@ export default function ChatbotScreen() {
   // Pulse animation for recording
   const pulseAnim = useRef(new Animated.Value(1)).current;
 
+  // Check admin service status on mount
+  useEffect(() => {
+    const checkServiceStatus = async () => {
+      try {
+        const res = await tryFetch('/api/chat/status');
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.enabled !== undefined) {
+            setServiceStatus(data);
+          }
+        }
+      } catch (err) {
+        console.warn('Failed to fetch AI assistant status:', err);
+      }
+    };
+    checkServiceStatus();
+  }, []);
+
   // Handle in-app deep navigation to screens
   const handleNavigate = (screenTarget) => {
     if (!screenTarget) return;
     const cleanTarget = screenTarget.trim();
+
+    if (isVet) {
+      const vetScreenMap = {
+        'VetCases': 'VetCases',
+        'cases': 'VetCases',
+        'VetPrescriptions': 'VetPrescriptions',
+        'prescriptions': 'VetPrescriptions',
+        'VetHealthRecords': 'VetHealthRecords',
+        'HealthRecords': 'VetHealthRecords',
+        'healthrecords': 'VetHealthRecords',
+        'records': 'VetHealthRecords',
+        'VetConsultations': 'VetConsultations',
+        'consultations': 'VetConsultations',
+        'CommunityForum': 'CommunityForum',
+        'forum': 'CommunityForum',
+        'VetProfile': 'VetProfile',
+        'Profile': 'VetProfile',
+        'VetDashboard': 'VetDashboard',
+        'Dashboard': 'VetDashboard',
+      };
+      const vetTarget = vetScreenMap[cleanTarget];
+      if (vetTarget) {
+        try {
+          navigation.navigate(vetTarget);
+        } catch (e) {
+          console.warn('Vet navigation failed for screen:', cleanTarget, e);
+        }
+      }
+      return;
+    }
 
     const screenMap = {
       'VeterinariansList': 'VeterinariansList',
@@ -122,24 +187,56 @@ export default function ChatbotScreen() {
     }
   };
 
-  // Initialize initial greeting (Male formal, Cow & Buffalo focus)
+  // Initialize initial greeting dynamically based on user role (Farmer vs Vet)
   useEffect(() => {
     const currentProfile = getProfile();
     setProfile(currentProfile);
+    const userIsVet = currentProfile.role === 'vet' || currentProfile.role === 'veterinarian';
+    const userName = currentProfile.fullName || currentProfile.userName || '';
 
-    const greetingText = isUrdu
-      ? 'السلام علیکم! میں صحت اسسٹنٹ ہوں، مویشی صحت کا آفیشل AI معاون۔ میں آپ کی گائے یا بھینس کے متعلق کیا مدد کر سکتا ہوں؟'
-      : 'Assalam-o-Alaikum! I am Sehat Assistant, the official AI guide of Maveshi Sehat AI. How can I help with your cows or buffaloes today?';
+    let greetingText = '';
+    if (userIsVet) {
+      greetingText = isUrdu
+        ? `السلام علیکم ڈاکٹر ${userName ? userName + ' صاحب' : ''}! میں مویشی صحت کا کلینیکل اسسٹنٹ ہوں۔ آپ کس کیس، ڈوزج (mg/kg) یا ڈیفرینشل ڈائیگنوسس پر مشاورت چاہتے ہیں؟`
+        : `Assalam-o-Alaikum Dr. ${userName || 'Doctor'}! Welcome to Maveshi Sehat Clinical Assistant. Ready to support you with differential diagnoses, pharmacological dosages, or clinical case reviews.`;
+    } else {
+      greetingText = isUrdu
+        ? `السلام علیکم ${userName ? userName + ' صاحب' : ''}! میں صحت اسسٹنٹ ہوں، مویشی صحت کا آفیشل AI معاون۔ میں آپ کی گائے یا بھینس کے متعلق کیا مدد کر سکتا ہوں؟`
+        : `Assalam-o-Alaikum ${userName || ''}! I am Sehat Assistant, the official AI guide of Maveshi Sehat AI. How can I help with your cows or buffaloes today?`;
+    }
 
-    setMessages([
-      {
-        id: 'welcome-1',
-        role: 'assistant',
-        content: greetingText,
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        provider: isUrdu ? 'صحت اسسٹنٹ' : 'Sehat Assistant',
-      },
-    ]);
+    const welcomeMsg = {
+      id: 'welcome-1',
+      role: 'assistant',
+      content: greetingText,
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      provider: userIsVet
+        ? (isUrdu ? 'کلینیکل معاون' : 'Clinical Co-Pilot')
+        : (isUrdu ? 'صحت اسسٹنٹ' : 'Sehat Assistant'),
+    };
+
+    setMessages([welcomeMsg]);
+
+    // Load persisted previous chat history for this user
+    const loadChatHistory = async () => {
+      try {
+        const userId = currentProfile.userName || currentProfile.phone || 'farmer';
+        const res = await tryFetch(`/api/chat/history?userId=${encodeURIComponent(userId)}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success && Array.isArray(data.messages) && data.messages.length > 0) {
+            setMessages([welcomeMsg, ...data.messages]);
+            setTimeout(() => {
+              flatListRef.current?.scrollToEnd({ animated: false });
+            }, 250);
+          }
+        }
+      } catch (err) {
+        console.warn('Failed to load previous chat history:', err);
+      }
+    };
+
+    loadChatHistory();
 
     return () => {
       // Stop any ongoing audio on unmount
@@ -292,18 +389,39 @@ export default function ChatbotScreen() {
           message: textToSend,
           history: historyPayload,
           userId: profile.userName || 'farmer',
+          role: isVet ? 'vet' : 'farmer',
+          userName: profile.fullName || profile.userName || '',
+          isUrdu,
           enableTts: true,
         }),
       });
 
       const data = await response.json();
 
-      if (response.ok && data.success) {
+      if (response.status === 503 || data.isServicePaused) {
+        setServiceStatus({
+          enabled: false,
+          messageUrdu: data.messageUrdu || 'ایڈمن نے AI اسسٹنٹ سروس کو عارضی طور پر مینٹیننس کے لیے معطل کیا ہے۔',
+          messageEn: data.messageEn || 'AI Assistant service is temporarily paused for maintenance by the administrator.',
+        });
+        const pausedMsg = {
+          id: (Date.now() + 1).toString(),
+          role: 'assistant',
+          content: isUrdu
+            ? (data.messageUrdu || '⚠️ AI سروس عارضی طور پر بند ہے۔ ایڈمن جلد بحال کرے گا۔')
+            : (data.messageEn || '⚠️ AI service is temporarily paused by admin for scheduled maintenance.'),
+          provider: isVet ? (isUrdu ? 'کلینیکل معاون' : 'Clinical Co-Pilot') : (isUrdu ? 'صحت اسسٹنٹ' : 'Sehat Assistant'),
+          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        };
+        setMessages((prev) => [...prev, pausedMsg]);
+      } else if (response.ok && data.success) {
         const assistantMsg = {
           id: (Date.now() + 1).toString(),
           role: 'assistant',
           content: data.reply,
-          provider: isUrdu ? 'صحت اسسٹنٹ' : 'Sehat Assistant',
+          provider: isVet
+            ? (isUrdu ? 'کلینیکل معاون' : 'Clinical Co-Pilot')
+            : (isUrdu ? 'صحت اسسٹنٹ' : 'Sehat Assistant'),
           audioUrl: data.audioUrl,
           time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         };
@@ -400,6 +518,9 @@ export default function ChatbotScreen() {
             name: `voice_${Date.now()}.m4a`,
           });
           formData.append('userId', profile.userName || 'farmer');
+          formData.append('role', isVet ? 'vet' : 'farmer');
+          formData.append('userName', profile.fullName || profile.userName || '');
+          formData.append('isUrdu', isUrdu ? 'true' : 'false');
           formData.append('history', JSON.stringify(
             messages
               .filter((m) => m.id !== 'welcome-1' && m.id !== 'welcome-reset')
@@ -415,7 +536,24 @@ export default function ChatbotScreen() {
           });
 
           const data = await response.json();
-          if (response.ok && data.success) {
+
+          if (response.status === 503 || data.isServicePaused) {
+            setServiceStatus({
+              enabled: false,
+              messageUrdu: data.messageUrdu || 'ایڈمن نے AI اسسٹنٹ سروس کو عارضی طور پر معطل کیا ہے۔',
+              messageEn: data.messageEn || 'AI Assistant service is temporarily paused for maintenance.',
+            });
+            const pausedMsg = {
+              id: (Date.now() + 1).toString(),
+              role: 'assistant',
+              content: isUrdu
+                ? (data.messageUrdu || '⚠️ AI سروس عارضی طور پر بند ہے۔')
+                : (data.messageEn || '⚠️ AI service is paused for maintenance.'),
+              provider: isVet ? (isUrdu ? 'کلینیکل معاون' : 'Clinical Co-Pilot') : (isUrdu ? 'صحت اسسٹنٹ' : 'Sehat Assistant'),
+              time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            };
+            setMessages((prev) => [...prev, pausedMsg]);
+          } else if (response.ok && data.success) {
             const userMsg = {
               id: Date.now().toString(),
               role: 'user',
@@ -426,7 +564,7 @@ export default function ChatbotScreen() {
               id: (Date.now() + 1).toString(),
               role: 'assistant',
               content: data.reply,
-              provider: isUrdu ? 'صحت اسسٹنٹ' : 'Sehat Assistant',
+              provider: isVet ? (isUrdu ? 'کلینیکل معاون' : 'Clinical Co-Pilot') : (isUrdu ? 'صحت اسسٹنٹ' : 'Sehat Assistant'),
               audioUrl: data.audioUrl,
               time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
             };
@@ -472,7 +610,7 @@ export default function ChatbotScreen() {
         {
           text: t('Close'),
           style: 'destructive',
-          onPress: () => {
+          onPress: async () => {
             const initialGreeting = isUrdu
               ? 'السلام علیکم! میں صحت اسسٹنٹ ہوں۔ آپ کی گائے یا بھینس کے متعلق کیا مدد کروں؟'
               : 'Assalam-o-Alaikum! I am Sehat Assistant. How can I help with your cows or buffaloes today?';
@@ -482,9 +620,20 @@ export default function ChatbotScreen() {
                 role: 'assistant',
                 content: initialGreeting,
                 time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                provider: 'Sehat Assistant',
+                provider: isVet
+                  ? (isUrdu ? 'کلینیکل معاون' : 'Clinical Co-Pilot')
+                  : (isUrdu ? 'صحت اسسٹنٹ' : 'Sehat Assistant'),
               },
             ]);
+
+            try {
+              const userId = profile.userName || profile.phone || 'farmer';
+              await tryFetch(`/api/chat/history?userId=${encodeURIComponent(userId)}`, {
+                method: 'DELETE',
+              });
+            } catch (clearErr) {
+              console.warn('Failed to delete history on server:', clearErr);
+            }
           },
         },
       ]
@@ -732,11 +881,13 @@ export default function ChatbotScreen() {
     );
   };
 
-  const activeSuggestions = isUrdu ? SUGGESTIONS.ur : SUGGESTIONS.en;
+  const activeSuggestions = isVet
+    ? (isUrdu ? VET_SUGGESTIONS.ur : VET_SUGGESTIONS.en)
+    : (isUrdu ? FARMER_SUGGESTIONS.ur : FARMER_SUGGESTIONS.en);
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor={isDark ? colors.headerBackground : colors.primary} />
+      <StatusBar barStyle="light-content" backgroundColor={isDark ? '#1E293B' : '#065F46'} />
 
       {/* Header */}
       <View style={styles.header}>
@@ -751,17 +902,27 @@ export default function ChatbotScreen() {
 
           <View style={styles.avatarContainer}>
             <View style={styles.avatar}>
-              <MaterialCommunityIcons name="stethoscope" size={24} color={colors.primary} />
+              <MaterialCommunityIcons
+                name={isVet ? "doctor" : "stethoscope"}
+                size={24}
+                color="#059669"
+              />
             </View>
-            <View style={styles.onlineBadge} />
+            <View style={[styles.onlineBadge, !serviceStatus.enabled && { backgroundColor: '#EF4444' }]} />
           </View>
 
           <View style={styles.headerInfo}>
             <Text style={[styles.headerTitle, isUrdu && { fontFamily: fonts.urduBold }]}>
-              {t('Sehat Assistant')}
+              {isVet
+                ? (isUrdu ? 'کلینیکل AI معاون' : 'Clinical Co-Pilot')
+                : (isUrdu ? 'صحت اسسٹنٹ' : 'Sehat Assistant')}
             </Text>
             <Text style={styles.headerSub}>
-              {isUrdu ? 'مویشی ہیلتھ AI • آن لائن' : 'Livestock Health AI • Online'}
+              {!serviceStatus.enabled
+                ? (isUrdu ? 'سروس عارضی طور پر بند' : 'Maintenance Mode')
+                : isVet
+                ? (isUrdu ? 'کلینیکل ڈیسیژن سپورٹ • آن لائن' : 'Clinical Decision Support • Online')
+                : (isUrdu ? 'مویشی ہیلتھ AI • آن لائن' : 'Livestock Health AI • Online')}
             </Text>
           </View>
         </View>
@@ -776,6 +937,37 @@ export default function ChatbotScreen() {
           </TouchableOpacity>
         </View>
       </View>
+
+      {/* Admin Service Paused Notice */}
+      {!serviceStatus.enabled && (
+        <View style={{
+          marginHorizontal: 16,
+          marginTop: 10,
+          padding: 12,
+          backgroundColor: '#FEF2F2',
+          borderRadius: 12,
+          borderWidth: 1,
+          borderColor: '#FCA5A5',
+          flexDirection: 'row',
+          alignItems: 'center',
+          shadowColor: '#000',
+          shadowOpacity: 0.05,
+          shadowRadius: 3,
+          elevation: 2,
+        }}>
+          <Feather name="alert-octagon" size={24} color="#DC2626" style={{ marginRight: 10 }} />
+          <View style={{ flex: 1 }}>
+            <Text style={{ fontWeight: '700', color: '#991B1B', fontSize: 13, fontFamily: isUrdu ? fonts.urduBold : undefined }}>
+              {isUrdu ? 'سروس عارضی طور پر بند ہے' : 'Service Temporarily Paused'}
+            </Text>
+            <Text style={{ color: '#B91C1C', fontSize: 11, marginTop: 2, fontFamily: isUrdu ? fonts.urduRegular : undefined }}>
+              {isUrdu
+                ? (serviceStatus.messageUrdu || 'ایڈمن نے AI اسسٹنٹ سروس کو عارضی طور پر مینٹیننس کے لیے معطل کیا ہے۔')
+                : (serviceStatus.messageEn || 'AI Assistant service has been temporarily paused for maintenance by administrator.')}
+            </Text>
+          </View>
+        </View>
+      )}
 
       <KeyboardAvoidingView
         style={styles.chatContainer}
@@ -795,14 +987,18 @@ export default function ChatbotScreen() {
               <View style={styles.disclaimerBanner}>
                 <Feather name="alert-triangle" size={16} color="#D97706" />
                 <Text style={[styles.disclaimerText, isUrdu && { fontFamily: fonts.urduRegular }]}>
-                  {isUrdu
-                    ? 'یہ AI رہنمائی کے لیے ہے۔ ایمرجنسی میں قریبی سول ویٹرنری ہسپتال یا مستند ڈاکٹر سے رجوع کریں۔'
-                    : 'AI provides livestock advice. In emergencies, consult a qualified veterinarian or Civil Veterinary Hospital.'}
+                  {isVet
+                    ? (isUrdu
+                      ? 'یہ نظام کلینیکل ریفرنس اور سیکنڈ اوپینین کے لیے ہے۔ حتمی فیصلہ آپ کے کلینیکل معائنے پر مبنی ہے۔'
+                      : 'Clinical decision support for qualified veterinarians. Exercise professional judgment on all cases.')
+                    : (isUrdu
+                      ? 'یہ AI رہنمائی کے لیے ہے۔ ایمرجنسی میں قریبی سول ویٹرنری ہسپتال یا مستند ڈاکٹر سے رجوع کریں۔'
+                      : 'AI provides livestock advice. In emergencies, consult a qualified veterinarian or Civil Veterinary Hospital.')}
                 </Text>
               </View>
 
               {/* Quick suggestions */}
-              {messages.length <= 1 && (
+              {messages.length <= 1 && serviceStatus.enabled && (
                 <View style={styles.suggestionsContainer}>
                   <Text style={styles.suggestionsTitle}>
                     {isUrdu ? 'تجویز کردہ سوالات' : 'Suggested Questions'}
@@ -833,14 +1029,14 @@ export default function ChatbotScreen() {
             loading ? (
               <View style={styles.typingIndicatorRow}>
                 <View style={styles.assistantMiniAvatar}>
-                  <MaterialCommunityIcons name="cow" size={16} color="#4CB85C" />
+                  <MaterialCommunityIcons name={isVet ? "doctor" : "cow"} size={16} color="#4CB85C" />
                 </View>
                 <View style={styles.typingBubble}>
                   <View style={styles.typingDot} />
                   <View style={[styles.typingDot, { opacity: 0.7 }]} />
                   <View style={[styles.typingDot, { opacity: 0.4 }]} />
                   <Text style={[styles.typingText, isUrdu && { fontFamily: fonts.urduRegular }]}>
-                    {isUrdu ? 'صحت اسسٹنٹ سوچ رہا ہے...' : 'Sehat Assistant is typing...'}
+                    {isUrdu ? 'معاون جواب تیار کر رہا ہے...' : 'Assistant is preparing response...'}
                   </Text>
                 </View>
               </View>
@@ -849,7 +1045,7 @@ export default function ChatbotScreen() {
         />
 
         {/* Input Bar */}
-        <View style={styles.inputBarContainer}>
+        <View style={[styles.inputBarContainer, !serviceStatus.enabled && { opacity: 0.7 }]}>
           {isRecording && (
             <View style={styles.recordingOverlay}>
               <View style={styles.recordingIndicator}>
@@ -872,13 +1068,21 @@ export default function ChatbotScreen() {
               style={[
                 styles.textInput,
                 isUrdu && { fontFamily: fonts.urduRegular, textAlign: 'right' },
+                !serviceStatus.enabled && { backgroundColor: '#F1F5F9' },
               ]}
-              placeholder={isUrdu ? 'صحت اسسٹنٹ سے سوال پوچھیں...' : 'Ask Sehat Assistant a question...'}
+              placeholder={
+                !serviceStatus.enabled
+                  ? (isUrdu ? 'ایڈمن نے سروس عارضی طور پر بند کی ہے...' : 'Service temporarily paused by admin...')
+                  : isVet
+                  ? (isUrdu ? 'کیس کی تفصیل یا سوال پوچھیں...' : 'Ask clinical reference, dosage, diagnosis...')
+                  : (isUrdu ? 'صحت اسسٹنٹ سے سوال پوچھیں...' : 'Ask Sehat Assistant a question...')
+              }
               placeholderTextColor={colors.inputPlaceholder}
               value={inputText}
               onChangeText={setInputText}
               multiline
               maxLength={500}
+              editable={serviceStatus.enabled && !loading}
             />
 
             <TouchableOpacity
@@ -886,9 +1090,11 @@ export default function ChatbotScreen() {
                 styles.iconBtn,
                 styles.micBtn,
                 isRecording && styles.micBtnRecording,
+                !serviceStatus.enabled && { opacity: 0.4 },
               ]}
               onPress={handleVoiceToggle}
               activeOpacity={0.8}
+              disabled={!serviceStatus.enabled || loading}
             >
               <Feather
                 name={isRecording ? 'square' : 'mic'}
@@ -901,10 +1107,10 @@ export default function ChatbotScreen() {
               style={[
                 styles.iconBtn,
                 styles.sendBtn,
-                (!inputText.trim() || loading) && styles.sendBtnDisabled,
+                (!inputText.trim() || loading || !serviceStatus.enabled) && styles.sendBtnDisabled,
               ]}
               onPress={() => handleSend()}
-              disabled={!inputText.trim() || loading}
+              disabled={!inputText.trim() || loading || !serviceStatus.enabled}
               activeOpacity={0.8}
             >
               {loading ? (

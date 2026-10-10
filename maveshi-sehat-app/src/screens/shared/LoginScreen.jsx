@@ -70,12 +70,27 @@ export default function LoginScreen() {
         throw new Error(data.error || 'Login failed');
       }
 
-      updateProfile({
-        userName: data.user.full_name,
-        phone: data.user.phone,
+      const profileData = {
+        userId: data.user.id,
+        userName: data.user.full_name || data.user.fullName,
+        fullName: data.user.full_name || data.user.fullName,
+        email: data.user.email,
+        phone: data.user.phoneNumber || data.user.phone,
         location: data.user.district,
         role: mappedRole
-      });
+      };
+
+      // Store vet-specific fields
+      if (mappedRole === 'vet') {
+        profileData.specialization = data.user.specialization || '';
+        profileData.experienceYears = data.user.experienceYears || '';
+        profileData.pvmcNumber = data.user.pvmcNumber || '';
+        profileData.license = data.user.pvmcNumber || '';
+        profileData.licenseDocumentUrl = data.user.licenseDocumentUrl || '';
+        profileData.vetStatus = data.user.status || 'verified';
+      }
+
+      updateProfile(profileData);
 
       if (mappedRole === 'farmer') {
         navigation.reset({

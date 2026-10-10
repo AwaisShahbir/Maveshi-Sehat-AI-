@@ -27,8 +27,9 @@ const GEMINI_MODELS = [
  * @returns {Promise<string>} AI text reply
  */
 const chatWithGemini = async (userMessage, history = [], extraContext = '') => {
-  const genAI = getGeminiClient();
-  const effectiveSystemPrompt = extraContext ? `${SYSTEM_PROMPT}\n\n${extraContext}` : SYSTEM_PROMPT;
+  const effectiveSystemPrompt = extraContext
+    ? (extraContext.includes('You are "Sehat Assistant"') ? extraContext : `${SYSTEM_PROMPT}\n\n${extraContext}`)
+    : SYSTEM_PROMPT;
 
   // Sanitize history: Gemini strictly requires history to start with role 'user'
   const sanitizedHistory = [];
@@ -58,6 +59,7 @@ const chatWithGemini = async (userMessage, history = [], extraContext = '') => {
     }
   }
 
+  const genAI = getGeminiClient();
   let lastError = null;
 
   for (const modelName of GEMINI_MODELS) {

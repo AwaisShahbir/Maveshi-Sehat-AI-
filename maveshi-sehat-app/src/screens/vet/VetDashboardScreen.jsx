@@ -230,8 +230,8 @@ export default function VetDashboardScreen() {
               <MaterialCommunityIcons name="stethoscope" size={24} color="#FFF" />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={styles.aiBannerTitle}>{t('Ask Sehat Assistant')}</Text>
-              <Text style={styles.aiBannerSub}>{t('Instant AI guidance for your animals')}</Text>
+              <Text style={styles.aiBannerTitle}>{t('Clinical AI Assistant')}</Text>
+              <Text style={styles.aiBannerSub}>{t('Clinical decision support & case references')}</Text>
             </View>
           </View>
           <Feather name="chevron-right" size={20} color={colors.primary} />

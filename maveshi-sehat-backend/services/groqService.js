@@ -16,8 +16,9 @@ const getGroqClient = () => {
  * @returns {Promise<string>} AI text reply
  */
 const chatWithGroq = async (userMessage, history = [], extraContext = '') => {
-  const groq = getGroqClient();
-  const effectiveSystemPrompt = extraContext ? `${SYSTEM_PROMPT}\n\n${extraContext}` : SYSTEM_PROMPT;
+  const effectiveSystemPrompt = extraContext
+    ? (extraContext.includes('You are "Sehat Assistant"') ? extraContext : `${SYSTEM_PROMPT}\n\n${extraContext}`)
+    : SYSTEM_PROMPT;
 
   const formattedHistory = history.map(item => ({
     role: item.role === 'model' ? 'assistant' : item.role,
@@ -32,6 +33,7 @@ const chatWithGroq = async (userMessage, history = [], extraContext = '') => {
     { role: 'user', content: userMessage }
   ];
 
+  const groq = getGroqClient();
   const chatCompletion = await groq.chat.completions.create({
     messages,
     model: 'llama-3.3-70b-versatile',

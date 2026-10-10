@@ -387,7 +387,14 @@ app.post('/login', async (req, res) => {
         full_name: user.full_name,
         email: user.email,
         phoneNumber: user.phone_number,
-        role: user.role
+        phone: user.phone_number,
+        district: user.district,
+        role: user.role,
+        specialization: user.specialization || null,
+        experienceYears: user.experience_years || null,
+        pvmcNumber: user.pvmc_number || null,
+        licenseDocumentUrl: user.license_document_url || null,
+        status: user.status
       }
     });
 
@@ -1046,9 +1053,16 @@ app.get('/api/admin/settings', async (req, res) => {
       enforceAdminLanguage: true
     };
 
+    const defaultAiAssistant = {
+      enabled: true,
+      messageEn: 'Sehat Assistant is temporarily paused for scheduled maintenance by administration. Please consult our registered veterinarians directly.',
+      messageUr: 'انتظامیہ کی جانب سے صحت اسسٹنٹ سروس عارضی طور پر روک دی گئی ہے۔ برائے مہربانی رجسٹرڈ ویٹرنری ڈاکٹرز سے براہ راست رابطہ کریں۔'
+    };
+
     res.status(200).json({
       notifications: settingsMap.notifications || defaultNotifications,
-      system: settingsMap.system || defaultSystem
+      system: settingsMap.system || defaultSystem,
+      aiAssistant: settingsMap.ai_assistant || defaultAiAssistant
     });
   } catch (err) {
     console.error('Error fetching admin settings:', err.message);
@@ -1949,6 +1963,123 @@ app.get('/api/vets', async (req, res) => {
 });
 
 
+// --- VET PROFILE --- //
+
+app.get('/api/vet/profile', async (req, res) => {
+  try {
+    const { vetId } = req.query;
+    if (!vetId) {
+      return res.status(400).json({ error: 'vetId parameter is required' });
+    }
+    const result = await pool.query(
+      `SELECT id, full_name, email, phone_number, district, role, status,
+              specialization, experience_years, pvmc_number, license_document_url,
+              availability_schedule, consultation_mode
+       FROM users WHERE id = $1 AND role = 'vet'`,
+      [parseInt(vetId)]
+    );
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Vet profile not found.' });
+    }
+
+    const vet = result.rows[0];
+
+    // Fetch dynamic stats
+    const casesRes = await pool.query(
+      `SELECT COUNT(*) FROM consultations WHERE vet_id = $1`,
+      [parseInt(vetId)]
+    );
+    const casesCount = parseInt(casesRes.rows[0].count) || 0;
+
+    const prescriptionsRes = await pool.query(
+      `SELECT COUNT(*) FROM messages m
+       JOIN conversations c ON m.conversation_id = c.id
+       WHERE c.vet_id = $1 AND m.is_prescription = true`,
+      [parseInt(vetId)]
+    );
+    const prescriptionsCount = parseInt(prescriptionsRes.rows[0].count) || 0;
+
+    res.status(200).json({
+      id: vet.id,
+      fullName: vet.full_name,
+      email: vet.email,
+      phoneNumber: vet.phone_number,
+      district: vet.district,
+      specialization: vet.specialization || '',
+      experienceYears: vet.experience_years || 0,
+      pvmcNumber: vet.pvmc_number || '',
+      licenseDocumentUrl: vet.license_document_url || '',
+      availabilitySchedule: vet.availability_schedule || '',
+      consultationMode: vet.consultation_mode || 'Chat + Video',
+      status: vet.status,
+      stats: {
+        cases: casesCount,
+        prescriptions: prescriptionsCount
+      }
+    });
+  } catch (err) {
+    console.error('Error fetching vet profile:', err.message);
+    res.status(500).json({ error: 'Failed to fetch vet profile.' });
+  }
+});
+
+app.put('/api/vet/profile', async (req, res) => {
+  try {
+    const { vetId, fullName, email, phoneNumber, district, specialization,
+            experienceYears, pvmcNumber, availabilitySchedule, consultationMode } = req.body;
+    if (!vetId) {
+      return res.status(400).json({ error: 'vetId is required' });
+    }
+
+    const result = await pool.query(
+      `UPDATE users SET
+        full_name = COALESCE($1, full_name),
+        email = COALESCE($2, email),
+        phone_number = COALESCE($3, phone_number),
+        district = COALESCE($4, district),
+        specialization = COALESCE($5, specialization),
+        experience_years = COALESCE($6, experience_years),
+        pvmc_number = COALESCE($7, pvmc_number),
+        availability_schedule = $8,
+        consultation_mode = $9
+      WHERE id = $10 AND role = 'vet'
+      RETURNING id, full_name, email, phone_number, district, specialization,
+                experience_years, pvmc_number, availability_schedule, consultation_mode, status`,
+      [
+        fullName || null, email || null, phoneNumber || null, district || null,
+        specialization || null, experienceYears ? parseInt(experienceYears) : null,
+        pvmcNumber || null, availabilitySchedule || null,
+        consultationMode || 'Chat + Video', parseInt(vetId)
+      ]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Vet not found.' });
+    }
+
+    const vet = result.rows[0];
+    res.status(200).json({
+      message: 'Profile updated successfully!',
+      profile: {
+        id: vet.id,
+        fullName: vet.full_name,
+        email: vet.email,
+        phoneNumber: vet.phone_number,
+        district: vet.district,
+        specialization: vet.specialization || '',
+        experienceYears: vet.experience_years || 0,
+        pvmcNumber: vet.pvmc_number || '',
+        availabilitySchedule: vet.availability_schedule || '',
+        consultationMode: vet.consultation_mode || 'Chat + Video',
+        status: vet.status
+      }
+    });
+  } catch (err) {
+    console.error('Error updating vet profile:', err.message);
+    res.status(500).json({ error: 'Failed to update vet profile.' });
+  }
+});
+
 app.post('/api/chat/conversation', async (req, res) => {
   try {
     const { farmerId, farmerName, vetId } = req.body;
@@ -2376,6 +2507,76 @@ app.get('/api/vet/prescriptions', async (req, res) => {
     res.status(200).json(result.rows);
   } catch (err) {
     res.status(500).json({ error: 'Server error fetching prescriptions' });
+  }
+});
+
+app.post('/api/vet/prescriptions', async (req, res) => {
+  try {
+    const { vetId, vetName, farmerName, animal, diagnosis, diagnosisUrdu, medicines, notes } = req.body;
+    if (!farmerName || !diagnosis) {
+      return res.status(400).json({ error: 'Farmer name and diagnosis are required' });
+    }
+
+    // Resolve vet ID
+    let resolvedVetId = vetId;
+    if (!resolvedVetId && vetName) {
+      const vetRes = await pool.query("SELECT id FROM users WHERE full_name ILIKE $1 AND role = 'vet'", [vetName]);
+      if (vetRes.rows.length === 0) return res.status(404).json({ error: 'Vet not found' });
+      resolvedVetId = vetRes.rows[0].id;
+    }
+    if (!resolvedVetId) return res.status(400).json({ error: 'vetId or vetName is required' });
+
+    // Resolve farmer ID
+    const farmerRes = await pool.query("SELECT id FROM users WHERE full_name ILIKE $1 AND role = 'farmer'", [farmerName.trim()]);
+    if (farmerRes.rows.length === 0) {
+      return res.status(404).json({ error: 'Farmer not found. Make sure the owner name matches a registered farmer.' });
+    }
+    const farmerId = farmerRes.rows[0].id;
+
+    // Find or create conversation
+    let convRes = await pool.query(
+      'SELECT * FROM conversations WHERE farmer_id = $1 AND vet_id = $2',
+      [farmerId, resolvedVetId]
+    );
+    if (convRes.rows.length === 0) {
+      convRes = await pool.query(
+        "INSERT INTO conversations (farmer_id, vet_id, status) VALUES ($1, $2, 'active') RETURNING *",
+        [farmerId, resolvedVetId]
+      );
+    }
+    const conversationId = convRes.rows[0].id;
+
+    // Build prescription data
+    const prescriptionData = {
+      diagnosis: diagnosis,
+      diagnosisUrdu: diagnosisUrdu || '',
+      animal: animal || '',
+      medicines: (medicines || []).map(m => ({
+        name: m.name,
+        dosage: m.dose || m.dosage || '',
+        frequency: m.frequency || '',
+        duration: m.days ? `${m.days} days` : (m.duration || '')
+      })),
+      notes: notes || '',
+      createdAt: new Date().toISOString()
+    };
+
+    // Insert as a prescription message
+    const result = await pool.query(
+      `INSERT INTO messages (conversation_id, sender_id, message, is_prescription, prescription_data)
+       VALUES ($1, $2, $3, true, $4) RETURNING *`,
+      [
+        conversationId,
+        resolvedVetId,
+        `Prescription: ${diagnosis}`,
+        JSON.stringify(prescriptionData)
+      ]
+    );
+
+    res.status(201).json({ success: true, prescription: result.rows[0] });
+  } catch (err) {
+    console.error('Error creating prescription:', err);
+    res.status(500).json({ error: 'Failed to create prescription' });
   }
 });
 

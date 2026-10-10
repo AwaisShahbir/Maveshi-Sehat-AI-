@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, SafeAreaView, TouchableOpacity, ScrollView, StatusBar, TextInput, Platform, ActivityIndicator } from 'react-native';
+import React, { useState, useEffect, useMemo } from 'react';
+import { View, Text, SafeAreaView, TouchableOpacity, ScrollView, StatusBar, TextInput, Platform, ActivityIndicator, Alert } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { getProfile, subscribeProfile } from '../../utils/profileStore';
 import { t } from '../../utils/translate';
@@ -15,7 +15,7 @@ export default function VetPrescriptionsScreen() {
   const route = useRoute();
   const params = route.params || {};
 
-  const [activeTab, setActiveTab] = useState('History'); 
+  const [activeTab, setActiveTab] = useState('History');
   const [searchQuery, setSearchQuery] = useState('');
 
   const [, forceUpdate] = useState(0);
@@ -23,31 +23,33 @@ export default function VetPrescriptionsScreen() {
     const unsubscribe = subscribeProfile(() => forceUpdate(n => n + 1));
     return () => unsubscribe();
   }, []);
-  
-  
+
+
   const [prescriptions, setPrescriptions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [sending, setSending] = useState(false);
   const baseUrl = Platform.OS === 'android' ? 'http://10.0.2.2:5000' : 'http://localhost:5000';
 
-  useEffect(() => {
-    const fetchPrescriptions = async () => {
-      try {
-        const profile = getProfile();
-        const response = await fetch(`${baseUrl}/api/vet/prescriptions?vetName=${encodeURIComponent(profile?.fullName || '')}`);
-        const data = await response.json();
-        if (response.ok) {
-          setPrescriptions(data);
-        }
-      } catch (err) {
-        console.error('Error fetching prescriptions:', err);
-      } finally {
-        setLoading(false);
+  const fetchPrescriptions = async () => {
+    try {
+      const profile = getProfile();
+      const response = await fetch(`${baseUrl}/api/vet/prescriptions?vetName=${encodeURIComponent(profile?.fullName || '')}`);
+      const data = await response.json();
+      if (response.ok) {
+        setPrescriptions(data);
       }
-    };
+    } catch (err) {
+      console.error('Error fetching prescriptions:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchPrescriptions();
   }, []);
 
-  
+
   const [patientInfo, setPatientInfo] = useState({ ownerName: '', animal: '' });
   const [diagnosisEng, setDiagnosisEng] = useState('');
   const [diagnosisUrdu, setDiagnosisUrdu] = useState('');
@@ -64,67 +66,131 @@ export default function VetPrescriptionsScreen() {
     setMedicines(updated);
   };
 
-  const handleSendPrescription = () => {
-    if (!patientInfo.ownerName || !diagnosisEng) {
-      alert('Please fill out patient info and diagnosis.');
+  const handleRemoveMedicine = (index) => {
+    if (medicines.length <= 1) return;
+    const updated = medicines.filter((_, i) => i !== index);
+    setMedicines(updated);
+  };
+
+  const handleSendPrescription = async () => {
+    if (!patientInfo.ownerName.trim() || !diagnosisEng.trim()) {
+      Alert.alert(t('Missing Info') || 'Missing Info', t('Please fill out owner name and diagnosis.') || 'Please fill out owner name and diagnosis.');
       return;
     }
-    alert('Prescription Sent Successfully!');
-    setActiveTab('History');
-    
-    setPatientInfo({ ownerName: '', animal: '' });
-    setDiagnosisEng('');
-    setDiagnosisUrdu('');
-    setMedicines([{ name: '', dose: '', frequency: '', days: '' }]);
-    setNotes('');
+
+    const validMedicines = medicines.filter(m => m.name.trim() !== '');
+    if (validMedicines.length === 0) {
+      Alert.alert(t('Missing Info') || 'Missing Info', t('Please add at least one medicine.') || 'Please add at least one medicine.');
+      return;
+    }
+
+    setSending(true);
+    try {
+      const profile = getProfile();
+      const response = await fetch(`${baseUrl}/api/vet/prescriptions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          vetId: profile?.userId || params.userId,
+          vetName: profile?.fullName || params.userName,
+          farmerName: patientInfo.ownerName.trim(),
+          animal: patientInfo.animal.trim(),
+          diagnosis: diagnosisEng.trim(),
+          diagnosisUrdu: diagnosisUrdu.trim(),
+          medicines: validMedicines,
+          notes: notes.trim()
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        Alert.alert(t('Error') || 'Error', data.error || 'Failed to send prescription.');
+        return;
+      }
+
+      Alert.alert(
+        t('Success') || 'Success',
+        t('Prescription sent successfully!') || 'Prescription sent successfully!',
+        [{ text: t('OK') || 'OK' }]
+      );
+
+      // Reset form
+      setPatientInfo({ ownerName: '', animal: '' });
+      setDiagnosisEng('');
+      setDiagnosisUrdu('');
+      setMedicines([{ name: '', dose: '', frequency: '', days: '' }]);
+      setNotes('');
+      setActiveTab('History');
+
+      // Refresh prescriptions list
+      setLoading(true);
+      fetchPrescriptions();
+    } catch (err) {
+      console.error('Error sending prescription:', err);
+      Alert.alert(t('Error') || 'Error', t('Network error. Please try again.') || 'Network error. Please try again.');
+    } finally {
+      setSending(false);
+    }
   };
+
+  const filteredPrescriptions = useMemo(() => {
+    if (!searchQuery.trim()) return prescriptions;
+    const q = searchQuery.toLowerCase();
+    return prescriptions.filter(p => {
+      const owner = (p.farmer_name || '').toLowerCase();
+      const diag = (p.prescription_data?.diagnosis || '').toLowerCase();
+      const id = (p.id || '').toString().toLowerCase();
+      return owner.includes(q) || diag.includes(q) || id.includes(q);
+    });
+  }, [prescriptions, searchQuery]);
 
   const renderHistory = () => (
     <View style={[styles.historyContainer, { backgroundColor: colors.background }]}>
-      <View style={[styles.searchContainer, { flexDirection: 'row', alignItems: 'center' }]}>
-        <Feather name="search" size={18} color={colors.textSecondary} style={{ marginRight: 8 }} />
-        <TextInput
-          style={[styles.searchInput, { flex: 1 }]}
-          placeholder="Search by owner, diagnosis, ID..."
-          placeholderTextColor={colors.inputPlaceholder}
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-        />
-        {searchQuery !== '' && (
-          <TouchableOpacity onPress={() => setSearchQuery('')}>
-            <Feather name="x" size={18} color={colors.textSecondary} />
-          </TouchableOpacity>
-        )}
-      </View>
-
-      <View style={styles.statsRow}>
-        <View style={styles.statBox}>
-          <Text style={[styles.statValue, { color: '#58D66D' }]}>0</Text>
-          <Text style={styles.statLabel}>Total</Text>
-        </View>
-        <View style={styles.statBox}>
-          <Text style={[styles.statValue, { color: '#F5B041' }]}>0</Text>
-          <Text style={styles.statLabel}>Sent</Text>
-        </View>
-        <View style={styles.statBox}>
-          <Text style={[styles.statValue, { color: '#3B82F6' }]}>0</Text>
-          <Text style={styles.statLabel}>Completed</Text>
-        </View>
-      </View>
-
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.listContent}>
-        {loading ? (
-          <ActivityIndicator size="large" color="#58D66D" style={{ marginTop: 40 }} />
-        ) : prescriptions.length > 0 ? (
-          prescriptions.map((item, index) => renderPrescriptionCard(item, index))
-        ) : (
-          <View style={styles.emptyContainer}>
-            <MaterialCommunityIcons name="file-document-outline" size={60} color="#CCC" />
-            <Text style={styles.emptyText}>No prescriptions found.</Text>
-          </View>
-        )}
-      </ScrollView>
+    <View style={[styles.searchContainer, { flexDirection: 'row', alignItems: 'center' }]}>
+      <Feather name="search" size={18} color={colors.textSecondary} style={{ marginRight: 8 }} />
+      <TextInput
+        style={[styles.searchInput, { flex: 1 }]}
+        placeholder="Search by owner, diagnosis, ID..."
+        placeholderTextColor={colors.inputPlaceholder}
+        value={searchQuery}
+        onChangeText={setSearchQuery}
+      />
+      {searchQuery !== '' && (
+        <TouchableOpacity onPress={() => setSearchQuery('')}>
+          <Feather name="x" size={18} color={colors.textSecondary} />
+        </TouchableOpacity>
+      )}
     </View>
+
+    <View style={styles.statsRow}>
+      <View style={styles.statBox}>
+        <Text style={[styles.statValue, { color: '#58D66D' }]}>{loading ? '-' : prescriptions.length}</Text>
+        <Text style={styles.statLabel}>{t('Total')}</Text>
+      </View>
+      <View style={styles.statBox}>
+        <Text style={[styles.statValue, { color: '#F5B041' }]}>{loading ? '-' : prescriptions.length}</Text>
+        <Text style={styles.statLabel}>{t('Sent')}</Text>
+      </View>
+      <View style={styles.statBox}>
+        <Text style={[styles.statValue, { color: '#3B82F6' }]}>{loading ? '-' : prescriptions.length}</Text>
+        <Text style={styles.statLabel}>{t('Completed')}</Text>
+      </View>
+    </View>
+
+    <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.listContent}>
+      {loading ? (
+        <ActivityIndicator size="large" color="#58D66D" style={{ marginTop: 40 }} />
+      ) : filteredPrescriptions.length > 0 ? (
+        filteredPrescriptions.map((item, index) => renderPrescriptionCard(item, index))
+      ) : (
+        <View style={styles.emptyContainer}>
+          <MaterialCommunityIcons name="file-document-outline" size={60} color="#CCC" />
+          <Text style={styles.emptyText}>No prescriptions found.</Text>
+        </View>
+      )}
+    </ScrollView>
+  </View>
   );
 
   const renderPrescriptionCard = (item, index) => {
@@ -153,8 +219,8 @@ export default function VetPrescriptionsScreen() {
   };
 
   const renderWriteNew = () => (
-    <ScrollView 
-      showsVerticalScrollIndicator={false} 
+    <ScrollView
+      showsVerticalScrollIndicator={false}
       style={{ flex: 1, backgroundColor: colors.background }}
       contentContainerStyle={styles.writeNewContainer}
     >
@@ -163,7 +229,7 @@ export default function VetPrescriptionsScreen() {
           <Feather name="user" size={16} color="#888" />
           <Text style={styles.sectionTitleText}>{t('PATIENT INFO')}</Text>
         </View>
-        
+
         <Text style={styles.inputLabel}>{t('Owner Name')}</Text>
         <TextInput
           style={styles.inputField}
@@ -186,7 +252,7 @@ export default function VetPrescriptionsScreen() {
           <Feather name="file-text" size={16} color="#888" />
           <Text style={styles.sectionTitleText}>{t('DIAGNOSIS')}</Text>
         </View>
-        
+
         <Text style={styles.inputLabel}>Diagnosis (English)</Text>
         <TextInput
           style={styles.inputField}
@@ -215,7 +281,7 @@ export default function VetPrescriptionsScreen() {
             <Text style={styles.addMedicineBtn}>+ Add</Text>
           </TouchableOpacity>
         </View>
-        
+
         {medicines.map((med, index) => (
           <View key={index} style={styles.medicineCard}>
             <Text style={styles.medicineIndex}>Medicine #{index + 1}</Text>
@@ -262,8 +328,17 @@ export default function VetPrescriptionsScreen() {
         />
       </View>
 
-      <TouchableOpacity style={styles.sendBtn} onPress={handleSendPrescription}>
-        <Text style={styles.sendBtnText}>{t('Send Prescription')}</Text>
+      <TouchableOpacity
+        style={[styles.sendBtn, sending && { opacity: 0.6 }]}
+        onPress={handleSendPrescription}
+        disabled={sending}
+        activeOpacity={0.8}
+      >
+        {sending ? (
+          <ActivityIndicator size="small" color="#FFF" />
+        ) : (
+          <Text style={styles.sendBtnText}>{t('Send Prescription')}</Text>
+        )}
       </TouchableOpacity>
     </ScrollView>
   );
@@ -271,7 +346,7 @@ export default function VetPrescriptionsScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="light-content" backgroundColor={isDark ? colors.headerBackground : colors.primary} />
-      
+
       <View style={styles.header}>
         <View style={styles.headerTopRow}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
@@ -290,13 +365,13 @@ export default function VetPrescriptionsScreen() {
         </View>
 
         <View style={styles.tabsContainer}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={[styles.tabBtn, activeTab === 'History' ? styles.tabBtnActive : styles.tabBtnInactive]}
             onPress={() => setActiveTab('History')}
           >
             <Text style={[styles.tabText, activeTab === 'History' ? styles.tabTextActive : styles.tabTextInactive]}>{t('History')}</Text>
           </TouchableOpacity>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={[styles.tabBtn, activeTab === 'Write New' ? styles.tabBtnActive : styles.tabBtnInactive]}
             onPress={() => setActiveTab('Write New')}
           >

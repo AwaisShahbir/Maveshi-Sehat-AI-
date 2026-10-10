@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { User, Lock, Bell, Settings as SettingsIcon, CheckCircle2, AlertCircle } from 'lucide-react';
+import { User, Lock, Bell, Settings as SettingsIcon, CheckCircle2, AlertCircle, Bot, Power, ShieldAlert, Cpu } from 'lucide-react';
 import '../styles/Settings.css';
 
 export default function Settings({ onProfileUpdate }) {
@@ -31,6 +31,13 @@ export default function Settings({ onProfileUpdate }) {
   const [language, setLanguage] = useState('Both');
   const [timezone, setTimezone] = useState('utc-5');
   const [enforceAdminLanguage, setEnforceAdminLanguage] = useState(true);
+
+  // AI Assistant Control States
+  const [aiEnabled, setAiEnabled] = useState(true);
+  const [aiMessageUrdu, setAiMessageUrdu] = useState('ایڈمن نے AI اسسٹنٹ سروس کو عارضی طور پر مینٹیننس کے لیے معطل کیا ہے۔ براہ کرم کچھ دیر بعد دوبارہ رجوع کریں۔');
+  const [aiMessageEn, setAiMessageEn] = useState('AI Assistant service is temporarily paused for maintenance by administrator. Please check back shortly.');
+  const [aiStrictGuardrails, setAiStrictGuardrails] = useState(true);
+  const [aiVetPersona, setAiVetPersona] = useState(true);
 
   // Load initial settings and profile from backend API
   useEffect(() => {
@@ -68,6 +75,14 @@ export default function Settings({ onProfileUpdate }) {
             if (sys.language !== undefined) setLanguage(sys.language);
             if (sys.timezone !== undefined) setTimezone(sys.timezone);
             if (sys.enforceAdminLanguage !== undefined) setEnforceAdminLanguage(sys.enforceAdminLanguage);
+          }
+          if (settingsData.ai_assistant) {
+            const ai = settingsData.ai_assistant;
+            if (ai.enabled !== undefined) setAiEnabled(ai.enabled);
+            if (ai.messageUrdu) setAiMessageUrdu(ai.messageUrdu);
+            if (ai.messageEn) setAiMessageEn(ai.messageEn);
+            if (ai.strictGuardrails !== undefined) setAiStrictGuardrails(ai.strictGuardrails);
+            if (ai.vetPersona !== undefined) setAiVetPersona(ai.vetPersona);
           }
         }
       } catch (err) {
@@ -277,6 +292,52 @@ export default function Settings({ onProfileUpdate }) {
     }
   };
 
+  // 5. Save AI Assistant Service Configuration
+  const handleAiAssistantSave = async (quickToggleVal = null) => {
+    setFeedback({ type: '', message: '' });
+    setLoading(true);
+
+    const targetEnabled = quickToggleVal !== null ? quickToggleVal : aiEnabled;
+
+    try {
+      const res = await fetch('http://localhost:5000/api/admin/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          key: 'ai_assistant',
+          value: {
+            enabled: targetEnabled,
+            messageUrdu: aiMessageUrdu,
+            messageEn: aiMessageEn,
+            strictGuardrails: aiStrictGuardrails,
+            vetPersona: aiVetPersona,
+            lastUpdated: new Date().toISOString()
+          }
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to update AI Assistant configuration.');
+      }
+
+      if (quickToggleVal !== null) {
+        setAiEnabled(quickToggleVal);
+      }
+
+      setFeedback({
+        type: 'success',
+        message: targetEnabled
+          ? 'AI Assistant service is ACTIVE and operational for all farmers and vets.'
+          : 'AI Assistant service has been PAUSED. Maintenance banner is active on mobile app.'
+      });
+    } catch (err) {
+      setFeedback({ type: 'error', message: err.message || 'Error saving AI Assistant settings.' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="settings-view">
       <div className="settings-layout">
@@ -287,7 +348,8 @@ export default function Settings({ onProfileUpdate }) {
             { id: 'profile', label: 'Profile & Account', icon: <User size={18} /> },
             { id: 'security', label: 'Security', icon: <Lock size={18} /> },
             { id: 'notifications', label: 'Notifications', icon: <Bell size={18} /> },
-            { id: 'system', label: 'System Settings', icon: <SettingsIcon size={18} /> }
+            { id: 'system', label: 'System Settings', icon: <SettingsIcon size={18} /> },
+            { id: 'ai', label: 'AI Assistant Service', icon: <Bot size={18} /> }
           ].map((tab) => (
             <button
               key={tab.id}
@@ -601,6 +663,198 @@ export default function Settings({ onProfileUpdate }) {
                   className="btn btn-primary settings-save-btn"
                 >
                   {loading ? 'Applying...' : 'Apply System Settings'}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* 5. AI Assistant Service Control & Guardrails */}
+          {subTab === 'ai' && (
+            <div className="settings-tab-pane">
+              <div className="settings-tab-header">
+                <h2>AI Assistant Service Control & Guardrails</h2>
+                <p>Manage the availability, emergency pause/maintenance mode, strict domain boundaries, and clinical personas for Sehat Assistant.</p>
+              </div>
+
+              {/* Service Status Hero / Kill-Switch Card */}
+              <div style={{
+                marginBottom: '24px',
+                padding: '20px',
+                background: aiEnabled ? '#F0FDF4' : '#FEF2F2',
+                borderRadius: '14px',
+                border: `1.5px solid ${aiEnabled ? '#86EFAC' : '#FCA5A5'}`,
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
+              }}>
+                <div style={{ flex: 1, paddingRight: '20px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+                    <span style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      padding: '4px 12px',
+                      borderRadius: '20px',
+                      fontSize: '12px',
+                      fontWeight: 700,
+                      letterSpacing: '0.5px',
+                      background: aiEnabled ? '#DCFCE7' : '#FEE2E2',
+                      color: aiEnabled ? '#15803D' : '#B91C1C',
+                      border: `1px solid ${aiEnabled ? '#86EFAC' : '#FCA5A5'}`
+                    }}>
+                      <span style={{
+                        width: '8px',
+                        height: '8px',
+                        borderRadius: '50%',
+                        background: aiEnabled ? '#16A34A' : '#DC2626',
+                        boxShadow: aiEnabled ? '0 0 6px #16A34A' : '0 0 6px #DC2626'
+                      }} />
+                      {aiEnabled ? 'SERVICE ACTIVE & OPERATIONAL' : 'SERVICE PAUSED (MAINTENANCE MODE)'}
+                    </span>
+                  </div>
+                  <h3 style={{ fontSize: '17px', fontWeight: 700, color: '#1E293B', margin: '0 0 6px 0' }}>
+                    {aiEnabled ? 'AI Assistant is Currently Live' : 'AI Assistant is Temporarily Paused'}
+                  </h3>
+                  <p style={{ fontSize: '13px', color: '#475569', margin: 0, lineHeight: '1.5' }}>
+                    {aiEnabled
+                      ? 'Farmers and veterinarians can freely interact with the AI assistant, use voice notes, and receive instant health insights.'
+                      : 'All user queries and voice inputs are blocked on the mobile app. Users are shown the maintenance notification below.'}
+                  </p>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+                  <label className="settings-toggle" style={{ transform: 'scale(1.2)' }}>
+                    <input
+                      type="checkbox"
+                      checked={aiEnabled}
+                      onChange={(e) => handleAiAssistantSave(e.target.checked)}
+                      className="settings-toggle-checkbox"
+                    />
+                    <span className={`settings-toggle-slider ${aiEnabled ? 'active' : ''}`} style={!aiEnabled ? { backgroundColor: '#EF4444' } : {}}>
+                      <span className={`settings-toggle-knob ${aiEnabled ? 'active' : ''}`} />
+                    </span>
+                  </label>
+                  <span style={{ fontSize: '11px', fontWeight: 600, color: aiEnabled ? '#16A34A' : '#DC2626' }}>
+                    {aiEnabled ? 'Live' : 'Paused'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Maintenance Notice Messages */}
+              <div style={{ marginBottom: '24px', padding: '20px', background: '#F8FAF9', borderRadius: '14px', border: '1px solid #E2E8F0' }}>
+                <h4 style={{ fontSize: '15px', fontWeight: 600, color: '#1E293B', marginBottom: '6px' }}>
+                  Maintenance Mode Custom Notices
+                </h4>
+                <p style={{ fontSize: '13px', color: '#64748B', marginBottom: '16px' }}>
+                  These messages are displayed on the mobile app banner when service is paused.
+                </p>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  <div>
+                    <label className="form-label" style={{ fontWeight: 600, fontSize: '13px' }}>
+                      Urdu Maintenance Notice (اردو پیغام)
+                    </label>
+                    <textarea
+                      rows={2}
+                      className="form-control settings-input"
+                      value={aiMessageUrdu}
+                      onChange={(e) => setAiMessageUrdu(e.target.value)}
+                      style={{ direction: 'rtl', fontFamily: 'inherit', resize: 'vertical' }}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="form-label" style={{ fontWeight: 600, fontSize: '13px' }}>
+                      English Maintenance Notice
+                    </label>
+                    <textarea
+                      rows={2}
+                      className="form-control settings-input"
+                      value={aiMessageEn}
+                      onChange={(e) => setAiMessageEn(e.target.value)}
+                      style={{ resize: 'vertical' }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Guardrails and Behavior Control */}
+              <div style={{ marginBottom: '24px', padding: '20px', background: '#F8FAF9', borderRadius: '14px', border: '1px solid #E2E8F0' }}>
+                <h4 style={{ fontSize: '15px', fontWeight: 600, color: '#1E293B', marginBottom: '6px' }}>
+                  Domain Boundary & Intelligence Guardrails
+                </h4>
+                <p style={{ fontSize: '13px', color: '#64748B', marginBottom: '16px' }}>
+                  Configure domain perimeter enforcement and persona specialization.
+                </p>
+
+                {/* Guardrail 1: Strict Domain Boundary */}
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  padding: '14px 0',
+                  borderBottom: '1px solid #E2E8F0'
+                }}>
+                  <div style={{ flex: 1, paddingRight: '20px' }}>
+                    <span style={{ fontWeight: 600, fontSize: '14px', color: '#1E293B', display: 'block' }}>
+                      Strict Livestock Domain Perimeter (Bovine Only)
+                    </span>
+                    <span style={{ fontSize: '12px', color: '#64748B', display: 'block', marginTop: '3px' }}>
+                      Deterministically confines the AI to dairy cattle and buffaloes. Off-topic topics (human medicine, politics, coding, pets, general knowledge) are immediately rejected with a polite reminder.
+                    </span>
+                  </div>
+                  <label className="settings-toggle">
+                    <input
+                      type="checkbox"
+                      checked={aiStrictGuardrails}
+                      onChange={(e) => setAiStrictGuardrails(e.target.checked)}
+                      className="settings-toggle-checkbox"
+                    />
+                    <span className={`settings-toggle-slider ${aiStrictGuardrails ? 'active' : ''}`}>
+                      <span className={`settings-toggle-knob ${aiStrictGuardrails ? 'active' : ''}`} />
+                    </span>
+                  </label>
+                </div>
+
+                {/* Guardrail 2: Vet CDSS Persona */}
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  padding: '14px 0 0 0'
+                }}>
+                  <div style={{ flex: 1, paddingRight: '20px' }}>
+                    <span style={{ fontWeight: 600, fontSize: '14px', color: '#1E293B', display: 'block' }}>
+                      Clinical Decision Support System (CDSS) for Veterinarians
+                    </span>
+                    <span style={{ fontSize: '12px', color: '#64748B', display: 'block', marginTop: '3px' }}>
+                      Provides peer-level veterinary consultation, exact pharmacology dosages in mg/kg, and differential diagnoses. Suppresses generic "consult a vet" phrases for registered doctors.
+                    </span>
+                  </div>
+                  <label className="settings-toggle">
+                    <input
+                      type="checkbox"
+                      checked={aiVetPersona}
+                      onChange={(e) => setAiVetPersona(e.target.checked)}
+                      className="settings-toggle-checkbox"
+                    />
+                    <span className={`settings-toggle-slider ${aiVetPersona ? 'active' : ''}`}>
+                      <span className={`settings-toggle-knob ${aiVetPersona ? 'active' : ''}`} />
+                    </span>
+                  </label>
+                </div>
+              </div>
+
+              {/* Save Footer */}
+              <div className="settings-form-footer">
+                <button
+                  type="button"
+                  onClick={() => handleAiAssistantSave(null)}
+                  disabled={loading}
+                  className="btn btn-primary settings-save-btn"
+                >
+                  {loading ? 'Saving AI Settings...' : 'Save AI Configuration'}
                 </button>
               </div>
             </div>

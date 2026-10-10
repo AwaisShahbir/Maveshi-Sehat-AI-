@@ -60,6 +60,7 @@ export const getStyles = (colors = LIGHT_THEME, isDark = false) => {
     },
     chatArea: {
       flex: 1,
+      backgroundColor: colors.background,
     },
     listContainer: {
       padding: 16,
