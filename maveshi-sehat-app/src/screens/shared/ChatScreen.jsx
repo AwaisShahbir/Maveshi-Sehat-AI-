@@ -334,6 +334,9 @@ export default function ChatScreen() {
       hour: '2-digit',
       minute: '2-digit'
     });
+    const messageText = typeof item.message === 'string' ? item.message.trim() : '';
+    const hasImage = typeof item.image_url === 'string' && item.image_url.trim().length > 0;
+    const imageFailed = !!failedImageIds[item.id];
 
     if (item.is_prescription) {
       const data = parseMessageData(item.prescription_data);
@@ -397,11 +400,6 @@ export default function ChatScreen() {
       const data = parseMessageData(item.vaccination_data);
       if (!data) return null;
 
-      const messageText = typeof item.message === 'string' ? item.message.trim() : '';
-      const hasImage = typeof item.image_url === 'string' && item.image_url.trim().length > 0;
-      if (!messageText && !hasImage) return null;
-      const imageFailed = !!failedImageIds[item.id];
-
       return (
         <View style={[styles.prescriptionWrapper, isMe ? styles.alignRight : styles.alignLeft]}>
           <View style={styles.prescriptionCard}>
@@ -439,6 +437,8 @@ export default function ChatScreen() {
         </View>
       );
     }
+
+    if (!messageText && !hasImage) return null;
 
     return (
       <View style={[styles.bubbleWrapper, isMe ? styles.alignRight : styles.alignLeft]}>
