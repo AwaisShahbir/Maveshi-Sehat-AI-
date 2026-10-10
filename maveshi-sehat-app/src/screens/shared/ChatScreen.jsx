@@ -499,17 +499,19 @@ export default function ChatScreen() {
   const renderConsultationSummary = () => {
     if (consultationHistory.length === 0) return null;
     const selectedConsultation = consultationHistory.find(item => item.id === selectedConsultationId);
-    const isLive = selectedConsultation?.status === 'approved';
+    const isResolved = selectedConsultation?.status === 'completed' || selectedConsultation?.status === 'resolved';
     return (
       <View style={styles.consultationSummary}>
-        <View style={[styles.liveConsultationBanner, !isLive && styles.liveConsultationBannerMuted]}>
+        <View style={[styles.liveConsultationBanner, isResolved && styles.liveConsultationBannerMuted]}>
           <View style={styles.liveConsultationIcon}>
             <View style={styles.liveConsultationDot} />
           </View>
           <View style={styles.liveConsultationDetails}>
-            <Text style={styles.liveConsultationLabel}>{isLive ? 'LIVE CONSULTATION' : 'CONSULTATION'}</Text>
+            <Text style={styles.liveConsultationLabel}>
+              {isResolved ? 'CONSULTATION RESOLVED' : 'CONSULTATION STARTED'}
+            </Text>
             <Text style={styles.liveConsultationReason} numberOfLines={2}>
-              {selectedConsultation?.reason || 'Select a consultation below'}
+              {selectedConsultation?.reason || 'Selected consultation'}
             </Text>
             {selectedConsultation?.created_at && (
               <Text style={styles.liveConsultationDate}>
@@ -517,54 +519,13 @@ export default function ChatScreen() {
               </Text>
             )}
           </View>
-          <Feather name={isLive ? 'radio' : 'clipboard'} size={20} color={isLive ? '#FFF' : colors.primary} />
+          <Feather name={isResolved ? 'check-circle' : 'radio'} size={20} color={isResolved ? colors.primary : '#FFF'} />
         </View>
-        <View style={styles.consultationSummaryHeader}>
-          <View>
-            <Text style={styles.consultationSummaryTitle}>Consultation history</Text>
-            <Text style={styles.consultationSummarySubtitle}>
-              {consultationHistory.length} {consultationHistory.length === 1 ? 'consultation' : 'consultations'} in this chat
-            </Text>
-          </View>
-          <MaterialCommunityIcons name="clipboard-text-outline" size={22} color={colors.primary} />
-        </View>
-        {consultationHistory.slice(0, 5).map((consultation, index) => {
-          const resolved = consultation.status === 'completed' || consultation.status === 'resolved';
-          const pending = consultation.status === 'pending';
-          const statusLabel = pending ? 'Pending' : resolved ? 'Resolved' : 'Active';
-          const statusColor = pending ? '#D97706' : resolved ? '#64748B' : colors.primary;
-          return (
-            <TouchableOpacity
-              key={consultation.id || index}
-              style={[
-                styles.consultationHistoryRow,
-                selectedConsultationId === consultation.id && styles.consultationHistoryRowSelected
-              ]}
-              onPress={() => setSelectedConsultationId(consultation.id)}
-              activeOpacity={0.8}
-            >
-              <View style={styles.consultationHistoryText}>
-                <Text style={styles.consultationHistoryReason} numberOfLines={1}>
-                  {consultation.reason || 'General consultation'}
-                </Text>
-                <Text style={styles.consultationHistoryDate}>
-                  {new Date(consultation.created_at).toLocaleDateString()}
-                </Text>
-              </View>
-              <Text style={[styles.consultationHistoryStatus, { color: statusColor }]}>
-                {selectedConsultationId === consultation.id && statusLabel === 'Active' ? 'LIVE NOW' : statusLabel}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
-        {selectedConsultationId && (
-          <View style={styles.selectedConsultationBanner}>
-            <Feather name="check-circle" size={14} color={colors.primary} />
-            <Text style={styles.selectedConsultationText}>
-              Discussing: {consultationHistory.find(item => item.id === selectedConsultationId)?.reason || 'Selected consultation'}
-            </Text>
-          </View>
-        )}
+        <Text style={styles.selectedConsultationText}>
+          {isResolved
+            ? `${selectedConsultation?.reason || 'This consultation'} has been resolved.`
+            : `${selectedConsultation?.reason || 'This consultation'} has been started.`}
+        </Text>
       </View>
     );
   };

@@ -2473,9 +2473,19 @@ app.post('/api/consultations', async (req, res) => {
 app.get('/api/consultations/farmer/:id', async (req, res) => {
   try {
     const result = await pool.query(
-      `SELECT c.*, u.full_name as vet_name, u.specialization as vet_specialization 
+      `SELECT c.*,
+              CASE
+                WHEN c.status = 'completed' OR conversation.status = 'resolved' THEN 'completed'
+                WHEN c.status = 'pending' THEN 'pending'
+                ELSE 'approved'
+              END AS status,
+              conversation.status AS conversation_status,
+              u.full_name as vet_name, u.specialization as vet_specialization
        FROM consultations c 
        JOIN users u ON c.vet_id = u.id 
+       LEFT JOIN conversations conversation
+         ON conversation.farmer_id = c.farmer_id
+        AND conversation.vet_id = c.vet_id
        WHERE c.farmer_id = $1 ORDER BY c.created_at DESC`,
       [req.params.id]
     );
@@ -2526,6 +2536,31 @@ app.put('/api/consultations/:id/status', async (req, res) => {
 
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Consultation not found' });
+    }
+
+    const consultation = result.rows[0];
+    if (status === 'completed') {
+      await pool.query(
+        `UPDATE conversations
+         SET status = 'resolved', updated_at = CURRENT_TIMESTAMP
+         WHERE farmer_id = $1
+           AND vet_id = $2
+           AND NOT EXISTS (
+             SELECT 1
+             FROM consultations
+             WHERE farmer_id = $1
+               AND vet_id = $2
+               AND status IN ('pending', 'approved')
+           )`,
+        [consultation.farmer_id, consultation.vet_id]
+      );
+    } else if (status === 'approved') {
+      await pool.query(
+        `UPDATE conversations
+         SET status = 'active', updated_at = CURRENT_TIMESTAMP
+         WHERE farmer_id = $1 AND vet_id = $2`,
+        [consultation.farmer_id, consultation.vet_id]
+      );
     }
 
     res.json({ success: true, consultation: result.rows[0] });
