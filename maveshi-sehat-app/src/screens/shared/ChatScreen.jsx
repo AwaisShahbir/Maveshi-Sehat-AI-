@@ -51,11 +51,6 @@ export default function ChatScreen() {
 
   const { conversationId, partnerName, partnerRole, userName, userRole, vetId } = params;
   const consultationHistory = Array.isArray(params.consultations) ? params.consultations : [];
-  const initialConsultation = [...consultationHistory]
-    .sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0))
-    .find(item => item.status === 'approved' || item.status === 'pending')
-    || consultationHistory[0]
-    || null;
 
   
   const [messages, setMessages] = useState([]);
@@ -67,7 +62,7 @@ export default function ChatScreen() {
   const [prescriptionModalVisible, setPrescriptionModalVisible] = useState(false);
   const [selectedAttachmentUri, setSelectedAttachmentUri] = useState(null);
   const [failedImageIds, setFailedImageIds] = useState({});
-  const [selectedConsultationId, setSelectedConsultationId] = useState(initialConsultation?.id || null);
+  const [selectedConsultationId, setSelectedConsultationId] = useState(null);
 
   
   const [diagnosis, setDiagnosis] = useState('');
@@ -155,14 +150,6 @@ export default function ChatScreen() {
   useEffect(() => {
     if (params.initialRecord && !inputText) {
       const rec = params.initialRecord;
-      const animalType = rec.animalType || 'Livestock';
-      const animalId = rec.animalId || rec.generatedAnimalId || 'Unknown';
-      const disease = rec.disease || rec.status || 'Unknown';
-      const risk = rec.risk || rec.severity || 'Unknown';
-      
-      const initialText = `AI Disease Detection Report:\nAnimal: ${animalType} (${animalId})\nDisease: ${disease}\nConfidence: ${rec.confidence || 'N/A'}\nRisk Level: ${risk}`;
-      setInputText(initialText);
-      
       if (rec.uri) {
         setSelectedAttachmentUri(rec.uri);
       }
@@ -582,6 +569,64 @@ export default function ChatScreen() {
     );
   };
 
+  const renderConsultationPicker = () => (
+    <Modal
+      visible={consultationHistory.length > 0 && !selectedConsultationId}
+      animationType="fade"
+      transparent={false}
+      onRequestClose={() => navigation.goBack()}
+    >
+      <SafeAreaView style={styles.consultationPickerScreen}>
+        <View style={styles.consultationPickerHeader}>
+          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+            <Feather name="chevron-left" size={24} color="#FFF" />
+          </TouchableOpacity>
+          <View style={styles.consultationPickerHeaderText}>
+            <Text style={styles.consultationPickerTitle}>Choose a consultation</Text>
+            <Text style={styles.consultationPickerSubtitle}>{partnerName}</Text>
+          </View>
+        </View>
+        <ScrollView contentContainerStyle={styles.consultationPickerContent}>
+          <View style={styles.consultationPickerIntro}>
+            <MaterialCommunityIcons name="clipboard-text-outline" size={30} color={colors.primary} />
+            <Text style={styles.consultationPickerIntroTitle}>What would you like to discuss?</Text>
+            <Text style={styles.consultationPickerIntroText}>
+              Select the consultation before opening the chat. Your messages and prescriptions will be linked to this case.
+            </Text>
+          </View>
+          {consultationHistory.map((consultation, index) => {
+            const resolved = consultation.status === 'completed' || consultation.status === 'resolved';
+            const pending = consultation.status === 'pending';
+            const statusLabel = pending ? 'Pending' : resolved ? 'Resolved' : 'Active';
+            const statusColor = pending ? '#D97706' : resolved ? '#64748B' : colors.primary;
+            return (
+              <TouchableOpacity
+                key={consultation.id || index}
+                style={styles.consultationPickerRow}
+                onPress={() => setSelectedConsultationId(consultation.id)}
+                activeOpacity={0.8}
+              >
+                <View style={styles.consultationPickerRowIcon}>
+                  <MaterialCommunityIcons name="message-text-outline" size={20} color={colors.primary} />
+                </View>
+                <View style={styles.consultationPickerRowDetails}>
+                  <Text style={styles.consultationPickerReason}>{consultation.reason || 'General consultation'}</Text>
+                  <Text style={styles.consultationPickerDate}>
+                    Started {new Date(consultation.created_at).toLocaleDateString()}
+                  </Text>
+                </View>
+                <View style={styles.consultationPickerStatus}>
+                  <Text style={[styles.consultationPickerStatusText, { color: statusColor }]}>{statusLabel}</Text>
+                  <Feather name="chevron-right" size={18} color={colors.textSecondary} />
+                </View>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+      </SafeAreaView>
+    </Modal>
+  );
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="light-content" backgroundColor={isDark ? colors.headerBackground : colors.primary} />
@@ -611,6 +656,8 @@ export default function ChatScreen() {
           </TouchableOpacity>
         </View>
       </View>
+
+      {renderConsultationPicker()}
 
       
       {loading ? (
