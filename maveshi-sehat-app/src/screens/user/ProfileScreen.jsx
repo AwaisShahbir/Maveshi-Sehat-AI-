@@ -10,7 +10,8 @@ import {
   TextInput,
   Switch,
   Modal,
-  Alert
+  Alert,
+  Linking
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
@@ -35,6 +36,9 @@ export default function ProfileScreen() {
   const [records, setRecords] = useState(getRecords());
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [langModalVisible, setLangModalVisible] = useState(false);
+  const [legalModalVisible, setLegalModalVisible] = useState(false);
+  const [supportModalVisible, setSupportModalVisible] = useState(false);
+  const [expandedFaq, setExpandedFaq] = useState(null);
 
   const { isUrdu } = useTranslation();
   const [, setTick] = useState(0);
@@ -119,6 +123,38 @@ export default function ProfileScreen() {
   };
 
   const currentLang = profile.language === 'Urdu' ? 'Urdu' : 'English';
+
+  const openSupportEmail = async () => {
+    try {
+      const subject = encodeURIComponent('Maveshi Sehat support request');
+      const body = encodeURIComponent(`Hello Maveshi Sehat Support,\n\nFarmer: ${profile.userName}\nPhone: ${profile.phone}\n\nHow can we help?\n`);
+      const mailtoUrl = `mailto:maveshisehatai@gmail.com?subject=${subject}&body=${body}`;
+      const canOpen = await Linking.canOpenURL(mailtoUrl);
+      if (!canOpen) {
+        Alert.alert(t('Support unavailable'), t('No email application is available on this device.'));
+        return;
+      }
+      await Linking.openURL(mailtoUrl);
+    } catch (error) {
+      console.error('Unable to open support email:', error);
+      Alert.alert(t('Support unavailable'), t('No email application is available on this device.'));
+    }
+  };
+
+  const openSupportPhone = async () => {
+    try {
+      const phoneUrl = 'tel:03054758667';
+      const canOpen = await Linking.canOpenURL(phoneUrl);
+      if (!canOpen) {
+        Alert.alert(t('Support unavailable'), t('Calling is not available on this device.'));
+        return;
+      }
+      await Linking.openURL(phoneUrl);
+    } catch (error) {
+      console.error('Unable to open support phone:', error);
+      Alert.alert(t('Support unavailable'), t('Calling is not available on this device.'));
+    }
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -273,7 +309,7 @@ export default function ProfileScreen() {
 
         <Text style={[styles.groupTitle, isUrdu && { fontFamily: fonts.urduBold }]}>{t('Support')}</Text>
         <View style={styles.settingsGroup}>
-          <TouchableOpacity style={styles.settingsItem}>
+          <TouchableOpacity style={styles.settingsItem} onPress={() => setLegalModalVisible(true)}>
             <View style={[styles.itemIconBg, { backgroundColor: colors.accentTealLight }]}>
               <Feather name="shield" size={18} color={colors.accentTeal} />
             </View>
@@ -283,7 +319,7 @@ export default function ProfileScreen() {
             <Feather name="chevron-right" size={18} color={colors.textMuted} />
           </TouchableOpacity>
 
-          <TouchableOpacity style={[styles.settingsItem, { borderBottomWidth: 0 }]}>
+          <TouchableOpacity style={[styles.settingsItem, { borderBottomWidth: 0 }]} onPress={() => setSupportModalVisible(true)}>
             <View style={[styles.itemIconBg, { backgroundColor: colors.secondaryLight }]}>
               <Feather name="help-circle" size={18} color={colors.secondary} />
             </View>
@@ -393,6 +429,125 @@ export default function ProfileScreen() {
                 )}
               </TouchableOpacity>
             ))}
+          </View>
+        </View>
+      </Modal>
+
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={legalModalVisible}
+        onRequestClose={() => setLegalModalVisible(false)}
+      >
+        <View style={styles.modalBg}>
+          <View style={styles.modalContainer}>
+            <View style={styles.modalHeader}>
+              <View style={styles.infoModalTitleRow}>
+                <View style={[styles.infoModalIcon, { backgroundColor: colors.accentTealLight }]}>
+                  <Feather name="shield" size={18} color={colors.accentTeal} />
+                </View>
+                <Text style={styles.modalTitle}>{t('Terms & Privacy')}</Text>
+              </View>
+              <TouchableOpacity onPress={() => setLegalModalVisible(false)} accessibilityLabel={t('Close')}>
+                <Feather name="x" size={24} color={colors.textSecondary} />
+              </TouchableOpacity>
+            </View>
+            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.infoModalContent}>
+              <Text style={styles.infoModalUpdated}>{t('Last updated')}: 10 October 2026</Text>
+              <Text style={styles.infoModalHeading}>{t('Your privacy matters')}</Text>
+              <Text style={styles.infoModalText}>
+                {t('Maveshi Sehat uses your account details and livestock health information to provide animal-health guidance, records, consultations, and support.')}
+              </Text>
+              <Text style={styles.infoModalHeading}>{t('Information we use')}</Text>
+              <Text style={styles.infoModalText}>
+                {t('We use your name, phone number, location, uploaded images, scan results, consultation messages, and prescriptions to provide the features you request.')}
+              </Text>
+              <Text style={styles.infoModalHeading}>{t('Your choices')}</Text>
+              <Text style={styles.infoModalText}>
+                {t('You can update your profile, control notifications, change language when available, and contact support about your account or data.')}
+              </Text>
+              <Text style={styles.infoModalHeading}>{t('Acceptable use')}</Text>
+              <Text style={styles.infoModalText}>
+                {t('Use the service responsibly. AI guidance is informational and does not replace an in-person veterinary examination or emergency care.')}
+              </Text>
+              <View style={styles.infoModalNotice}>
+                <Feather name="info" size={16} color={colors.primary} />
+                <Text style={styles.infoModalNoticeText}>{t('By continuing to use Maveshi Sehat, you agree to use the service lawfully and responsibly.')}</Text>
+              </View>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={supportModalVisible}
+        onRequestClose={() => setSupportModalVisible(false)}
+      >
+        <View style={styles.modalBg}>
+          <View style={styles.modalContainer}>
+            <View style={styles.modalHeader}>
+              <View style={styles.infoModalTitleRow}>
+                <View style={[styles.infoModalIcon, { backgroundColor: colors.secondaryLight }]}>
+                  <Feather name="help-circle" size={18} color={colors.secondary} />
+                </View>
+                <Text style={styles.modalTitle}>{t('Help & Support')}</Text>
+              </View>
+              <TouchableOpacity onPress={() => setSupportModalVisible(false)} accessibilityLabel={t('Close')}>
+                <Feather name="x" size={24} color={colors.textSecondary} />
+              </TouchableOpacity>
+            </View>
+            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.infoModalContent}>
+              <Text style={styles.infoModalIntro}>{t('Find quick answers or contact the Maveshi Sehat team.')}</Text>
+              {[
+                {
+                  id: 'scan',
+                  question: t('How do I save an AI scan?'),
+                  answer: t('Open an AI scan result and choose Save to Records. Saved results are available from the Records section.')
+                },
+                {
+                  id: 'consultation',
+                  question: t('How do consultations work?'),
+                  answer: t('Choose a veterinarian, submit your request, and wait for approval. You can open the consultation chat after the veterinarian approves it.')
+                },
+                {
+                  id: 'privacy',
+                  question: t('Who can see my consultation messages?'),
+                  answer: t('Your consultation messages and prescriptions are shared with the veterinarian connected to that consultation so they can provide care.')
+                }
+              ].map((faq) => (
+                <View key={faq.id} style={styles.faqItem}>
+                  <TouchableOpacity
+                    style={styles.faqQuestion}
+                    onPress={() => setExpandedFaq(expandedFaq === faq.id ? null : faq.id)}
+                    accessibilityRole="button"
+                  >
+                    <Text style={styles.faqQuestionText}>{faq.question}</Text>
+                    <Feather name={expandedFaq === faq.id ? 'chevron-up' : 'chevron-down'} size={18} color={colors.textSecondary} />
+                  </TouchableOpacity>
+                  {expandedFaq === faq.id && <Text style={styles.faqAnswer}>{faq.answer}</Text>}
+                </View>
+              ))}
+              <Text style={styles.infoModalHeading}>{t('Contact support')}</Text>
+              <Text style={styles.infoModalText}>{t('Our support team can help with account access, consultations, records, and app issues.')}</Text>
+              <TouchableOpacity style={styles.supportAction} onPress={openSupportEmail}>
+                <Feather name="mail" size={18} color={colors.primary} />
+                <View style={styles.supportActionDetails}>
+                  <Text style={styles.supportActionTitle}>{t('Email support')}</Text>
+                  <Text style={styles.supportActionSubtitle}>maveshisehatai@gmail.com</Text>
+                </View>
+                <Feather name="external-link" size={16} color={colors.textMuted} />
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.supportAction} onPress={openSupportPhone}>
+                <Feather name="phone" size={18} color={colors.primary} />
+                <View style={styles.supportActionDetails}>
+                  <Text style={styles.supportActionTitle}>{t('Call support')}</Text>
+                  <Text style={styles.supportActionSubtitle}>03054758667</Text>
+                </View>
+                <Feather name="external-link" size={16} color={colors.textMuted} />
+              </TouchableOpacity>
+            </ScrollView>
           </View>
         </View>
       </Modal>
