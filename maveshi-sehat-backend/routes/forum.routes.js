@@ -1,0 +1,173 @@
+const express = require('express');
+const router = express.Router();
+
+module.exports = (pool) => {
+  // Get Forum Posts (with category filtering)
+  router.get('/api/forum/posts', async (req, res) => {
+    try {
+      const { category } = req.query;
+      let query = `
+        SELECT fp.*, u.full_name as author_name, u.role as author_role,
+               (SELECT COUNT(*) FROM forum_comments fc WHERE fc.post_id = fp.id) as comments_count
+        FROM forum_posts fp
+        JOIN users u ON fp.user_id = u.id
+      `;
+      const params = [];
+      if (category && category !== 'All' && category !== 'All Posts') {
+        if (category === 'Trending') {
+          query += ` WHERE fp.category = $1 OR fp.likes_count >= 20`;
+        } else {
+          query += ` WHERE fp.category = $1`;
+        }
+        params.push(category);
+      }
+      query += ` ORDER BY fp.created_at DESC`;
+      const result = await pool.query(query, params);
+      res.status(200).json(result.rows);
+    } catch (err) {
+      console.error('Error fetching forum posts:', err.message);
+      res.status(500).json({ error: 'Server error fetching forum posts' });
+    }
+  });
+
+  // Create Forum Post
+  router.post('/api/forum/posts', async (req, res) => {
+    try {
+      const { userName, userId: providedUserId, title, description, category } = req.body;
+      if (!title || !description || !category) {
+        return res.status(400).json({ error: 'Title, description, and category are required' });
+      }
+      if (!userName && !providedUserId) {
+        return res.status(400).json({ error: 'User identification is required' });
+      }
+
+      let resolvedUserId = providedUserId ? parseInt(providedUserId) : null;
+
+      if (!resolvedUserId && userName) {
+        const userRes = await pool.query(
+          'SELECT id FROM users WHERE TRIM(LOWER(full_name)) = TRIM(LOWER($1)) LIMIT 1',
+          [userName.trim()]
+        );
+        if (userRes.rows.length === 0) {
+          return res.status(404).json({ error: 'User not found. Please make sure you are logged in.' });
+        }
+        resolvedUserId = userRes.rows[0].id;
+      }
+
+      const result = await pool.query(
+        'INSERT INTO forum_posts (user_id, title, description, category) VALUES ($1, $2, $3, $4) RETURNING *',
+        [resolvedUserId, title.trim(), description.trim(), category]
+      );
+      res.status(201).json(result.rows[0]);
+    } catch (err) {
+      console.error('Error creating forum post:', err.message);
+      res.status(500).json({ error: 'Server error creating forum post' });
+    }
+  });
+
+  // Get Forum Post Details with Comments
+  router.get('/api/forum/posts/:id', async (req, res) => {
+    try {
+      const { id } = req.params;
+      const postRes = await pool.query(`
+        SELECT fp.*, u.full_name as author_name, u.role as author_role
+        FROM forum_posts fp
+        JOIN users u ON fp.user_id = u.id
+        WHERE fp.id = $1
+      `, [id]);
+      if (postRes.rows.length === 0) {
+        return res.status(404).json({ error: 'Post not found' });
+      }
+      const commentsRes = await pool.query(`
+        SELECT fc.*, u.full_name as author_name, u.role as author_role
+        FROM forum_comments fc
+        JOIN users u ON fc.user_id = u.id
+        WHERE fc.post_id = $1
+        ORDER BY fc.created_at ASC
+      `, [id]);
+      res.status(200).json({
+        post: postRes.rows[0],
+        comments: commentsRes.rows
+      });
+    } catch (err) {
+      console.error('Error fetching forum post details:', err.message);
+      res.status(500).json({ error: 'Server error fetching post details' });
+    }
+  });
+
+  // Post Comment on Forum Post
+  router.post('/api/forum/posts/:id/comments', async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { userName, userId: providedUserId, comment, parentCommentId } = req.body;
+      if (!comment || !comment.trim()) {
+        return res.status(400).json({ error: 'Comment text is required' });
+      }
+      if (!userName && !providedUserId) {
+        return res.status(400).json({ error: 'User identification is required' });
+      }
+
+      let resolvedUserId = providedUserId ? parseInt(providedUserId) : null;
+
+      if (!resolvedUserId && userName) {
+        const userRes = await pool.query(
+          'SELECT id FROM users WHERE TRIM(LOWER(full_name)) = TRIM(LOWER($1)) LIMIT 1',
+          [userName.trim()]
+        );
+        if (userRes.rows.length === 0) {
+          return res.status(404).json({ error: 'User not found. Please make sure you are logged in.' });
+        }
+        resolvedUserId = userRes.rows[0].id;
+      }
+
+      const parentId = parentCommentId ? parseInt(parentCommentId) : null;
+
+      const result = await pool.query(
+        'INSERT INTO forum_comments (post_id, user_id, comment, parent_comment_id) VALUES ($1, $2, $3, $4) RETURNING *',
+        [id, resolvedUserId, comment.trim(), parentId]
+      );
+      res.status(201).json(result.rows[0]);
+    } catch (err) {
+      console.error('Error posting comment:', err.message);
+      res.status(500).json({ error: 'Server error posting comment' });
+    }
+  });
+
+  // Like a Comment
+  router.post('/api/forum/comments/:id/like', async (req, res) => {
+    try {
+      const { id } = req.params;
+      const result = await pool.query(
+        'UPDATE forum_comments SET likes_count = likes_count + 1 WHERE id = $1 RETURNING likes_count',
+        [id]
+      );
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Comment not found' });
+      }
+      res.status(200).json({ likesCount: result.rows[0].likes_count });
+    } catch (err) {
+      console.error('Error liking comment:', err.message);
+      res.status(500).json({ error: 'Server error liking comment' });
+    }
+  });
+
+  // Like a Post
+  router.post('/api/forum/posts/:id/like', async (req, res) => {
+    try {
+      const { id } = req.params;
+      const result = await pool.query(
+        'UPDATE forum_posts SET likes_count = likes_count + 1 WHERE id = $1 RETURNING likes_count',
+        [id]
+      );
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Post not found' });
+      }
+      res.status(200).json({ likesCount: result.rows[0].likes_count });
+    } catch (err) {
+      console.error('Error liking post:', err.message);
+      res.status(500).json({ error: 'Server error liking post' });
+    }
+  });
+
+  return router;
+};
