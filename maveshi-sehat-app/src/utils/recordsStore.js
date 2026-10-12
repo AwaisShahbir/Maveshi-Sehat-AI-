@@ -69,7 +69,7 @@ export const addRecord = async (record, ownerName) => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         id: record.animalId,
-        ownerName: ownerName || 'Muhammad Ahmed',
+        ownerName: ownerName || 'Farmer',
         animalType: record.animalType,
         disease: record.disease,
         diseaseUrdu: record.diseaseUrdu,

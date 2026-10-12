@@ -21,8 +21,8 @@ export default function DashboardScreen() {
 
   
   const [profile, setProfile] = useState(getProfile());
-  const userName = profile.userName || params.userName || 'Muhammad Ahmed';
-  const userId = params.userId || null;
+  const userName = profile.userName || params.userName || 'Farmer';
+  const userId = params.userId || profile.userId || null;
   const [stats, setStats] = useState({
     livestock: 0,
     aiScans: 0,

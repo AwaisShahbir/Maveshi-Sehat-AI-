@@ -3,14 +3,21 @@ import { Platform } from 'react-native';
 const BASE_URL = Platform.OS === 'android' ? 'http://10.0.2.2:5000' : 'http://localhost:5000';
 
 let profile = {
-  userName: 'Muhammad Ahmed',
-  phone: '+92 300 1234567',
-  location: 'Okara, Punjab',
+  userId: null,
+  userName: '',
+  fullName: '',
+  phone: '',
+  email: '',
+  location: '',
+  role: '',
+  specialization: '',
+  license: '',
+  pvmcNumber: '',
   language: 'English',
   hasChosenLanguage: false,
   enforceAdminLanguage: true,
   notificationsEnabled: true,
-  consultationsCount: 12,
+  consultationsCount: 0,
   isDarkMode: false
 };
 

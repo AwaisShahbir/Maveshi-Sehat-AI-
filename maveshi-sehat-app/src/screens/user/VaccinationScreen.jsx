@@ -17,7 +17,7 @@ import { t } from '../../utils/translate';
 import { useTheme } from '../../utils/themeContext';
 import { getStyles } from '../../styles/VaccinationScreenStyles';
 
-const MOCK_VACCINES = [];
+import { getProfile } from '../../utils/profileStore';
 
 export default function VaccinationScreen() {
   const { colors, isDark } = useTheme();
@@ -25,8 +25,9 @@ export default function VaccinationScreen() {
   const navigation = useNavigation();
   const route = useRoute();
   const params = route.params || {};
-  const userName = params.userName || 'Muhammad Ahmed';
-  const userId = params.userId || null;
+  const profile = getProfile();
+  const userName = profile.userName || params.userName || '';
+  const userId = params.userId || profile.userId || null;
   const insets = useSafeAreaInsets();
 
   const [activeTab, setActiveTab] = useState('Upcoming');

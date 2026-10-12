@@ -29,22 +29,85 @@ export default function VetProfileScreen() {
   // Modals state
   const [activeModal, setActiveModal] = useState(null); // 'editProfile' | 'license' | 'specialization' | 'availability' | null
 
-  // Form states
-  const [formName, setFormName] = useState(profile.userName || 'Dr. Rahim Malik');
-  const [formLicense, setFormLicense] = useState(profile.license || 'VET-2023-9876');
-  const [formSpec, setFormSpec] = useState(profile.specialization || 'Livestock Disease Specialist');
-  const [formAvail, setFormAvail] = useState(profile.availability || 'Mon-Fri: 9 AM - 5 PM');
+  const [stats, setStats] = useState({ cases: 0, prescriptions: 0, rating: '5.0★' });
+  const [loadingStats, setLoadingStats] = useState(true);
 
-  const handleSave = () => {
-    updateProfile({
-      userName: formName,
-      license: formLicense,
-      specialization: formSpec,
-      availability: formAvail
-    });
-    setProfile(getProfile());
-    setActiveModal(null);
-    Alert.alert('Success', 'Profile updated successfully!');
+  // Form states initialized dynamically from profile
+  const [formName, setFormName] = useState(profile.userName || profile.fullName || '');
+  const [formLicense, setFormLicense] = useState(profile.license || profile.pvmcNumber || '');
+  const [formSpec, setFormSpec] = useState(profile.specialization || '');
+  const [formAvail, setFormAvail] = useState(profile.availability || profile.availabilitySchedule || '');
+
+  const baseUrl = Platform.OS === 'android' ? 'http://10.0.2.2:5000' : 'http://localhost:5000';
+  const vetId = profile.userId || params.userId;
+
+  useEffect(() => {
+    const fetchVetProfile = async () => {
+      if (!vetId) return;
+      try {
+        const res = await fetch(`${baseUrl}/api/vet/profile?vetId=${vetId}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data) {
+            setFormName(data.fullName || '');
+            setFormLicense(data.pvmcNumber || '');
+            setFormSpec(data.specialization || '');
+            setFormAvail(data.availabilitySchedule || '');
+            setStats({
+              cases: data.stats?.cases || 0,
+              prescriptions: data.stats?.prescriptions || 0,
+              rating: '5.0★'
+            });
+            updateProfile({
+              userName: data.fullName,
+              fullName: data.fullName,
+              license: data.pvmcNumber,
+              pvmcNumber: data.pvmcNumber,
+              specialization: data.specialization,
+              availabilitySchedule: data.availabilitySchedule
+            });
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching vet profile data:', err);
+      } finally {
+        setLoadingStats(false);
+      }
+    };
+    fetchVetProfile();
+  }, [vetId]);
+
+  const handleSave = async () => {
+    try {
+      if (vetId) {
+        await fetch(`${baseUrl}/api/vet/profile`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            vetId,
+            fullName: formName,
+            pvmcNumber: formLicense,
+            specialization: formSpec,
+            availabilitySchedule: formAvail
+          })
+        });
+      }
+      updateProfile({
+        userName: formName,
+        fullName: formName,
+        license: formLicense,
+        pvmcNumber: formLicense,
+        specialization: formSpec,
+        availability: formAvail,
+        availabilitySchedule: formAvail
+      });
+      setProfile(getProfile());
+      setActiveModal(null);
+      Alert.alert(t('Success') || 'Success', t('Profile updated successfully!') || 'Profile updated successfully!');
+    } catch (err) {
+      console.error('Error saving vet profile:', err);
+      Alert.alert(t('Error') || 'Error', t('Failed to update profile.') || 'Failed to update profile.');
+    }
   };
 
   const renderMenuItem = (icon, title, subtitle, rightElement, onPress) => {
@@ -83,8 +146,8 @@ export default function VetProfileScreen() {
     );
   };
 
-  const userName = profile.userName || 'Dr. Rahim Malik';
-  const initial = userName.charAt(0).toUpperCase();
+  const userName = profile.userName || profile.fullName || t('Veterinarian');
+  const initial = userName.charAt(0).toUpperCase() || 'V';
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -112,7 +175,7 @@ export default function VetProfileScreen() {
             </View>
             
             <Text style={styles.profileName}>{userName}</Text>
-            <Text style={styles.specializationText}>{profile.specialization || 'Livestock Disease Specialist'}</Text>
+            <Text style={styles.specializationText}>{profile.specialization || formSpec || t('Veterinarian')}</Text>
             
             <View style={styles.verifiedBadge}>
               <MaterialCommunityIcons name="check-decagram" size={16} color={colors.primary} style={{ marginRight: 6 }} />
@@ -122,17 +185,17 @@ export default function VetProfileScreen() {
 
           <View style={styles.statsContainer}>
             <View style={styles.statBox}>
-              <Text style={styles.statValue}>47</Text>
+              <Text style={styles.statValue}>{loadingStats ? '-' : stats.cases}</Text>
               <Text style={styles.statLabel}>{t('Cases')}</Text>
             </View>
             <View style={styles.statDivider} />
             <View style={styles.statBox}>
-              <Text style={styles.statValue}>18</Text>
+              <Text style={styles.statValue}>{loadingStats ? '-' : stats.prescriptions}</Text>
               <Text style={styles.statLabel}>{t('Prescriptions')}</Text>
             </View>
             <View style={styles.statDivider} />
             <View style={styles.statBox}>
-              <Text style={[styles.statValue, { color: '#F5B041' }]}>4.9★</Text>
+              <Text style={[styles.statValue, { color: '#F5B041' }]}>{loadingStats ? '-' : stats.rating}</Text>
               <Text style={styles.statLabel}>{t('Rating')}</Text>
             </View>
           </View>

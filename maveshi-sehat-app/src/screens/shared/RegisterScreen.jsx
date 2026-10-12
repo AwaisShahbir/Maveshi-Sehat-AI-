@@ -5,6 +5,7 @@ import Feather from 'react-native-vector-icons/Feather';
 import { t, useTranslation, subscribeTranslation } from '../../utils/translate';
 import fonts from '../../styles/fonts';
 import { useTheme } from '../../utils/themeContext';
+import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import { getStyles } from '../../styles/RegisterScreenStyles';
 
 export default function RegisterScreen() {
@@ -81,33 +82,54 @@ export default function RegisterScreen() {
     }
   };
 
-  const handleMockUploadMobile = async (choice) => {
+  const baseUrl = Platform.OS === 'android' ? 'http://10.0.2.2:5000' : 'http://localhost:5000';
+
+  const handleUploadMobile = (choice) => {
     setUploadModalVisible(false);
-    setUploading(true);
     setErrorMsg('');
-    try {
-      const formData = new FormData();
-      const mockFile = {
-        uri: 'data:text/plain;base64,Vk1DLUxJQ0VOU0UtRE9DVU1FTlQtQ09OVEVOVA==', 
-        name: choice === 'pdf' ? 'pvmc_license_document.pdf' : 'pvmc_license_photo.jpg',
-        type: choice === 'pdf' ? 'application/pdf' : 'image/jpeg'
-      };
-      formData.append('license', mockFile);
 
-      const response = await fetch('http://localhost:5000/upload', {
-        method: 'POST',
-        body: formData
-      });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || 'Upload failed');
+    const pickerFn = choice === 'camera' ? launchCamera : launchImageLibrary;
+    const options = {
+      mediaType: 'photo',
+      quality: 0.8
+    };
 
-      setLicenseDocumentUrl(data.fileUrl);
-      setLicenseFileName(mockFile.name);
-    } catch (err) {
-      setErrorMsg('File upload error: ' + err.message);
-    } finally {
-      setUploading(false);
-    }
+    pickerFn(options, async (response) => {
+      if (response.didCancel) return;
+      if (response.errorCode) {
+        setErrorMsg('Image picker error: ' + (response.errorMessage || response.errorCode));
+        return;
+      }
+      if (response.assets && response.assets.length > 0) {
+        const asset = response.assets[0];
+        setUploading(true);
+        try {
+          const formData = new FormData();
+          formData.append('license', {
+            uri: asset.uri,
+            name: asset.fileName || 'license_document.jpg',
+            type: asset.type || 'image/jpeg'
+          });
+
+          const uploadRes = await fetch(`${baseUrl}/upload`, {
+            method: 'POST',
+            body: formData,
+            headers: {
+              'Content-Type': 'multipart/form-data'
+            }
+          });
+          const data = await uploadRes.json();
+          if (!uploadRes.ok) throw new Error(data.error || 'Upload failed');
+
+          setLicenseDocumentUrl(data.fileUrl);
+          setLicenseFileName(asset.fileName || 'license_document.jpg');
+        } catch (err) {
+          setErrorMsg('File upload error: ' + err.message);
+        } finally {
+          setUploading(false);
+        }
+      }
+    });
   };
 
   const handleRegister = async () => {
@@ -482,7 +504,7 @@ export default function RegisterScreen() {
             
             <TouchableOpacity 
               style={styles.modalUploadItem}
-              onPress={() => handleMockUploadMobile('camera')}
+              onPress={() => handleUploadMobile('camera')}
             >
               <Feather name="camera" size={20} color="#3B82F6" style={{ marginRight: 12 }} />
               <Text style={[styles.modalItemText, { textAlign: 'left' }, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Take Photo')}</Text>
@@ -490,7 +512,7 @@ export default function RegisterScreen() {
 
             <TouchableOpacity 
               style={styles.modalUploadItem}
-              onPress={() => handleMockUploadMobile('gallery')}
+              onPress={() => handleUploadMobile('gallery')}
             >
               <Feather name="image" size={20} color="#10B981" style={{ marginRight: 12 }} />
               <Text style={[styles.modalItemText, { textAlign: 'left' }, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Upload from Gallery')}</Text>
@@ -498,10 +520,10 @@ export default function RegisterScreen() {
 
             <TouchableOpacity 
               style={styles.modalUploadItem}
-              onPress={() => handleMockUploadMobile('pdf')}
+              onPress={() => handleUploadMobile('gallery')}
             >
               <Feather name="file-text" size={20} color="#8B5CF6" style={{ marginRight: 12 }} />
-              <Text style={[styles.modalItemText, { textAlign: 'left' }, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Select PDF File')}</Text>
+              <Text style={[styles.modalItemText, { textAlign: 'left' }, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Select Document / PDF')}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.modalCloseBtn} onPress={() => setUploadModalVisible(false)}>

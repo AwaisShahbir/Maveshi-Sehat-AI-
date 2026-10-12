@@ -141,7 +141,7 @@ export default function VeterinariansListScreen() {
   };
 
   const renderVetCard = ({ item, index }) => {
-    const isBusy = index % 3 === 2; // Mocking busy status for UI showcase
+    const isBusy = item.status === 'busy';
 
     return (
       <View style={styles.card}>
@@ -165,7 +165,7 @@ export default function VeterinariansListScreen() {
             <View style={styles.metaRow}>
               <View style={styles.ratingContainer}>
                 <Feather name="star" size={12} color="#F5B041" style={{ marginRight: 4 }} />
-                <Text style={styles.ratingText}>4.8 <Text style={styles.ratingCount}>(127)</Text></Text>
+                <Text style={styles.ratingText}>{item.rating || '5.0'}</Text>
               </View>
               <View style={styles.locationContainer}>
                 <Feather name="map-pin" size={12} color="#888" style={{ marginRight: 4 }} />

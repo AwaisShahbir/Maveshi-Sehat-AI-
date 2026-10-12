@@ -56,7 +56,7 @@ export default function VetDashboardScreen() {
         cases: fetchedCases.length,
         pending: pendingCount,
         resolved: resolvedCount,
-        rating: 4.9
+        rating: profile.rating || '5.0'
       });
     } catch (error) {
       console.error('Error fetching dashboard cases:', error);
@@ -161,9 +161,11 @@ export default function VetDashboardScreen() {
                 hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
               >
                 <Feather name="bell" size={20} color="#FFF" />
-                <View style={styles.badge}>
-                  <Text style={styles.badgeText}>3</Text>
-                </View>
+                {stats.pending > 0 && (
+                  <View style={styles.badge}>
+                    <Text style={styles.badgeText}>{stats.pending}</Text>
+                  </View>
+                )}
               </TouchableOpacity>
               
               <TouchableOpacity style={styles.profileAvatar} onPress={() => navigation.navigate('VetProfile')}>
