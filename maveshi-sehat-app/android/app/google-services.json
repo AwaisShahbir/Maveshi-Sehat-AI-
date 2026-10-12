@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "132243426705",
+    "project_id": "mavehi-sehat-ai",
+    "storage_bucket": "mavehi-sehat-ai.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:132243426705:android:40640dc9d5456c18cdde30",
+        "android_client_info": {
+          "package_name": "com.awais08100.maveshisehatapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBLzo5fITPfLjom_1cXw-fV8CVco-x_s-M"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
