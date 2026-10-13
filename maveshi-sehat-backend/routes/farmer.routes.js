@@ -19,7 +19,9 @@ function getTimeAgo(date) {
   return 'just now';
 }
 
-module.exports = (pool) => {
+const { sendNotification } = require('../services/notificationService');
+
+module.exports = (pool, io) => {
   // Farmer Dashboard Stats
   router.get('/api/dashboard-stats', async (req, res) => {
     try {
@@ -215,7 +217,33 @@ module.exports = (pool) => {
         [farmer_id, vet_id, type, ai_record_data ? JSON.stringify(ai_record_data) : null, appointment_date, reason]
       );
 
-      res.status(201).json({ success: true, consultation: result.rows[0] });
+      const createdConsultation = result.rows[0];
+
+      // Notify Vet in real-time
+      try {
+        const farmerUser = await pool.query('SELECT full_name FROM users WHERE id = $1', [farmer_id]);
+        const farmerName = farmerUser.rows[0]?.full_name || 'Farmer';
+
+        await sendNotification({
+          pool,
+          io,
+          userId: vet_id,
+          type: 'consultation',
+          title_en: 'New Consultation Request',
+          title_ur: 'نئی مشاورت کی درخواست',
+          message_en: `${farmerName} requested a consultation.`,
+          message_ur: `${farmerName} نے معائنے کے لیے مشاورت کی درخواست کی ہے۔`,
+          data: {
+            consultationId: createdConsultation.id,
+            farmerId: farmer_id,
+            targetScreen: 'VetCases'
+          }
+        });
+      } catch (notifErr) {
+        console.error('Failed to notify vet for consultation:', notifErr.message);
+      }
+
+      res.status(201).json({ success: true, consultation: createdConsultation });
     } catch (err) {
       console.error('Error creating consultation:', err);
       res.status(500).json({ error: 'Failed to create consultation request' });

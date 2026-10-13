@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
 const transporter = require('../config/mail');
+const { broadcastNotification } = require('../services/notificationService');
 
 module.exports = (pool, io) => {
   // Ensure admin_settings table exists
@@ -270,7 +271,31 @@ module.exports = (pool, io) => {
         "INSERT INTO announcements (target_audience, type, title, message_en, message_ur) VALUES ($1, $2, $3, $4, $5) RETURNING *",
         [targetAudience, type, title, messageEn, messageUr]
       );
-      res.status(201).json(result.rows[0]);
+
+      const announcement = result.rows[0];
+
+      // Broadcast notification to targeted users
+      try {
+        await broadcastNotification({
+          pool,
+          io,
+          targetAudience: targetAudience || 'all',
+          type: 'announcement',
+          title_en: title || 'Admin Announcement',
+          title_ur: title || 'انتظامیہ کا اعلان',
+          message_en: messageEn || '',
+          message_ur: messageUr || messageEn || '',
+          data: {
+            announcementId: announcement.id,
+            targetAudience: targetAudience || 'all',
+            category: type || 'alert'
+          }
+        });
+      } catch (broadcastErr) {
+        console.error('Failed to broadcast announcement notification:', broadcastErr.message);
+      }
+
+      res.status(201).json(announcement);
     } catch (err) {
       res.status(500).json({ error: 'Failed to post announcement' });
     }

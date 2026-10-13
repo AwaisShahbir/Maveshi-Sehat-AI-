@@ -1,7 +1,8 @@
 const express = require('express');
 const router = express.Router();
+const { sendNotification } = require('../services/notificationService');
 
-module.exports = (pool) => {
+module.exports = (pool, io) => {
   // Vet Directory
   router.get('/api/vets', async (req, res) => {
     try {
@@ -216,6 +217,52 @@ module.exports = (pool) => {
         );
       }
 
+      // Notify farmer about consultation status update
+      try {
+        const vetRes = await pool.query('SELECT full_name FROM users WHERE id = $1', [consultation.vet_id]);
+        const vetName = vetRes.rows[0]?.full_name || 'Veterinarian';
+
+        let titleEn = 'Consultation Update';
+        let titleUr = 'مشاورت کی اپ ڈیٹ';
+        let messageEn = `Your consultation status is now ${status}.`;
+        let messageUr = `آپ کی مشاورت کی صورتحال اب ${status} ہے۔`;
+
+        if (status === 'approved') {
+          titleEn = 'Consultation Approved';
+          titleUr = 'مشاورت منظور ہو گئی';
+          messageEn = `Dr. ${vetName} has accepted your consultation request.`;
+          messageUr = `ڈاکٹر ${vetName} نے آپ کی مشاورت کی درخواست منظور کر لی ہے۔`;
+        } else if (status === 'rejected') {
+          titleEn = 'Consultation Declined';
+          titleUr = 'مشاورت منسوخ';
+          messageEn = `Dr. ${vetName} was unable to accept your consultation request.`;
+          messageUr = `ڈاکٹر ${vetName} آپ کی مشاورت قبول نہیں کر سکے۔`;
+        } else if (status === 'completed') {
+          titleEn = 'Consultation Completed';
+          titleUr = 'مشاورت مکمل';
+          messageEn = `Your consultation with Dr. ${vetName} has been completed.`;
+          messageUr = `ڈاکٹر ${vetName} کے ساتھ آپ کی مشاورت مکمل ہو گئی ہے۔`;
+        }
+
+        await sendNotification({
+          pool,
+          io,
+          userId: consultation.farmer_id,
+          type: 'consultation',
+          title_en: titleEn,
+          title_ur: titleUr,
+          message_en: messageEn,
+          message_ur: messageUr,
+          data: {
+            consultationId: consultation.id,
+            status,
+            targetScreen: 'MyConsultations'
+          }
+        });
+      } catch (notifErr) {
+        console.error('Failed to notify farmer about consultation status:', notifErr.message);
+      }
+
       res.json({ success: true, consultation: result.rows[0] });
     } catch (err) {
       console.error('Error updating consultation status:', err);
@@ -352,8 +399,37 @@ module.exports = (pool) => {
           JSON.stringify(prescriptionData)
         ]
       );
+      const createdPrescription = result.rows[0];
 
-      res.status(201).json({ success: true, prescription: result.rows[0] });
+      // Notify farmer of new prescription
+      try {
+        const convRes = await pool.query('SELECT farmer_id FROM conversations WHERE id = $1', [conversationId]);
+        if (convRes.rows.length > 0 && convRes.rows[0].farmer_id) {
+          const farmerId = convRes.rows[0].farmer_id;
+          const vetRes = await pool.query('SELECT full_name FROM users WHERE id = $1', [resolvedVetId]);
+          const vetName = vetRes.rows[0]?.full_name || 'Veterinarian';
+
+          await sendNotification({
+            pool,
+            io,
+            userId: farmerId,
+            type: 'prescription',
+            title_en: 'New Prescription Issued',
+            title_ur: 'نیا نسخہ جاری کیا گیا',
+            message_en: `Dr. ${vetName} issued a new prescription for your animal.`,
+            message_ur: `ڈاکٹر ${vetName} نے آپ کے جانور کے لیے دوا تجویز کی ہے۔`,
+            data: {
+              conversationId,
+              prescriptionId: createdPrescription.id,
+              targetScreen: 'Chat'
+            }
+          });
+        }
+      } catch (notifErr) {
+        console.error('Failed to notify farmer of prescription:', notifErr.message);
+      }
+
+      res.status(201).json({ success: true, prescription: createdPrescription });
     } catch (err) {
       console.error('Error creating prescription:', err);
       res.status(500).json({ error: 'Failed to create prescription' });

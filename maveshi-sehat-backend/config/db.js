@@ -61,6 +61,38 @@ pool.connect((err, client, release) => {
       
       ALTER TABLE users ADD COLUMN IF NOT EXISTS availability_schedule TEXT DEFAULT NULL;
       ALTER TABLE users ADD COLUMN IF NOT EXISTS consultation_mode TEXT DEFAULT 'Chat + Video';
+
+      CREATE TABLE IF NOT EXISTS user_notifications (
+        id SERIAL PRIMARY KEY,
+        user_id INT REFERENCES users(id) ON DELETE CASCADE,
+        type VARCHAR(50) NOT NULL,
+        title_en VARCHAR(255) NOT NULL,
+        title_ur VARCHAR(255),
+        message_en TEXT NOT NULL,
+        message_ur TEXT,
+        data JSONB DEFAULT '{}'::jsonb,
+        is_read BOOLEAN DEFAULT FALSE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS user_push_tokens (
+        id SERIAL PRIMARY KEY,
+        user_id INT REFERENCES users(id) ON DELETE CASCADE,
+        fcm_token TEXT NOT NULL UNIQUE,
+        platform VARCHAR(20) DEFAULT 'android',
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS user_notification_preferences (
+        user_id INT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+        enabled BOOLEAN DEFAULT TRUE,
+        consultations BOOLEAN DEFAULT TRUE,
+        messages BOOLEAN DEFAULT TRUE,
+        prescriptions BOOLEAN DEFAULT TRUE,
+        announcements BOOLEAN DEFAULT TRUE,
+        sound BOOLEAN DEFAULT TRUE,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
     `, (migrationErr) => {
       release();
       if (migrationErr) {

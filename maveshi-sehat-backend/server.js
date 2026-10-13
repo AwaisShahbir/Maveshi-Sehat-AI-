@@ -34,14 +34,15 @@ require('./services/socketHandler')(io, pool);
 
 // Modular Routes
 const authRoutes = require('./routes/auth.routes')(pool);
-const farmerRoutes = require('./routes/farmer.routes')(pool);
-const vetRoutes = require('./routes/vet.routes')(pool);
+const farmerRoutes = require('./routes/farmer.routes')(pool, io);
+const vetRoutes = require('./routes/vet.routes')(pool, io);
 const adminRoutes = require('./routes/admin.routes')(pool, io);
 const pharmacyRoutes = require('./routes/pharmacy.routes')(pool);
 const chatRoutes = require('./routes/chat.routes')(pool);
 const forumRoutes = require('./routes/forum.routes')(pool);
 const translateRoutes = require('./routes/translate.routes')();
 const chatbotRoutes = require('./routes/chatbot')(pool);
+const notificationRoutes = require('./routes/notification.routes')(pool, io);
 
 // Mount All Routers
 app.use('/', authRoutes);
@@ -52,6 +53,7 @@ app.use('/', pharmacyRoutes);
 app.use('/', chatRoutes);
 app.use('/', forumRoutes);
 app.use('/', translateRoutes);
+app.use('/', notificationRoutes);
 app.use('/api/chat', chatbotRoutes);
 
 // Server Listen
