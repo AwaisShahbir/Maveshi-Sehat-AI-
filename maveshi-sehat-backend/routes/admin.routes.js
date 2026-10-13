@@ -253,12 +253,53 @@ module.exports = (pool, io) => {
     }
   });
 
-  // Admin Notifications
+  // Admin Notifications (Unifies broadcasts sent by admin and inbound system alerts)
   router.get('/api/admin/notifications', async (req, res) => {
     try {
-      const result = await pool.query("SELECT * FROM admin_notifications ORDER BY created_at DESC");
-      res.status(200).json(result.rows);
+      // 1. Fetch announcements broadcasted by admin
+      const announcementsRes = await pool.query(
+        "SELECT id, 'announcement' AS source, target_audience, type, title, message_en, message_ur, created_at FROM announcements ORDER BY created_at DESC"
+      );
+
+      // 2. Fetch inbound admin notifications (system alerts)
+      const adminNotifsRes = await pool.query(
+        "SELECT id, 'system' AS source, 'admin' AS target_audience, type, type AS title, message_en, message_ur, created_at, read FROM admin_notifications ORDER BY created_at DESC"
+      );
+
+      // 3. Format and combine into unified chronological list
+      const combined = [
+        ...announcementsRes.rows.map(a => ({
+          id: `announcement_${a.id}`,
+          rawId: a.id,
+          source: 'announcement',
+          target_audience: a.target_audience || 'all',
+          type: a.type || 'general',
+          title: a.title || 'Broadcast Announcement',
+          message_en: a.message_en,
+          message_ur: a.message_ur,
+          created_at: a.created_at,
+          read: true
+        })),
+        ...adminNotifsRes.rows.map(n => ({
+          id: `system_${n.id}`,
+          rawId: n.id,
+          source: 'system',
+          target_audience: 'admin',
+          type: n.type,
+          title: n.title ? n.title.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) : 'System Notification',
+          message_en: n.message_en,
+          message_ur: n.message_ur,
+          created_at: n.created_at,
+          read: n.read
+        }))
+      ];
+
+      // Sort by newest first
+      combined.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+      res.status(200).json(combined);
     } catch (err) {
+      console.error('Error fetching admin notifications:', err.message);
       res.status(500).json({ error: 'Failed to fetch admin notifications' });
     }
   });
@@ -267,28 +308,30 @@ module.exports = (pool, io) => {
   router.post('/api/admin/announcements', async (req, res) => {
     try {
       const { targetAudience, type, title, messageEn, messageUr } = req.body;
+      const audience = targetAudience || 'all';
+
       const result = await pool.query(
         "INSERT INTO announcements (target_audience, type, title, message_en, message_ur) VALUES ($1, $2, $3, $4, $5) RETURNING *",
-        [targetAudience, type, title, messageEn, messageUr]
+        [audience, type || 'general', title, messageEn, messageUr || messageEn]
       );
 
       const announcement = result.rows[0];
 
-      // Broadcast notification to targeted users
+      // Broadcast notification to targeted users (Farmers, Vets, Pharmacies)
       try {
         await broadcastNotification({
           pool,
           io,
-          targetAudience: targetAudience || 'all',
-          type: 'announcement',
+          targetAudience: audience,
+          type: type || 'general',
           title_en: title || 'Admin Announcement',
-          title_ur: title || 'انتظامیہ کا اعلان',
+          title_ur: messageUr || title || 'انتظامیہ کا اعلان',
           message_en: messageEn || '',
           message_ur: messageUr || messageEn || '',
           data: {
             announcementId: announcement.id,
-            targetAudience: targetAudience || 'all',
-            category: type || 'alert'
+            targetAudience: audience,
+            category: type || 'general'
           }
         });
       } catch (broadcastErr) {
@@ -297,6 +340,7 @@ module.exports = (pool, io) => {
 
       res.status(201).json(announcement);
     } catch (err) {
+      console.error('Error posting announcement:', err.message);
       res.status(500).json({ error: 'Failed to post announcement' });
     }
   });

@@ -30,6 +30,8 @@ export default function Dashboard({ pharmacy, onLogout }) {
   const [showNotifications, setShowNotifications] = useState(false);
 
   
+  const [announcements, setAnnouncements] = useState([]);
+
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
@@ -39,6 +41,17 @@ export default function Dashboard({ pharmacy, onLogout }) {
         setStats(data.stats);
         setRecentOrders(data.recentOrders);
         setStockAlertsList(data.stockAlertsList);
+      }
+
+      // Fetch broadcasts from admin
+      try {
+        const annRes = await fetch('http://localhost:5000/api/pharmacy/announcements');
+        if (annRes.ok) {
+          const annData = await annRes.json();
+          setAnnouncements(annData);
+        }
+      } catch (annErr) {
+        console.error('Error loading announcements:', annErr);
       }
     } catch (err) {
       console.error('Error fetching dashboard stats:', err);
@@ -54,6 +67,17 @@ export default function Dashboard({ pharmacy, onLogout }) {
   useEffect(() => {
     const list = [];
     let notifId = 1;
+
+    // Admin Announcements
+    announcements.forEach(ann => {
+      list.push({
+        id: `ann_${ann.id}`,
+        text: `📢 ${ann.title}: ${ann.message_en}`,
+        time: new Date(ann.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+        unread: true
+      });
+    });
+
     recentOrders.forEach(order => {
       if (order.status.toLowerCase() === 'pending') {
         list.push({
@@ -81,7 +105,7 @@ export default function Dashboard({ pharmacy, onLogout }) {
       });
     }
     setNotifications(list);
-  }, [recentOrders, stockAlertsList]);
+  }, [recentOrders, stockAlertsList, announcements]);
 
   const handleOrderAction = async (orderId, newStatus) => {
     try {

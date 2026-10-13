@@ -189,35 +189,64 @@ async function sendNotification({ pool, io, userId, type, title_en, title_ur, me
  */
 async function broadcastNotification({ pool, io, targetAudience, type, title_en, title_ur, message_en, message_ur, data = {} }) {
   try {
-    let query = 'SELECT id FROM users';
-    let params = [];
+    const audienceStr = String(targetAudience || 'all').toLowerCase();
+    const isAll = audienceStr === 'all';
+    const includesFarmers = isAll || audienceStr.includes('owner') || audienceStr.includes('farmer');
+    const includesVets = isAll || audienceStr.includes('vet');
+    const includesPharmacies = isAll || audienceStr.includes('pharmac');
 
-    if (targetAudience === 'farmers' || targetAudience === 'owners') {
-      query = 'SELECT id FROM users WHERE role IN ($1, $2)';
-      params = ['farmer', 'user'];
-    } else if (targetAudience === 'vets' || targetAudience === 'veterinarians') {
-      query = 'SELECT id FROM users WHERE role IN ($1, $2)';
-      params = ['vet', 'veterinarian'];
+    let totalRecipients = 0;
+
+    // 1. Send notifications to mobile users (Farmers / Vets)
+    const targetRoles = [];
+    if (includesFarmers) targetRoles.push('farmer', 'user');
+    if (includesVets) targetRoles.push('vet', 'veterinarian');
+
+    if (targetRoles.length > 0) {
+      const usersRes = await pool.query('SELECT id FROM users WHERE role = ANY($1)', [targetRoles]);
+      const users = usersRes.rows;
+      totalRecipients += users.length;
+
+      for (const u of users) {
+        await sendNotification({
+          pool,
+          io,
+          userId: u.id,
+          type: type || 'announcement',
+          title_en,
+          title_ur,
+          message_en,
+          message_ur,
+          data
+        });
+      }
     }
 
-    const usersRes = await pool.query(query, params);
-    const users = usersRes.rows;
+    // 2. Broadcast to Pharmacies
+    if (includesPharmacies) {
+      try {
+        const pharmaciesRes = await pool.query("SELECT id, name, email FROM pharmacies WHERE status = 'approved'");
+        totalRecipients += pharmaciesRes.rows.length;
 
-    for (const u of users) {
-      await sendNotification({
-        pool,
-        io,
-        userId: u.id,
-        type: type || 'announcement',
-        title_en,
-        title_ur,
-        message_en,
-        message_ur,
-        data
-      });
+        if (io) {
+          const payload = {
+            type: type || 'announcement',
+            title_en,
+            title_ur,
+            message_en,
+            message_ur,
+            data,
+            created_at: new Date().toISOString()
+          };
+          io.emit('pharmacy_announcement', payload);
+          io.to('pharmacies').emit('announcement', payload);
+        }
+      } catch (pharmErr) {
+        console.error('Error broadcasting to pharmacies:', pharmErr.message);
+      }
     }
 
-    return { success: true, count: users.length };
+    return { success: true, count: totalRecipients };
   } catch (err) {
     console.error('Error broadcasting notification:', err.message);
     return { success: false, error: err.message };

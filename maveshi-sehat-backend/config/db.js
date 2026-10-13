@@ -20,6 +20,8 @@ pool.connect((err, client, release) => {
       ALTER TABLE detections ADD COLUMN IF NOT EXISTS first_aid TEXT[];
       ALTER TABLE detections ADD COLUMN IF NOT EXISTS disease_urdu VARCHAR(100);
 
+      ALTER TABLE announcements ALTER COLUMN target_audience TYPE VARCHAR(255);
+
       ALTER TABLE pharmacies ADD COLUMN IF NOT EXISTS name_urdu VARCHAR(255);
       ALTER TABLE pharmacies ADD COLUMN IF NOT EXISTS license_expiry VARCHAR(100);
       ALTER TABLE pharmacies ADD COLUMN IF NOT EXISTS cnic VARCHAR(50);

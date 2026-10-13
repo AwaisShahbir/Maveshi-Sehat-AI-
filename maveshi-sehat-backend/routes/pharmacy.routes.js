@@ -97,6 +97,19 @@ module.exports = (pool) => {
     }
   });
 
+  // Get Admin Announcements relevant to pharmacies
+  router.get('/api/pharmacy/announcements', async (req, res) => {
+    try {
+      const result = await pool.query(
+        "SELECT * FROM announcements WHERE target_audience = 'all' OR target_audience LIKE '%pharmac%' ORDER BY created_at DESC LIMIT 20"
+      );
+      res.status(200).json(result.rows);
+    } catch (err) {
+      console.error('Error fetching pharmacy announcements:', err.message);
+      res.status(500).json({ error: 'Failed to fetch announcements' });
+    }
+  });
+
   // Pharmacy Dashboard Stats
   router.get('/api/pharmacy/dashboard-stats', async (req, res) => {
     try {

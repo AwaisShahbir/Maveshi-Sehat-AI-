@@ -6,7 +6,11 @@ import {
   UserCheck, 
   Store, 
   Activity,
-  Eye
+  Eye,
+  CheckCircle2,
+  Users,
+  Calendar,
+  Tag
 } from 'lucide-react';
 import '../styles/Notifications.css';
 
@@ -20,14 +24,19 @@ export default function Notifications() {
   const [messageEn, setMessageEn] = useState('');
   const [sendToOwners, setSendToOwners] = useState(true);
   const [sendToVets, setSendToVets] = useState(true);
+  const [sendToPharmacies, setSendToPharmacies] = useState(true);
   const [ownersCount, setOwnersCount] = useState(0);
   const [vetsCount, setVetsCount] = useState(0);
+  const [pharmaciesCount, setPharmaciesCount] = useState(0);
 
   const fetchNotificationsData = async () => {
     setLoading(true);
     try {
-      const notifsRes = await fetch('http://localhost:5000/api/admin/notifications');
-      const usersRes = await fetch('http://localhost:5000/api/admin/users');
+      const [notifsRes, usersRes, pharmaciesRes] = await Promise.all([
+        fetch('http://localhost:5000/api/admin/notifications'),
+        fetch('http://localhost:5000/api/admin/users'),
+        fetch('http://localhost:5000/api/admin/pharmacies')
+      ]);
       
       if (notifsRes.ok) {
         const notifsData = await notifsRes.json();
@@ -36,11 +45,17 @@ export default function Notifications() {
       
       if (usersRes.ok) {
         const usersData = await usersRes.json();
-        setOwnersCount(usersData.filter(u => u.role === 'farmer').length);
-        setVetsCount(usersData.filter(u => u.role === 'vet').length);
+        setOwnersCount(usersData.filter(u => u.role === 'farmer' || u.role === 'user').length);
+        setVetsCount(usersData.filter(u => u.role === 'vet' || u.role === 'veterinarian').length);
+      }
+
+      if (pharmaciesRes.ok) {
+        const pharmaciesData = await pharmaciesRes.json();
+        const approvedCount = pharmaciesData.filter(p => p.status === 'approved').length;
+        setPharmaciesCount(approvedCount || pharmaciesData.length);
       }
     } catch (err) {
-      console.error(err);
+      console.error('Error loading notification data:', err);
     } finally {
       setLoading(false);
     }
@@ -52,18 +67,22 @@ export default function Notifications() {
 
   const handleSendAnnouncement = async (e) => {
     e.preventDefault();
-    if (!title || !messageEn) {
+    if (!title.trim() || !messageEn.trim()) {
       alert('Please fill out the announcement title and message.');
       return;
     }
 
-    let target = 'all';
-    if (sendToOwners && !sendToVets) target = 'owners';
-    if (!sendToOwners && sendToVets) target = 'vets';
-    if (!sendToOwners && !sendToVets) {
-      alert('Please select at least one recipient audience.');
+    const audiences = [];
+    if (sendToOwners) audiences.push('owners');
+    if (sendToVets) audiences.push('vets');
+    if (sendToPharmacies) audiences.push('pharmacies');
+
+    if (audiences.length === 0) {
+      alert('Please select at least one recipient audience (Owners, Vets, or Pharmacies).');
       return;
     }
+
+    const target = audiences.length === 3 ? 'all' : audiences.join(',');
 
     try {
       const res = await fetch('http://localhost:5000/api/admin/announcements', {
@@ -72,14 +91,14 @@ export default function Notifications() {
         body: JSON.stringify({
           targetAudience: target,
           type: notifType,
-          title,
-          messageEn,
-          messageUr: messageEn
+          title: title.trim(),
+          messageEn: messageEn.trim(),
+          messageUr: messageEn.trim()
         })
       });
 
       if (res.ok) {
-        alert('Announcement broadcasted successfully.');
+        alert('Announcement broadcasted successfully to selected recipients.');
         setTitle('');
         setMessageEn('');
         fetchNotificationsData();
@@ -87,53 +106,138 @@ export default function Notifications() {
         alert('Failed to send announcement.');
       }
     } catch (err) {
-      console.error(err);
+      console.error('Error dispatching announcement:', err);
+      alert('Failed to connect to backend server.');
     }
+  };
+
+  const getRecipientSummary = () => {
+    const list = [];
+    if (sendToOwners) list.push(`Farmers (${ownersCount})`);
+    if (sendToVets) list.push(`Vets (${vetsCount})`);
+    if (sendToPharmacies) list.push(`Pharmacies (${pharmaciesCount})`);
+    return list.length > 0 ? list.join(', ') : 'None selected';
   };
 
   const filteredNotifs = notifications.filter(n => {
     if (filter === 'all') return true;
-    if (filter === 'vet') return n.type.includes('vet');
-    if (filter === 'outbreak') return n.type.includes('outbreak') || n.type.includes('disease');
-    if (filter === 'pharmacy') return n.type.includes('pharmacy');
-    if (filter === 'system') return n.type.includes('system') || n.type.includes('alert');
+    if (filter === 'broadcasts') return n.source === 'announcement';
+    if (filter === 'vet') {
+      return (n.type && n.type.includes('vet')) || (n.target_audience && n.target_audience.includes('vet'));
+    }
+    if (filter === 'outbreak') {
+      return (n.type && (n.type.includes('outbreak') || n.type.includes('disease')));
+    }
+    if (filter === 'pharmacy') {
+      return (n.type && n.type.includes('pharmacy')) || (n.target_audience && n.target_audience.includes('pharmac'));
+    }
     return true;
   });
 
   const getNotifDetails = (n) => {
-    switch (n.type) {
+    const type = (n.type || 'general').toLowerCase();
+    if (type.includes('vet')) {
+      return {
+        icon: <UserCheck size={18} />,
+        itemClass: 'type-vet',
+        iconClass: 'icon-vet',
+        actionText: 'Review Vet'
+      };
+    }
+    if (type.includes('outbreak') || type.includes('disease')) {
+      return {
+        icon: <Activity size={18} />,
+        itemClass: 'type-outbreak',
+        iconClass: 'icon-outbreak',
+        actionText: 'View Outbreak'
+      };
+    }
+    if (type.includes('pharmacy') || (n.target_audience && n.target_audience === 'pharmacies')) {
+      return {
+        icon: <Store size={18} />,
+        itemClass: 'type-pharmacy',
+        iconClass: 'icon-pharmacy',
+        actionText: 'Review Pharmacy'
+      };
+    }
+    if (type.includes('maintenance')) {
+      return {
+        icon: <RefreshCw size={18} />,
+        itemClass: 'type-maintenance',
+        iconClass: 'icon-maintenance',
+        actionText: 'View Details'
+      };
+    }
+    return {
+      icon: <Bell size={18} />,
+      itemClass: 'type-general',
+      iconClass: 'icon-general',
+      actionText: 'View Details'
+    };
+  };
+
+  const getCategoryDetails = (type) => {
+    const t = (type || 'general').toLowerCase();
+    switch (t) {
+      case 'outbreak':
+      case 'disease_outbreak':
+        return { label: 'Disease Outbreak', badgeClass: 'cat-outbreak' };
+      case 'maintenance':
+        return { label: 'System Maintenance', badgeClass: 'cat-maintenance' };
+      case 'campaign':
+        return { label: 'Vaccination Campaign', badgeClass: 'cat-campaign' };
       case 'vet_pending':
       case 'vet_verification':
-        return {
-          icon: <UserCheck size={18} />,
-          itemClass: 'type-vet',
-          iconClass: 'icon-vet',
-          actionText: 'Review Vet'
-        };
-      case 'disease_outbreak':
-      case 'outbreak':
-        return {
-          icon: <Activity size={18} />,
-          itemClass: 'type-outbreak',
-          iconClass: 'icon-outbreak',
-          actionText: 'View Outbreak'
-        };
+        return { label: 'Vet Verification', badgeClass: 'cat-vet' };
       case 'pharmacy_approval':
       case 'pharmacy_pending':
-        return {
-          icon: <Store size={18} />,
-          itemClass: 'type-pharmacy',
-          iconClass: 'icon-pharmacy',
-          actionText: 'Review Pharmacy'
-        };
+        return { label: 'Pharmacy Approval', badgeClass: 'cat-pharmacy' };
+      case 'general':
       default:
-        return {
-          icon: <Bell size={18} />,
-          itemClass: 'type-general',
-          iconClass: 'icon-general',
-          actionText: 'View Details'
-        };
+        return { label: 'General Alert', badgeClass: 'cat-general' };
     }
+  };
+
+  const renderAudienceBadge = (targetAudience, source) => {
+    if (source === 'system') {
+      return (
+        <span className="badge-audience audience-system">
+          🛡️ Inbound System Alert
+        </span>
+      );
+    }
+
+    const aud = String(targetAudience || 'all').toLowerCase();
+    if (aud === 'all') {
+      return (
+        <span className="badge-audience audience-all">
+          🌐 Sent to: All Platform Users (Farmers, Vets & Pharmacies)
+        </span>
+      );
+    }
+
+    const includesOwners = aud.includes('owner') || aud.includes('farmer');
+    const includesVets = aud.includes('vet');
+    const includesPharmacies = aud.includes('pharmac');
+
+    if (includesOwners && includesVets && includesPharmacies) {
+      return (
+        <span className="badge-audience audience-all">
+          🌐 Sent to: All Users (Farmers, Vets & Pharmacies)
+        </span>
+      );
+    }
+
+    const recipients = [];
+    if (includesOwners) recipients.push('Farmers');
+    if (includesVets) recipients.push('Veterinarians');
+    if (includesPharmacies) recipients.push('Pharmacies');
+
+    return (
+      <span className="badge-audience audience-targeted">
+        📢 Sent to: {recipients.join(' & ')}
+      </span>
+    );
   };
 
   return (
@@ -149,6 +253,12 @@ export default function Notifications() {
               onClick={() => setFilter('all')}
             >
               All Notifications ({notifications.length})
+            </button>
+            <button 
+              className={`notifications-tab-btn ${filter === 'broadcasts' ? 'active' : ''}`}
+              onClick={() => setFilter('broadcasts')}
+            >
+              Broadcasts Sent ({notifications.filter(n => n.source === 'announcement').length})
             </button>
             <button 
               className={`notifications-tab-btn ${filter === 'vet' ? 'active' : ''}`}
@@ -183,6 +293,7 @@ export default function Notifications() {
             <div className="notifications-list">
               {filteredNotifs.map((n) => {
                 const details = getNotifDetails(n);
+                const category = getCategoryDetails(n.type);
                 return (
                   <div 
                     key={n.id} 
@@ -192,20 +303,41 @@ export default function Notifications() {
                       {details.icon}
                     </div>
                     <div className="notifications-content">
-                      <h4 className="notifications-title">
-                        {n.type.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase())}
-                      </h4>
+                      <div className="notifications-header-row">
+                        <h4 className="notifications-title">
+                          {n.title || (n.type ? n.type.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) : 'Notification')}
+                        </h4>
+                        <span className={`notifications-category-pill ${category.badgeClass}`}>
+                          {category.label}
+                        </span>
+                      </div>
+
                       <p className="notifications-text">{n.message_en}</p>
-                      <span className="notifications-timestamp">
-                        {new Date(n.created_at).toLocaleString([], { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
-                      </span>
+
+                      <div className="notifications-footer-row">
+                        <div className="notifications-audience-container">
+                          {renderAudienceBadge(n.target_audience, n.source)}
+                        </div>
+
+                        <span className="notifications-timestamp" title={new Date(n.created_at).toISOString()}>
+                          <Calendar size={12} style={{ display: 'inline', marginRight: '4px', verticalAlign: '-1px' }} />
+                          {new Date(n.created_at).toLocaleString('en-US', { 
+                            day: '2-digit', 
+                            month: 'short', 
+                            year: 'numeric',
+                            hour: '2-digit', 
+                            minute: '2-digit',
+                            hour12: true 
+                          })}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 );
               })}
               {filteredNotifs.length === 0 && (
                 <div className="card notifications-empty">
-                  No notifications recorded.
+                  No notifications recorded for this filter.
                 </div>
               )}
             </div>
@@ -240,6 +372,15 @@ export default function Notifications() {
                     className="announcement-check-input"
                   />
                   <span>All Vets ({vetsCount})</span>
+                </label>
+                <label className="announcement-check-label">
+                  <input 
+                    type="checkbox" 
+                    checked={sendToPharmacies} 
+                    onChange={(e) => setSendToPharmacies(e.target.checked)}
+                    className="announcement-check-input"
+                  />
+                  <span>All Pharmacies ({pharmaciesCount})</span>
                 </label>
               </div>
             </div>
@@ -293,7 +434,7 @@ export default function Notifications() {
               <button 
                 type="button" 
                 className="announcement-preview-btn" 
-                onClick={() => alert(`Announcement Preview:\n\nTitle: ${title}\nMessage: ${messageEn}`)}
+                onClick={() => alert(`📢 Announcement Preview\n\n🎯 Target Audience: ${getRecipientSummary()}\n📂 Category: ${notifType.toUpperCase()}\n\n📝 Title: ${title || '(No title)'}\n💬 Message: ${messageEn || '(No message)'}`)}
               >
                 <Eye size={14} />
                 <span>Preview</span>

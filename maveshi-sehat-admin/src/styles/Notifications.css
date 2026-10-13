@@ -89,6 +89,10 @@
   border-left-color: #007aff;
 }
 
+.notifications-card-item.type-maintenance {
+  border-left-color: #f59e0b;
+}
+
 .notifications-card-item.type-general {
   border-left-color: #3da860;
 }
@@ -118,6 +122,11 @@
   color: #007aff;
 }
 
+.notifications-icon-box.icon-maintenance {
+  background-color: #fef3c7;
+  color: #d97706;
+}
+
 .notifications-icon-box.icon-general {
   background-color: #eff7f2;
   color: #3da860;
@@ -128,22 +137,124 @@
   min-width: 0;
 }
 
+.notifications-header-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+
 .notifications-title {
-  font-size: 14px;
-  fontWeight: 700;
-  color: #1f2937;
-  margin: 0 0 4px 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+  line-height: 1.3;
+}
+
+.notifications-category-pill {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+  white-space: nowrap;
+  letter-spacing: 0.2px;
+}
+
+.cat-general {
+  background-color: #f0fdf4;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+
+.cat-outbreak {
+  background-color: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+.cat-maintenance {
+  background-color: #fffbeb;
+  color: #92400e;
+  border: 1px solid #fde68a;
+}
+
+.cat-campaign {
+  background-color: #eff6ff;
+  color: #1e40af;
+  border: 1px solid #bfdbfe;
+}
+
+.cat-vet {
+  background-color: #fff7ed;
+  color: #c2410c;
+  border: 1px solid #fed7aa;
+}
+
+.cat-pharmacy {
+  background-color: #f0fdfa;
+  color: #0f766e;
+  border: 1px solid #99f6e4;
 }
 
 .notifications-text {
   font-size: 13px;
   color: #4b5563;
-  margin: 0 0 6px 0;
+  margin: 0 0 10px 0;
+  line-height: 1.5;
+}
+
+.notifications-footer-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  border-top: 1px dashed #f1f5f9;
+  padding-top: 8px;
+}
+
+.notifications-audience-container {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.badge-audience {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.audience-all {
+  background-color: #ecfdf5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+}
+
+.audience-targeted {
+  background-color: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+}
+
+.audience-system {
+  background-color: #f8fafc;
+  color: #475569;
+  border: 1px solid #e2e8f0;
 }
 
 .notifications-timestamp {
   font-size: 11px;
-  color: #9ca3af;
+  color: #64748b;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
 }
 
 /* Announcement Form Section */
@@ -181,7 +292,8 @@
 
 .announcement-check-group {
   display: flex;
-  gap: 20px;
+  flex-wrap: wrap;
+  gap: 14px;
 }
 
 .announcement-check-label {
