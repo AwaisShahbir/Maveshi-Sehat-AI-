@@ -74,6 +74,9 @@ module.exports = (pool) => {
       if (pharmacy.status === 'rejected') {
         return res.status(403).json({ error: 'Your pharmacy registration request was rejected by admin.' });
       }
+      if (pharmacy.status === 'blocked') {
+        return res.status(403).json({ error: 'Your pharmacy account has been blocked by administrator. Please contact support.' });
+      }
 
       const isMatch = await bcrypt.compare(password, pharmacy.password);
       if (!isMatch) {

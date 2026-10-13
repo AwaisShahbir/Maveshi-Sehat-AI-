@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Store, Check, X, ExternalLink } from 'lucide-react';
+import { Store, Check, X, ExternalLink, ShieldAlert, ShieldCheck } from 'lucide-react';
 import '../styles/PharmacyApproval.css';
 
 export default function PharmacyApproval() {
   const [pharmacies, setPharmacies] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('pending');
+  const [activeTab, setActiveTab] = useState('approved');
   const [selectedPharmacy, setSelectedPharmacy] = useState(null);
 
   const fetchPharmacies = async () => {
@@ -28,6 +28,19 @@ export default function PharmacyApproval() {
   }, []);
 
   const handleAction = async (pharmacyId, action) => {
+    let confirmMsg = '';
+    if (action === 'block') {
+      confirmMsg = 'Are you sure you want to BLOCK this pharmacy? They will not be able to log into their portal or sell medicines.';
+    } else if (action === 'unblock') {
+      confirmMsg = 'Are you sure you want to UNBLOCK this pharmacy?';
+    } else if (action === 'approve') {
+      confirmMsg = 'Are you sure you want to approve this pharmacy application?';
+    } else if (action === 'reject') {
+      confirmMsg = 'Are you sure you want to reject this pharmacy application?';
+    }
+
+    if (confirmMsg && !window.confirm(confirmMsg)) return;
+
     try {
       const res = await fetch('http://localhost:5000/api/admin/pharmacies/approve', {
         method: 'POST',
@@ -35,9 +48,12 @@ export default function PharmacyApproval() {
         body: JSON.stringify({ pharmacyId, action })
       });
       if (res.ok) {
-        alert(`Pharmacy ${action === 'approve' ? 'approved' : 'rejected'} successfully.`);
+        const result = await res.json();
+        const actionLabel = action === 'approve' ? 'approved' : action === 'reject' ? 'rejected' : action === 'block' ? 'blocked' : 'unblocked';
+        alert(`Pharmacy ${actionLabel} successfully.`);
         if (selectedPharmacy && selectedPharmacy.id === pharmacyId) {
-          setSelectedPharmacy(null);
+          const newStatus = (action === 'approve' || action === 'unblock') ? 'approved' : action === 'reject' ? 'rejected' : 'blocked';
+          setSelectedPharmacy(prev => prev ? { ...prev, status: newStatus } : null);
         }
         fetchPharmacies();
       } else {
@@ -68,6 +84,12 @@ export default function PharmacyApproval() {
           Approved Pharmacies ({pharmacies.filter(p => p.status === 'approved').length})
         </button>
         <button 
+          className={`pharmacy-tab-btn ${activeTab === 'blocked' ? 'active' : ''}`}
+          onClick={() => setActiveTab('blocked')}
+        >
+          Blocked Pharmacies ({pharmacies.filter(p => p.status === 'blocked').length})
+        </button>
+        <button 
           className={`pharmacy-tab-btn ${activeTab === 'rejected' ? 'active' : ''}`}
           onClick={() => setActiveTab('rejected')}
         >
@@ -82,7 +104,7 @@ export default function PharmacyApproval() {
           
           <div className="pharmacy-cards-container">
             {displayPharmacies.map(pharm => (
-              <div className="pharmacy-card-item card" key={pharm.id}>
+              <div className={`pharmacy-card-item card status-${pharm.status}`} key={pharm.id}>
                 <div className="pharmacy-card-layout">
                   
                   <div className="pharmacy-card-left">
@@ -90,7 +112,14 @@ export default function PharmacyApproval() {
                       <Store size={24} className="p-avatar-icon" />
                     </div>
                     <div>
-                      <h3 className="pharmacy-title">{pharm.name}</h3>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                        <h3 className="pharmacy-title" style={{ margin: 0 }}>{pharm.name}</h3>
+                        {pharm.name_urdu && (
+                          <span style={{ fontSize: '13px', color: '#135431', fontWeight: 'bold' }}>
+                            ({pharm.name_urdu})
+                          </span>
+                        )}
+                      </div>
                       
                       <div className="pharmacy-meta-grid">
                         <div><strong className="pharmacy-meta-label">License:</strong> <span className="font-mono pharmacy-meta-val">{pharm.license_number}</span></div>
@@ -105,7 +134,15 @@ export default function PharmacyApproval() {
                   </div>
 
                   <div className="pharmacy-card-right">
-                    <span className="badge badge-orange">
+                    <span className={`badge ${
+                      pharm.status === 'approved' 
+                        ? 'badge-green' 
+                        : pharm.status === 'blocked' 
+                        ? 'badge-red' 
+                        : pharm.status === 'rejected'
+                        ? 'badge-red'
+                        : 'badge-orange'
+                    }`}>
                       {pharm.status.toUpperCase()}
                     </span>
                     
@@ -114,18 +151,42 @@ export default function PharmacyApproval() {
                       <ExternalLink size={12} />
                     </button>
 
-                    {pharm.status === 'pending' && (
-                      <div className="pharmacy-action-btns">
-                        <button className="pharmacy-approve-btn" onClick={() => handleAction(pharm.id, 'approve')}>
-                          <Check size={14} />
-                          <span>Approve</span>
+                    <div className="pharmacy-action-btns">
+                      {pharm.status === 'approved' && (
+                        <button 
+                          className="pharmacy-block-btn" 
+                          onClick={() => handleAction(pharm.id, 'block')}
+                          title="Block pharmacy from accessing portal and listing medicines"
+                        >
+                          <ShieldAlert size={13} />
+                          <span>Block Pharmacy</span>
                         </button>
-                        <button className="pharmacy-reject-btn" onClick={() => handleAction(pharm.id, 'reject')}>
-                          <X size={14} />
-                          <span>Reject</span>
+                      )}
+
+                      {pharm.status === 'blocked' && (
+                        <button 
+                          className="pharmacy-unblock-btn" 
+                          onClick={() => handleAction(pharm.id, 'unblock')}
+                          title="Restore approved access for pharmacy"
+                        >
+                          <ShieldCheck size={13} />
+                          <span>Unblock Pharmacy</span>
                         </button>
-                      </div>
-                    )}
+                      )}
+
+                      {pharm.status === 'pending' && (
+                        <>
+                          <button className="pharmacy-approve-btn" onClick={() => handleAction(pharm.id, 'approve')}>
+                            <Check size={14} />
+                            <span>Approve</span>
+                          </button>
+                          <button className="pharmacy-reject-btn" onClick={() => handleAction(pharm.id, 'reject')}>
+                            <X size={14} />
+                            <span>Reject</span>
+                          </button>
+                        </>
+                      )}
+                    </div>
                   </div>
 
                 </div>
@@ -226,7 +287,15 @@ export default function PharmacyApproval() {
               </div>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span className={`badge ${selectedPharmacy.status === 'approved' ? 'badge-green' : selectedPharmacy.status === 'pending' ? 'badge-orange' : 'badge-red'}`}>
+                <span className={`badge ${
+                  selectedPharmacy.status === 'approved' 
+                    ? 'badge-green' 
+                    : selectedPharmacy.status === 'blocked'
+                    ? 'badge-red'
+                    : selectedPharmacy.status === 'rejected'
+                    ? 'badge-red'
+                    : 'badge-orange'
+                }`}>
                   {selectedPharmacy.status.toUpperCase()}
                 </span>
                 <button 
@@ -313,40 +382,63 @@ export default function PharmacyApproval() {
               </div>
             </div>
 
-            <div className="pharmacy-modal-actions">
-              {selectedPharmacy.status === 'pending' && (
-                <>
+            <div className="pharmacy-modal-actions" style={{ justifyContent: 'space-between', borderTop: '1px solid #f1f5f9', paddingTop: '16px' }}>
+              <div>
+                {selectedPharmacy.status === 'approved' && (
                   <button 
-                    onClick={() => handleAction(selectedPharmacy.id, 'reject')}
-                    className="pharmacy-modal-reject-btn"
+                    onClick={() => handleAction(selectedPharmacy.id, 'block')}
+                    className="pharmacy-block-btn"
+                    style={{ padding: '8px 16px', fontSize: '12px' }}
                   >
-                    Reject Application
+                    <ShieldAlert size={14} />
+                    <span>Block Pharmacy</span>
                   </button>
+                )}
+
+                {selectedPharmacy.status === 'blocked' && (
                   <button 
-                    onClick={() => handleAction(selectedPharmacy.id, 'approve')}
-                    className="pharmacy-modal-approve-btn"
+                    onClick={() => handleAction(selectedPharmacy.id, 'unblock')}
+                    className="pharmacy-unblock-btn"
+                    style={{ padding: '8px 16px', fontSize: '12px' }}
                   >
-                    Approve Pharmacy
+                    <ShieldCheck size={14} />
+                    <span>Unblock Pharmacy</span>
                   </button>
-                </>
-              )}
-              {selectedPharmacy.status !== 'pending' && (
-                <button 
-                  onClick={() => setSelectedPharmacy(null)}
-                  className="pharmacy-modal-close-btn-main"
-                  style={{
-                    backgroundColor: '#3da860',
-                    color: '#ffffff',
-                    border: 'none',
-                    padding: '8px 22px',
-                    borderRadius: '8px',
-                    fontWeight: '600',
-                    cursor: 'pointer'
-                  }}
-                >
-                  Close
-                </button>
-              )}
+                )}
+
+                {selectedPharmacy.status === 'pending' && (
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <button 
+                      onClick={() => handleAction(selectedPharmacy.id, 'approve')}
+                      className="pharmacy-modal-approve-btn"
+                    >
+                      Approve Pharmacy
+                    </button>
+                    <button 
+                      onClick={() => handleAction(selectedPharmacy.id, 'reject')}
+                      className="pharmacy-modal-reject-btn"
+                    >
+                      Reject Application
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              <button 
+                onClick={() => setSelectedPharmacy(null)}
+                className="pharmacy-modal-close-btn-main"
+                style={{
+                  backgroundColor: '#3da860',
+                  color: '#ffffff',
+                  border: 'none',
+                  padding: '8px 22px',
+                  borderRadius: '8px',
+                  fontWeight: '600',
+                  cursor: 'pointer'
+                }}
+              >
+                Close
+              </button>
             </div>
           </div>
         </div>

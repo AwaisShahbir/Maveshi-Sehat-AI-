@@ -169,14 +169,35 @@ module.exports = (pool, io) => {
     }
   });
 
-  // Admin Pharmacy Approval
+  // Admin Pharmacy Approval & Status Action (Approve, Reject, Block, Unblock)
   router.post('/api/admin/pharmacies/approve', async (req, res) => {
     try {
       const { pharmacyId, action } = req.body;
-      const status = action === 'approve' ? 'approved' : 'rejected';
+      let status = 'approved';
+      if (action === 'approve' || action === 'unblock') status = 'approved';
+      else if (action === 'reject') status = 'rejected';
+      else if (action === 'block') status = 'blocked';
+
       await pool.query("UPDATE pharmacies SET status = $1 WHERE id = $2", [status, pharmacyId]);
-      res.status(200).json({ message: `Pharmacy ${status} successfully.` });
+      res.status(200).json({ message: `Pharmacy ${status} successfully.`, status });
     } catch (err) {
+      console.error('Error updating pharmacy status:', err);
+      res.status(500).json({ error: 'Failed to update pharmacy status' });
+    }
+  });
+
+  router.post('/api/admin/pharmacies/action', async (req, res) => {
+    try {
+      const { pharmacyId, action } = req.body;
+      let status = 'approved';
+      if (action === 'approve' || action === 'unblock') status = 'approved';
+      else if (action === 'reject') status = 'rejected';
+      else if (action === 'block') status = 'blocked';
+
+      await pool.query("UPDATE pharmacies SET status = $1 WHERE id = $2", [status, pharmacyId]);
+      res.status(200).json({ message: `Pharmacy ${status} successfully.`, status });
+    } catch (err) {
+      console.error('Error updating pharmacy status:', err);
       res.status(500).json({ error: 'Failed to update pharmacy status' });
     }
   });
