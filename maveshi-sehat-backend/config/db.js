@@ -8,11 +8,19 @@ const pool = new Pool({
   port: process.env.DB_PORT,
 });
 
+let migrationsExecuted = false;
+
 pool.connect((err, client, release) => {
   if (err) {
     console.error('Error connecting to PostgreSQL:', err.message);
   } else {
     console.log('✅ Successfully connected to PostgreSQL Database!');
+
+    if (migrationsExecuted) {
+      release();
+      return;
+    }
+    migrationsExecuted = true;
 
     client.query(`
       ALTER TABLE detections ADD COLUMN IF NOT EXISTS image_url VARCHAR(255);

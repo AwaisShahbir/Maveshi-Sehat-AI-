@@ -274,10 +274,10 @@ export default function UserManagement() {
             <div className="um-modal-header">
               <div>
                 <h3 className="um-modal-title">
-                  User Profile Details
+                  {selectedUser.role === 'vet' ? 'Veterinary Doctor Profile' : 'Livestock Owner Profile'}
                 </h3>
                 <p className="um-modal-subtitle">
-                  Account reference #{selectedUser.id}
+                  Account reference #{selectedUser.id} • Registered {new Date(selectedUser.created_at).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })}
                 </p>
               </div>
 
@@ -297,18 +297,26 @@ export default function UserManagement() {
             <div className="um-modal-body">
               <div className="um-profile-header">
                 <div className={`um-avatar-large ${selectedUser.role === 'vet' ? 'vet' : 'owner'}`}>
-                  {selectedUser.full_name ? selectedUser.full_name.replace('Dr. ', '')[0].toUpperCase() : 'U'}
+                  {selectedUser.full_name ? selectedUser.full_name.replace('Dr. ', '').trim()[0].toUpperCase() : 'U'}
                 </div>
                 <div>
                   <h4 className="um-user-fullname">
                     {selectedUser.full_name}
                   </h4>
-                  <span className={`um-role-badge ${selectedUser.role === 'vet' ? 'vet' : 'owner'}`}>
-                    {selectedUser.role === 'farmer' ? 'Livestock Owner' : 'Veterinary Doctor'}
-                  </span>
+                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginTop: '4px' }}>
+                    <span className={`um-role-badge ${selectedUser.role === 'vet' ? 'vet' : 'owner'}`}>
+                      {selectedUser.role === 'farmer' ? '🐮 Livestock Owner' : '🩺 Veterinary Doctor'}
+                    </span>
+                    {selectedUser.specialization && (
+                      <span className="badge badge-green" style={{ fontSize: '11px', padding: '2px 8px' }}>
+                        {selectedUser.specialization}
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
 
+              {/* Contact & Location Grid */}
               <div className="um-info-grid">
                 <div className="um-info-box">
                   <div className="um-info-box-header">
@@ -351,17 +359,91 @@ export default function UserManagement() {
                 </div>
               </div>
 
+              {/* VET SPECIFIC CREDENTIALS */}
               {selectedUser.role === 'vet' && (
                 <div className="um-credentials-card">
                   <div className="um-credentials-header">
-                    <Award size={15} />
-                    <span>Veterinary Credentials</span>
+                    <Award size={15} color="#135431" />
+                    <span>Professional Veterinary Credentials</span>
                   </div>
-                  <div className="um-credentials-body">
-                    PVMC Reg: <strong>{selectedUser.pvmc_number || 'PVMC-VERIFIED'}</strong> | Specialization: <strong>{selectedUser.specialization || 'Livestock & Ruminants'}</strong>
+                  <div className="um-credentials-grid">
+                    <div>
+                      <span className="um-cred-label">PVMC License:</span>
+                      <strong className="font-mono">{selectedUser.pvmc_number || 'PVMC-VERIFIED'}</strong>
+                    </div>
+                    <div>
+                      <span className="um-cred-label">Specialization:</span>
+                      <strong>{selectedUser.specialization || 'Livestock & Ruminants'}</strong>
+                    </div>
+                    <div>
+                      <span className="um-cred-label">Experience:</span>
+                      <strong>{selectedUser.experience_years ? `${selectedUser.experience_years} years practice` : 'General Clinical Practice'}</strong>
+                    </div>
+                    <div>
+                      <span className="um-cred-label">Status:</span>
+                      <strong style={{ color: selectedUser.status === 'verified' ? '#166534' : '#d97706' }}>
+                        {selectedUser.status === 'verified' ? 'Verified Doctor' : selectedUser.status}
+                      </strong>
+                    </div>
                   </div>
+                  {selectedUser.license_document_url && (
+                    <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px dashed #cbd5e1' }}>
+                      <a 
+                        href="#license" 
+                        onClick={(e) => {
+                          e.preventDefault();
+                          const url = selectedUser.license_document_url.replace('10.0.2.2', 'localhost');
+                          window.open(url, '_blank');
+                        }}
+                        style={{ color: '#3da860', fontWeight: '600', fontSize: '12px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                      >
+                        📄 View Uploaded PVMC License Document ↗
+                      </a>
+                    </div>
+                  )}
                 </div>
               )}
+
+              {/* PLATFORM ENGAGEMENT STATS */}
+              <div className="um-activity-section">
+                <h5 className="um-activity-title">
+                  {selectedUser.role === 'vet' ? 'Clinical Activity & Stats' : 'Livestock & Health Records Activity'}
+                </h5>
+                <div className="um-activity-grid">
+                  {selectedUser.role === 'farmer' ? (
+                    <>
+                      <div className="um-stat-pill">
+                        <span className="um-stat-num">{selectedUser.farmer_consultations_count ?? 0}</span>
+                        <span className="um-stat-txt">Consultations Requested</span>
+                      </div>
+                      <div className="um-stat-pill">
+                        <span className="um-stat-num">{selectedUser.farmer_detections_count ?? 0}</span>
+                        <span className="um-stat-txt">AI Disease Scans</span>
+                      </div>
+                      <div className="um-stat-pill">
+                        <span className="um-stat-num">{selectedUser.farmer_orders_count ?? 0}</span>
+                        <span className="um-stat-txt">Medicine Orders</span>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="um-stat-pill">
+                        <span className="um-stat-num">{selectedUser.vet_consultations_count ?? 0}</span>
+                        <span className="um-stat-txt">Consultations Handled</span>
+                      </div>
+                      <div className="um-stat-pill">
+                        <span className="um-stat-num">{selectedUser.vet_completed_consultations ?? 0}</span>
+                        <span className="um-stat-txt">Completed Consultations</span>
+                      </div>
+                      <div className="um-stat-pill">
+                        <span className="um-stat-num">{selectedUser.vet_reviewed_cases ?? 0}</span>
+                        <span className="um-stat-txt">Disease Cases Reviewed</span>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+
             </div>
 
             {/* Modal Footer */}

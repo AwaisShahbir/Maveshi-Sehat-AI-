@@ -203,46 +203,113 @@ export default function PharmacyApproval() {
           <div 
             className="pharmacy-modal-content card"
             onClick={(e) => e.stopPropagation()}
+            style={{ maxWidth: '680px' }}
           >
             <div className="pharmacy-modal-header">
               <div>
-                <h3 className="pharmacy-modal-title">{selectedPharmacy.name}</h3>
-                <span className="font-mono pharmacy-modal-lic">License: {selectedPharmacy.license_number}</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <h3 className="pharmacy-modal-title">{selectedPharmacy.name}</h3>
+                  {selectedPharmacy.name_urdu && (
+                    <span style={{ fontSize: '15px', color: '#135431', fontWeight: 'bold' }}>
+                      ({selectedPharmacy.name_urdu})
+                    </span>
+                  )}
+                </div>
+                <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginTop: '4px' }}>
+                  <span className="font-mono pharmacy-modal-lic">DRAP License: {selectedPharmacy.license_number}</span>
+                  {selectedPharmacy.license_expiry && (
+                    <span style={{ fontSize: '11px', color: '#64748b' }}>
+                      Expires: {selectedPharmacy.license_expiry}
+                    </span>
+                  )}
+                </div>
               </div>
-              <button 
-                onClick={() => setSelectedPharmacy(null)}
-                className="pharmacy-modal-close-icon"
-              >
-                <X size={16} />
-              </button>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span className={`badge ${selectedPharmacy.status === 'approved' ? 'badge-green' : selectedPharmacy.status === 'pending' ? 'badge-orange' : 'badge-red'}`}>
+                  {selectedPharmacy.status.toUpperCase()}
+                </span>
+                <button 
+                  onClick={() => setSelectedPharmacy(null)}
+                  className="pharmacy-modal-close-icon"
+                  title="Close"
+                >
+                  <X size={16} />
+                </button>
+              </div>
             </div>
 
-            <div className="pharmacy-modal-grid">
+            <div className="pharmacy-modal-grid" style={{ gridTemplateColumns: 'repeat(2, 1fr)' }}>
               <div className="pharmacy-modal-box">
-                <span className="pharmacy-modal-label">Proprietor</span>
+                <span className="pharmacy-modal-label">Proprietor / Owner</span>
                 <strong className="pharmacy-modal-val">{selectedPharmacy.owner_name}</strong>
               </div>
+
+              <div className="pharmacy-modal-box">
+                <span className="pharmacy-modal-label">Owner CNIC</span>
+                <strong className="pharmacy-modal-val font-mono">{selectedPharmacy.cnic || 'N/A'}</strong>
+              </div>
+
               <div className="pharmacy-modal-box">
                 <span className="pharmacy-modal-label">Registered Email</span>
                 <strong className="pharmacy-modal-val">{selectedPharmacy.email || 'N/A'}</strong>
               </div>
+
               <div className="pharmacy-modal-box">
                 <span className="pharmacy-modal-label">Contact Phone</span>
                 <strong className="pharmacy-modal-val">{selectedPharmacy.phone}</strong>
               </div>
+
               <div className="pharmacy-modal-box">
-                <span className="pharmacy-modal-label">WhatsApp</span>
-                <strong className="pharmacy-modal-val">{selectedPharmacy.whatsapp || 'N/A'}</strong>
+                <span className="pharmacy-modal-label">WhatsApp Number</span>
+                <strong className="pharmacy-modal-val">{selectedPharmacy.whatsapp || selectedPharmacy.phone || 'N/A'}</strong>
               </div>
+
               <div className="pharmacy-modal-box">
-                <span className="pharmacy-modal-label">Location / Address</span>
-                <strong className="pharmacy-modal-val">{selectedPharmacy.address || (selectedPharmacy.city ? `${selectedPharmacy.city}, ${selectedPharmacy.province || ''}` : 'No address provided')}</strong>
+                <span className="pharmacy-modal-label">Operating Hours</span>
+                <strong className="pharmacy-modal-val">{selectedPharmacy.business_hours || 'Mon-Sat: 9:00 AM - 9:00 PM'}</strong>
               </div>
-              <div className="pharmacy-modal-box">
-                <span className="pharmacy-modal-label">Current Status</span>
-                <strong className={selectedPharmacy.status === 'approved' ? 'text-green' : 'text-orange'}>
-                  {selectedPharmacy.status}
+
+              <div className="pharmacy-modal-box" style={{ gridColumn: 'span 2' }}>
+                <span className="pharmacy-modal-label">Full Location & Address</span>
+                <strong className="pharmacy-modal-val">
+                  {selectedPharmacy.address && selectedPharmacy.address !== 'no address'
+                    ? selectedPharmacy.address
+                    : (selectedPharmacy.city ? `${selectedPharmacy.city}, ${selectedPharmacy.province || 'Punjab'}` : 'Lahore, Punjab')}
                 </strong>
+              </div>
+
+              {selectedPharmacy.description && (
+                <div className="pharmacy-modal-box" style={{ gridColumn: 'span 2' }}>
+                  <span className="pharmacy-modal-label">Store Bio & Description</span>
+                  <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: '#334155', lineHeight: '1.4' }}>
+                    {selectedPharmacy.description}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Catalogue & Performance Summary */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px', marginBottom: '20px' }}>
+              <div style={{ background: '#eff7f2', border: '1px solid #bbf7d0', borderRadius: '10px', padding: '10px', textAlign: 'center' }}>
+                <span style={{ display: 'block', fontSize: '18px', fontWeight: '800', color: '#135431' }}>
+                  {selectedPharmacy.medicines_count || 0}
+                </span>
+                <span style={{ fontSize: '11px', color: '#166534', fontWeight: '600' }}>Listed Medicines</span>
+              </div>
+
+              <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '10px', padding: '10px', textAlign: 'center' }}>
+                <span style={{ display: 'block', fontSize: '18px', fontWeight: '800', color: '#1d4ed8' }}>
+                  {selectedPharmacy.orders_count || 0}
+                </span>
+                <span style={{ fontSize: '11px', color: '#1e40af', fontWeight: '600' }}>Orders Handled</span>
+              </div>
+
+              <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '10px', textAlign: 'center' }}>
+                <span style={{ display: 'block', fontSize: '14px', fontWeight: '700', color: '#475569', marginTop: '2px' }}>
+                  {selectedPharmacy.created_at ? new Date(selectedPharmacy.created_at).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' }) : 'Jun 10, 2026'}
+                </span>
+                <span style={{ fontSize: '11px', color: '#64748b', fontWeight: '600' }}>Registered On</span>
               </div>
             </div>
 
@@ -267,6 +334,15 @@ export default function PharmacyApproval() {
                 <button 
                   onClick={() => setSelectedPharmacy(null)}
                   className="pharmacy-modal-close-btn-main"
+                  style={{
+                    backgroundColor: '#3da860',
+                    color: '#ffffff',
+                    border: 'none',
+                    padding: '8px 22px',
+                    borderRadius: '8px',
+                    fontWeight: '600',
+                    cursor: 'pointer'
+                  }}
                 >
                   Close
                 </button>

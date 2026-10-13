@@ -93,12 +93,25 @@ module.exports = (pool, io) => {
     }
   });
 
-  // Admin Users List
+  // Admin Users List (Enriched with activity stats for farmers and vets)
   router.get('/api/admin/users', async (req, res) => {
     try {
-      const result = await pool.query("SELECT id, full_name, email, phone_number, district, role, status, pvmc_number, specialization, experience_years, license_document_url, created_at FROM users WHERE role != 'admin' ORDER BY id ASC");
+      const result = await pool.query(`
+        SELECT u.id, u.full_name, u.email, u.phone_number, u.district, u.role, u.status, 
+               u.pvmc_number, u.specialization, u.experience_years, u.license_document_url, u.created_at,
+               (SELECT COUNT(*)::int FROM consultations WHERE farmer_id = u.id) AS farmer_consultations_count,
+               (SELECT COUNT(*)::int FROM consultations WHERE vet_id = u.id) AS vet_consultations_count,
+               (SELECT COUNT(*)::int FROM consultations WHERE vet_id = u.id AND status = 'completed') AS vet_completed_consultations,
+               (SELECT COUNT(*)::int FROM detections WHERE vet_id = u.id) AS vet_reviewed_cases,
+               (SELECT COUNT(*)::int FROM detections WHERE TRIM(LOWER(owner_name)) = TRIM(LOWER(u.full_name))) AS farmer_detections_count,
+               (SELECT COUNT(*)::int FROM orders WHERE TRIM(LOWER(buyer_name)) = TRIM(LOWER(u.full_name))) AS farmer_orders_count
+        FROM users u 
+        WHERE u.role != 'admin' 
+        ORDER BY u.id ASC
+      `);
       res.status(200).json(result.rows);
     } catch (err) {
+      console.error('Error fetching admin users:', err);
       res.status(500).json({ error: 'Failed to fetch users' });
     }
   });
