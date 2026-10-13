@@ -7,6 +7,8 @@ import { getProfile, subscribeProfile } from '../../utils/profileStore';
 import { t } from '../../utils/translate';
 import { useTheme } from '../../utils/themeContext';
 import { getStyles } from '../../styles/VetDashboardScreenStyles';
+import io from 'socket.io-client';
+import { fetchUnreadCount } from '../../services/notificationService';
 
 export default function VetDashboardScreen() {
   const { colors, isDark } = useTheme();
@@ -30,6 +32,7 @@ export default function VetDashboardScreen() {
   const [isAvailable, setIsAvailable] = useState(true);
   const [loading, setLoading] = useState(true);
   const [cases, setCases] = useState([]);
+  const [unreadNotifsCount, setUnreadNotifsCount] = useState(0);
 
   const [stats, setStats] = useState({
     cases: 0,
@@ -68,8 +71,32 @@ export default function VetDashboardScreen() {
   useFocusEffect(
     React.useCallback(() => {
       fetchCases();
+      if (userId) {
+        fetchUnreadCount(userId).then(count => setUnreadNotifsCount(count));
+      }
     }, [userId])
   );
+
+  useEffect(() => {
+    if (!userId) return;
+    const socketUrl = Platform.OS === 'android' ? 'http://10.0.2.2:5000' : 'http://localhost:5000';
+    const socket = io(socketUrl);
+    socket.emit('join_user', userId);
+
+    socket.on('notification_unread_count', (data) => {
+      if (typeof data?.count === 'number') {
+        setUnreadNotifsCount(data.count);
+      }
+    });
+
+    socket.on('new_notification', () => {
+      setUnreadNotifsCount(prev => prev + 1);
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [userId]);
 
   const handleComingSoon = () => {
     Alert.alert('Coming Soon', 'Stay tuned for it!');
@@ -161,9 +188,9 @@ export default function VetDashboardScreen() {
                 hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
               >
                 <Feather name="bell" size={20} color="#FFF" />
-                {stats.pending > 0 && (
+                {unreadNotifsCount > 0 && (
                   <View style={styles.badge}>
-                    <Text style={styles.badgeText}>{stats.pending}</Text>
+                    <Text style={styles.badgeText}>{unreadNotifsCount}</Text>
                   </View>
                 )}
               </TouchableOpacity>

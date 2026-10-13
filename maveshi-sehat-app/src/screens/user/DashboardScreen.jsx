@@ -10,6 +10,8 @@ import { t, useTranslation } from '../../utils/translate';
 import { useTheme } from '../../utils/themeContext';
 import fonts from '../../styles/fonts';
 import { getStyles } from '../../styles/DashboardScreenStyles';
+import io from 'socket.io-client';
+import { fetchUnreadCount } from '../../services/notificationService';
 
 export default function DashboardScreen() {
   const navigation = useNavigation();
@@ -91,14 +93,46 @@ export default function DashboardScreen() {
       }).catch(err => console.log('Error loading updated profile stats:', err));
     });
 
+    // Fetch and subscribe to live notification badge count
+    if (userId) {
+      fetchUnreadCount(userId).then(count => setNotificationsCount(count));
+    }
+
+    const socketUrl = Platform.OS === 'android' ? 'http://10.0.2.2:5000' : 'http://localhost:5000';
+    const socket = io(socketUrl);
+    if (userId) {
+      socket.emit('join_user', userId);
+    }
+
+    socket.on('notification_unread_count', (data) => {
+      if (typeof data?.count === 'number') {
+        setNotificationsCount(data.count);
+      }
+    });
+
+    socket.on('new_notification', () => {
+      setNotificationsCount(prev => prev + 1);
+    });
+
+    const unsubscribeFocus = navigation.addListener('focus', () => {
+      if (userId) {
+        fetchUnreadCount(userId).then(count => setNotificationsCount(count));
+      }
+    });
+
     return () => {
       unsubscribeRecords();
       unsubscribeProfile();
+      unsubscribeFocus();
+      socket.disconnect();
     };
-  }, [userName]);
+  }, [userName, userId, navigation]);
 
   const onRefresh = () => {
     setRefreshing(true);
+    if (userId) {
+      fetchUnreadCount(userId).then(count => setNotificationsCount(count));
+    }
     loadRecords(userName).then((loaded) => {
       updateStats(loaded);
       setRefreshing(false);

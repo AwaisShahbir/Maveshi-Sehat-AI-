@@ -18,6 +18,7 @@ import Feather from 'react-native-vector-icons/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { getProfile, updateProfile, subscribeProfile } from '../../utils/profileStore';
 import { getRecords, subscribe, loadRecords } from '../../utils/recordsStore';
+import { saveNotificationPreferences } from '../../services/notificationService';
 import { t, useTranslation, subscribeTranslation } from '../../utils/translate';
 import { useTheme } from '../../utils/themeContext';
 import fonts from '../../styles/fonts';
@@ -109,6 +110,9 @@ export default function ProfileScreen() {
 
   const toggleNotifications = (val) => {
     updateProfile({ notificationsEnabled: val });
+    if (profile?.userId) {
+      saveNotificationPreferences(profile.userId, { enabled: val });
+    }
   };
 
   const handleLogout = () => {

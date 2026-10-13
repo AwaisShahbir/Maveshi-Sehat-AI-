@@ -1,8 +1,9 @@
-import React, { useEffect } from 'react';
-import { NavigationContainer } from '@react-navigation/native';
+import React, { useEffect, useRef } from 'react';
+import { NavigationContainer, useNavigationContainerRef } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { syncSystemLanguage } from './src/utils/profileStore';
+import { syncSystemLanguage, getProfile } from './src/utils/profileStore';
 import { ThemeProvider } from './src/utils/themeContext';
+import { initNotifications, setNotificationNavigationRef } from './src/services/notificationService';
 
 import SplashScreen from './src/screens/shared/SplashScreen';
 import WelcomeScreen from './src/screens/shared/WelcomeScreen';
@@ -17,6 +18,7 @@ import VetPrescriptionsScreen from './src/screens/vet/VetPrescriptionsScreen';
 import VetHealthRecordsScreen from './src/screens/vet/VetHealthRecordsScreen';
 import VetProfileScreen from './src/screens/vet/VetProfileScreen';
 import VetNotificationCenterScreen from './src/screens/vet/VetNotificationCenterScreen';
+import FarmerNotificationCenterScreen from './src/screens/user/FarmerNotificationCenterScreen';
 import HeatAlertScreen from './src/screens/user/HeatAlertScreen';
 import VeterinariansListScreen from './src/screens/user/VeterinariansListScreen';
 import MyConsultationsScreen from './src/screens/user/MyConsultationsScreen';
@@ -34,6 +36,16 @@ import ChatbotScreen from './src/screens/user/ChatbotScreen';
 const Stack = createNativeStackNavigator();
 
 export default function App() {
+  const navigationRef = useNavigationContainerRef();
+
+  useEffect(() => {
+    setNotificationNavigationRef(navigationRef);
+    const profile = getProfile();
+    if (profile?.userId) {
+      initNotifications(profile.userId);
+    }
+  }, [navigationRef]);
+
   useEffect(() => {
     syncSystemLanguage();
     const interval = setInterval(() => {
@@ -44,7 +56,7 @@ export default function App() {
 
   return (
     <ThemeProvider>
-      <NavigationContainer>
+      <NavigationContainer ref={navigationRef}>
         <Stack.Navigator initialRouteName="Splash" screenOptions={{ headerShown: false }}>
           <Stack.Screen name="Splash" component={SplashScreen} />
           <Stack.Screen name="Welcome" component={WelcomeScreen} />
@@ -67,7 +79,8 @@ export default function App() {
           <Stack.Screen name="VetHealthRecords" component={VetHealthRecordsScreen} />
           <Stack.Screen name="VetProfile" component={VetProfileScreen} />
           <Stack.Screen name="VetNotificationCenter" component={VetNotificationCenterScreen} />
-          <Stack.Screen name="Notifications" component={VetNotificationCenterScreen} />
+          <Stack.Screen name="Notifications" component={FarmerNotificationCenterScreen} />
+          <Stack.Screen name="FarmerNotificationCenter" component={FarmerNotificationCenterScreen} />
           <Stack.Screen name="MyConsultations" component={MyConsultationsScreen} />
           <Stack.Screen name="Chat" component={ChatScreen} />
           <Stack.Screen name="CommunityForum" component={CommunityForumScreen} />

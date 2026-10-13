@@ -7,6 +7,7 @@ import { getProfile, updateProfile, subscribeProfile } from '../../utils/profile
 import { t } from '../../utils/translate';
 import { useTheme } from '../../utils/themeContext';
 import { getStyles } from '../../styles/VetProfileScreenStyles';
+import { saveNotificationPreferences, fetchNotificationPreferences } from '../../services/notificationService';
 
 export default function VetProfileScreen() {
   const { colors, isDark, toggleTheme } = useTheme();
@@ -23,8 +24,23 @@ export default function VetProfileScreen() {
     const unsubscribe = subscribeProfile((updatedProfile) => {
       setProfile(updatedProfile);
     });
+    if (profile?.userId) {
+      fetchNotificationPreferences(profile.userId).then(prefs => {
+        if (prefs && typeof prefs.enabled === 'boolean') {
+          setNotificationsEnabled(prefs.enabled);
+        }
+      });
+    }
     return () => unsubscribe();
-  }, []);
+  }, [profile?.userId]);
+
+  const handleToggleNotifications = (val) => {
+    setNotificationsEnabled(val);
+    updateProfile({ notificationsEnabled: val });
+    if (profile?.userId) {
+      saveNotificationPreferences(profile.userId, { enabled: val });
+    }
+  };
 
   // Modals state
   const [activeModal, setActiveModal] = useState(null); // 'editProfile' | 'license' | 'specialization' | 'availability' | null
@@ -238,7 +254,7 @@ export default function VetProfileScreen() {
                 trackColor={{ false: isDark ? '#334155' : '#EAEAEA', true: colors.primary }}
                 thumbColor="#FFF"
                 ios_backgroundColor="#EAEAEA"
-                onValueChange={() => setNotificationsEnabled(!notificationsEnabled)}
+                onValueChange={handleToggleNotifications}
                 value={notificationsEnabled}
               />
             )}
