@@ -56,6 +56,10 @@ pool.connect((err, client, release) => {
       ALTER TABLE medicines ADD COLUMN IF NOT EXISTS last_restocked TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
 
       ALTER TABLE orders ADD COLUMN IF NOT EXISTS buyer_name_urdu VARCHAR(255);
+      ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_address TEXT;
+      ALTER TABLE orders ADD COLUMN IF NOT EXISTS phone VARCHAR(50);
+      ALTER TABLE orders ADD COLUMN IF NOT EXISTS transaction_id VARCHAR(100);
+      ALTER TABLE orders ADD COLUMN IF NOT EXISTS payment_status VARCHAR(50) DEFAULT 'unpaid';
 
       CREATE TABLE IF NOT EXISTS order_items (
         id SERIAL PRIMARY KEY,

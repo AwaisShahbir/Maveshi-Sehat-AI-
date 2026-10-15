@@ -479,7 +479,18 @@ module.exports = (pool) => {
   // CREATE Order
   router.post('/api/pharmacy/orders', async (req, res) => {
     try {
-      const { buyerName, buyerNameUrdu, pharmacyId, totalPrice, paymentMethod, items } = req.body;
+      const { 
+        buyerName, 
+        buyerNameUrdu, 
+        pharmacyId, 
+        totalPrice, 
+        paymentMethod, 
+        items,
+        deliveryAddress,
+        phone,
+        transactionId,
+        paymentStatus
+      } = req.body;
       if (!buyerName || !pharmacyId || !totalPrice || !paymentMethod || !items || !Array.isArray(items) || items.length === 0) {
         return res.status(400).json({ error: 'Missing required parameters or empty items list.' });
       }
@@ -495,10 +506,24 @@ module.exports = (pool) => {
         totalQty += parseInt(item.quantity);
       });
 
+      const resolvedPaymentStatus = paymentStatus || (paymentMethod === 'COD' ? 'unpaid' : 'paid');
+
       const orderResult = await pool.query(
-        `INSERT INTO orders (id, buyer_name, buyer_name_urdu, pharmacy_id, items_count, total_price, payment_method, status, created_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, 'pending', CURRENT_TIMESTAMP) RETURNING *`,
-        [orderId, buyerName, buyerNameUrdu || null, pId, totalQty, parseFloat(totalPrice), paymentMethod]
+        `INSERT INTO orders (id, buyer_name, buyer_name_urdu, pharmacy_id, items_count, total_price, payment_method, status, delivery_address, phone, transaction_id, payment_status, created_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, 'pending', $8, $9, $10, $11, CURRENT_TIMESTAMP) RETURNING *`,
+        [
+          orderId, 
+          buyerName, 
+          buyerNameUrdu || null, 
+          pId, 
+          totalQty, 
+          parseFloat(totalPrice), 
+          paymentMethod,
+          deliveryAddress || null,
+          phone || null,
+          transactionId || null,
+          resolvedPaymentStatus
+        ]
       );
 
       for (const item of items) {

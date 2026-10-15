@@ -184,10 +184,44 @@ export default function Orders({ pharmacy, onOrderAction, formatPrice, getStatus
                       </div>
                     )}
 
+                    {/* Delivery & Payment Details Card */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-white p-4 rounded-xl border border-slate-200/70 mb-4 shadow-sm">
+                      <div className="flex flex-col gap-1 text-xs">
+                        <span className="text-slate-400 font-extrabold uppercase tracking-wider text-[10px]">Delivery Information</span>
+                        <div className="text-slate-800 font-semibold mt-1">
+                          <span className="text-slate-500 font-normal">Recipient: </span>
+                          <span className="font-bold text-slate-900">{order.buyer_name}</span>
+                          {order.phone && <span className="text-slate-500 font-normal ml-2">({order.phone})</span>}
+                        </div>
+                        <div className="text-slate-700 font-medium">
+                          <span className="text-slate-500 font-normal">Address: </span>
+                          {order.delivery_address || 'Not specified'}
+                        </div>
+                      </div>
+
+                      <div className="flex flex-col gap-1 text-xs md:text-right">
+                        <span className="text-slate-400 font-extrabold uppercase tracking-wider text-[10px]">Payment Summary</span>
+                        <div className="flex items-center md:justify-end gap-2 mt-1">
+                          <span className="text-slate-900 font-extrabold bg-slate-100 px-2.5 py-1 rounded-md">{order.payment_method}</span>
+                          <span className={`px-2.5 py-1 rounded-md font-extrabold text-[10px] uppercase ${
+                            (order.payment_status || '').toLowerCase() === 'paid' 
+                              ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' 
+                              : 'bg-amber-100 text-amber-700 border border-amber-200'
+                          }`}>
+                            {order.payment_status || (order.payment_method === 'COD' ? 'Unpaid' : 'Paid')}
+                          </span>
+                        </div>
+                        {order.transaction_id && (
+                          <div className="text-[11px] text-slate-500 font-mono mt-0.5">
+                            Txn ID: <span className="font-bold text-blue-600 font-mono">{order.transaction_id}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-t border-slate-100 pt-4 gap-4">
-                      <div className="flex items-center gap-2 text-xs">
-                        <span className="text-slate-500 font-semibold">Payment Method:</span>
-                        <span className="text-slate-900 font-extrabold bg-slate-100 px-2 py-0.5 rounded-md">{order.payment_method}</span>
+                      <div className="text-xs text-slate-400">
+                        Total Amount: <span className="text-slate-900 font-extrabold">{formatPrice(order.total_price)}</span>
                       </div>
                       
                       <div className="flex gap-2 w-full sm:w-auto">
