@@ -33,8 +33,9 @@ export default function ForumPostDetailScreen() {
   const insets = useSafeAreaInsets();
 
   const [profile, setProfile] = useState(getProfile());
-  const userName = profile.userName || params.userName || '';
-  const { postId, userId } = params;
+  const userName = profile.userName || profile.fullName || params.userName || '';
+  const { postId } = params;
+  const userId = params.userId || profile.userId || null;
 
   const [post, setPost] = useState(null);
   const [comments, setComments] = useState([]);

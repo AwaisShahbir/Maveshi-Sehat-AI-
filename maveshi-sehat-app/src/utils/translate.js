@@ -29,7 +29,7 @@ const notifyTranslationListeners = () => {
  * Common application terms pre-fetched in batch from API to ensure instant UI rendering in Urdu
  */
 export const CORE_UI_KEYS = [
-  'Home', 'AI Scan', 'Scan', 'Records', 'Forum', 'Profile', 'Marketplace', 'Heat Alert',
+  'Home', 'AI Scan', 'Scan', 'Records', 'Forum', 'Community Forum', 'Clinical AI', 'Profile', 'Marketplace', 'Heat Alert',
   'Consultations', 'Notifications', 'Settings', 'Back', 'Welcome Back', 'Login', 'Register',
   'Login As', 'Owner', 'Farmer', 'Vet', 'Veterinarian', 'Phone Number', 'Password',
   'Confirm Password', 'Forgot Password?', "Don't have an account?", 'Already have an account?',

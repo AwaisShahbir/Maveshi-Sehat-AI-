@@ -317,31 +317,45 @@ export default function VetDashboardScreen() {
             </View>
             <Text style={styles.actionTitle}>{t('Health Records')}</Text>
           </TouchableOpacity>
+
+          <TouchableOpacity style={styles.actionCard} onPress={() => navigation.navigate('CommunityForum', { userName, userId })}>
+            <View style={[styles.actionIconBox, { backgroundColor: isDark ? 'rgba(6, 182, 212, 0.15)' : '#ECFEFF' }]}>
+              <Feather name="users" size={28} color="#06B6D4" />
+            </View>
+            <Text style={styles.actionTitle}>{t('Community Forum')}</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.actionCard} onPress={() => navigation.navigate('Chatbot')}>
+            <View style={[styles.actionIconBox, { backgroundColor: isDark ? 'rgba(99, 102, 241, 0.15)' : '#EEF2FF' }]}>
+              <MaterialCommunityIcons name="stethoscope" size={28} color="#6366F1" />
+            </View>
+            <Text style={styles.actionTitle}>{t('Clinical AI')}</Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
 
       <View style={styles.bottomNav}>
         <TouchableOpacity style={styles.navItem} onPress={() => {}}>
           <MaterialCommunityIcons name="home-variant" size={26} color={colors.primary} />
-          <Text style={[styles.navText, { color: colors.primary, fontWeight: '700' }]}>Home</Text>
+          <Text style={[styles.navText, { color: colors.primary, fontWeight: '700' }]}>{t('Home')}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('VetCases')}>
           <MaterialCommunityIcons name="clipboard-text-outline" size={26} color={colors.textSecondary} />
-          <Text style={[styles.navText, { color: colors.textSecondary }]}>Cases</Text>
+          <Text style={[styles.navText, { color: colors.textSecondary }]}>{t('Cases')}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('VetConsultations', { userName, userId })}>
           <MaterialCommunityIcons name="message-text-outline" size={26} color={colors.textSecondary} />
-          <Text style={[styles.navText, { color: colors.textSecondary }]}>Consult</Text>
+          <Text style={[styles.navText, { color: colors.textSecondary }]}>{t('Consult')}</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('VetHealthRecords')}>
-          <MaterialCommunityIcons name="pulse" size={26} color={colors.textSecondary} />
-          <Text style={[styles.navText, { color: colors.textSecondary }]}>Records</Text>
+        <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('CommunityForum', { userName, userId })}>
+          <MaterialCommunityIcons name="forum-outline" size={26} color={colors.textSecondary} />
+          <Text style={[styles.navText, { color: colors.textSecondary }]}>{t('Forum')}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('VetProfile')}>
           <View style={styles.navProfile}>
             <Text style={styles.navProfileText}>DR</Text>
           </View>
-          <Text style={[styles.navText, { color: colors.textSecondary }]}>Profile</Text>
+          <Text style={[styles.navText, { color: colors.textSecondary }]}>{t('Profile')}</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>

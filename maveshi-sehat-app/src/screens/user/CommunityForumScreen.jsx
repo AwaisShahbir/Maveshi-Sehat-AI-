@@ -51,9 +51,9 @@ export default function CommunityForumScreen() {
   const insets = useSafeAreaInsets();
 
   const [profile, setProfile] = useState(getProfile());
-  const userName = profile.userName || params.userName || '';
-  const userRole = profile.role || 'farmer';
-  const userId = params.userId || null;
+  const userName = profile.userName || profile.fullName || params.userName || '';
+  const userRole = profile.role || params.role || 'farmer';
+  const userId = params.userId || profile.userId || null;
 
   const [posts, setPosts] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
