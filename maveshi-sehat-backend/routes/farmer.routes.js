@@ -279,32 +279,188 @@ module.exports = (pool, io) => {
     }
   });
 
-  // Get Farmer Vaccinations
+  // Get Farmer Vaccinations (both Vet prescribed and Farmer logged)
   router.get('/api/farmer/vaccinations', async (req, res) => {
     try {
       const { farmerId, farmerName } = req.query;
-      let query = `
-        SELECT m.*, u.full_name as vet_name
+      let resolvedFarmerId = farmerId;
+      if (!resolvedFarmerId && farmerName) {
+        const fRes = await pool.query("SELECT id FROM users WHERE full_name ILIKE $1 AND role = 'farmer'", [farmerName]);
+        if (fRes.rows.length > 0) {
+          resolvedFarmerId = fRes.rows[0].id;
+        }
+      }
+
+      // 1. Fetch vet-prescribed vaccinations from chat messages
+      let vetQuery = `
+        SELECT m.id, m.created_at, u.full_name as vet_name, m.vaccination_data, 'vet' as source
         FROM messages m
         JOIN conversations c ON m.conversation_id = c.id
         JOIN users u ON c.vet_id = u.id
         WHERE m.is_vaccination = true
       `;
-      const params = [];
-      if (farmerId) {
-        query += ` AND c.farmer_id = $1`;
-        params.push(farmerId);
-      } else if (farmerName) {
-        const fRes = await pool.query("SELECT id FROM users WHERE full_name ILIKE $1 AND role = 'farmer'", [farmerName]);
-        if (fRes.rows.length === 0) return res.status(200).json([]);
-        query += ` AND c.farmer_id = $1`;
-        params.push(fRes.rows[0].id);
+      const vetParams = [];
+      if (resolvedFarmerId) {
+        vetQuery += ` AND c.farmer_id = $1`;
+        vetParams.push(resolvedFarmerId);
       }
-      query += ` ORDER BY m.created_at DESC`;
-      const result = await pool.query(query, params);
-      res.status(200).json(result.rows);
+      vetQuery += ` ORDER BY m.created_at DESC`;
+      const vetRes = await pool.query(vetQuery, vetParams);
+
+      // 2. Fetch farmer self-logged vaccinations
+      let loggedQuery = `
+        SELECT id, created_at, vaccine_name, animal_type, administered_date, next_due_date, status, notes, administered_by as vet_name, 'self' as source
+        FROM farmer_vaccinations
+      `;
+      const loggedParams = [];
+      if (resolvedFarmerId) {
+        loggedQuery += ` WHERE farmer_id = $1`;
+        loggedParams.push(resolvedFarmerId);
+      }
+      loggedQuery += ` ORDER BY created_at DESC`;
+      const loggedRes = await pool.query(loggedQuery, loggedParams);
+
+      // Format all into a clean, unified response
+      const combined = [];
+
+      loggedRes.rows.forEach(item => {
+        const nextDue = item.next_due_date ? new Date(item.next_due_date).toISOString().split('T')[0] : null;
+        const admDate = item.administered_date ? new Date(item.administered_date).toISOString().split('T')[0] : null;
+        combined.push({
+          id: item.id,
+          source: 'self',
+          vet_name: item.vet_name || 'Self-Administered',
+          vaccine_name: item.vaccine_name,
+          animal_type: item.animal_type || 'Cattle',
+          vaccine_date: admDate,
+          next_due_date: nextDue,
+          status: item.status || 'Upcoming',
+          notes: item.notes || '',
+          created_at: item.created_at,
+          vaccination_data: {
+            vaccineName: item.vaccine_name,
+            vaccineDate: admDate,
+            nextDueDate: nextDue,
+            animalType: item.animal_type || 'Cattle',
+            status: item.status || 'Upcoming',
+            notes: item.notes || '',
+            vetName: item.vet_name || 'Self-Administered'
+          }
+        });
+      });
+
+      vetRes.rows.forEach(item => {
+        let vData = item.vaccination_data;
+        if (typeof vData === 'string') {
+          try { vData = JSON.parse(vData); } catch (e) { vData = {}; }
+        }
+        if (!vData) vData = {};
+        const vDate = vData.vaccineDate || (item.created_at ? new Date(item.created_at).toISOString().split('T')[0] : '');
+        const nDate = vData.nextDueDate || '';
+        
+        // Determine status based on dates
+        const isUpcoming = nDate ? new Date(nDate) >= new Date() : false;
+        const calculatedStatus = isUpcoming ? 'Upcoming' : 'Completed';
+
+        combined.push({
+          id: item.id,
+          source: 'vet',
+          vet_name: item.vet_name ? `Dr. ${item.vet_name.replace(/^Dr\.\s*/i, '')}` : 'Veterinarian',
+          vaccine_name: vData.vaccineName || 'Livestock Vaccine',
+          animal_type: vData.animalType || 'Livestock',
+          vaccine_date: vDate,
+          next_due_date: nDate,
+          status: calculatedStatus,
+          notes: vData.notes || '',
+          created_at: item.created_at,
+          vaccination_data: {
+            ...vData,
+            vaccineName: vData.vaccineName || 'Livestock Vaccine',
+            vaccineDate: vDate,
+            nextDueDate: nDate,
+            animalType: vData.animalType || 'Livestock',
+            status: calculatedStatus,
+            vetName: item.vet_name ? `Dr. ${item.vet_name.replace(/^Dr\.\s*/i, '')}` : 'Veterinarian'
+          }
+        });
+      });
+
+      // Sort by newest created_at
+      combined.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+      res.status(200).json(combined);
     } catch (err) {
+      console.error('Server error fetching vaccinations:', err);
       res.status(500).json({ error: 'Server error fetching vaccinations' });
+    }
+  });
+
+  // Log a new Farmer Vaccination
+  router.post('/api/farmer/vaccinations', async (req, res) => {
+    try {
+      const { farmerId, farmerName, vaccineName, animalType, administeredDate, nextDueDate, status, notes } = req.body;
+      if (!vaccineName) {
+        return res.status(400).json({ error: 'Vaccine name is required' });
+      }
+
+      let targetFarmerId = farmerId;
+      if (!targetFarmerId && farmerName) {
+        const fRes = await pool.query("SELECT id FROM users WHERE full_name ILIKE $1 AND role = 'farmer'", [farmerName]);
+        if (fRes.rows.length > 0) targetFarmerId = fRes.rows[0].id;
+      }
+      if (!targetFarmerId) {
+        const defaultFarmer = await pool.query("SELECT id FROM users WHERE role = 'farmer' LIMIT 1");
+        if (defaultFarmer.rows.length > 0) targetFarmerId = defaultFarmer.rows[0].id;
+      }
+
+      const admDate = administeredDate || new Date().toISOString().split('T')[0];
+      const initialStatus = status || (nextDueDate && new Date(nextDueDate) >= new Date() ? 'Upcoming' : 'Completed');
+
+      const insertRes = await pool.query(
+        `INSERT INTO farmer_vaccinations 
+         (farmer_id, vaccine_name, animal_type, administered_date, next_due_date, status, notes, administered_by)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+         RETURNING *`,
+        [
+          targetFarmerId,
+          vaccineName,
+          animalType || 'Cattle',
+          admDate,
+          nextDueDate || null,
+          initialStatus,
+          notes || '',
+          'Self-Administered'
+        ]
+      );
+
+      res.status(201).json({ success: true, vaccination: insertRes.rows[0] });
+    } catch (err) {
+      console.error('Error adding vaccination:', err);
+      res.status(500).json({ error: 'Server error adding vaccination' });
+    }
+  });
+
+  // Mark vaccination completed
+  router.put('/api/farmer/vaccinations/:id/complete', async (req, res) => {
+    try {
+      const { id } = req.params;
+      await pool.query("UPDATE farmer_vaccinations SET status = 'Completed' WHERE id = $1", [id]);
+      res.status(200).json({ success: true, message: 'Vaccination marked completed' });
+    } catch (err) {
+      console.error('Error completing vaccination:', err);
+      res.status(500).json({ error: 'Error updating vaccination' });
+    }
+  });
+
+  // Delete vaccination
+  router.delete('/api/farmer/vaccinations/:id', async (req, res) => {
+    try {
+      const { id } = req.params;
+      await pool.query("DELETE FROM farmer_vaccinations WHERE id = $1", [id]);
+      res.status(200).json({ success: true, message: 'Vaccination deleted' });
+    } catch (err) {
+      console.error('Error deleting vaccination:', err);
+      res.status(500).json({ error: 'Error deleting vaccination' });
     }
   });
 

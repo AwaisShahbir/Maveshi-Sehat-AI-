@@ -39,14 +39,20 @@ export const TranslationProvider = ({ children }) => {
       const response = await fetch(`${baseUrl}/api/translate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: batch, targetLang: 'ur' })
+        body: JSON.stringify({ texts: batch, text: batch, targetLang: 'ur' })
       });
       const data = await response.json();
       
-      if (data.translations) {
+      if (data && (data.translations || data.translationsList)) {
         setTranslations(prev => {
           const updated = { ...prev };
-          data.translations.forEach(t => { updated[t.original] = t.translated; });
+          if (Array.isArray(data.translationsList)) {
+            data.translationsList.forEach(t => { if (t && t.original) updated[t.original] = t.translated; });
+          } else if (Array.isArray(data.translations)) {
+            data.translations.forEach(t => { if (t && t.original) updated[t.original] = t.translated; });
+          } else if (typeof data.translations === 'object') {
+            Object.entries(data.translations).forEach(([orig, trans]) => { updated[orig] = trans; });
+          }
           localStorage.setItem('translations_cache', JSON.stringify(updated));
           return updated;
         });

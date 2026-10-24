@@ -48,7 +48,8 @@ export const CORE_UI_KEYS = [
   'Search', 'Loading...', 'Success', 'Error', 'Save to Records', 'Consult Vet Now',
   'Health Records', 'Search records...', 'Total Scans', 'All', 'Active', 'Under Treatment', 'Recovered',
   'Pending', 'Urgent', 'Resolved', 'Submitted Cases', 'Verification Document',
-  'Sehat Assistant', 'Ask Sehat Assistant', 'Instant AI guidance for your animals', 'AI Assistant', 'Clear Chat', 'Suggested Questions'
+  'Sehat Assistant', 'Ask Sehat Assistant', 'Instant AI guidance for your animals', 'AI Assistant', 'Clear Chat', 'Suggested Questions',
+  'Vaccination', 'Vaccination Schedule', 'Upcoming', 'Completed', 'No vaccinations found', 'Add Vaccination', 'Vaccine Name', 'Target Animal', 'Date Administered', 'Next Due Date', 'Administered', 'Overdue', 'Notes', 'Save Vaccination', 'Order Vaccine', 'Seasonal Guide'
 ];
 
 /**

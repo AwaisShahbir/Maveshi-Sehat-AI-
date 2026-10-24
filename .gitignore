@@ -32,4 +32,7 @@ maveshi-sehat-app/android/local.properties
 Thumbs.db
 *.tmp
 
-
+# Android bundle and generated assets
+maveshi-sehat-app/android/app/src/main/assets/index.android.bundle
+maveshi-sehat-app/android/app/src/main/res/drawable-*/
+maveshi-sehat-app/android/app/src/main/res/raw/

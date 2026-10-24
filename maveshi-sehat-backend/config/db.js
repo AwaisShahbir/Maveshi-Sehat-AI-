@@ -107,6 +107,19 @@ pool.connect((err, client, release) => {
         sound BOOLEAN DEFAULT TRUE,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
+
+      CREATE TABLE IF NOT EXISTS farmer_vaccinations (
+        id SERIAL PRIMARY KEY,
+        farmer_id INT REFERENCES users(id) ON DELETE CASCADE,
+        vaccine_name VARCHAR(255) NOT NULL,
+        animal_type VARCHAR(100) DEFAULT 'Cattle',
+        administered_date DATE NOT NULL,
+        next_due_date DATE,
+        status VARCHAR(50) DEFAULT 'Upcoming',
+        notes TEXT,
+        administered_by VARCHAR(255) DEFAULT 'Self-Administered',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
     `, (migrationErr) => {
       release();
       if (migrationErr) {
