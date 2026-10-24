@@ -49,7 +49,8 @@ export const CORE_UI_KEYS = [
   'Health Records', 'Search records...', 'Total Scans', 'All', 'Active', 'Under Treatment', 'Recovered',
   'Pending', 'Urgent', 'Resolved', 'Submitted Cases', 'Verification Document',
   'Sehat Assistant', 'Ask Sehat Assistant', 'Instant AI guidance for your animals', 'AI Assistant', 'Clear Chat', 'Suggested Questions',
-  'Vaccination', 'Vaccination Schedule', 'Upcoming', 'Completed', 'No vaccinations found', 'Add Vaccination', 'Vaccine Name', 'Target Animal', 'Date Administered', 'Next Due Date', 'Administered', 'Overdue', 'Notes', 'Save Vaccination', 'Order Vaccine', 'Seasonal Guide'
+  'Vaccination', 'Vaccination Schedule', 'Upcoming', 'Completed', 'No vaccinations found', 'Add Vaccination', 'Vaccine Name', 'Target Animal', 'Date Administered', 'Next Due Date', 'Administered', 'Overdue', 'Notes', 'Save Vaccination', 'Order Vaccine', 'Seasonal Guide',
+  'Delete', 'Remove', 'Clear', 'Delete Record', 'Delete Health Record', 'Delete Consultation', 'Delete Post', 'Delete Comment', 'Delete Notification', 'Remove Item', 'Are you sure?', 'This action cannot be undone.'
 ];
 
 /**

@@ -3,7 +3,7 @@ import {
   Eye, Download, Search, FileDown, RefreshCw, X, 
   Activity, Calendar, User, Stethoscope, 
   CheckCircle2, Printer, ExternalLink, 
-  FileText, Check, Image as ImageIcon
+  FileText, Check, Image as ImageIcon, Trash2
 } from 'lucide-react';
 import '../styles/HealthRecords.css';
 
@@ -83,6 +83,30 @@ export default function HealthRecords() {
       setTimeout(() => setStatusSuccessMsg(''), 3000);
     } finally {
       setIsUpdatingStatus(false);
+    }
+  };
+
+  const handleDeleteRecord = async (rec) => {
+    if (!rec) return;
+    const confirmMsg = `Are you sure you want to permanently delete health record (${rec.id}) for animal ${rec.animal_type || ''}? This action cannot be undone.`;
+    if (!window.confirm(confirmMsg)) return;
+
+    try {
+      const res = await fetch(`http://localhost:5000/api/admin/health-records/${encodeURIComponent(rec.id)}`, {
+        method: 'DELETE',
+      });
+      if (res.ok) {
+        setRecords(prev => prev.filter(r => r.id !== rec.id));
+        if (selectedRecord && selectedRecord.id === rec.id) {
+          setSelectedRecord(null);
+        }
+        alert('Health record deleted successfully.');
+      } else {
+        alert('Failed to delete health record.');
+      }
+    } catch (err) {
+      console.error('Delete health record error:', err);
+      alert('Network error deleting health record.');
     }
   };
 
@@ -410,6 +434,14 @@ Document generated from Maveshi Sehat AI Administrative Console.
                         >
                           <Download size={16} />
                         </button>
+                        <button 
+                          className="btn-icon-only" 
+                          style={{ color: '#EF4444', borderColor: '#FEE2E2', backgroundColor: '#FEF2F2' }}
+                          title="Delete health record"
+                          onClick={() => handleDeleteRecord(rec)}
+                        >
+                          <Trash2 size={16} />
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -684,6 +716,16 @@ Document generated from Maveshi Sehat AI Administrative Console.
                 >
                   <Download size={15} />
                   <span>Download (.txt)</span>
+                </button>
+
+                <button
+                  onClick={() => handleDeleteRecord(selectedRecord)}
+                  className="hr-secondary-btn"
+                  style={{ color: '#EF4444', borderColor: '#FEE2E2', backgroundColor: '#FEF2F2' }}
+                  title="Delete health record"
+                >
+                  <Trash2 size={15} />
+                  <span>Delete Record</span>
                 </button>
               </div>
 

@@ -90,6 +90,27 @@ export const addRecord = async (record, ownerName) => {
   }
 };
 
+export const deleteRecord = async (recordId) => {
+  records = records.filter(r => r.id !== recordId && r.animalId !== recordId);
+  listeners.forEach(listener => {
+    try {
+      listener(records);
+    } catch (e) {
+      console.error("Error in recordsStore listener during delete:", e);
+    }
+  });
+
+  try {
+    const res = await fetch(`${BASE_URL}/api/detections/${encodeURIComponent(recordId)}`, {
+      method: 'DELETE'
+    });
+    return res.ok;
+  } catch (error) {
+    console.error("Failed to delete record from backend:", error);
+    return false;
+  }
+};
+
 export const subscribe = (listener) => {
   listeners.push(listener);
   return () => {

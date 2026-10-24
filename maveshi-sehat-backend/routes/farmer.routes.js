@@ -440,6 +440,36 @@ module.exports = (pool, io) => {
     }
   });
 
+  // Delete Consultation
+  router.delete('/api/consultations/:id', async (req, res) => {
+    try {
+      const { id } = req.params;
+      const result = await pool.query('DELETE FROM consultations WHERE id = $1 RETURNING *', [id]);
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Consultation not found' });
+      }
+      res.status(200).json({ success: true, message: 'Consultation deleted successfully' });
+    } catch (err) {
+      console.error('Error deleting consultation:', err);
+      res.status(500).json({ error: 'Failed to delete consultation' });
+    }
+  });
+
+  // Delete Animal Health Record / Detection
+  router.delete('/api/detections/:id', async (req, res) => {
+    try {
+      const { id } = req.params;
+      const result = await pool.query('DELETE FROM detections WHERE id = $1 RETURNING *', [id]);
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Record not found' });
+      }
+      res.status(200).json({ success: true, message: 'Animal health record deleted successfully' });
+    } catch (err) {
+      console.error('Error deleting detection:', err);
+      res.status(500).json({ error: 'Failed to delete health record' });
+    }
+  });
+
   // Mark vaccination completed
   router.put('/api/farmer/vaccinations/:id/complete', async (req, res) => {
     try {
@@ -452,11 +482,16 @@ module.exports = (pool, io) => {
     }
   });
 
-  // Delete vaccination
+  // Delete vaccination (supports self-logged and vet-prescribed)
   router.delete('/api/farmer/vaccinations/:id', async (req, res) => {
     try {
       const { id } = req.params;
-      await pool.query("DELETE FROM farmer_vaccinations WHERE id = $1", [id]);
+      const { source } = req.query; // 'vet' or 'self'
+      if (source === 'vet') {
+        await pool.query('UPDATE messages SET is_vaccination = false WHERE id = $1', [id]);
+      } else {
+        await pool.query('DELETE FROM farmer_vaccinations WHERE id = $1', [id]);
+      }
       res.status(200).json({ success: true, message: 'Vaccination deleted' });
     } catch (err) {
       console.error('Error deleting vaccination:', err);

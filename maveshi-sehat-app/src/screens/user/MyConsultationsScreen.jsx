@@ -6,6 +6,8 @@ import { getProfile } from '../../utils/profileStore';
 import { useTheme } from '../../utils/themeContext';
 import { getStyles } from '../../styles/MyConsultationsScreenStyles';
 
+import { t } from '../../utils/translate';
+
 export default function MyConsultationsScreen() {
   const { colors, isDark } = useTheme();
   const styles = React.useMemo(() => getStyles(colors, isDark), [colors, isDark]);
@@ -27,7 +29,7 @@ export default function MyConsultationsScreen() {
       }
     } catch (err) {
       console.error(err);
-      Alert.alert('Fetch Error', err.message || 'Network request failed. Is the server running?');
+      Alert.alert(t('Error'), err.message || 'Network request failed. Is the server running?');
     } finally {
       setLoading(false);
     }
@@ -39,6 +41,34 @@ export default function MyConsultationsScreen() {
     });
     return unsubscribe;
   }, [navigation]);
+
+  const handleDeleteConsultation = (item) => {
+    Alert.alert(
+      t('Delete Consultation'),
+      t('Are you sure you want to delete this consultation record? This action cannot be undone.'),
+      [
+        { text: t('Cancel'), style: 'cancel' },
+        {
+          text: t('Delete'),
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const baseUrl = Platform.OS === 'android' ? 'http://10.0.2.2:5000' : 'http://localhost:5000';
+              const idsToDelete = item.consultations?.map(c => c.id) || [item.id];
+              for (const cId of idsToDelete) {
+                await fetch(`${baseUrl}/api/consultations/${cId}`, { method: 'DELETE' });
+              }
+              setConsultations(prev => prev.filter(c => !idsToDelete.includes(c.id)));
+              Alert.alert(t('Success'), t('Consultation record deleted.'));
+            } catch (err) {
+              console.error('Delete consultation error:', err);
+              Alert.alert(t('Error'), 'Could not delete consultation record.');
+            }
+          }
+        }
+      ]
+    );
+  };
 
   const handleStartChat = async (consult) => {
     try {
@@ -80,7 +110,7 @@ export default function MyConsultationsScreen() {
         consultations: consult.consultations || [consult]
       });
     } catch (error) {
-      Alert.alert('Error', 'Could not start chat.');
+      Alert.alert(t('Error'), 'Could not start chat.');
     }
   };
 
@@ -115,7 +145,7 @@ export default function MyConsultationsScreen() {
   const renderItem = ({ item }) => (
     <View style={styles.card}>
       <View style={styles.headerRow}>
-        <View>
+        <View style={{ flex: 1, paddingRight: 8 }}>
           <Text style={styles.vetName}>{item.vet_name}</Text>
           <Text style={styles.typeText}>
             {item.type === 'online_chat'
@@ -141,18 +171,29 @@ export default function MyConsultationsScreen() {
       <Text style={styles.reasonText}>Reason: {item.reason}</Text>
       {item.appointment_date && <Text style={styles.dateText}>Date: {new Date(item.appointment_date).toLocaleString()}</Text>}
 
-      {item.type === 'online_chat' && item.status === 'approved' && (
-        <TouchableOpacity style={styles.chatBtn} onPress={() => handleStartChat(item)} activeOpacity={0.8}>
-          <Feather name="message-square" size={16} color="#FFF" style={{ marginRight: 8 }} />
-          <Text style={styles.chatBtnText}>Open Chat</Text>
+      <View style={styles.cardActionRow}>
+        {item.type === 'online_chat' && item.status === 'approved' ? (
+          <TouchableOpacity style={[styles.chatBtn, { flex: 1, marginTop: 0 }]} onPress={() => handleStartChat(item)} activeOpacity={0.8}>
+            <Feather name="message-square" size={16} color="#FFF" style={{ marginRight: 8 }} />
+            <Text style={styles.chatBtnText}>{t('Open Chat')}</Text>
+          </TouchableOpacity>
+        ) : item.type === 'online_chat' && item.status === 'pending' ? (
+          <View style={styles.pendingNotice}>
+            <Feather name="clock" size={15} color="#D97706" style={{ marginRight: 6 }} />
+            <Text style={styles.pendingNoticeText}>{t('Waiting for approval')}</Text>
+          </View>
+        ) : (
+          <View style={{ flex: 1 }} />
+        )}
+
+        <TouchableOpacity 
+          style={styles.deleteBtn} 
+          onPress={() => handleDeleteConsultation(item)} 
+          activeOpacity={0.7}
+        >
+          <Feather name="trash-2" size={18} color="#EF4444" />
         </TouchableOpacity>
-      )}
-      {item.type === 'online_chat' && item.status === 'pending' && (
-        <View style={styles.pendingNotice}>
-          <Feather name="clock" size={15} color="#D97706" style={{ marginRight: 6 }} />
-          <Text style={styles.pendingNoticeText}>Waiting for veterinarian approval</Text>
-        </View>
-      )}
+      </View>
     </View>
   );
 

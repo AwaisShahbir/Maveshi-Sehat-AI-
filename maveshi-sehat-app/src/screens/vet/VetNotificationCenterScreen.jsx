@@ -97,9 +97,22 @@ export default function VetNotificationCenterScreen() {
     );
   };
 
-  const handleDismiss = async (id) => {
-    await deleteNotification(id);
-    setNotifications(prev => prev.filter(n => n.id !== id));
+  const handleDismiss = (id) => {
+    Alert.alert(
+      'Delete Notification',
+      'Are you sure you want to remove this notification?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            await deleteNotification(id);
+            setNotifications(prev => prev.filter(n => n.id !== id));
+          }
+        }
+      ]
+    );
   };
 
   const handleToggleRead = async (item) => {

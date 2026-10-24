@@ -134,6 +134,36 @@ export default function CommunityForumScreen() {
     }
   };
 
+  const handleDeletePost = (postId) => {
+    Alert.alert(
+      t('Delete Post'),
+      t('Are you sure you want to delete this post and all its replies? This action cannot be undone.'),
+      [
+        { text: t('Cancel'), style: 'cancel' },
+        {
+          text: t('Delete'),
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const response = await fetch(`${BASE_URL}/api/forum/posts/${postId}`, {
+                method: 'DELETE',
+              });
+              if (response.ok) {
+                setPosts((prev) => prev.filter((p) => p.id !== postId));
+                Alert.alert(t('Success'), t('Post deleted successfully.'));
+              } else {
+                Alert.alert(t('Error'), 'Failed to delete post.');
+              }
+            } catch (err) {
+              console.error('Delete post error:', err);
+              Alert.alert(t('Error'), 'Network error deleting post.');
+            }
+          },
+        },
+      ]
+    );
+  };
+
   const handleCreatePost = async () => {
     if (!userName) {
       Alert.alert(t('Not Logged In'), t('Please log in to post a discussion.'));
@@ -269,13 +299,26 @@ export default function CommunityForumScreen() {
             </View>
           </View>
 
-          {item.category ? (
-            <View style={styles.postCategoryBadge}>
-              <Text style={styles.postCategoryBadgeText}>
-                {isTrending ? '🔥 ' : ''}{item.category}
-              </Text>
-            </View>
-          ) : null}
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+            {item.category ? (
+              <View style={styles.postCategoryBadge}>
+                <Text style={styles.postCategoryBadgeText}>
+                  {isTrending ? '🔥 ' : ''}{item.category}
+                </Text>
+              </View>
+            ) : null}
+
+            {((item.user_id && item.user_id === userId) ||
+              (item.author_name && userName && item.author_name.toLowerCase().trim() === userName.toLowerCase().trim())) && (
+              <TouchableOpacity
+                onPress={() => handleDeletePost(item.id)}
+                style={{ padding: 4 }}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <Feather name="trash-2" size={15} color="#EF4444" />
+              </TouchableOpacity>
+            )}
+          </View>
         </View>
 
         {item.title ? (

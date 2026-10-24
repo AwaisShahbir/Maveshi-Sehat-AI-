@@ -178,6 +178,66 @@ export default function ForumPostDetailScreen() {
     setReplyText('');
   };
 
+  const handleDeletePost = () => {
+    Alert.alert(
+      t('Delete Post'),
+      t('Are you sure you want to delete this post and all its replies? This action cannot be undone.'),
+      [
+        { text: t('Cancel'), style: 'cancel' },
+        {
+          text: t('Delete'),
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const response = await fetch(`${BASE_URL}/api/forum/posts/${postId}`, {
+                method: 'DELETE',
+              });
+              if (response.ok) {
+                Alert.alert(t('Success'), t('Post deleted successfully.'));
+                navigation.goBack();
+              } else {
+                Alert.alert(t('Error'), 'Failed to delete post.');
+              }
+            } catch (err) {
+              console.error('Delete post error:', err);
+              Alert.alert(t('Error'), 'Network error deleting post.');
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const handleDeleteComment = (commentId) => {
+    Alert.alert(
+      t('Delete Comment'),
+      t('Are you sure you want to delete this reply? This action cannot be undone.'),
+      [
+        { text: t('Cancel'), style: 'cancel' },
+        {
+          text: t('Delete'),
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const response = await fetch(`${BASE_URL}/api/forum/comments/${commentId}`, {
+                method: 'DELETE',
+              });
+              if (response.ok) {
+                setComments((prev) => prev.filter((c) => c.id !== commentId && c.parent_comment_id !== commentId));
+                Alert.alert(t('Success'), t('Comment deleted.'));
+              } else {
+                Alert.alert(t('Error'), 'Failed to delete comment.');
+              }
+            } catch (err) {
+              console.error('Delete comment error:', err);
+              Alert.alert(t('Error'), 'Network error deleting comment.');
+            }
+          },
+        },
+      ]
+    );
+  };
+
   const getTimeAgo = (dateStr) => {
     if (!dateStr) return '';
     const seconds = Math.floor((new Date() - new Date(dateStr)) / 1000);
@@ -229,16 +289,29 @@ export default function ForumPostDetailScreen() {
         </View>
         <Text style={styles.commentBodyText}>{reply.comment}</Text>
         
-        <TouchableOpacity
-          style={styles.commentActionRow}
-          onPress={() => handleLikeComment(reply.id)}
-          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-        >
-          <Feather name="heart" size={12} color={isLiked ? '#FF4D4D' : '#CCC'} style={{ marginRight: 4 }} />
-          <Text style={[styles.commentActionText, isLiked && { color: '#FF4D4D' }]}>
-            {(reply.likes_count > 0 ? `${reply.likes_count} ` : '') + (isLiked ? t('Liked') : t('Like'))}
-          </Text>
-        </TouchableOpacity>
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+          <TouchableOpacity
+            style={styles.commentActionRow}
+            onPress={() => handleLikeComment(reply.id)}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <Feather name="heart" size={12} color={isLiked ? '#FF4D4D' : '#CCC'} style={{ marginRight: 4 }} />
+            <Text style={[styles.commentActionText, isLiked && { color: '#FF4D4D' }]}>
+              {(reply.likes_count > 0 ? `${reply.likes_count} ` : '') + (isLiked ? t('Liked') : t('Like'))}
+            </Text>
+          </TouchableOpacity>
+
+          {((reply.user_id && reply.user_id === userId) ||
+            (reply.author_name && userName && reply.author_name.toLowerCase().trim() === userName.toLowerCase().trim())) && (
+            <TouchableOpacity
+              onPress={() => handleDeleteComment(reply.id)}
+              style={{ padding: 4 }}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <Feather name="trash-2" size={13} color="#EF4444" />
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
     );
   };
@@ -272,33 +345,46 @@ export default function ForumPostDetailScreen() {
         <Text style={styles.commentBodyText}>{item.comment}</Text>
 
         
-        <View style={styles.commentActionsRow}>
-          <TouchableOpacity
-            style={styles.commentActionBtn}
-            onPress={() => handleLikeComment(item.id)}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          >
-            <Feather
-              name="heart"
-              size={14}
-              color={isCommentLiked ? '#FF4D4D' : '#BBB'}
-              style={{ marginRight: 5 }}
-            />
-            <Text style={[styles.commentActionText, isCommentLiked && { color: '#FF4D4D' }]}>
-              {(item.likes_count > 0 ? `${item.likes_count} ` : '') + (isCommentLiked ? t('Liked') : t('Like'))}
-            </Text>
-          </TouchableOpacity>
+        <View style={[styles.commentActionsRow, { justifyContent: 'space-between' }]}>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <TouchableOpacity
+              style={styles.commentActionBtn}
+              onPress={() => handleLikeComment(item.id)}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <Feather
+                name="heart"
+                size={14}
+                color={isCommentLiked ? '#FF4D4D' : '#BBB'}
+                style={{ marginRight: 5 }}
+              />
+              <Text style={[styles.commentActionText, isCommentLiked && { color: '#FF4D4D' }]}>
+                {(item.likes_count > 0 ? `${item.likes_count} ` : '') + (isCommentLiked ? t('Liked') : t('Like'))}
+              </Text>
+            </TouchableOpacity>
 
-          <TouchableOpacity
-            style={[styles.commentActionBtn, { marginLeft: 18 }]}
-            onPress={() => handleReplyToComment(item)}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          >
-            <Feather name="corner-down-right" size={14} color="#58D66D" style={{ marginRight: 5 }} />
-            <Text style={[styles.commentActionText, { color: '#58D66D' }]}>
-              {t('Reply') + (item.replies && item.replies.length > 0 ? ` (${item.replies.length})` : '')}
-            </Text>
-          </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.commentActionBtn, { marginLeft: 18 }]}
+              onPress={() => handleReplyToComment(item)}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <Feather name="corner-down-right" size={14} color="#58D66D" style={{ marginRight: 5 }} />
+              <Text style={[styles.commentActionText, { color: '#58D66D' }]}>
+                {t('Reply') + (item.replies && item.replies.length > 0 ? ` (${item.replies.length})` : '')}
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          {((item.user_id && item.user_id === userId) ||
+            (item.author_name && userName && item.author_name.toLowerCase().trim() === userName.toLowerCase().trim())) && (
+            <TouchableOpacity
+              onPress={() => handleDeleteComment(item.id)}
+              style={{ padding: 4 }}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <Feather name="trash-2" size={14} color="#EF4444" />
+            </TouchableOpacity>
+          )}
         </View>
 
         
@@ -334,8 +420,20 @@ export default function ForumPostDetailScreen() {
               </View>
               <Text style={styles.timeAgo}>{getTimeAgo(post.created_at)}</Text>
             </View>
-            <View style={styles.categoryBadge}>
-              <Text style={styles.categoryBadgeText}>{t(post.category)}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+              <View style={styles.categoryBadge}>
+                <Text style={styles.categoryBadgeText}>{t(post.category)}</Text>
+              </View>
+              {((post.user_id && post.user_id === userId) ||
+                (post.author_name && userName && post.author_name.toLowerCase().trim() === userName.toLowerCase().trim())) && (
+                <TouchableOpacity
+                  onPress={handleDeletePost}
+                  style={{ padding: 4 }}
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                >
+                  <Feather name="trash-2" size={16} color="#EF4444" />
+                </TouchableOpacity>
+              )}
             </View>
           </View>
 

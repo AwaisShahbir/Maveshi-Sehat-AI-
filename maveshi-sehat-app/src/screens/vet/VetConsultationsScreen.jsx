@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { View, Text, SafeAreaView, FlatList, TouchableOpacity, StatusBar, ActivityIndicator, Platform, TextInput } from 'react-native';
+import { View, Text, SafeAreaView, FlatList, TouchableOpacity, StatusBar, ActivityIndicator, Platform, TextInput, Alert } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -69,6 +69,34 @@ export default function VetConsultationsScreen() {
     } catch (err) {
       console.error('Error updating status:', err);
     }
+  };
+
+  const handleDeleteConsultation = (item) => {
+    Alert.alert(
+      t('Delete Consultation'),
+      t('Are you sure you want to delete this consultation case? This action cannot be undone.'),
+      [
+        { text: t('Cancel'), style: 'cancel' },
+        {
+          text: t('Delete'),
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const baseUrl = Platform.OS === 'android' ? 'http://10.0.2.2:5000' : 'http://localhost:5000';
+              const idsToDelete = item.consultations?.map(c => c.id) || [item.id];
+              for (const cId of idsToDelete) {
+                await fetch(`${baseUrl}/api/consultations/${cId}`, { method: 'DELETE' });
+              }
+              setConsultations(prev => prev.filter(c => !idsToDelete.includes(c.id)));
+              Alert.alert(t('Success'), t('Consultation case deleted.'));
+            } catch (err) {
+              console.error('Delete consultation error:', err);
+              Alert.alert(t('Error'), 'Could not delete consultation case.');
+            }
+          }
+        }
+      ]
+    );
   };
 
   const openChat = async (item) => {
@@ -224,7 +252,16 @@ export default function VetConsultationsScreen() {
               <Text style={styles.farmerName}>{item.farmer_name}</Text>
                           </View>
           </View>
-          <Text style={styles.timeText}>{timeText}</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Text style={styles.timeText}>{timeText}</Text>
+            <TouchableOpacity
+              onPress={() => handleDeleteConsultation(item)}
+              style={{ marginLeft: 8, padding: 4 }}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <Feather name="trash-2" size={15} color="#EF4444" />
+            </TouchableOpacity>
+          </View>
         </View>
 
         <View style={styles.animalInfoRow}>

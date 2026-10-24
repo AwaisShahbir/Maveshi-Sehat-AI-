@@ -436,5 +436,20 @@ module.exports = (pool, io) => {
     }
   });
 
+  // Delete Prescription
+  router.delete('/api/vet/prescriptions/:id', async (req, res) => {
+    try {
+      const { id } = req.params;
+      const result = await pool.query('UPDATE messages SET is_prescription = false WHERE id = $1 RETURNING *', [id]);
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Prescription not found' });
+      }
+      res.status(200).json({ success: true, message: 'Prescription deleted successfully' });
+    } catch (err) {
+      console.error('Error deleting prescription:', err);
+      res.status(500).json({ error: 'Failed to delete prescription' });
+    }
+  });
+
   return router;
 };

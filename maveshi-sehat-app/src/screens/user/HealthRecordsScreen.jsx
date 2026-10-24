@@ -15,7 +15,7 @@ import {
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import { getRecords, subscribe, loadRecords } from '../../utils/recordsStore';
+import { getRecords, subscribe, loadRecords, deleteRecord } from '../../utils/recordsStore';
 import { getProfile, subscribeProfile } from '../../utils/profileStore';
 import { t, useTranslation, subscribeTranslation, getLocalizedDescription, getLocalizedFirstAid } from '../../utils/translate';
 import { useTheme } from '../../utils/themeContext';
@@ -46,6 +46,36 @@ export default function HealthRecordsScreen() {
   const handleOpenRecordDetail = (record) => {
     setSelectedRecord(record);
     setDetailModalVisible(true);
+  };
+
+  const handleDeleteRecord = (rec) => {
+    if (!rec) return;
+    Alert.alert(
+      t('Delete Health Record'),
+      t('Are you sure you want to delete this animal health record? This action cannot be undone.'),
+      [
+        { text: t('Cancel'), style: 'cancel' },
+        {
+          text: t('Delete'),
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const recId = rec.id || rec.animalId;
+              await deleteRecord(recId);
+              setRecords(prev => prev.filter(r => r.id !== recId && r.animalId !== recId));
+              if (selectedRecord && (selectedRecord.id === recId || selectedRecord.animalId === recId)) {
+                setDetailModalVisible(false);
+                setSelectedRecord(null);
+              }
+              Alert.alert(t('Success'), t('Health record deleted successfully.'));
+            } catch (err) {
+              console.error('Error deleting record:', err);
+              Alert.alert(t('Error'), 'Failed to delete record.');
+            }
+          }
+        }
+      ]
+    );
   };
 
   
@@ -267,6 +297,13 @@ export default function HealthRecordsScreen() {
 
                 <View style={styles.rightContainer}>
                   <Text style={styles.confidenceText}>{rec.confidence}</Text>
+                  <TouchableOpacity
+                    style={{ padding: 6, marginTop: 6 }}
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                    onPress={() => handleDeleteRecord(rec)}
+                  >
+                    <Feather name="trash-2" size={16} color="#EF4444" />
+                  </TouchableOpacity>
                 </View>
               </TouchableOpacity>
             ))
@@ -365,16 +402,33 @@ export default function HealthRecordsScreen() {
                 </ScrollView>
 
                 
-                <TouchableOpacity 
-                  style={styles.consultVetBtnModal} 
-                  onPress={() => {
-                    setDetailModalVisible(false);
-                    navigation.navigate('VeterinariansList', { userName, initialRecord: selectedRecord });
-                  }}
-                >
-                  <Feather name="message-circle" size={18} color="#FFF" style={{ marginRight: 8 }} />
-                  <Text style={[styles.consultVetBtnTextModal, isUrdu && { fontFamily: fonts.urduBold }]}>{t('Consult Veterinarian')}</Text>
-                </TouchableOpacity>
+                <View style={{ flexDirection: 'row', gap: 10, marginTop: 10 }}>
+                  <TouchableOpacity 
+                    style={[styles.consultVetBtnModal, { flex: 1 }]} 
+                    onPress={() => {
+                      setDetailModalVisible(false);
+                      navigation.navigate('VeterinariansList', { userName, initialRecord: selectedRecord });
+                    }}
+                  >
+                    <Feather name="message-circle" size={18} color="#FFF" style={{ marginRight: 8 }} />
+                    <Text style={[styles.consultVetBtnTextModal, isUrdu && { fontFamily: fonts.urduBold }]}>{t('Consult Veterinarian')}</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={{
+                      backgroundColor: isDark ? 'rgba(239, 68, 68, 0.15)' : '#FEE2E2',
+                      borderRadius: 14,
+                      paddingHorizontal: 16,
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      borderWidth: 1,
+                      borderColor: isDark ? 'rgba(239, 68, 68, 0.3)' : '#FCA5A5'
+                    }}
+                    onPress={() => handleDeleteRecord(selectedRecord)}
+                  >
+                    <Feather name="trash-2" size={20} color="#EF4444" />
+                  </TouchableOpacity>
+                </View>
               </>
             )}
           </View>

@@ -169,5 +169,38 @@ module.exports = (pool) => {
     }
   });
 
+  // Delete Forum Post (cascades to comments)
+  router.delete('/api/forum/posts/:id', async (req, res) => {
+    try {
+      const { id } = req.params;
+      await pool.query('DELETE FROM forum_comments WHERE post_id = $1', [id]);
+      const result = await pool.query('DELETE FROM forum_posts WHERE id = $1 RETURNING *', [id]);
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Post not found' });
+      }
+      res.status(200).json({ success: true, message: 'Forum post deleted successfully' });
+    } catch (err) {
+      console.error('Error deleting forum post:', err.message);
+      res.status(500).json({ error: 'Server error deleting forum post' });
+    }
+  });
+
+  // Delete Forum Comment
+  router.delete('/api/forum/comments/:id', async (req, res) => {
+    try {
+      const { id } = req.params;
+      // Delete any nested replies first
+      await pool.query('DELETE FROM forum_comments WHERE parent_comment_id = $1', [id]);
+      const result = await pool.query('DELETE FROM forum_comments WHERE id = $1 RETURNING *', [id]);
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Comment not found' });
+      }
+      res.status(200).json({ success: true, message: 'Comment deleted successfully' });
+    } catch (err) {
+      console.error('Error deleting comment:', err.message);
+      res.status(500).json({ error: 'Server error deleting comment' });
+    }
+  });
+
   return router;
 };

@@ -80,6 +80,21 @@ export default function CartScreen() {
     }
   };
 
+  const handleRemoveItem = (item) => {
+    Alert.alert(
+      t('Remove Item'),
+      `${t('Are you sure you want to remove')} ${item.name} ${t('from your cart?')}`,
+      [
+        { text: t('Cancel'), style: 'cancel' },
+        {
+          text: t('Remove'),
+          style: 'destructive',
+          onPress: () => removeFromCart(item.id)
+        }
+      ]
+    );
+  };
+
   // Open Address Edit Modal
   const handleOpenAddressModal = () => {
     setEditName(buyerName);
@@ -302,7 +317,7 @@ export default function CartScreen() {
 
           <TouchableOpacity 
             style={styles.deleteBtn}
-            onPress={() => removeFromCart(item.id)}
+            onPress={() => handleRemoveItem(item)}
             activeOpacity={0.7}
           >
             <Feather name="trash-2" size={15} color="#EF4444" />

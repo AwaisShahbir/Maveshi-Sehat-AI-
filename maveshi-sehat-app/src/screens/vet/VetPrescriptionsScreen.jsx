@@ -49,6 +49,36 @@ export default function VetPrescriptionsScreen() {
     fetchPrescriptions();
   }, []);
 
+  const handleDeletePrescription = (item) => {
+    Alert.alert(
+      t('Delete Prescription'),
+      t('Are you sure you want to delete this prescription record? This action cannot be undone.'),
+      [
+        { text: t('Cancel'), style: 'cancel' },
+        {
+          text: t('Delete'),
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const res = await fetch(`${baseUrl}/api/vet/prescriptions/${item.id}`, {
+                method: 'DELETE',
+              });
+              if (res.ok) {
+                setPrescriptions(prev => prev.filter(p => p.id !== item.id));
+                Alert.alert(t('Success'), t('Prescription deleted successfully.'));
+              } else {
+                Alert.alert(t('Error'), 'Failed to delete prescription.');
+              }
+            } catch (err) {
+              console.error('Delete prescription error:', err);
+              Alert.alert(t('Error'), 'Network error deleting prescription.');
+            }
+          }
+        }
+      ]
+    );
+  };
+
 
   const [patientInfo, setPatientInfo] = useState({ ownerName: '', animal: '' });
   const [farmers, setFarmers] = useState([]);
@@ -261,7 +291,16 @@ export default function VetPrescriptionsScreen() {
       <View key={index} style={styles.historyCard}>
         <View style={styles.historyCardHeader}>
           <Text style={styles.historyFarmerName}>{item.farmer_name || 'Farmer'}</Text>
-          <Text style={styles.historyDate}>{new Date(item.created_at).toLocaleDateString()}</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Text style={styles.historyDate}>{new Date(item.created_at).toLocaleDateString()}</Text>
+            <TouchableOpacity
+              onPress={() => handleDeletePrescription(item)}
+              style={{ marginLeft: 8, padding: 4 }}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <Feather name="trash-2" size={15} color="#EF4444" />
+            </TouchableOpacity>
+          </View>
         </View>
         <Text style={styles.historyDiagnosis}>Diagnosis: {data.diagnosis || 'General Treatment'}</Text>
         <View style={styles.historyDivider} />

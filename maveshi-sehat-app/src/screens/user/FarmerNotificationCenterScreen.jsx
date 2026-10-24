@@ -109,13 +109,26 @@ export default function FarmerNotificationCenterScreen({ navigation }) {
     setUnreadCount(0);
   };
 
-  const handleDelete = async (id) => {
-    await deleteNotification(id);
-    const target = notifications.find(n => n.id === id);
-    setNotifications(prev => prev.filter(n => n.id !== id));
-    if (target && !target.is_read) {
-      setUnreadCount(prev => Math.max(0, prev - 1));
-    }
+  const handleDelete = (id) => {
+    Alert.alert(
+      isUrdu ? 'نوٹیفکیشن حذف کریں' : 'Delete Notification',
+      isUrdu ? 'کیا آپ واقعی یہ نوٹیفکیشن حذف کرنا چاہتے ہیں؟' : 'Are you sure you want to remove this notification?',
+      [
+        { text: isUrdu ? 'منسوخ' : 'Cancel', style: 'cancel' },
+        {
+          text: isUrdu ? 'حذف کریں' : 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            await deleteNotification(id);
+            const target = notifications.find(n => n.id === id);
+            setNotifications(prev => prev.filter(n => n.id !== id));
+            if (target && !target.is_read) {
+              setUnreadCount(prev => Math.max(0, prev - 1));
+            }
+          }
+        }
+      ]
+    );
   };
 
   const handleClearAll = () => {

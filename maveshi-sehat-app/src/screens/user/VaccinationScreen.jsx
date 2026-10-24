@@ -188,7 +188,7 @@ export default function VaccinationScreen() {
   const handleDeleteVaccination = (item) => {
     Alert.alert(
       t('Delete Vaccination'),
-      t('Are you sure you want to delete this vaccination record?'),
+      t('Are you sure you want to delete this vaccination record? This action cannot be undone.'),
       [
         { text: t('Cancel'), style: 'cancel' },
         {
@@ -196,14 +196,16 @@ export default function VaccinationScreen() {
           style: 'destructive',
           onPress: async () => {
             try {
-              const res = await fetch(`${baseUrl}/api/farmer/vaccinations/${item.id}`, {
+              const res = await fetch(`${baseUrl}/api/farmer/vaccinations/${item.id}?source=${item.source || 'self'}`, {
                 method: 'DELETE',
               });
               if (res.ok) {
-                fetchVaccinations();
+                setVaccinations(prev => prev.filter(v => v.id !== item.id));
+                Alert.alert(t('Success'), t('Vaccination record deleted.'));
               }
             } catch (err) {
               console.error('Delete error:', err);
+              Alert.alert(t('Error'), 'Could not delete vaccination.');
             }
           },
         },
@@ -417,18 +419,26 @@ export default function VaccinationScreen() {
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={styles.actionBtnPrimary}
+                style={[styles.actionBtnPrimary, { flex: 1 }]}
                 onPress={() => navigation.navigate('Marketplace', { search: rawName })}
                 activeOpacity={0.8}
               >
                 <Feather name="shopping-bag" size={15} color="#FFFFFF" />
                 <Text style={styles.actionBtnPrimaryText}>{t('Order Vaccine')}</Text>
               </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.actionBtnDelete}
+                onPress={() => handleDeleteVaccination(item)}
+                activeOpacity={0.8}
+              >
+                <Feather name="trash-2" size={15} color="#EF4444" />
+              </TouchableOpacity>
             </>
           ) : (
             <>
               <TouchableOpacity
-                style={styles.actionBtnSecondary}
+                style={[styles.actionBtnSecondary, { flex: 1 }]}
                 onPress={() => handleOpenAddModal(rawName)}
                 activeOpacity={0.8}
               >
@@ -436,15 +446,13 @@ export default function VaccinationScreen() {
                 <Text style={styles.actionBtnSecondaryText}>{t('Schedule Next Booster')}</Text>
               </TouchableOpacity>
 
-              {item.source === 'self' && (
-                <TouchableOpacity
-                  style={styles.actionBtnDelete}
-                  onPress={() => handleDeleteVaccination(item)}
-                  activeOpacity={0.8}
-                >
-                  <Feather name="trash-2" size={15} color="#EF4444" />
-                </TouchableOpacity>
-              )}
+              <TouchableOpacity
+                style={styles.actionBtnDelete}
+                onPress={() => handleDeleteVaccination(item)}
+                activeOpacity={0.8}
+              >
+                <Feather name="trash-2" size={15} color="#EF4444" />
+              </TouchableOpacity>
             </>
           )}
         </View>

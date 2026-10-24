@@ -287,6 +287,21 @@ module.exports = (pool, io) => {
     }
   });
 
+  // Admin Delete Health Record
+  router.delete('/api/admin/health-records/:id', async (req, res) => {
+    try {
+      const { id } = req.params;
+      const result = await pool.query('DELETE FROM detections WHERE id = $1 RETURNING *', [id]);
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Record not found' });
+      }
+      res.status(200).json({ success: true, message: 'Health record deleted successfully' });
+    } catch (err) {
+      console.error('Error deleting health record:', err);
+      res.status(500).json({ error: 'Failed to delete health record' });
+    }
+  });
+
   // Admin Notifications (Unifies broadcasts sent by admin and inbound system alerts)
   router.get('/api/admin/notifications', async (req, res) => {
     try {
