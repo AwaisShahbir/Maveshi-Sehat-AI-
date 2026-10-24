@@ -374,6 +374,67 @@ export const getStyles = (colors = LIGHT_THEME, isDark = false) => {
       shadowOpacity: 0,
       elevation: 0,
     },
+    // Main post image in detail screen
+    detailImageWrapper: {
+      marginTop: 14,
+      marginBottom: 10,
+      borderRadius: 16,
+      overflow: 'hidden',
+      backgroundColor: isDark ? colors.cardElevated : '#F1F5F9',
+    },
+    detailImage: {
+      width: '100%',
+      height: 220,
+      borderRadius: 16,
+    },
+    // Comment / Reply image thumbnail
+    commentImageWrapper: {
+      marginTop: 8,
+      marginBottom: 4,
+      width: 150,
+      height: 110,
+      borderRadius: 12,
+      overflow: 'hidden',
+      backgroundColor: isDark ? colors.cardElevated : '#F1F5F9',
+    },
+    commentImage: {
+      width: '100%',
+      height: '100%',
+      borderRadius: 12,
+    },
+    // Reply Bar Photo Attachment
+    attachReplyBtn: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: isDark ? colors.cardElevated : '#F1F5F9',
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginRight: 6,
+    },
+    replyImagePreviewBar: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: isDark ? colors.cardElevated : '#F8FAFC',
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+      gap: 10,
+    },
+    replyImageThumb: {
+      width: 44,
+      height: 44,
+      borderRadius: 8,
+    },
+    replyImageRemoveBtn: {
+      width: 22,
+      height: 22,
+      borderRadius: 11,
+      backgroundColor: 'rgba(239, 68, 68, 0.9)',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
   });
 };
 

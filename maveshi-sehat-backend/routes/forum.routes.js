@@ -1,7 +1,52 @@
 const express = require('express');
 const router = express.Router();
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+
+const uploadDir = path.join(__dirname, '../uploads');
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+    cb(null, 'forum-' + uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const upload = multer({
+  storage: storage,
+  limits: { fileSize: 10 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    const filetypes = /jpeg|jpg|png|webp|gif/;
+    const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = filetypes.test(file.mimetype);
+    if (mimetype && extname) {
+      return cb(null, true);
+    }
+    cb(new Error('Only JPEG, JPG, PNG, WEBP, and GIF images are allowed!'));
+  }
+});
 
 module.exports = (pool) => {
+  // Standalone upload endpoint
+  router.post('/api/forum/upload', upload.single('image'), (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: 'No image file uploaded' });
+      }
+      const imageUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
+      res.status(200).json({ imageUrl });
+    } catch (err) {
+      res.status(500).json({ error: err.message || 'Image upload failed' });
+    }
+  });
+
   // Get Forum Posts (with category filtering)
   router.get('/api/forum/posts', async (req, res) => {
     try {
@@ -30,10 +75,10 @@ module.exports = (pool) => {
     }
   });
 
-  // Create Forum Post
-  router.post('/api/forum/posts', async (req, res) => {
+  // Create Forum Post (supports multipart image attachment or JSON)
+  router.post('/api/forum/posts', upload.single('image'), async (req, res) => {
     try {
-      const { userName, userId: providedUserId, title, description, category } = req.body;
+      const { userName, userId: providedUserId, title, description, category, imageUrl: directImageUrl } = req.body;
       if (!title || !description || !category) {
         return res.status(400).json({ error: 'Title, description, and category are required' });
       }
@@ -54,9 +99,14 @@ module.exports = (pool) => {
         resolvedUserId = userRes.rows[0].id;
       }
 
+      let finalImageUrl = directImageUrl || null;
+      if (req.file) {
+        finalImageUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
+      }
+
       const result = await pool.query(
-        'INSERT INTO forum_posts (user_id, title, description, category) VALUES ($1, $2, $3, $4) RETURNING *',
-        [resolvedUserId, title.trim(), description.trim(), category]
+        'INSERT INTO forum_posts (user_id, title, description, category, image_url) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+        [resolvedUserId, title.trim(), description.trim(), category, finalImageUrl]
       );
       res.status(201).json(result.rows[0]);
     } catch (err) {
@@ -96,10 +146,10 @@ module.exports = (pool) => {
   });
 
   // Post Comment on Forum Post
-  router.post('/api/forum/posts/:id/comments', async (req, res) => {
+  router.post('/api/forum/posts/:id/comments', upload.single('image'), async (req, res) => {
     try {
       const { id } = req.params;
-      const { userName, userId: providedUserId, comment, parentCommentId } = req.body;
+      const { userName, userId: providedUserId, comment, parentCommentId, imageUrl: directImageUrl } = req.body;
       if (!comment || !comment.trim()) {
         return res.status(400).json({ error: 'Comment text is required' });
       }
@@ -122,9 +172,14 @@ module.exports = (pool) => {
 
       const parentId = parentCommentId ? parseInt(parentCommentId) : null;
 
+      let finalImageUrl = directImageUrl || null;
+      if (req.file) {
+        finalImageUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
+      }
+
       const result = await pool.query(
-        'INSERT INTO forum_comments (post_id, user_id, comment, parent_comment_id) VALUES ($1, $2, $3, $4) RETURNING *',
-        [id, resolvedUserId, comment.trim(), parentId]
+        'INSERT INTO forum_comments (post_id, user_id, comment, parent_comment_id, image_url) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+        [id, resolvedUserId, comment.trim(), parentId, finalImageUrl]
       );
       res.status(201).json(result.rows[0]);
     } catch (err) {

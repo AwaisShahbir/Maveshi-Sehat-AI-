@@ -50,7 +50,8 @@ export const CORE_UI_KEYS = [
   'Pending', 'Urgent', 'Resolved', 'Submitted Cases', 'Verification Document',
   'Sehat Assistant', 'Ask Sehat Assistant', 'Instant AI guidance for your animals', 'AI Assistant', 'Clear Chat', 'Suggested Questions',
   'Vaccination', 'Vaccination Schedule', 'Upcoming', 'Completed', 'No vaccinations found', 'Add Vaccination', 'Vaccine Name', 'Target Animal', 'Date Administered', 'Next Due Date', 'Administered', 'Overdue', 'Notes', 'Save Vaccination', 'Order Vaccine', 'Seasonal Guide',
-  'Delete', 'Remove', 'Clear', 'Delete Record', 'Delete Health Record', 'Delete Consultation', 'Delete Post', 'Delete Comment', 'Delete Notification', 'Remove Item', 'Are you sure?', 'This action cannot be undone.'
+  'Delete', 'Remove', 'Clear', 'Delete Record', 'Delete Health Record', 'Delete Consultation', 'Delete Post', 'Delete Comment', 'Delete Notification', 'Remove Item', 'Are you sure?', 'This action cannot be undone.',
+  'Attach Photo', 'Take Photo', 'Choose from Gallery', 'Add Animal or Symptom Photo', 'Attach Photo (Optional)'
 ];
 
 /**

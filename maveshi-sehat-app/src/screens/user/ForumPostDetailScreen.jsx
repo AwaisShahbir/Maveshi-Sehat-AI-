@@ -12,10 +12,12 @@ import {
   KeyboardAvoidingView,
   Alert,
   Animated,
+  Image,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getProfile, subscribeProfile } from '../../utils/profileStore';
 import { t } from '../../utils/translate';
@@ -41,6 +43,7 @@ export default function ForumPostDetailScreen() {
   const [comments, setComments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [replyText, setReplyText] = useState('');
+  const [replyImage, setReplyImage] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
   const [likedComments, setLikedComments] = useState(new Set());
@@ -81,9 +84,46 @@ export default function ForumPostDetailScreen() {
     fetchPostDetails();
   }, [fetchPostDetails]);
 
+  const handlePickReplyImage = (source = 'gallery') => {
+    const options = {
+      mediaType: 'photo',
+      quality: 0.8,
+      maxWidth: 1280,
+      maxHeight: 1280,
+    };
+    const picker = source === 'camera' ? launchCamera : launchImageLibrary;
+    picker(options, (res) => {
+      if (res.didCancel) return;
+      if (res.errorCode) {
+        Alert.alert(t('Image Error'), res.errorMessage || t('Could not select image.'));
+        return;
+      }
+      if (res.assets && res.assets.length > 0) {
+        const asset = res.assets[0];
+        setReplyImage({
+          uri: asset.uri,
+          name: asset.fileName || `reply_${Date.now()}.jpg`,
+          type: asset.type || 'image/jpeg',
+        });
+      }
+    });
+  };
+
+  const promptReplyImageSource = () => {
+    Alert.alert(
+      t('Attach Photo to Reply'),
+      t('Choose photo source'),
+      [
+        { text: t('Take Photo'), onPress: () => handlePickReplyImage('camera') },
+        { text: t('Choose from Gallery'), onPress: () => handlePickReplyImage('gallery') },
+        { text: t('Cancel'), style: 'cancel' },
+      ]
+    );
+  };
+
   const handleSendReply = async () => {
     const trimmed = replyText.trim();
-    if (!trimmed) return;
+    if (!trimmed && !replyImage) return;
     if (!userName) {
       Alert.alert(t('Not Logged In'), t('Please log in to post a reply.'));
       return;
@@ -91,23 +131,29 @@ export default function ForumPostDetailScreen() {
 
     setSubmitting(true);
     try {
-      const body = {
-        userName: userName.trim(),
-        comment: trimmed,
-      };
-      if (userId) body.userId = userId;
-      if (replyingTo) body.parentCommentId = replyingTo.id;
+      const formData = new FormData();
+      formData.append('userName', userName.trim());
+      formData.append('comment', trimmed || (replyImage ? '[Photo attached]' : ''));
+      if (userId) formData.append('userId', String(userId));
+      if (replyingTo) formData.append('parentCommentId', String(replyingTo.id));
+      if (replyImage) {
+        formData.append('image', {
+          uri: replyImage.uri,
+          name: replyImage.name,
+          type: replyImage.type,
+        });
+      }
 
       const response = await fetch(`${BASE_URL}/api/forum/posts/${postId}/comments`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
+        body: formData,
       });
 
       const data = await response.json();
 
       if (response.ok) {
         setReplyText('');
+        setReplyImage(null);
         setReplyingTo(null);
         await fetchPostDetails();
         setTimeout(() => {
@@ -289,6 +335,15 @@ export default function ForumPostDetailScreen() {
           </View>
         </View>
         <Text style={styles.commentBodyText}>{reply.comment}</Text>
+        {reply.image_url ? (
+          <View style={styles.commentImageWrapper}>
+            <Image
+              source={{ uri: reply.image_url }}
+              style={styles.commentImage}
+              resizeMode="cover"
+            />
+          </View>
+        ) : null}
         
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
           <TouchableOpacity
@@ -344,6 +399,15 @@ export default function ForumPostDetailScreen() {
 
         
         <Text style={styles.commentBodyText}>{item.comment}</Text>
+        {item.image_url ? (
+          <View style={styles.commentImageWrapper}>
+            <Image
+              source={{ uri: item.image_url }}
+              style={styles.commentImage}
+              resizeMode="cover"
+            />
+          </View>
+        ) : null}
 
         
         <View style={[styles.commentActionsRow, { justifyContent: 'space-between' }]}>
@@ -440,6 +504,16 @@ export default function ForumPostDetailScreen() {
 
           {post.title ? <Text style={styles.postTitle}>{post.title}</Text> : null}
           <Text style={styles.postDescription}>{post.description}</Text>
+
+          {post.image_url ? (
+            <View style={styles.detailImageWrapper}>
+              <Image
+                source={{ uri: post.image_url }}
+                style={styles.detailImage}
+                resizeMode="cover"
+              />
+            </View>
+          ) : null}
 
           <View style={styles.likesRow}>
             <TouchableOpacity style={styles.likeButton} onPress={handleLikePost}>
@@ -539,11 +613,30 @@ export default function ForumPostDetailScreen() {
           )}
 
           
+          {replyImage && (
+            <View style={styles.replyImagePreviewBar}>
+              <Image source={{ uri: replyImage.uri }} style={styles.replyImageThumb} resizeMode="cover" />
+              <Text style={{ flex: 1, fontSize: 12, color: colors.textSecondary }} numberOfLines={1}>
+                {replyImage.name}
+              </Text>
+              <TouchableOpacity onPress={() => setReplyImage(null)} style={styles.replyImageRemoveBtn}>
+                <Feather name="x" size={12} color="#FFF" />
+              </TouchableOpacity>
+            </View>
+          )}
+
           <View style={[styles.inputContainer, { paddingBottom: Math.max(insets.bottom, 10) }]}>
             <View style={styles.inputInner}>
               <View style={styles.inputAvatarSmall}>
                 <Text style={styles.inputAvatarText}>{getAvatarLetter(userName)}</Text>
               </View>
+              <TouchableOpacity
+                style={styles.attachReplyBtn}
+                onPress={promptReplyImageSource}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <Feather name="camera" size={18} color={replyImage ? colors.primary : colors.textSecondary} />
+              </TouchableOpacity>
               <TextInput
                 ref={inputRef}
                 style={styles.textInput}
@@ -561,10 +654,10 @@ export default function ForumPostDetailScreen() {
               <TouchableOpacity
                 style={[
                   styles.sendButton,
-                  (!replyText.trim() || submitting) && styles.sendButtonDisabled,
+                  ((!replyText.trim() && !replyImage) || submitting) && styles.sendButtonDisabled,
                 ]}
                 onPress={handleSendReply}
-                disabled={!replyText.trim() || submitting}
+                disabled={(!replyText.trim() && !replyImage) || submitting}
                 hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
               >
                 {submitting ? (

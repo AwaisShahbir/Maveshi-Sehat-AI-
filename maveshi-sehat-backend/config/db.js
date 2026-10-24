@@ -120,6 +120,9 @@ pool.connect((err, client, release) => {
         administered_by VARCHAR(255) DEFAULT 'Self-Administered',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
+
+      ALTER TABLE forum_posts ADD COLUMN IF NOT EXISTS image_url VARCHAR(500);
+      ALTER TABLE forum_comments ADD COLUMN IF NOT EXISTS image_url VARCHAR(500);
     `, (migrationErr) => {
       release();
       if (migrationErr) {

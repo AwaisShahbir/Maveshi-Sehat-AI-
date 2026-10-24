@@ -646,6 +646,76 @@ export const getStyles = (colors = LIGHT_THEME, isDark = false) => {
       fontSize: 15,
       fontWeight: '800',
     },
+    // Post image in feed
+    postImageContainer: {
+      marginTop: 10,
+      marginBottom: 6,
+      borderRadius: 14,
+      overflow: 'hidden',
+      backgroundColor: isDark ? colors.cardElevated : '#F1F5F9',
+    },
+    postImage: {
+      width: '100%',
+      height: 180,
+      borderRadius: 14,
+    },
+    // Photo Attachment in modal
+    attachPhotoBtn: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: isDark ? colors.cardElevated : '#F8FAFC',
+      borderWidth: 1.5,
+      borderColor: isDark ? colors.border : '#E2E8F0',
+      borderStyle: 'dashed',
+      borderRadius: 16,
+      padding: 14,
+      gap: 12,
+    },
+    attachPhotoIconWrap: {
+      width: 42,
+      height: 42,
+      borderRadius: 21,
+      backgroundColor: isDark ? 'rgba(16, 185, 129, 0.15)' : '#ECFDF5',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    attachPhotoTitle: {
+      fontSize: 13,
+      fontWeight: '700',
+      color: colors.textPrimary,
+    },
+    attachPhotoSub: {
+      fontSize: 11,
+      color: colors.textSecondary,
+      marginTop: 2,
+    },
+    imagePreviewWrapper: {
+      position: 'relative',
+      borderRadius: 14,
+      overflow: 'hidden',
+      backgroundColor: isDark ? colors.cardElevated : '#000',
+    },
+    imagePreview: {
+      width: '100%',
+      height: 160,
+      borderRadius: 14,
+    },
+    imageRemoveBtn: {
+      position: 'absolute',
+      top: 8,
+      right: 8,
+      width: 28,
+      height: 28,
+      borderRadius: 14,
+      backgroundColor: 'rgba(239, 68, 68, 0.88)',
+      justifyContent: 'center',
+      alignItems: 'center',
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.3,
+      shadowRadius: 3,
+      elevation: 4,
+    },
   });
 };
 

@@ -14,10 +14,12 @@ import {
   ScrollView,
   Share,
   KeyboardAvoidingView,
+  Image,
 } from 'react-native';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getProfile, subscribeProfile } from '../../utils/profileStore';
 import { t } from '../../utils/translate';
@@ -66,6 +68,7 @@ export default function CommunityForumScreen() {
   const [postTitle, setPostTitle] = useState('');
   const [postCategory, setPostCategory] = useState('General');
   const [postDescription, setPostDescription] = useState('');
+  const [selectedImage, setSelectedImage] = useState(null);
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -164,6 +167,43 @@ export default function CommunityForumScreen() {
     );
   };
 
+  const handlePickImage = (source = 'gallery') => {
+    const options = {
+      mediaType: 'photo',
+      quality: 0.8,
+      maxWidth: 1280,
+      maxHeight: 1280,
+    };
+    const picker = source === 'camera' ? launchCamera : launchImageLibrary;
+    picker(options, (res) => {
+      if (res.didCancel) return;
+      if (res.errorCode) {
+        Alert.alert(t('Image Error'), res.errorMessage || t('Could not select image.'));
+        return;
+      }
+      if (res.assets && res.assets.length > 0) {
+        const asset = res.assets[0];
+        setSelectedImage({
+          uri: asset.uri,
+          name: asset.fileName || `forum_${Date.now()}.jpg`,
+          type: asset.type || 'image/jpeg',
+        });
+      }
+    });
+  };
+
+  const promptImageSource = () => {
+    Alert.alert(
+      t('Attach Photo'),
+      t('Choose source for animal or symptom photo'),
+      [
+        { text: t('Take Photo'), onPress: () => handlePickImage('camera') },
+        { text: t('Choose from Gallery'), onPress: () => handlePickImage('gallery') },
+        { text: t('Cancel'), style: 'cancel' },
+      ]
+    );
+  };
+
   const handleCreatePost = async () => {
     if (!userName) {
       Alert.alert(t('Not Logged In'), t('Please log in to post a discussion.'));
@@ -180,18 +220,23 @@ export default function CommunityForumScreen() {
 
     setSubmitting(true);
     try {
-      const body = {
-        userName: userName.trim(),
-        title: postTitle.trim(),
-        description: postDescription.trim(),
-        category: postCategory,
-      };
-      if (userId) body.userId = userId;
+      const formData = new FormData();
+      formData.append('userName', userName.trim());
+      formData.append('title', postTitle.trim());
+      formData.append('description', postDescription.trim());
+      formData.append('category', postCategory);
+      if (userId) formData.append('userId', String(userId));
+      if (selectedImage) {
+        formData.append('image', {
+          uri: selectedImage.uri,
+          name: selectedImage.name,
+          type: selectedImage.type,
+        });
+      }
 
       const response = await fetch(`${BASE_URL}/api/forum/posts`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
+        body: formData,
       });
 
       const data = await response.json();
@@ -200,6 +245,7 @@ export default function CommunityForumScreen() {
         setPostTitle('');
         setPostDescription('');
         setPostCategory('General');
+        setSelectedImage(null);
         setCreateModalVisible(false);
         await fetchPosts();
         Alert.alert(t('Published!'), t('Your post has been shared with the community.'));
@@ -330,6 +376,16 @@ export default function CommunityForumScreen() {
         <Text style={styles.descriptionText} numberOfLines={3}>
           {item.description}
         </Text>
+
+        {item.image_url ? (
+          <View style={styles.postImageContainer}>
+            <Image
+              source={{ uri: item.image_url }}
+              style={styles.postImage}
+              resizeMode="cover"
+            />
+          </View>
+        ) : null}
 
         <View style={styles.cardDivider} />
 
@@ -690,6 +746,38 @@ export default function CommunityForumScreen() {
                   />
                 </View>
                 <Text style={styles.charCount}>{postDescription.length}/2000</Text>
+              </View>
+
+              {/* Photo Attachment Section */}
+              <View style={styles.formGroup}>
+                <Text style={styles.formLabel}>{t('Attach Photo (Optional)')}</Text>
+                {selectedImage ? (
+                  <View style={styles.imagePreviewWrapper}>
+                    <Image source={{ uri: selectedImage.uri }} style={styles.imagePreview} resizeMode="cover" />
+                    <TouchableOpacity
+                      style={styles.imageRemoveBtn}
+                      onPress={() => setSelectedImage(null)}
+                      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                    >
+                      <Feather name="x" size={14} color="#FFF" />
+                    </TouchableOpacity>
+                  </View>
+                ) : (
+                  <TouchableOpacity
+                    style={styles.attachPhotoBtn}
+                    onPress={promptImageSource}
+                    activeOpacity={0.8}
+                  >
+                    <View style={styles.attachPhotoIconWrap}>
+                      <Feather name="camera" size={20} color={colors.primary} />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.attachPhotoTitle}>{t('Add Animal or Symptom Photo')}</Text>
+                      <Text style={styles.attachPhotoSub}>{t('Take photo or choose from gallery')}</Text>
+                    </View>
+                    <Feather name="plus" size={18} color={colors.primary} />
+                  </TouchableOpacity>
+                )}
               </View>
 
               {/* Professional Guidance Tip */}
