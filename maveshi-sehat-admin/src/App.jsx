@@ -13,6 +13,7 @@ import HealthRecords from './pages/HealthRecords';
 import DiseaseAnalytics from './pages/DiseaseAnalytics';
 import Notifications from './pages/Notifications';
 import Settings from './pages/Settings';
+import CommunityForum from './pages/CommunityForum';
 import './styles/App.css';
 
 function PlaceholderPage({ name }) {
@@ -133,7 +134,8 @@ export default function App() {
               <Route path="/pharmacy-approval" element={<PharmacyApproval />} />
               
               <Route path="/health-records" element={<HealthRecords />} />
-              <Route path="/medicines" element={<PlaceholderPage name="Medicine Catalogue" />} />
+              <Route path="/community-forum" element={<CommunityForum />} />
+              <Route path="/medicines" element={<PharmacyApproval />} />
               <Route path="/orders" element={<PlaceholderPage name="Order Management" />} />
               <Route path="/notifications" element={<Notifications />} />
               <Route path="/settings" element={<Settings onProfileUpdate={handleLoginSuccess} />} />

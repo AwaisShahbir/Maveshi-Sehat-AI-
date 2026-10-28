@@ -36,6 +36,7 @@ export default function Dashboard({ pharmacy, onLogout }) {
   const [recentOrders, setRecentOrders] = useState([]);
   const [stockAlertsList, setStockAlertsList] = useState([]);
   const [topSellingMedicines, setTopSellingMedicines] = useState([]);
+  const [orderFilter, setOrderFilter] = useState('All');
   const [loading, setLoading] = useState(true);
   const [showAddMedModal, setShowAddMedModal] = useState(false);
   const [notifications, setNotifications] = useState([]);
@@ -477,7 +478,12 @@ export default function Dashboard({ pharmacy, onLogout }) {
 
               {/* Order Fulfillment Pipeline Strip */}
               <div className="pipeline-strip">
-                <div className="pipeline-card" onClick={() => setCurrentView('orders')} style={{ cursor: 'pointer' }}>
+                <div 
+                  className="pipeline-card" 
+                  onClick={() => { setOrderFilter('Pending'); setCurrentView('orders'); }} 
+                  style={{ cursor: 'pointer' }}
+                  title="Click to view pending orders"
+                >
                   <div className="pipeline-icon-circle pending">
                     <Clock size={20} />
                   </div>
@@ -487,7 +493,12 @@ export default function Dashboard({ pharmacy, onLogout }) {
                   </div>
                 </div>
 
-                <div className="pipeline-card" onClick={() => setCurrentView('orders')} style={{ cursor: 'pointer' }}>
+                <div 
+                  className="pipeline-card" 
+                  onClick={() => { setOrderFilter('Processing'); setCurrentView('orders'); }} 
+                  style={{ cursor: 'pointer' }}
+                  title="Click to view processing orders"
+                >
                   <div className="pipeline-icon-circle confirmed">
                     <PackageCheck size={20} />
                   </div>
@@ -497,7 +508,12 @@ export default function Dashboard({ pharmacy, onLogout }) {
                   </div>
                 </div>
 
-                <div className="pipeline-card" onClick={() => setCurrentView('orders')} style={{ cursor: 'pointer' }}>
+                <div 
+                  className="pipeline-card" 
+                  onClick={() => { setOrderFilter('Dispatched'); setCurrentView('orders'); }} 
+                  style={{ cursor: 'pointer' }}
+                  title="Click to view dispatched orders"
+                >
                   <div className="pipeline-icon-circle shipped">
                     <Truck size={20} />
                   </div>
@@ -507,7 +523,12 @@ export default function Dashboard({ pharmacy, onLogout }) {
                   </div>
                 </div>
 
-                <div className="pipeline-card" onClick={() => setCurrentView('orders')} style={{ cursor: 'pointer' }}>
+                <div 
+                  className="pipeline-card" 
+                  onClick={() => { setOrderFilter('Completed'); setCurrentView('orders'); }} 
+                  style={{ cursor: 'pointer' }}
+                  title="Click to view completed orders"
+                >
                   <div className="pipeline-icon-circle delivered">
                     <CheckCircle size={20} />
                   </div>
@@ -517,7 +538,12 @@ export default function Dashboard({ pharmacy, onLogout }) {
                   </div>
                 </div>
 
-                <div className="pipeline-card" onClick={() => setCurrentView('orders')} style={{ cursor: 'pointer' }}>
+                <div 
+                  className="pipeline-card" 
+                  onClick={() => { setOrderFilter('Cancelled'); setCurrentView('orders'); }} 
+                  style={{ cursor: 'pointer' }}
+                  title="Click to view cancelled orders"
+                >
                   <div className="pipeline-icon-circle cancelled">
                     <AlertTriangle size={20} />
                   </div>
@@ -790,7 +816,13 @@ export default function Dashboard({ pharmacy, onLogout }) {
           )}
 
           {currentView === 'orders' && (
-            <Orders pharmacy={pharmacy} onOrderAction={handleOrderAction} formatPrice={formatPrice} getStatusBadge={getStatusBadge} />
+            <Orders 
+              pharmacy={pharmacy} 
+              onOrderAction={handleOrderAction} 
+              formatPrice={formatPrice} 
+              getStatusBadge={getStatusBadge} 
+              initialStatus={orderFilter}
+            />
           )}
 
           {currentView === 'profile' && (

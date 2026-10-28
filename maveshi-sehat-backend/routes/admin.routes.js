@@ -81,10 +81,11 @@ module.exports = (pool, io) => {
       let topMedicines = [];
       try {
         const topMedicinesRes = await pool.query(`
-          SELECT m.name, m.manufacturer, m.dosage_form, COUNT(oi.id)::int as order_count, COALESCE(SUM(oi.quantity), 0)::int as units_sold
+          SELECT m.name, m.manufacturer, m.dosage_form, p.name as pharmacy_name, COUNT(oi.id)::int as order_count, COALESCE(SUM(oi.quantity), 0)::int as units_sold
           FROM order_items oi
           JOIN medicines m ON oi.medicine_id = m.id
-          GROUP BY m.id, m.name, m.manufacturer, m.dosage_form
+          LEFT JOIN pharmacies p ON m.pharmacy_id = p.id
+          GROUP BY m.id, m.name, m.manufacturer, m.dosage_form, p.name
           ORDER BY units_sold DESC
           LIMIT 5
         `);
@@ -274,15 +275,22 @@ module.exports = (pool, io) => {
     }
   });
 
-  // Admin Medicines List
+  // Admin Medicines List (with optional pharmacyId filter)
   router.get('/api/admin/medicines', async (req, res) => {
     try {
-      const result = await pool.query(`
-        SELECT m.*, p.name as pharmacy_name 
+      const { pharmacyId } = req.query;
+      let query = `
+        SELECT m.*, p.name as pharmacy_name, p.license_number as pharmacy_license 
         FROM medicines m 
         LEFT JOIN pharmacies p ON m.pharmacy_id = p.id 
-        ORDER BY m.id ASC
-      `);
+      `;
+      const params = [];
+      if (pharmacyId) {
+        query += ` WHERE m.pharmacy_id = $1 `;
+        params.push(parseInt(pharmacyId));
+      }
+      query += ` ORDER BY m.id ASC `;
+      const result = await pool.query(query, params);
       res.status(200).json(result.rows);
     } catch (err) {
       res.status(500).json({ error: 'Failed to fetch medicines' });

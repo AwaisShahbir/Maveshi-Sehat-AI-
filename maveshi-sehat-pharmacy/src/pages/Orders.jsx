@@ -2,12 +2,18 @@ import React, { useState, useEffect } from 'react';
 import { ChevronRight, ChevronDown, Clock, ShoppingBag, Truck, CheckCircle, AlertTriangle } from 'lucide-react';
 import '../styles/Orders.css';
 
-export default function Orders({ pharmacy, onOrderAction, formatPrice, getStatusBadge }) {
+export default function Orders({ pharmacy, onOrderAction, formatPrice, getStatusBadge, initialStatus = 'All' }) {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedStatus, setSelectedStatus] = useState('All'); 
+  const [selectedStatus, setSelectedStatus] = useState(initialStatus || 'All'); 
   const [expandedOrders, setExpandedOrders] = useState({});
   const [orderDetails, setOrderDetails] = useState({});
+
+  useEffect(() => {
+    if (initialStatus) {
+      setSelectedStatus(initialStatus);
+    }
+  }, [initialStatus]);
 
   const statusFilters = ['All', 'Pending', 'Processing', 'Dispatched', 'Completed', 'Cancelled'];
 

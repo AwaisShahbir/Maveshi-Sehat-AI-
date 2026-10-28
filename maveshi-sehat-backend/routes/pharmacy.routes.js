@@ -193,7 +193,17 @@ module.exports = (pool) => {
       };
       pipelineRes.rows.forEach(r => {
         const s = (r.status || '').toLowerCase();
-        if (pipeline[s] !== undefined) pipeline[s] = r.count;
+        if (s === 'pending') {
+          pipeline.pending += r.count;
+        } else if (s === 'confirmed' || s === 'processing') {
+          pipeline.confirmed += r.count;
+        } else if (s === 'shipped' || s === 'dispatched') {
+          pipeline.shipped += r.count;
+        } else if (s === 'delivered' || s === 'completed') {
+          pipeline.delivered += r.count;
+        } else if (s === 'cancelled' || s === 'rejected') {
+          pipeline.cancelled += r.count;
+        }
       });
 
       // Top Selling Medicines

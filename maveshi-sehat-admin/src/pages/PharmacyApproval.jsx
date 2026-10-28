@@ -1,13 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import { Store, Check, X, ExternalLink, ShieldAlert, ShieldCheck, Clock, Pill, TrendingUp, AlertCircle } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
+import { Store, Check, X, ExternalLink, ShieldAlert, ShieldCheck, Clock, Pill, TrendingUp, AlertCircle, Search, Filter } from 'lucide-react';
 import '../styles/PharmacyApproval.css';
 
 export default function PharmacyApproval() {
+  const [searchParams] = useSearchParams();
   const [pharmacies, setPharmacies] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('approved');
+  const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'approved');
   const [selectedPharmacy, setSelectedPharmacy] = useState(null);
   const [platformStats, setPlatformStats] = useState(null);
+
+  // Medicines Catalog State
+  const [medicines, setMedicines] = useState([]);
+  const [medsLoading, setMedsLoading] = useState(false);
+  const [selectedPharmacyForMeds, setSelectedPharmacyForMeds] = useState(null);
+  const [showMedsModal, setShowMedsModal] = useState(false);
+  const [filterPharmacyId, setFilterPharmacyId] = useState('all');
+  const [filterStockStatus, setFilterStockStatus] = useState('all');
+  const [searchMedQuery, setSearchMedQuery] = useState('');
 
   const fetchPharmacies = async () => {
     setLoading(true);
@@ -36,10 +47,36 @@ export default function PharmacyApproval() {
     }
   };
 
+  const fetchMedicines = async (pharmacyId = null) => {
+    setMedsLoading(true);
+    try {
+      const url = pharmacyId 
+        ? `http://localhost:5000/api/admin/medicines?pharmacyId=${pharmacyId}`
+        : 'http://localhost:5000/api/admin/medicines';
+      const res = await fetch(url);
+      if (res.ok) {
+        const data = await res.json();
+        setMedicines(data);
+      }
+    } catch (err) {
+      console.error('Error fetching medicines:', err);
+    } finally {
+      setMedsLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchPharmacies();
     fetchPlatformStats();
+    fetchMedicines();
   }, []);
+
+  useEffect(() => {
+    const tabParam = searchParams.get('tab');
+    if (tabParam) {
+      setActiveTab(tabParam);
+    }
+  }, [searchParams]);
 
   const handleAction = async (pharmacyId, action) => {
     let confirmMsg = '';
@@ -78,13 +115,55 @@ export default function PharmacyApproval() {
     }
   };
 
-  const displayPharmacies = pharmacies.filter(p => p.status === activeTab);
-
   const approvedCount = pharmacies.filter(p => p.status === 'approved').length;
   const pendingCount = pharmacies.filter(p => p.status === 'pending').length;
   const blockedCount = pharmacies.filter(p => p.status === 'blocked').length;
-  const totalMedsCount = platformStats?.pharmacies?.totalMedicines || pharmacies.reduce((sum, p) => sum + (parseInt(p.medicines_count) || 0), 0);
-  const totalRevenue = platformStats?.pharmacies?.totalRevenue || 0;
+  const totalMedsCount = platformStats?.totalMedicines ?? pharmacies.reduce((sum, p) => sum + (parseInt(p.medicines_count) || 0), 0);
+  const totalRevenue = platformStats?.totalRevenue ?? 0;
+  const totalOrders = platformStats?.totalOrders ?? 0;
+  const lowStockCount = platformStats?.lowStockMedsCount ?? 0;
+
+  const getMedStockStatus = (med) => {
+    if (med.stock === 0 || med.status === 'out_of_stock') {
+      return { label: 'Out of Stock', badgeClass: 'badge-red', dotColor: '#ef4444' };
+    }
+    if (med.stock <= (med.min_stock || 10) || med.status === 'low_stock') {
+      return { label: `Low Stock (${med.stock})`, badgeClass: 'badge-orange', dotColor: '#f59e0b' };
+    }
+    return { label: `In Stock (${med.stock})`, badgeClass: 'badge-green', dotColor: '#10b981' };
+  };
+
+  const handleOpenPharmacyCatalog = (pharm) => {
+    setSelectedPharmacyForMeds(pharm);
+    setShowMedsModal(true);
+    fetchMedicines(pharm.id);
+  };
+
+  const filteredMedicines = medicines.filter(m => {
+    if (filterPharmacyId !== 'all' && String(m.pharmacy_id) !== String(filterPharmacyId)) {
+      return false;
+    }
+    if (filterStockStatus === 'in_stock' && (m.stock === 0 || m.stock <= (m.min_stock || 10))) {
+      return false;
+    }
+    if (filterStockStatus === 'low_stock' && (m.stock === 0 || m.stock > (m.min_stock || 10))) {
+      return false;
+    }
+    if (filterStockStatus === 'out_of_stock' && m.stock > 0) {
+      return false;
+    }
+    if (searchMedQuery) {
+      const q = searchMedQuery.toLowerCase();
+      const matchName = (m.name || '').toLowerCase().includes(q);
+      const matchCat = (m.category || '').toLowerCase().includes(q);
+      const matchPharm = (m.pharmacy_name || '').toLowerCase().includes(q);
+      const matchMfg = (m.manufacturer || '').toLowerCase().includes(q);
+      if (!matchName && !matchCat && !matchPharm && !matchMfg) return false;
+    }
+    return true;
+  });
+
+  const displayPharmacies = pharmacies.filter(p => p.status === activeTab);
 
   return (
     <div className="pharmacy-approval-view">
@@ -120,7 +199,7 @@ export default function PharmacyApproval() {
           <div className="pharmacy-summary-content">
             <span className="pharmacy-summary-value">{totalMedsCount} Products</span>
             <span className="pharmacy-summary-label">Cataloged Drugs</span>
-            <span className="pharmacy-summary-sub">{platformStats?.pharmacies?.lowStock || 0} low stock items</span>
+            <span className="pharmacy-summary-sub">{lowStockCount} low stock items</span>
           </div>
         </div>
 
@@ -131,7 +210,7 @@ export default function PharmacyApproval() {
           <div className="pharmacy-summary-content">
             <span className="pharmacy-summary-value">Rs. {Number(totalRevenue).toLocaleString('en-PK')}</span>
             <span className="pharmacy-summary-label">Platform Sales GMV</span>
-            <span className="pharmacy-summary-sub">{platformStats?.pharmacies?.totalOrders || 0} platform orders fulfilled</span>
+            <span className="pharmacy-summary-sub">{totalOrders} platform orders fulfilled</span>
           </div>
         </div>
       </div>
@@ -162,10 +241,149 @@ export default function PharmacyApproval() {
         >
           Rejected Applications ({pharmacies.filter(p => p.status === 'rejected').length})
         </button>
+        <button 
+          className={`pharmacy-tab-btn ${activeTab === 'medicines' ? 'active' : ''}`}
+          onClick={() => {
+            setActiveTab('medicines');
+            setFilterPharmacyId('all');
+            fetchMedicines();
+          }}
+        >
+          Catalog Inventory ({medicines.length})
+        </button>
       </div>
 
       {loading ? (
         <div className="pharmacy-loading-msg">Loading pharmacy records...</div>
+      ) : activeTab === 'medicines' ? (
+        /* Master Medicine Catalog & Live Stock Status Directory */
+        <div className="card" style={{ padding: '24px' }}>
+          <div className="pharmacy-meds-filter-bar">
+            <div className="pharmacy-filter-controls-group">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Filter size={15} style={{ color: '#64748b' }} />
+                <select 
+                  className="pharmacy-select-filter"
+                  value={filterPharmacyId}
+                  onChange={(e) => setFilterPharmacyId(e.target.value)}
+                >
+                  <option value="all">All Pharmacies ({pharmacies.length} Stores)</option>
+                  {pharmacies.map(p => (
+                    <option key={p.id} value={p.id}>
+                      {p.name} {p.status !== 'approved' ? `(${p.status})` : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <select 
+                className="pharmacy-select-filter"
+                value={filterStockStatus}
+                onChange={(e) => setFilterStockStatus(e.target.value)}
+              >
+                <option value="all">All Inventory Statuses</option>
+                <option value="in_stock">In Stock Only</option>
+                <option value="low_stock">Low Stock Warning Only</option>
+                <option value="out_of_stock">Out of Stock Only</option>
+              </select>
+            </div>
+
+            <div style={{ position: 'relative' }}>
+              <input 
+                type="text"
+                placeholder="Search medicine, formula, brand..."
+                className="pharmacy-search-input"
+                value={searchMedQuery}
+                onChange={(e) => setSearchMedQuery(e.target.value)}
+              />
+            </div>
+          </div>
+
+          {medsLoading ? (
+            <div style={{ textAlign: 'center', padding: '40px', color: '#64748b' }}>
+              Loading platform medicine catalog...
+            </div>
+          ) : filteredMedicines.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '40px', color: '#64748b' }}>
+              No medicines found matching the selected pharmacy and stock filter.
+            </div>
+          ) : (
+            <div className="table-responsive">
+              <table className="custom-table">
+                <thead>
+                  <tr>
+                    <th>Medicine & Formulation</th>
+                    <th>Dispensing Pharmacy</th>
+                    <th>Category</th>
+                    <th>Units in Stock</th>
+                    <th>Live Inventory Status</th>
+                    <th>Unit Price</th>
+                    <th>Prescription (Rx)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredMedicines.map(med => {
+                    const statusObj = getMedStockStatus(med);
+                    return (
+                      <tr key={med.id}>
+                        <td>
+                          <div style={{ display: 'flex', flexDirection: 'column' }}>
+                            <span style={{ fontWeight: '700', color: '#0f172a' }}>{med.name}</span>
+                            <div style={{ display: 'flex', gap: '6px', alignItems: 'center', marginTop: '2px' }}>
+                              {med.dosage_form && (
+                                <span className="top-med-badge">{med.dosage_form.trim()}</span>
+                              )}
+                              {med.strength && (
+                                <span style={{ fontSize: '11px', color: '#64748b' }}>{med.strength}</span>
+                              )}
+                            </div>
+                          </div>
+                        </td>
+                        <td>
+                          <span className="pharmacy-store-badge">
+                            <Store size={12} />
+                            <span>{med.pharmacy_name || 'AI-shefa'}</span>
+                          </span>
+                        </td>
+                        <td>
+                          <span style={{ fontSize: '12px', color: '#475569' }}>
+                            {med.category || 'General'}
+                          </span>
+                        </td>
+                        <td>
+                          <strong style={{ color: med.stock === 0 ? '#ef4444' : '#0f172a' }}>
+                            {med.stock} units
+                          </strong>
+                          <span style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>
+                            Alert under: {med.min_stock || 10}
+                          </span>
+                        </td>
+                        <td>
+                          <span className={`badge ${statusObj.badgeClass}`}>
+                            <span className="stock-dot-indicator" style={{ backgroundColor: statusObj.dotColor }} />
+                            {statusObj.label}
+                          </span>
+                        </td>
+                        <td style={{ fontWeight: '700', color: '#135431' }}>
+                          PKR {Number(med.price).toLocaleString()}
+                        </td>
+                        <td>
+                          {med.prescription_required ? (
+                            <span className="badge badge-purple" style={{ backgroundColor: '#f5f3ff', color: '#7c3aed', border: '1px solid #ddd6fe' }}>
+                              Rx Required
+                            </span>
+                          ) : (
+                            <span className="badge badge-green">OTC</span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
       ) : (
         <div className="pharmacy-layout">
           
@@ -213,10 +431,21 @@ export default function PharmacyApproval() {
                       {pharm.status.toUpperCase()}
                     </span>
                     
-                    <button className="pharmacy-view-profile-btn" onClick={() => setSelectedPharmacy(pharm)}>
-                      <span>View Full Profile</span>
-                      <ExternalLink size={12} />
-                    </button>
+                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+                      <button className="pharmacy-view-profile-btn" onClick={() => setSelectedPharmacy(pharm)}>
+                        <span>View Profile</span>
+                        <ExternalLink size={12} />
+                      </button>
+
+                      <button 
+                        className="pharmacy-view-meds-btn" 
+                        onClick={() => handleOpenPharmacyCatalog(pharm)}
+                        title="View medicines catalog listed under this pharmacy"
+                      >
+                        <Pill size={12} />
+                        <span>Listed Drugs ({pharm.medicines_count || 0})</span>
+                      </button>
+                    </div>
 
                     <div className="pharmacy-action-btns">
                       {pharm.status === 'approved' && (
@@ -449,6 +678,22 @@ export default function PharmacyApproval() {
               </div>
             </div>
 
+            {/* View Listed Medicines Direct Button */}
+            <div style={{ marginBottom: '18px' }}>
+              <button 
+                onClick={() => {
+                  setSelectedPharmacyForMeds(selectedPharmacy);
+                  setShowMedsModal(true);
+                  fetchMedicines(selectedPharmacy.id);
+                }}
+                className="pharmacy-view-meds-btn"
+                style={{ width: '100%', justifyContent: 'center', padding: '10px', fontSize: '13px' }}
+              >
+                <Pill size={15} />
+                <span>View {selectedPharmacy.name}'s Listed Medicines & Stock Status ({selectedPharmacy.medicines_count || 0})</span>
+              </button>
+            </div>
+
             <div className="pharmacy-modal-actions" style={{ justifyContent: 'space-between', borderTop: '1px solid #f1f5f9', paddingTop: '16px' }}>
               <div>
                 {selectedPharmacy.status === 'approved' && (
@@ -503,6 +748,111 @@ export default function PharmacyApproval() {
                   fontWeight: '600',
                   cursor: 'pointer'
                 }}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Pharmacy Specific Medicine Catalog Modal */}
+      {showMedsModal && (
+        <div 
+          className="pharmacy-modal-backdrop"
+          onClick={() => setShowMedsModal(false)}
+        >
+          <div 
+            className="pharmacy-modal-content card"
+            onClick={(e) => e.stopPropagation()}
+            style={{ maxWidth: '850px', maxHeight: '85vh', display: 'flex', flexDirection: 'column' }}
+          >
+            <div className="pharmacy-modal-header" style={{ borderBottom: '1px solid #f1f5f9', paddingBottom: '16px' }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Store size={20} className="text-[#3da860]" />
+                  <h3 className="pharmacy-modal-title" style={{ margin: 0 }}>
+                    {selectedPharmacyForMeds ? selectedPharmacyForMeds.name : 'All Pharmacies'} — Medicine Inventory & Stock Status
+                  </h3>
+                </div>
+                <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: '#64748b' }}>
+                  Live inventory and stock availability for drugs cataloged under this pharmacy
+                </p>
+              </div>
+
+              <button 
+                onClick={() => setShowMedsModal(false)}
+                className="pharmacy-modal-close-icon"
+                title="Close"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <div style={{ flex: 1, overflowY: 'auto', padding: '16px 0' }}>
+              {medsLoading ? (
+                <div style={{ textAlign: 'center', padding: '32px', color: '#64748b' }}>Loading medicines...</div>
+              ) : medicines.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '32px', color: '#64748b' }}>No medicines found for this pharmacy.</div>
+              ) : (
+                <div className="table-responsive">
+                  <table className="custom-table">
+                    <thead>
+                      <tr>
+                        <th>Medicine & Strength</th>
+                        <th>Dosage / Category</th>
+                        <th>Stock Available</th>
+                        <th>Inventory Status</th>
+                        <th>Unit Price</th>
+                        <th>Prescription</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {medicines.map(med => {
+                        const statusObj = getMedStockStatus(med);
+                        return (
+                          <tr key={med.id}>
+                            <td>
+                              <span style={{ fontWeight: '700', color: '#0f172a', display: 'block' }}>{med.name}</span>
+                              {med.strength && <span style={{ fontSize: '11px', color: '#64748b' }}>{med.strength}</span>}
+                            </td>
+                            <td>
+                              <span className="top-med-badge">{med.dosage_form || med.category || 'General'}</span>
+                            </td>
+                            <td>
+                              <strong style={{ color: med.stock === 0 ? '#ef4444' : '#0f172a' }}>{med.stock}</strong> units
+                              <span style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>Min alert: {med.min_stock || 10}</span>
+                            </td>
+                            <td>
+                              <span className={`badge ${statusObj.badgeClass}`}>
+                                <span className="stock-dot-indicator" style={{ backgroundColor: statusObj.dotColor }} />
+                                {statusObj.label}
+                              </span>
+                            </td>
+                            <td style={{ fontWeight: '700', color: '#135431' }}>
+                              PKR {Number(med.price).toLocaleString()}
+                            </td>
+                            <td>
+                              {med.prescription_required ? (
+                                <span className="badge badge-purple" style={{ backgroundColor: '#f5f3ff', color: '#7c3aed', border: '1px solid #ddd6fe' }}>Rx Required</span>
+                              ) : (
+                                <span className="badge badge-green">OTC</span>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: '14px', borderTop: '1px solid #f1f5f9' }}>
+              <button 
+                onClick={() => setShowMedsModal(false)}
+                className="pharmacy-modal-close-btn-main"
+                style={{ backgroundColor: '#3da860', color: '#fff', border: 'none', padding: '8px 20px', borderRadius: '8px', cursor: 'pointer', fontWeight: '600' }}
               >
                 Close
               </button>

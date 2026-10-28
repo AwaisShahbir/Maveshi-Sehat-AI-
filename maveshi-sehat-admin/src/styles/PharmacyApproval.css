@@ -453,3 +453,104 @@
   font-weight: 500;
 }
 
+/* View Catalog / Medicines Action Button */
+.pharmacy-view-meds-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background-color: #eff6ff;
+  color: #2563eb;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.pharmacy-view-meds-btn:hover {
+  background-color: #dbeafe;
+  border-color: #93c5fd;
+}
+
+/* Inventory Filter Controls */
+.pharmacy-meds-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  background-color: #f8fafc;
+  padding: 14px 18px;
+  border-radius: 12px;
+  border: 1px solid var(--border-light);
+}
+
+.pharmacy-filter-controls-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+.pharmacy-select-filter {
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border-light);
+  font-size: 13px;
+  background-color: #ffffff;
+  color: var(--text-main);
+  outline: none;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.pharmacy-select-filter:focus {
+  border-color: #3da860;
+}
+
+.pharmacy-search-input {
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border-light);
+  font-size: 13px;
+  background-color: #ffffff;
+  color: var(--text-main);
+  outline: none;
+  width: 240px;
+}
+
+.pharmacy-search-input:focus {
+  border-color: #3da860;
+}
+
+/* Pharmacy Badge in Medicine List */
+.pharmacy-store-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  background-color: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #334155;
+}
+
+.pharmacy-store-badge svg {
+  color: #3da860;
+}
+
+/* Stock Status Indicators */
+.stock-dot-indicator {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 6px;
+}
+
+

@@ -156,7 +156,14 @@ export default function MarketplaceScreen() {
             {t(item.name, item.name_urdu || item.name)}
           </Text>
 
-          {item.manufacturer ? (
+          {item.pharmacy_name ? (
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 2, marginBottom: 2 }}>
+              <Feather name="home" size={11} color={colors.primary} style={{ marginRight: 4 }} />
+              <Text style={{ fontSize: 11, fontWeight: '600', color: colors.primary }} numberOfLines={1}>
+                {item.pharmacy_name}
+              </Text>
+            </View>
+          ) : item.manufacturer ? (
             <Text style={styles.manufacturerText} numberOfLines={1}>
               {item.manufacturer}
             </Text>
@@ -176,13 +183,13 @@ export default function MarketplaceScreen() {
             <Text style={styles.priceText}>Rs. {Math.round(item.price)}</Text>
             <View style={[
               styles.stockBadge, 
-              { backgroundColor: isOutOfStock ? 'rgba(239, 68, 68, 0.12)' : 'rgba(16, 185, 129, 0.12)' }
+              { backgroundColor: isOutOfStock ? 'rgba(239, 68, 68, 0.12)' : (item.stock && item.stock <= (item.min_stock || 10)) ? 'rgba(245, 158, 11, 0.12)' : 'rgba(16, 185, 129, 0.12)' }
             ]}>
               <Text style={[
                 styles.stockBadgeText, 
-                { color: isOutOfStock ? '#EF4444' : '#10B981' }
+                { color: isOutOfStock ? '#EF4444' : (item.stock && item.stock <= (item.min_stock || 10)) ? '#F59E0B' : '#10B981' }
               ]}>
-                {isOutOfStock ? t('Out of Stock') : t('In Stock')}
+                {isOutOfStock ? t('Out of Stock') : (item.stock && item.stock <= (item.min_stock || 10)) ? t('Low Stock') : t('In Stock')}
               </Text>
             </View>
           </View>

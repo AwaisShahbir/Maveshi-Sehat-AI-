@@ -11,7 +11,8 @@ import {
   Bell, 
   Settings, 
   LogOut,
-  Activity
+  Activity,
+  MessageSquare
 } from 'lucide-react';
 import logoImg from '../assets/logo.png';
 import '../styles/Sidebar.css';
@@ -82,6 +83,12 @@ export default function Sidebar({ onLogout, adminUser }) {
       ]
     },
     {
+      title: 'COMMUNITY & CONTENT',
+      items: [
+        { path: '/community-forum', label: 'Community Forum', icon: MessageSquare, badgeKey: 'forumPosts' }
+      ]
+    },
+    {
       title: 'SYSTEM',
       items: [
         { path: '/notifications', label: 'Notifications', icon: Bell, badgeKey: 'notifications' },
@@ -94,7 +101,8 @@ export default function Sidebar({ onLogout, adminUser }) {
     users: stats?.totalUsers ?? 0,
     vets: stats?.pendingVetsCount ?? 0,
     pharmacies: stats?.pendingActions?.pharmacies?.length ?? 0,
-    notifications: stats?.unreadNotificationsCount ?? 0
+    notifications: stats?.unreadNotificationsCount ?? 0,
+    forumPosts: stats?.totalForumPosts ?? 0
   };
 
   return (

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   Users, 
   Stethoscope, 
@@ -13,7 +14,8 @@ import {
   AlertTriangle,
   ShieldCheck,
   TrendingUp,
-  Package
+  Package,
+  ExternalLink
 } from 'lucide-react';
 import { 
   LineChart, 
@@ -28,6 +30,7 @@ import {
 import '../styles/Dashboard.css';
 
 export default function Dashboard() {
+  const navigate = useNavigate();
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -166,7 +169,12 @@ export default function Dashboard() {
 
       {/* Secondary Operational Stats Ribbon */}
       <div className="secondary-stats-grid">
-        <div className="secondary-stat-card">
+        <div 
+          className="secondary-stat-card" 
+          onClick={() => navigate('/pharmacy-approval?tab=approved')} 
+          style={{ cursor: 'pointer' }}
+          title="Click to view all registered pharmacies"
+        >
           <div className="sec-stat-icon-wrap purple">
             <Store size={20} />
           </div>
@@ -179,7 +187,12 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="secondary-stat-card">
+        <div 
+          className="secondary-stat-card" 
+          onClick={() => navigate('/pharmacy-approval?tab=medicines')} 
+          style={{ cursor: 'pointer' }}
+          title="Click to view all cataloged medicines and stock status across pharmacies"
+        >
           <div className="sec-stat-icon-wrap cyan">
             <Pill size={20} />
           </div>
@@ -203,7 +216,12 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="secondary-stat-card">
+        <div 
+          className="secondary-stat-card"
+          onClick={() => navigate('/community-forum')}
+          style={{ cursor: 'pointer' }}
+          title="Click to inspect and moderate Community Forum discussions & replies"
+        >
           <div className="sec-stat-icon-wrap indigo">
             <MessageSquare size={20} />
           </div>
@@ -471,6 +489,78 @@ export default function Dashboard() {
               </div>
             ))}
           </div>
+        </div>
+      </div>
+
+      {/* Top Demanded Livestock Medicines & Pharmacy Ownership */}
+      <div className="card" style={{ marginTop: '24px' }}>
+        <div className="card-title-container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            <h3 className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Pill size={18} style={{ color: '#3da860' }} />
+              Top Demanded Livestock Medicines by Pharmacy
+            </h3>
+            <p className="card-subtitle">
+              Most ordered veterinary pharmaceuticals across registered pharmacies
+            </p>
+          </div>
+          <button 
+            className="pharmacy-view-meds-btn"
+            onClick={() => navigate('/pharmacy-approval?tab=medicines')}
+            style={{ cursor: 'pointer' }}
+          >
+            <span>View All Catalog & Stock</span>
+            <ExternalLink size={13} />
+          </button>
+        </div>
+
+        <div className="table-responsive">
+          <table className="custom-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Medicine Name</th>
+                <th>Formulation / Dosage</th>
+                <th>Dispensing Pharmacy</th>
+                <th>Units Sold</th>
+                <th>Demand Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {(stats?.topMedicines || []).length === 0 ? (
+                <tr>
+                  <td colSpan="6" className="table-empty-row">
+                    No medicine orders recorded yet.
+                  </td>
+                </tr>
+              ) : (
+                stats.topMedicines.map((med, idx) => (
+                  <tr key={idx}>
+                    <td style={{ fontWeight: '700', color: '#94a3b8' }}>{idx + 1}</td>
+                    <td>
+                      <span style={{ fontWeight: '700', color: '#0f172a' }}>{med.name}</span>
+                      {med.manufacturer && <span style={{ fontSize: '11px', color: '#64748b', display: 'block' }}>{med.manufacturer}</span>}
+                    </td>
+                    <td>
+                      <span className="top-med-badge">{med.dosage_form || 'Standard'}</span>
+                    </td>
+                    <td>
+                      <span className="pharmacy-store-badge">
+                        <Store size={12} />
+                        <span>{med.pharmacy_name || 'AI-shefa'}</span>
+                      </span>
+                    </td>
+                    <td style={{ fontWeight: '700', color: '#0f172a' }}>
+                      {med.units_sold || med.order_count || 1} units
+                    </td>
+                    <td>
+                      <span className="badge badge-green">High Demand</span>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
 
