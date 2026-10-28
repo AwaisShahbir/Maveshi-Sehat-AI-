@@ -123,11 +123,26 @@ module.exports = (pool) => {
 
       const pId = parseInt(pharmacyId);
 
+      // All-time revenue
       const revRes = await pool.query(
-        "SELECT SUM(total_price) FROM orders WHERE pharmacy_id = $1 AND status IN ('delivered', 'completed')",
+        "SELECT COALESCE(SUM(total_price), 0) FROM orders WHERE pharmacy_id = $1 AND status IN ('delivered', 'completed')",
         [pId]
       );
-      const totalRevenue = parseFloat(revRes.rows[0].sum) || 0.00;
+      const totalRevenue = parseFloat(revRes.rows[0].coalesce) || 0.00;
+
+      // Today's revenue
+      const todayRevRes = await pool.query(
+        "SELECT COALESCE(SUM(total_price), 0) FROM orders WHERE pharmacy_id = $1 AND status IN ('delivered', 'completed') AND created_at >= CURRENT_DATE",
+        [pId]
+      );
+      const todayRevenue = parseFloat(todayRevRes.rows[0].coalesce) || 0.00;
+
+      // This Month's revenue
+      const monthRevRes = await pool.query(
+        "SELECT COALESCE(SUM(total_price), 0) FROM orders WHERE pharmacy_id = $1 AND status IN ('delivered', 'completed') AND created_at >= DATE_TRUNC('month', CURRENT_DATE)",
+        [pId]
+      );
+      const monthRevenue = parseFloat(monthRevRes.rows[0].coalesce) || 0.00;
 
       const actRes = await pool.query(
         "SELECT COUNT(*) FROM orders WHERE pharmacy_id = $1 AND status NOT IN ('delivered', 'completed', 'cancelled')",
@@ -147,6 +162,57 @@ module.exports = (pool) => {
       );
       const stockAlertsCount = parseInt(alertRes.rows[0].count) || 0;
 
+      // Orders requiring prescription (Rx)
+      let rxOrdersCount = 0;
+      try {
+        const rxRes = await pool.query(`
+          SELECT COUNT(DISTINCT o.id) 
+          FROM orders o 
+          JOIN order_items oi ON o.id = oi.order_id 
+          JOIN medicines m ON oi.medicine_id = m.id 
+          WHERE o.pharmacy_id = $1 AND m.prescription_required = TRUE
+        `, [pId]);
+        rxOrdersCount = parseInt(rxRes.rows[0].count) || 0;
+      } catch (e) {
+        console.warn('rxRes error:', e.message);
+      }
+
+      // Order Pipeline Breakdown
+      const pipelineRes = await pool.query(`
+        SELECT status, COUNT(*)::int as count 
+        FROM orders 
+        WHERE pharmacy_id = $1 
+        GROUP BY status
+      `, [pId]);
+      const pipeline = {
+        pending: 0,
+        confirmed: 0,
+        shipped: 0,
+        delivered: 0,
+        cancelled: 0
+      };
+      pipelineRes.rows.forEach(r => {
+        const s = (r.status || '').toLowerCase();
+        if (pipeline[s] !== undefined) pipeline[s] = r.count;
+      });
+
+      // Top Selling Medicines
+      let topSellingList = [];
+      try {
+        const topSellRes = await pool.query(`
+          SELECT m.name, m.dosage_form, m.strength, COALESCE(SUM(oi.quantity), 0)::int as sold_count, COALESCE(SUM(oi.price * oi.quantity), 0) as total_sales
+          FROM order_items oi
+          JOIN medicines m ON oi.medicine_id = m.id
+          WHERE m.pharmacy_id = $1
+          GROUP BY m.id, m.name, m.dosage_form, m.strength
+          ORDER BY sold_count DESC
+          LIMIT 5
+        `, [pId]);
+        topSellingList = topSellRes.rows;
+      } catch (e) {
+        console.warn('topSellRes error:', e.message);
+      }
+
       const recentOrdersRes = await pool.query(
         "SELECT * FROM orders WHERE pharmacy_id = $1 ORDER BY created_at DESC LIMIT 5",
         [pId]
@@ -160,12 +226,17 @@ module.exports = (pool) => {
       res.status(200).json({
         stats: {
           totalRevenue,
+          todayRevenue,
+          monthRevenue,
           activeOrders: activeOrdersCount,
           medicineListings: medicineListingsCount,
-          stockAlerts: stockAlertsCount
+          stockAlerts: stockAlertsCount,
+          rxOrdersCount,
+          pipeline
         },
         recentOrders: recentOrdersRes.rows,
-        stockAlertsList: stockAlertsRes.rows
+        stockAlertsList: stockAlertsRes.rows,
+        topSellingMedicines: topSellingList
       });
     } catch (err) {
       console.error('Pharmacy Stats Error:', err.message);

@@ -371,3 +371,85 @@
   background-color: #f0fdf4;
   border-color: #22c55e;
 }
+
+/* Executive Pharmacy Summary Strip */
+.pharmacy-summary-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.pharmacy-summary-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+  background-color: #ffffff;
+  border: 1px solid var(--border-light);
+  border-radius: 14px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.pharmacy-summary-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+}
+
+.pharmacy-summary-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.pharmacy-summary-icon.emerald {
+  background-color: #ecfdf5;
+  color: #10b981;
+}
+
+.pharmacy-summary-icon.amber {
+  background-color: #fffbeb;
+  color: #f59e0b;
+}
+
+.pharmacy-summary-icon.blue {
+  background-color: #eff6ff;
+  color: #3b82f6;
+}
+
+.pharmacy-summary-icon.purple {
+  background-color: #f5f3ff;
+  color: #8b5cf6;
+}
+
+.pharmacy-summary-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.pharmacy-summary-value {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--text-main);
+  line-height: 1.2;
+}
+
+.pharmacy-summary-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.pharmacy-summary-sub {
+  font-size: 11px;
+  color: #64748b;
+  margin-top: 2px;
+  font-weight: 500;
+}
+

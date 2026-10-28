@@ -48,3 +48,87 @@
     transform: translateY(0);
   }
 }
+
+/* Pipeline Status Strip */
+.pipeline-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.pipeline-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+
+.pipeline-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.05);
+}
+
+.pipeline-icon-circle {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.pipeline-icon-circle.pending { background-color: #fff7ed; color: #ea580c; }
+.pipeline-icon-circle.confirmed { background-color: #eff6ff; color: #2563eb; }
+.pipeline-icon-circle.shipped { background-color: #faf5ff; color: #9333ea; }
+.pipeline-icon-circle.delivered { background-color: #ecfdf5; color: #16a34a; }
+.pipeline-icon-circle.cancelled { background-color: #fef2f2; color: #dc2626; }
+
+.pipeline-data {
+  display: flex;
+  flex-direction: column;
+}
+
+.pipeline-count {
+  font-size: 18px;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.2;
+}
+
+.pipeline-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-top: 2px;
+}
+
+/* Top Selling Medicines Table */
+.top-selling-table-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+  margin-top: 24px;
+}
+
+.top-med-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 6px;
+  background-color: #f1f5f9;
+  color: #475569;
+}
+

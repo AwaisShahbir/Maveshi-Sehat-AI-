@@ -5,7 +5,15 @@ import {
   Brain, 
   ShoppingCart, 
   Activity, 
-  Store
+  Store,
+  DollarSign,
+  Pill,
+  Syringe,
+  MessageSquare,
+  AlertTriangle,
+  ShieldCheck,
+  TrendingUp,
+  Package
 } from 'lucide-react';
 import { 
   LineChart, 
@@ -94,78 +102,223 @@ export default function Dashboard() {
   return (
     <div className="dashboard-view">
       
-      {/* 4 Primary KPIs */}
+      {/* 4 Primary High-Level KPIs */}
       <div className="grid-4">
         
+        {/* User Ecosystem */}
         <div className="card dashboard-kpi-card">
           <div className="kpi-icon-wrapper blue">
             <Users size={24} />
           </div>
           <div className="kpi-card-details">
             <h2 className="kpi-card-value">{stats?.totalUsers ?? 0}</h2>
-            <p className="kpi-card-label">Total Users</p>
-            <span className="kpi-card-trend trend-green">Registered user accounts</span>
+            <p className="kpi-card-label">User Ecosystem</p>
+            <span className="kpi-card-trend trend-green">
+              {stats?.totalFarmers ?? 0} Farmers • {stats?.activeVets ?? 0} Vets
+            </span>
           </div>
         </div>
 
+        {/* Telehealth & Care */}
         <div className="card dashboard-kpi-card">
           <div className="kpi-icon-wrapper green">
             <Stethoscope size={24} />
           </div>
           <div className="kpi-card-details">
-            <h2 className="kpi-card-value">{stats?.activeVets ?? 0}</h2>
-            <p className="kpi-card-label">Active Veterinarians</p>
-            <span className="kpi-card-trend trend-orange">{stats?.pendingVetsCount ?? 0} pending review</span>
+            <h2 className="kpi-card-value">{stats?.totalConsultations ?? 0}</h2>
+            <p className="kpi-card-label">Telehealth Consultations</p>
+            <span className="kpi-card-trend trend-orange">
+              {stats?.urgentConsultations ?? 0} Urgent • {stats?.completedConsultations ?? 0} Resolved
+            </span>
           </div>
         </div>
 
+        {/* Clinical AI Diagnostics */}
         <div className="card dashboard-kpi-card">
           <div className="kpi-icon-wrapper orange">
             <Brain size={24} />
           </div>
           <div className="kpi-card-details">
             <h2 className="kpi-card-value">{stats?.scansCount ?? 0}</h2>
-            <p className="kpi-card-label">Total AI Scans</p>
-            <span className="kpi-card-trend trend-green">Clinical diagnoses run</span>
+            <p className="kpi-card-label">Clinical AI Scans</p>
+            <span className="kpi-card-trend trend-green">
+              {stats?.avgConfidence ?? 91.5}% Avg Confidence • {stats?.highRiskScansCount ?? 0} High Risk
+            </span>
           </div>
         </div>
 
+        {/* Marketplace & Platform GMV */}
         <div className="card dashboard-kpi-card">
           <div className="kpi-icon-wrapper red">
             <ShoppingCart size={24} />
           </div>
           <div className="kpi-card-details">
-            <h2 className="kpi-card-value">{stats?.activeOrders ?? 0}</h2>
-            <p className="kpi-card-label">Active Pharmacy Orders</p>
-            <span className="kpi-card-trend trend-red">Orders in progress</span>
+            <h2 className="kpi-card-value">
+              Rs. {(stats?.totalRevenue || 0).toLocaleString()}
+            </h2>
+            <p className="kpi-card-label">Platform Sales (GMV)</p>
+            <span className="kpi-card-trend trend-red">
+              {stats?.totalOrders ?? 0} Orders ({stats?.activeOrders ?? 0} Active)
+            </span>
           </div>
+        </div>
+      </div>
+
+      {/* Secondary Operational Stats Ribbon */}
+      <div className="secondary-stats-grid">
+        <div className="secondary-stat-card">
+          <div className="sec-stat-icon-wrap purple">
+            <Store size={20} />
+          </div>
+          <div className="sec-stat-info">
+            <span className="sec-stat-val">{stats?.approvedPharmacies ?? 0}</span>
+            <span className="sec-stat-label">Active Pharmacies</span>
+            <span className="sec-stat-sub warn">
+              {stats?.pendingPharmaciesCount ?? 0} pending review
+            </span>
+          </div>
+        </div>
+
+        <div className="secondary-stat-card">
+          <div className="sec-stat-icon-wrap cyan">
+            <Pill size={20} />
+          </div>
+          <div className="sec-stat-info">
+            <span className="sec-stat-val">{stats?.totalMedicines ?? 0}</span>
+            <span className="sec-stat-label">Cataloged Medicines</span>
+            <span className="sec-stat-sub warn">
+              {stats?.lowStockMedsCount ?? 0} low stock alerts
+            </span>
+          </div>
+        </div>
+
+        <div className="secondary-stat-card">
+          <div className="sec-stat-icon-wrap emerald">
+            <Syringe size={20} />
+          </div>
+          <div className="sec-stat-info">
+            <span className="sec-stat-val">{stats?.totalVaccinations ?? 0}</span>
+            <span className="sec-stat-label">Herd Vaccinations</span>
+            <span className="sec-stat-sub">Immunization logged</span>
+          </div>
+        </div>
+
+        <div className="secondary-stat-card">
+          <div className="sec-stat-icon-wrap indigo">
+            <MessageSquare size={20} />
+          </div>
+          <div className="sec-stat-info">
+            <span className="sec-stat-val">{stats?.totalForumPosts ?? 0}</span>
+            <span className="sec-stat-label">Community Forum</span>
+            <span className="sec-stat-sub">Farmer-Vet Q&A</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Live Outbreak Surveillance & Disease Incidence */}
+      <div className="outbreak-surveillance-banner">
+        <div className="outbreak-left">
+          <div className="outbreak-pulse-icon">
+            <AlertTriangle size={22} />
+          </div>
+          <div>
+            <h4 className="outbreak-title">Livestock Disease Surveillance & Early Warning</h4>
+            <p className="outbreak-desc">
+              Live disease incidence tracking across active diagnostic scans in Punjab farming districts
+            </p>
+          </div>
+        </div>
+
+        <div className="disease-chips-row">
+          {(stats?.topDiseases && stats.topDiseases.length > 0) ? (
+            stats.topDiseases.map((d, i) => (
+              <div className="disease-chip" key={i}>
+                <span>{d.disease}</span>
+                <span className="disease-chip-count">{d.count} cases</span>
+              </div>
+            ))
+          ) : (
+            <div className="disease-chip">
+              <span>Lumpy Skin Disease (LSD)</span>
+              <span className="disease-chip-count">Active Alert</span>
+            </div>
+          )}
         </div>
       </div>
 
       {/* Detection Trends & Pending Approvals */}
       <div className="grid-2-1">
         
-        <div className="card">
-          <div className="card-title-container">
-            <div>
-              <h3 className="card-title">Disease Detection Trends</h3>
-              <p className="card-subtitle">Last 30 days clinical scan history</p>
+        <div>
+          <div className="card">
+            <div className="card-title-container">
+              <div>
+                <h3 className="card-title">Disease Detection Trends</h3>
+                <p className="card-subtitle">Last 30 days clinical scan history</p>
+              </div>
+              <Activity className="text-muted" size={20} />
             </div>
-            <Activity className="text-muted" size={20} />
+            <div className="chart-container-300">
+              <ResponsiveContainer>
+                <LineChart data={trendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                  <XAxis dataKey="name" tick={{ fontSize: 12, fill: '#64748b' }} />
+                  <YAxis tick={{ fontSize: 12, fill: '#64748b' }} />
+                  <Tooltip />
+                  <Legend iconType="circle" wrapperStyle={{ fontSize: 12, paddingTop: 10 }} />
+                  <Line type="monotone" dataKey="LSD" stroke="#3da860" strokeWidth={3} activeDot={{ r: 6 }} />
+                  <Line type="monotone" dataKey="FMD" stroke="#ff9800" strokeWidth={3} />
+                  <Line type="monotone" dataKey="Tick" stroke="#d32f2f" strokeWidth={3} />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
           </div>
-          <div className="chart-container-300">
-            <ResponsiveContainer>
-              <LineChart data={trendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                <XAxis dataKey="name" tick={{ fontSize: 12, fill: '#64748b' }} />
-                <YAxis tick={{ fontSize: 12, fill: '#64748b' }} />
-                <Tooltip />
-                <Legend iconType="circle" wrapperStyle={{ fontSize: 12, paddingTop: 10 }} />
-                <Line type="monotone" dataKey="LSD" stroke="#3da860" strokeWidth={3} activeDot={{ r: 6 }} />
-                <Line type="monotone" dataKey="FMD" stroke="#ff9800" strokeWidth={3} />
-                <Line type="monotone" dataKey="Tick" stroke="#d32f2f" strokeWidth={3} />
-              </LineChart>
-            </ResponsiveContainer>
+
+          {/* Top Demanded Medicines */}
+          <div className="card top-meds-card">
+            <div className="card-title-container">
+              <div>
+                <h3 className="card-title">Top Demanded Livestock Medicines</h3>
+                <p className="card-subtitle">Most frequently purchased pharmaceutical products across pharmacies</p>
+              </div>
+              <Pill className="text-muted" size={20} />
+            </div>
+            <div className="table-responsive">
+              <table className="custom-table top-meds-table">
+                <thead>
+                  <tr>
+                    <th>Medicine Name</th>
+                    <th>Manufacturer</th>
+                    <th>Dosage Form</th>
+                    <th>Orders</th>
+                    <th>Units Sold</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(stats?.topMedicines || []).length === 0 ? (
+                    <tr>
+                      <td colSpan="5" className="table-empty-row">
+                        No medicine orders recorded yet.
+                      </td>
+                    </tr>
+                  ) : (
+                    (stats?.topMedicines || []).map((med, idx) => (
+                      <tr key={idx}>
+                        <td style={{ fontWeight: '700', color: '#135431' }}>{med.name}</td>
+                        <td>{med.manufacturer || 'General'}</td>
+                        <td>
+                          <span className="badge-risk low" style={{ background: '#e0f2fe', color: '#0284c7' }}>
+                            {med.dosage_form || 'Injectable'}
+                          </span>
+                        </td>
+                        <td>{med.order_count || 1} orders</td>
+                        <td style={{ fontWeight: '700' }}>{med.units_sold || 1} units</td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
 

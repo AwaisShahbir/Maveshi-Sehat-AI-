@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { 
   LayoutDashboard, BarChart3, Pill, PlusCircle, Tags, AlertTriangle, 
-  ShoppingBag, Clock, Truck, CheckCircle, User, Settings, LogOut, Bell, Store, ArrowUpRight 
+  ShoppingBag, Clock, Truck, CheckCircle, User, Settings, LogOut, Bell, Store, ArrowUpRight,
+  TrendingUp, ShieldCheck, PackageCheck, FileText, Calendar
 } from 'lucide-react';
 import Medicines from './Medicines';
 import Orders from './Orders';
@@ -18,12 +19,23 @@ export default function Dashboard({ pharmacy, onLogout }) {
   const [editMedId, setEditMedId] = useState(null);
   const [stats, setStats] = useState({
     totalRevenue: 0,
+    todayRevenue: 0,
+    monthRevenue: 0,
     activeOrders: 0,
     medicineListings: 0,
-    stockAlerts: 0
+    stockAlerts: 0,
+    rxOrdersCount: 0,
+    pipeline: {
+      pending: 0,
+      confirmed: 0,
+      shipped: 0,
+      delivered: 0,
+      cancelled: 0
+    }
   });
   const [recentOrders, setRecentOrders] = useState([]);
   const [stockAlertsList, setStockAlertsList] = useState([]);
+  const [topSellingMedicines, setTopSellingMedicines] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAddMedModal, setShowAddMedModal] = useState(false);
   const [notifications, setNotifications] = useState([]);
@@ -38,9 +50,10 @@ export default function Dashboard({ pharmacy, onLogout }) {
       const res = await fetch(`http://localhost:5000/api/pharmacy/dashboard-stats?pharmacyId=${pharmacy.id}`);
       const data = await res.json();
       if (res.ok) {
-        setStats(data.stats);
-        setRecentOrders(data.recentOrders);
-        setStockAlertsList(data.stockAlertsList);
+        setStats(data.stats || {});
+        setRecentOrders(data.recentOrders || []);
+        setStockAlertsList(data.stockAlertsList || []);
+        setTopSellingMedicines(data.topSellingMedicines || []);
       }
 
       // Fetch broadcasts from admin
@@ -401,26 +414,44 @@ export default function Dashboard({ pharmacy, onLogout }) {
               </div>
 
               
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-7">
+              {/* Primary Financial & Operational KPIs */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-5">
                 
-                <div className="card flex justify-between items-start p-5 bg-white border border-slate-200/80 shadow-sm rounded-2xl">
+                {/* Total Revenue & Month */}
+                <div className="card flex justify-between items-start p-5 bg-white border border-slate-200/80 shadow-sm rounded-2xl pharmacy-stat-card">
                   <div className="flex flex-col">
-                    <span className="text-xs font-bold text-slate-500">Total Revenue</span>
-                    <h3 className="font-heading text-xl font-bold text-slate-900 my-3">{formatPrice(stats.totalRevenue)}</h3>
-                    <span className="text-[11px] font-bold text-[#3da860] bg-[#3da860]/10 px-2 py-0.5 rounded-full w-fit">Total sales</span>
+                    <span className="text-xs font-bold text-slate-500">Total Sales GMV</span>
+                    <h3 className="font-heading text-xl font-bold text-slate-900 my-2">{formatPrice(stats.totalRevenue || 0)}</h3>
+                    <span className="text-[11px] font-bold text-[#3da860] bg-[#3da860]/10 px-2 py-0.5 rounded-full w-fit">
+                      Month: {formatPrice(stats.monthRevenue || 0)}
+                    </span>
                   </div>
                   <div className="w-11 h-11 rounded-xl bg-[#3da860]/10 text-[#3da860] flex items-center justify-center shadow-inner">
                     <BarChart3 size={24} />
                   </div>
                 </div>
 
-                
-                <div className="card flex justify-between items-start p-5 bg-white border border-slate-200/80 shadow-sm rounded-2xl">
+                {/* Today's Sales */}
+                <div className="card flex justify-between items-start p-5 bg-white border border-slate-200/80 shadow-sm rounded-2xl pharmacy-stat-card">
+                  <div className="flex flex-col">
+                    <span className="text-xs font-bold text-slate-500">Today's Revenue</span>
+                    <h3 className="font-heading text-xl font-bold text-slate-900 my-2">{formatPrice(stats.todayRevenue || 0)}</h3>
+                    <span className="text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full w-fit">
+                      {stats.todayRevenue > 0 ? "Daily Active Sales" : "No orders today"}
+                    </span>
+                  </div>
+                  <div className="w-11 h-11 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center shadow-inner">
+                    <TrendingUp size={24} />
+                  </div>
+                </div>
+
+                {/* Active Orders */}
+                <div className="card flex justify-between items-start p-5 bg-white border border-slate-200/80 shadow-sm rounded-2xl pharmacy-stat-card">
                   <div className="flex flex-col">
                     <span className="text-xs font-bold text-slate-500">Active Orders</span>
-                    <h3 className="font-heading text-xl font-bold text-slate-900 my-3">{stats.activeOrders}</h3>
-                    <span className="text-[11px] font-bold text-blue-500 bg-blue-500/10 px-2 py-0.5 rounded-full w-fit">
-                      {stats.activeOrders > 0 ? `${stats.activeOrders} active` : '0 active'}
+                    <h3 className="font-heading text-xl font-bold text-slate-900 my-2">{stats.activeOrders || 0}</h3>
+                    <span className="text-[11px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full w-fit">
+                      {stats.pipeline?.pending || 0} awaiting dispatch
                     </span>
                   </div>
                   <div className="w-11 h-11 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center shadow-inner">
@@ -428,31 +459,71 @@ export default function Dashboard({ pharmacy, onLogout }) {
                   </div>
                 </div>
 
-                
-                <div className="card flex justify-between items-start p-5 bg-white border border-slate-200/80 shadow-sm rounded-2xl">
+                {/* Rx Prescription Compliance */}
+                <div className="card flex justify-between items-start p-5 bg-white border border-slate-200/80 shadow-sm rounded-2xl pharmacy-stat-card">
                   <div className="flex flex-col">
-                    <span className="text-xs font-bold text-slate-500">Medicine Listings</span>
-                    <h3 className="font-heading text-xl font-bold text-slate-900 my-3">{stats.medicineListings}</h3>
-                    <span className="text-[11px] font-bold text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded-full w-fit">
-                      {stats.stockAlerts > 0 ? `${stats.stockAlerts} alerts` : 'Stock normal'}
+                    <span className="text-xs font-bold text-slate-500">Rx Prescriptions</span>
+                    <h3 className="font-heading text-xl font-bold text-slate-900 my-2">{stats.rxOrdersCount || 0}</h3>
+                    <span className="text-[11px] font-bold text-purple-600 bg-purple-50 px-2 py-0.5 rounded-full w-fit">
+                      Vet Rx Mandated
                     </span>
                   </div>
-                  <div className="w-11 h-11 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center shadow-inner">
-                    <Pill size={24} />
+                  <div className="w-11 h-11 rounded-xl bg-purple-500/10 text-purple-600 flex items-center justify-center shadow-inner">
+                    <ShieldCheck size={24} />
                   </div>
                 </div>
 
-                
-                <div className="card flex justify-between items-start p-5 bg-white border border-slate-200/80 shadow-sm rounded-2xl">
-                  <div className="flex flex-col">
-                    <span className="text-xs font-bold text-slate-500">Stock Alerts</span>
-                    <h3 className="font-heading text-xl font-bold text-slate-900 my-3">{stats.stockAlerts}</h3>
-                    <span className="text-[11px] font-bold text-red-500 bg-red-500/10 px-2 py-0.5 rounded-full w-fit">
-                      {stats.stockAlerts > 0 ? `${stats.stockAlerts} alerts` : 'Healthy stock'}
-                    </span>
+              </div>
+
+              {/* Order Fulfillment Pipeline Strip */}
+              <div className="pipeline-strip">
+                <div className="pipeline-card" onClick={() => setCurrentView('orders')} style={{ cursor: 'pointer' }}>
+                  <div className="pipeline-icon-circle pending">
+                    <Clock size={20} />
                   </div>
-                  <div className="w-11 h-11 rounded-xl bg-red-500/10 text-red-500 flex items-center justify-center shadow-inner">
-                    <AlertTriangle size={24} />
+                  <div className="pipeline-data">
+                    <span className="pipeline-count">{stats.pipeline?.pending || 0}</span>
+                    <span className="pipeline-title">Pending Orders</span>
+                  </div>
+                </div>
+
+                <div className="pipeline-card" onClick={() => setCurrentView('orders')} style={{ cursor: 'pointer' }}>
+                  <div className="pipeline-icon-circle confirmed">
+                    <PackageCheck size={20} />
+                  </div>
+                  <div className="pipeline-data">
+                    <span className="pipeline-count">{stats.pipeline?.confirmed || 0}</span>
+                    <span className="pipeline-title">Confirmed / Packed</span>
+                  </div>
+                </div>
+
+                <div className="pipeline-card" onClick={() => setCurrentView('orders')} style={{ cursor: 'pointer' }}>
+                  <div className="pipeline-icon-circle shipped">
+                    <Truck size={20} />
+                  </div>
+                  <div className="pipeline-data">
+                    <span className="pipeline-count">{stats.pipeline?.shipped || 0}</span>
+                    <span className="pipeline-title">In Transit</span>
+                  </div>
+                </div>
+
+                <div className="pipeline-card" onClick={() => setCurrentView('orders')} style={{ cursor: 'pointer' }}>
+                  <div className="pipeline-icon-circle delivered">
+                    <CheckCircle size={20} />
+                  </div>
+                  <div className="pipeline-data">
+                    <span className="pipeline-count">{stats.pipeline?.delivered || 0}</span>
+                    <span className="pipeline-title">Delivered & Paid</span>
+                  </div>
+                </div>
+
+                <div className="pipeline-card" onClick={() => setCurrentView('orders')} style={{ cursor: 'pointer' }}>
+                  <div className="pipeline-icon-circle cancelled">
+                    <AlertTriangle size={20} />
+                  </div>
+                  <div className="pipeline-data">
+                    <span className="pipeline-count">{stats.pipeline?.cancelled || 0}</span>
+                    <span className="pipeline-title">Cancelled</span>
                   </div>
                 </div>
               </div>
@@ -611,6 +682,72 @@ export default function Dashboard({ pharmacy, onLogout }) {
                     </div>
                   </div>
                 </div>
+              </div>
+
+              {/* Top Selling Livestock Medicines Table */}
+              <div className="top-selling-table-card">
+                <div className="flex justify-between items-center mb-4">
+                  <div>
+                    <h3 className="text-base font-bold text-[#135431] flex items-center gap-2">
+                      <Pill size={18} className="text-[#3da860]" />
+                      Top Demanded Livestock Medicines
+                    </h3>
+                    <p className="text-xs text-slate-500 mt-0.5">
+                      Fastest-moving animal healthcare drugs based on processed prescription and OTC orders
+                    </p>
+                  </div>
+                  <button 
+                    className="flex items-center gap-1 text-[#3da860] hover:text-[#2e8c4e] text-xs font-bold bg-transparent border-none cursor-pointer"
+                    onClick={() => setCurrentView('listings')}
+                  >
+                    <span>View All Catalog</span>
+                    <ArrowUpRight size={14} />
+                  </button>
+                </div>
+
+                {topSellingMedicines.length === 0 ? (
+                  <div className="text-center py-8 text-slate-400 text-xs">
+                    No confirmed sales yet. As farmers and veterinarians order medicines, top selling items will appear here.
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                          <th className="py-2.5 px-3">#</th>
+                          <th className="py-2.5 px-3">Medicine & Strength</th>
+                          <th className="py-2.5 px-3">Formulation</th>
+                          <th className="py-2.5 px-3 text-right">Units Sold</th>
+                          <th className="py-2.5 px-3 text-right">Revenue Generated</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 text-xs">
+                        {topSellingMedicines.map((med, idx) => (
+                          <tr key={idx} className="hover:bg-slate-50 transition-colors">
+                            <td className="py-3 px-3 font-bold text-slate-400">{idx + 1}</td>
+                            <td className="py-3 px-3">
+                              <span className="font-bold text-slate-900 block">{med.name}</span>
+                              {med.strength && (
+                                <span className="text-[11px] text-slate-400">{med.strength}</span>
+                              )}
+                            </td>
+                            <td className="py-3 px-3">
+                              <span className="top-med-badge">
+                                {med.dosage_form || 'General'}
+                              </span>
+                            </td>
+                            <td className="py-3 px-3 text-right font-bold text-slate-800">
+                              {med.sold_count} units
+                            </td>
+                            <td className="py-3 px-3 text-right font-extrabold text-[#135431]">
+                              {formatPrice(med.total_sales || 0)}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
               </div>
             </>
           )}

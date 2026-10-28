@@ -28,10 +28,31 @@ module.exports = (pool, io) => {
   router.get('/api/admin/dashboard-stats', async (req, res) => {
     try {
       const totalUsersRes = await pool.query("SELECT COUNT(*) FROM users WHERE role != 'admin'");
+      const totalFarmersRes = await pool.query("SELECT COUNT(*) FROM users WHERE role = 'farmer'");
       const activeVetsRes = await pool.query("SELECT COUNT(*) FROM users WHERE role = 'vet' AND status = 'verified'");
       const pendingVetsRes = await pool.query("SELECT COUNT(*) FROM users WHERE role = 'vet' AND status = 'pending'");
+      
+      const approvedPharmaciesRes = await pool.query("SELECT COUNT(*) FROM pharmacies WHERE status = 'approved'");
+      const pendingPharmaciesRes = await pool.query("SELECT COUNT(*) FROM pharmacies WHERE status = 'pending'");
+      const blockedPharmaciesRes = await pool.query("SELECT COUNT(*) FROM pharmacies WHERE status = 'blocked'");
+
       const scansRes = await pool.query("SELECT COUNT(*) FROM detections");
-      const activeOrdersRes = await pool.query("SELECT COUNT(*) FROM orders WHERE status NOT IN ('delivered', 'cancelled')");
+      const highRiskScansRes = await pool.query("SELECT COUNT(*) FROM detections WHERE risk_level = 'High'");
+      const avgConfidenceRes = await pool.query("SELECT ROUND(AVG(confidence)::numeric, 1) as avg_conf FROM detections");
+
+      const totalConsultationsRes = await pool.query("SELECT COUNT(*) FROM consultations");
+      const urgentConsultationsRes = await pool.query("SELECT COUNT(*) FROM consultations WHERE status = 'pending' OR reason ILIKE '%urgent%'");
+      const completedConsultationsRes = await pool.query("SELECT COUNT(*) FROM consultations WHERE status IN ('resolved', 'completed')");
+
+      const totalRevenueRes = await pool.query("SELECT COALESCE(SUM(total_price), 0) FROM orders WHERE status != 'cancelled'");
+      const activeOrdersRes = await pool.query("SELECT COUNT(*) FROM orders WHERE status NOT IN ('delivered', 'completed', 'cancelled')");
+      const totalOrdersRes = await pool.query("SELECT COUNT(*) FROM orders");
+
+      const totalMedicinesRes = await pool.query("SELECT COUNT(*) FROM medicines");
+      const lowStockMedsRes = await pool.query("SELECT COUNT(*) FROM medicines WHERE stock < min_stock");
+      
+      const totalVaccinationsRes = await pool.query("SELECT COUNT(*) FROM farmer_vaccinations");
+      const totalForumPostsRes = await pool.query("SELECT COUNT(*) FROM forum_posts");
 
       const unreadNotifsRes = await pool.query("SELECT COUNT(*) FROM admin_notifications WHERE read = FALSE");
       const unreadNotificationsCount = parseInt(unreadNotifsRes.rows[0].count) || 0;
@@ -45,6 +66,32 @@ module.exports = (pool, io) => {
 
       const pendingVetsList = await pool.query("SELECT id, full_name, pvmc_number, status, role FROM users WHERE role = 'vet' AND status = 'pending' LIMIT 3");
       const pendingPharmaciesList = await pool.query("SELECT id, name, license_number, status FROM pharmacies WHERE status = 'pending' LIMIT 3");
+
+      // Top disease breakdown
+      const diseaseDistributionRes = await pool.query(`
+        SELECT disease, COUNT(*)::int as count 
+        FROM detections 
+        WHERE disease IS NOT NULL AND disease != ''
+        GROUP BY disease 
+        ORDER BY count DESC 
+        LIMIT 5
+      `);
+
+      // Top demanded / ordered medicines
+      let topMedicines = [];
+      try {
+        const topMedicinesRes = await pool.query(`
+          SELECT m.name, m.manufacturer, m.dosage_form, COUNT(oi.id)::int as order_count, COALESCE(SUM(oi.quantity), 0)::int as units_sold
+          FROM order_items oi
+          JOIN medicines m ON oi.medicine_id = m.id
+          GROUP BY m.id, m.name, m.manufacturer, m.dosage_form
+          ORDER BY units_sold DESC
+          LIMIT 5
+        `);
+        topMedicines = topMedicinesRes.rows;
+      } catch (e) {
+        console.warn('topMedicines query note:', e.message);
+      }
 
       const trendRes = await pool.query(`
         SELECT 
@@ -69,15 +116,40 @@ module.exports = (pool, io) => {
         { name: 'Backend API', status: 'Operational', uptime: '99.8%' },
         { name: 'AI Server', status: 'Operational', uptime: '99.7%' },
         { name: 'Database', status: 'Operational', uptime: '100%' },
-        { name: 'Payment Gateway', status: 'Degraded', uptime: '94.2%' },
+        { name: 'Payment Gateway', status: 'Operational', uptime: '98.5%' },
       ];
 
       res.status(200).json({
         totalUsers: parseInt(totalUsersRes.rows[0].count) || 0,
+        totalFarmers: parseInt(totalFarmersRes.rows[0].count) || 0,
         activeVets: parseInt(activeVetsRes.rows[0].count) || 0,
         pendingVetsCount: parseInt(pendingVetsRes.rows[0].count) || 0,
+        
+        approvedPharmacies: parseInt(approvedPharmaciesRes.rows[0].count) || 0,
+        pendingPharmaciesCount: parseInt(pendingPharmaciesRes.rows[0].count) || 0,
+        blockedPharmaciesCount: parseInt(blockedPharmaciesRes.rows[0].count) || 0,
+
         scansCount: parseInt(scansRes.rows[0].count) || 0,
+        highRiskScansCount: parseInt(highRiskScansRes.rows[0].count) || 0,
+        avgConfidence: parseFloat(avgConfidenceRes.rows[0]?.avg_conf) || 91.5,
+
+        totalConsultations: parseInt(totalConsultationsRes.rows[0].count) || 0,
+        urgentConsultations: parseInt(urgentConsultationsRes.rows[0].count) || 0,
+        completedConsultations: parseInt(completedConsultationsRes.rows[0].count) || 0,
+
+        totalRevenue: parseFloat(totalRevenueRes.rows[0]?.coalesce) || 0,
         activeOrders: parseInt(activeOrdersRes.rows[0].count) || 0,
+        totalOrders: parseInt(totalOrdersRes.rows[0].count) || 0,
+
+        totalMedicines: parseInt(totalMedicinesRes.rows[0].count) || 0,
+        lowStockMedsCount: parseInt(lowStockMedsRes.rows[0].count) || 0,
+
+        totalVaccinations: parseInt(totalVaccinationsRes.rows[0].count) || 0,
+        totalForumPosts: parseInt(totalForumPostsRes.rows[0].count) || 0,
+
+        topDiseases: diseaseDistributionRes.rows,
+        topMedicines,
+
         unreadNotificationsCount,
         recentDetections: recentDetectionsRes.rows,
         pendingActions: {

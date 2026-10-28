@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Store, Check, X, ExternalLink, ShieldAlert, ShieldCheck } from 'lucide-react';
+import { Store, Check, X, ExternalLink, ShieldAlert, ShieldCheck, Clock, Pill, TrendingUp, AlertCircle } from 'lucide-react';
 import '../styles/PharmacyApproval.css';
 
 export default function PharmacyApproval() {
@@ -7,6 +7,7 @@ export default function PharmacyApproval() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('approved');
   const [selectedPharmacy, setSelectedPharmacy] = useState(null);
+  const [platformStats, setPlatformStats] = useState(null);
 
   const fetchPharmacies = async () => {
     setLoading(true);
@@ -23,8 +24,21 @@ export default function PharmacyApproval() {
     }
   };
 
+  const fetchPlatformStats = async () => {
+    try {
+      const res = await fetch('http://localhost:5000/api/admin/dashboard-stats');
+      if (res.ok) {
+        const data = await res.json();
+        setPlatformStats(data);
+      }
+    } catch (err) {
+      console.error('Error fetching admin dashboard stats:', err);
+    }
+  };
+
   useEffect(() => {
     fetchPharmacies();
+    fetchPlatformStats();
   }, []);
 
   const handleAction = async (pharmacyId, action) => {
@@ -66,28 +80,81 @@ export default function PharmacyApproval() {
 
   const displayPharmacies = pharmacies.filter(p => p.status === activeTab);
 
+  const approvedCount = pharmacies.filter(p => p.status === 'approved').length;
+  const pendingCount = pharmacies.filter(p => p.status === 'pending').length;
+  const blockedCount = pharmacies.filter(p => p.status === 'blocked').length;
+  const totalMedsCount = platformStats?.pharmacies?.totalMedicines || pharmacies.reduce((sum, p) => sum + (parseInt(p.medicines_count) || 0), 0);
+  const totalRevenue = platformStats?.pharmacies?.totalRevenue || 0;
+
   return (
     <div className="pharmacy-approval-view">
       
+      {/* Executive Pharmacy KPI Strip */}
+      <div className="pharmacy-summary-strip">
+        <div className="pharmacy-summary-card">
+          <div className="pharmacy-summary-icon emerald">
+            <Store size={22} />
+          </div>
+          <div className="pharmacy-summary-content">
+            <span className="pharmacy-summary-value">{approvedCount}</span>
+            <span className="pharmacy-summary-label">Approved Pharmacies</span>
+            <span className="pharmacy-summary-sub">Active dispensing stores</span>
+          </div>
+        </div>
+
+        <div className="pharmacy-summary-card">
+          <div className="pharmacy-summary-icon amber">
+            <Clock size={22} />
+          </div>
+          <div className="pharmacy-summary-content">
+            <span className="pharmacy-summary-value">{pendingCount}</span>
+            <span className="pharmacy-summary-label">Pending Licensure</span>
+            <span className="pharmacy-summary-sub">{pendingCount > 0 ? 'Requires administrative review' : 'All applications vetted'}</span>
+          </div>
+        </div>
+
+        <div className="pharmacy-summary-card">
+          <div className="pharmacy-summary-icon blue">
+            <Pill size={22} />
+          </div>
+          <div className="pharmacy-summary-content">
+            <span className="pharmacy-summary-value">{totalMedsCount} Products</span>
+            <span className="pharmacy-summary-label">Cataloged Drugs</span>
+            <span className="pharmacy-summary-sub">{platformStats?.pharmacies?.lowStock || 0} low stock items</span>
+          </div>
+        </div>
+
+        <div className="pharmacy-summary-card">
+          <div className="pharmacy-summary-icon purple">
+            <TrendingUp size={22} />
+          </div>
+          <div className="pharmacy-summary-content">
+            <span className="pharmacy-summary-value">Rs. {Number(totalRevenue).toLocaleString('en-PK')}</span>
+            <span className="pharmacy-summary-label">Platform Sales GMV</span>
+            <span className="pharmacy-summary-sub">{platformStats?.pharmacies?.totalOrders || 0} platform orders fulfilled</span>
+          </div>
+        </div>
+      </div>
+
       {/* Tabs */}
       <div className="pharmacy-tabs-container">
         <button 
           className={`pharmacy-tab-btn ${activeTab === 'pending' ? 'active' : ''}`}
           onClick={() => setActiveTab('pending')}
         >
-          Pending Approvals ({pharmacies.filter(p => p.status === 'pending').length})
+          Pending Approvals ({pendingCount})
         </button>
         <button 
           className={`pharmacy-tab-btn ${activeTab === 'approved' ? 'active' : ''}`}
           onClick={() => setActiveTab('approved')}
         >
-          Approved Pharmacies ({pharmacies.filter(p => p.status === 'approved').length})
+          Approved Pharmacies ({approvedCount})
         </button>
         <button 
           className={`pharmacy-tab-btn ${activeTab === 'blocked' ? 'active' : ''}`}
           onClick={() => setActiveTab('blocked')}
         >
-          Blocked Pharmacies ({pharmacies.filter(p => p.status === 'blocked').length})
+          Blocked Pharmacies ({blockedCount})
         </button>
         <button 
           className={`pharmacy-tab-btn ${activeTab === 'rejected' ? 'active' : ''}`}

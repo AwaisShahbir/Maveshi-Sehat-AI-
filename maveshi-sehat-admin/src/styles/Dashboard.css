@@ -327,3 +327,193 @@
   font-size: 11px;
   color: var(--text-light);
 }
+
+/* Secondary Operational Stats Ribbon */
+.secondary-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-top: 16px;
+  margin-bottom: 24px;
+}
+
+@media (max-width: 1024px) {
+  .secondary-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .secondary-stats-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.secondary-stat-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background-color: #ffffff;
+  border: 1px solid var(--border-light);
+  border-radius: 14px;
+  padding: 14px 18px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+  transition: all 0.2s ease;
+}
+
+.secondary-stat-card:hover {
+  border-color: #3da860;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(61, 168, 96, 0.08);
+}
+
+.sec-stat-icon-wrap {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.sec-stat-icon-wrap.purple {
+  background-color: #f3e8ff;
+  color: #9333ea;
+}
+
+.sec-stat-icon-wrap.cyan {
+  background-color: #e0f2fe;
+  color: #0284c7;
+}
+
+.sec-stat-icon-wrap.emerald {
+  background-color: #ecfdf5;
+  color: #059669;
+}
+
+.sec-stat-icon-wrap.indigo {
+  background-color: #e0e7ff;
+  color: #4f46e5;
+}
+
+.sec-stat-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.sec-stat-val {
+  font-size: 18px;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.2;
+}
+
+.sec-stat-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+.sec-stat-sub {
+  font-size: 10px;
+  font-weight: 600;
+  color: #3da860;
+  margin-top: 2px;
+}
+
+.sec-stat-sub.warn {
+  color: #f59e0b;
+}
+
+/* Outbreak Surveillance Banner */
+.outbreak-surveillance-banner {
+  background: linear-gradient(135deg, #fef2f2 0%, #fff7ed 100%);
+  border: 1px solid #fed7aa;
+  border-radius: 16px;
+  padding: 16px 20px;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.outbreak-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.outbreak-pulse-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background-color: #fee2e2;
+  color: #dc2626;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: pulse-ring 2s infinite;
+}
+
+@keyframes pulse-ring {
+  0% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.4); }
+  70% { box-shadow: 0 0 0 8px rgba(220, 38, 38, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); }
+}
+
+.outbreak-title {
+  font-size: 14px;
+  font-weight: 800;
+  color: #991b1b;
+  margin: 0;
+}
+
+.outbreak-desc {
+  font-size: 12px;
+  color: #78350f;
+  margin-top: 2px;
+}
+
+.disease-chips-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.disease-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background-color: #ffffff;
+  border: 1px solid #fecaca;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #991b1b;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.disease-chip-count {
+  background-color: #ef4444;
+  color: #ffffff;
+  padding: 1px 7px;
+  border-radius: 10px;
+  font-size: 10px;
+}
+
+/* Top Demanded Medicines Card */
+.top-meds-card {
+  margin-top: 24px;
+}
+
+.top-meds-table th, .top-meds-table td {
+  padding: 10px 14px;
+  font-size: 12px;
+}
