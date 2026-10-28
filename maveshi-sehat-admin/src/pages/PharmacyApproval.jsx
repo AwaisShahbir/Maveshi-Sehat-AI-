@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Store, Check, X, ExternalLink, ShieldAlert, ShieldCheck, Clock, Pill, TrendingUp, AlertCircle, Search, Filter } from 'lucide-react';
+import { 
+  Store, Check, X, ExternalLink, ShieldAlert, ShieldCheck, Clock, 
+  Pill, TrendingUp, AlertCircle, Search, Filter, User, Phone, Mail, MapPin, Calendar, Award 
+} from 'lucide-react';
 import '../styles/PharmacyApproval.css';
 
 export default function PharmacyApproval() {
@@ -389,102 +392,158 @@ export default function PharmacyApproval() {
           
           <div className="pharmacy-cards-container">
             {displayPharmacies.map(pharm => (
-              <div className={`pharmacy-card-item card status-${pharm.status}`} key={pharm.id}>
-                <div className="pharmacy-card-layout">
-                  
-                  <div className="pharmacy-card-left">
-                    <div className="p-avatar-box">
-                      <Store size={24} className="p-avatar-icon" />
+              <div className={`pharmacy-pro-card status-${pharm.status}`} key={pharm.id}>
+                {/* Card Header Row */}
+                <div className="pharm-header-row">
+                  <div className="pharm-brand-block">
+                    <div className={`pharm-avatar-badge ${pharm.status}`}>
+                      <Store size={22} className="pharm-avatar-icon" />
                     </div>
                     <div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                        <h3 className="pharmacy-title" style={{ margin: 0 }}>{pharm.name}</h3>
+                      <div className="pharm-title-line">
+                        <h3 className="pharm-name">{pharm.name}</h3>
                         {pharm.name_urdu && (
-                          <span style={{ fontSize: '13px', color: '#135431', fontWeight: 'bold' }}>
-                            ({pharm.name_urdu})
+                          <span className="pharm-urdu-badge">
+                            {pharm.name_urdu}
+                          </span>
+                        )}
+                        {pharm.status === 'approved' && (
+                          <span className="pharm-verified-badge" title="Verified Licensed Pharmacy">
+                            <ShieldCheck size={13} />
+                            <span>Verified Store</span>
                           </span>
                         )}
                       </div>
-                      
-                      <div className="pharmacy-meta-grid">
-                        <div><strong className="pharmacy-meta-label">License:</strong> <span className="font-mono pharmacy-meta-val">{pharm.license_number}</span></div>
-                        <div><strong className="pharmacy-meta-label">Owner:</strong> <span className="pharmacy-meta-val">{pharm.owner_name}</span></div>
-                        <div><strong className="pharmacy-meta-label">Email:</strong> <span className="pharmacy-meta-val">{pharm.email || 'N/A'}</span></div>
-                        <div><strong className="pharmacy-meta-label">Phone:</strong> <span className="pharmacy-meta-val">{pharm.phone}</span></div>
-                        <div><strong className="pharmacy-meta-label">Address:</strong> <span className="pharmacy-meta-val">{pharm.address || (pharm.city ? `${pharm.city}, ${pharm.province || ''}` : 'N/A')}</span></div>
-                        <div><strong className="pharmacy-meta-label">Submitted:</strong> <span className="pharmacy-meta-val">{pharm.created_at ? new Date(pharm.created_at).toLocaleDateString([], { day: 'numeric', month: 'short' }) : 'N/A'}</span></div>
-                        <div><strong className="pharmacy-meta-label">Catalogue:</strong> <span className="pharmacy-meta-val">{pharm.medicines_count || 0} medicines listed</span></div>
+                      <div className="pharm-sub-meta">
+                        <span className="pharm-license-code">
+                          <span className="license-label">DRAP:</span> {pharm.license_number}
+                        </span>
+                        <span className="pharm-meta-dot">•</span>
+                        <span className="pharm-date-text">
+                          Submitted: {pharm.created_at ? new Date(pharm.created_at).toLocaleDateString([], { day: 'numeric', month: 'short', year: 'numeric' }) : 'Recent'}
+                        </span>
                       </div>
                     </div>
                   </div>
 
-                  <div className="pharmacy-card-right">
-                    <span className={`badge ${
-                      pharm.status === 'approved' 
-                        ? 'badge-green' 
-                        : pharm.status === 'blocked' 
-                        ? 'badge-red' 
-                        : pharm.status === 'rejected'
-                        ? 'badge-red'
-                        : 'badge-orange'
-                    }`}>
-                      {pharm.status.toUpperCase()}
+                  {/* Status Pill with Dot */}
+                  <div className="pharm-status-box">
+                    <span className={`pharm-status-pill ${pharm.status}`}>
+                      <span className="pharm-status-dot" />
+                      {pharm.status === 'approved' ? 'Approved & Active' : pharm.status === 'pending' ? 'Pending Review' : pharm.status.toUpperCase()}
                     </span>
-                    
-                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
-                      <button className="pharmacy-view-profile-btn" onClick={() => setSelectedPharmacy(pharm)}>
-                        <span>View Profile</span>
-                        <ExternalLink size={12} />
-                      </button>
+                  </div>
+                </div>
 
-                      <button 
-                        className="pharmacy-view-meds-btn" 
-                        onClick={() => handleOpenPharmacyCatalog(pharm)}
-                        title="View medicines catalog listed under this pharmacy"
-                      >
-                        <Pill size={12} />
-                        <span>Listed Drugs ({pharm.medicines_count || 0})</span>
-                      </button>
-                    </div>
-
-                    <div className="pharmacy-action-btns">
-                      {pharm.status === 'approved' && (
-                        <button 
-                          className="pharmacy-block-btn" 
-                          onClick={() => handleAction(pharm.id, 'block')}
-                          title="Block pharmacy from accessing portal and listing medicines"
-                        >
-                          <ShieldAlert size={13} />
-                          <span>Block Pharmacy</span>
-                        </button>
-                      )}
-
-                      {pharm.status === 'blocked' && (
-                        <button 
-                          className="pharmacy-unblock-btn" 
-                          onClick={() => handleAction(pharm.id, 'unblock')}
-                          title="Restore approved access for pharmacy"
-                        >
-                          <ShieldCheck size={13} />
-                          <span>Unblock Pharmacy</span>
-                        </button>
-                      )}
-
-                      {pharm.status === 'pending' && (
-                        <>
-                          <button className="pharmacy-approve-btn" onClick={() => handleAction(pharm.id, 'approve')}>
-                            <Check size={14} />
-                            <span>Approve</span>
-                          </button>
-                          <button className="pharmacy-reject-btn" onClick={() => handleAction(pharm.id, 'reject')}>
-                            <X size={14} />
-                            <span>Reject</span>
-                          </button>
-                        </>
-                      )}
+                {/* Structured 4-Column Metadata Grid */}
+                <div className="pharm-details-grid">
+                  <div className="pharm-meta-tile">
+                    <div className="meta-tile-icon user"><User size={15} /></div>
+                    <div className="meta-tile-info">
+                      <span className="meta-tile-label">Managing Owner</span>
+                      <span className="meta-tile-val">{pharm.owner_name || 'N/A'}</span>
                     </div>
                   </div>
 
+                  <div className="pharm-meta-tile">
+                    <div className="meta-tile-icon phone"><Phone size={15} /></div>
+                    <div className="meta-tile-info">
+                      <span className="meta-tile-label">Contact Line</span>
+                      <span className="meta-tile-val">{pharm.phone || 'N/A'}</span>
+                    </div>
+                  </div>
+
+                  <div className="pharm-meta-tile">
+                    <div className="meta-tile-icon email"><Mail size={15} /></div>
+                    <div className="meta-tile-info">
+                      <span className="meta-tile-label">Official Email</span>
+                      <span className="meta-tile-val" title={pharm.email}>{pharm.email || 'N/A'}</span>
+                    </div>
+                  </div>
+
+                  <div className="pharm-meta-tile">
+                    <div className="meta-tile-icon map"><MapPin size={15} /></div>
+                    <div className="meta-tile-info">
+                      <span className="meta-tile-label">Store Location</span>
+                      <span className="meta-tile-val" title={pharm.address || pharm.city}>
+                        {pharm.city ? `${pharm.city}, ${pharm.province || 'Punjab'}` : (pharm.address || 'Address pending')}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Card Footer Toolbar */}
+                <div className="pharm-card-footer">
+                  <div className="pharm-inventory-preview">
+                    <button 
+                      className="pharm-inv-tag"
+                      onClick={() => handleOpenPharmacyCatalog(pharm)}
+                      title="Inspect pharmacy medicine catalog"
+                    >
+                      <Pill size={14} style={{ color: '#0ea5e9' }} />
+                      <span><strong>{pharm.medicines_count || 0}</strong> cataloged medicines</span>
+                    </button>
+                    {pharm.address && pharm.address.toLowerCase() !== 'no address' && (
+                      <span className="pharm-address-line" title={pharm.address}>
+                        📍 {pharm.address}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="pharm-actions-toolbar">
+                    <button 
+                      className="pharm-btn-catalog"
+                      onClick={() => handleOpenPharmacyCatalog(pharm)}
+                      title="View all medicines cataloged under this pharmacy"
+                    >
+                      <Pill size={13} />
+                      <span>Listed Drugs ({pharm.medicines_count || 0})</span>
+                    </button>
+
+                    <button 
+                      className="pharm-btn-profile" 
+                      onClick={() => setSelectedPharmacy(pharm)}
+                      title="View licensing credentials and profile"
+                    >
+                      <span>View Profile</span>
+                      <ExternalLink size={12} />
+                    </button>
+
+                    {pharm.status === 'approved' && (
+                      <button 
+                        className="pharm-btn-block" 
+                        onClick={() => handleAction(pharm.id, 'block')}
+                        title="Block pharmacy from accessing marketplace"
+                      >
+                        <ShieldAlert size={13} />
+                        <span>Block Pharmacy</span>
+                      </button>
+                    )}
+
+                    {pharm.status === 'blocked' && (
+                      <button 
+                        className="pharm-btn-unblock" 
+                        onClick={() => handleAction(pharm.id, 'unblock')}
+                        title="Restore store operations"
+                      >
+                        <ShieldCheck size={13} />
+                        <span>Unblock Store</span>
+                      </button>
+                    )}
+
+                    {pharm.status === 'pending' && (
+                      <div className="pharm-pending-actions">
+                        <button className="pharm-btn-approve" onClick={() => handleAction(pharm.id, 'approve')}>
+                          <Check size={14} />
+                          <span>Approve Store</span>
+                        </button>
+                        <button className="pharm-btn-reject" onClick={() => handleAction(pharm.id, 'reject')}>
+                          <X size={14} />
+                          <span>Reject</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}
