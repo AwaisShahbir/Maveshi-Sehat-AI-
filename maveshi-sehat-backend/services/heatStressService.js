@@ -465,7 +465,7 @@ async function checkAndDispatchDistrictAlerts(pool, io) {
           const usersRes = await pool.query(
             `SELECT id FROM users 
              WHERE (role = 'farmer' OR role = 'user') 
-             AND (district ILIKE $1 OR city ILIKE $1 OR $1 ILIKE '%' || COALESCE(district, '') || '%')`,
+             AND (district ILIKE $1 OR $1 ILIKE '%' || COALESCE(district, '') || '%')`,
             [`%${dist.name}%`]
           );
 
