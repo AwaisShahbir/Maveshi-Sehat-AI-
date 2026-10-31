@@ -43,6 +43,8 @@ const forumRoutes = require('./routes/forum.routes')(pool);
 const translateRoutes = require('./routes/translate.routes')();
 const chatbotRoutes = require('./routes/chatbot')(pool);
 const notificationRoutes = require('./routes/notification.routes')(pool, io);
+const weatherRoutes = require('./routes/weather.routes')(pool, io);
+const { initHeatStressCron } = require('./services/heatStressService');
 
 // Mount All Routers
 app.use('/', authRoutes);
@@ -54,7 +56,11 @@ app.use('/', chatRoutes);
 app.use('/', forumRoutes);
 app.use('/', translateRoutes);
 app.use('/', notificationRoutes);
+app.use('/', weatherRoutes);
 app.use('/api/chat', chatbotRoutes);
+
+// Initialize Automated Heat Stress Monitoring Daemon
+initHeatStressCron(pool, io);
 
 // Server Listen
 const PORT = process.env.PORT || 5000;
