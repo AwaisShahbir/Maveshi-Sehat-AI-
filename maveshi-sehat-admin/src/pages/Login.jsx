@@ -56,14 +56,14 @@ export default function Login({ onLoginSuccess }) {
 
   return (
     <div className="login-page-container">
-      
+
       <div className="login-card">
-        
+
         {/* Brand Header */}
         <div className="login-brand-header">
-          <img 
-            src={logoImg} 
-            alt="Maveshi Sehat AI" 
+          <img
+            src={logoImg}
+            alt="Maveshi Sehat AI"
             className="login-logo-img"
           />
           <h2 className="login-brand-name">Maveshi Sehat AI</h2>
@@ -83,13 +83,13 @@ export default function Login({ onLoginSuccess }) {
         )}
 
         <form onSubmit={handleSubmit} className="login-form">
-          
+
           <div className="form-group">
             <label className="form-label">Email Address</label>
             <div className="login-input-wrapper">
               <Mail size={18} className="login-input-icon" />
-              <input 
-                type="email" 
+              <input
+                type="email"
                 className="form-control login-form-input"
                 placeholder="admin@maveshisehat.pk"
                 value={email}
@@ -103,16 +103,16 @@ export default function Login({ onLoginSuccess }) {
             <label className="form-label">Password</label>
             <div className="login-input-wrapper">
               <Lock size={18} className="login-input-icon" />
-              <input 
-                type={showPassword ? "text" : "password"} 
+              <input
+                type={showPassword ? "text" : "password"}
                 className="form-control login-form-input password-input"
                 placeholder="Enter admin password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 disabled={loading}
               />
-              <button 
-                type="button" 
+              <button
+                type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 className="login-toggle-password"
                 aria-label={showPassword ? "Hide password" : "Show password"}
@@ -124,25 +124,25 @@ export default function Login({ onLoginSuccess }) {
 
           <div className="login-options-row">
             <label className="login-remember-label">
-              <input 
-                type="checkbox" 
-                checked={rememberMe} 
+              <input
+                type="checkbox"
+                checked={rememberMe}
                 onChange={(e) => setRememberMe(e.target.checked)}
                 className="login-remember-input"
               />
               <span>Remember me</span>
             </label>
-            <a 
-              href="#forgot" 
-              onClick={(e) => { e.preventDefault(); alert("Please contact system administrator to reset password."); }} 
+            <a
+              href="#forgot"
+              onClick={(e) => { e.preventDefault(); alert("Please contact system administrator to reset password."); }}
               className="login-forgot-link"
             >
               Forgot Password?
             </a>
           </div>
 
-          <button 
-            type="submit" 
+          <button
+            type="submit"
             className="btn btn-primary login-submit-button"
             disabled={loading}
           >
@@ -158,7 +158,7 @@ export default function Login({ onLoginSuccess }) {
 
       <div className="login-footer-text">
         <div>Maveshi Sehat AI Admin Panel</div>
-        <div>© 2025 Riphah International University</div>
+        <div>© 2025 Maveshi Sehat AI</div>
       </div>
 
     </div>
