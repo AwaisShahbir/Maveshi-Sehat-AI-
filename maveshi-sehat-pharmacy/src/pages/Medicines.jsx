@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../config';
 import React, { useState, useEffect } from 'react';
 import { Pill, Search, Plus, Edit, Trash2, X, AlertTriangle, CheckCircle, Eye } from 'lucide-react';
 import '../styles/Medicines.css';
@@ -31,7 +32,7 @@ export default function Medicines({ pharmacy, showAddModal, onCloseAddModal, edi
   const fetchMedicines = async () => {
     try {
       setLoading(true);
-      const res = await fetch(`http://localhost:5000/api/pharmacy/medicines?pharmacyId=${pharmacy.id}`);
+      const res = await fetch(`${API_BASE_URL}/api/pharmacy/medicines?pharmacyId=${pharmacy.id}`);
       const data = await res.json();
       if (res.ok) {
         setMedicines(data);
@@ -115,7 +116,7 @@ export default function Medicines({ pharmacy, showAddModal, onCloseAddModal, edi
   const handleAddSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch('http://localhost:5000/api/pharmacy/medicines', {
+      const res = await fetch(`${API_BASE_URL}/api/pharmacy/medicines`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -135,7 +136,7 @@ export default function Medicines({ pharmacy, showAddModal, onCloseAddModal, edi
   const handleEditSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch(`http://localhost:5000/api/pharmacy/medicines/${editingMed.id}`, {
+      const res = await fetch(`${API_BASE_URL}/api/pharmacy/medicines/${editingMed.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form)
@@ -152,7 +153,7 @@ export default function Medicines({ pharmacy, showAddModal, onCloseAddModal, edi
   const handleToggleStatus = async (med) => {
     const nextStatus = med.status === 'inactive' ? 'active' : 'inactive';
     try {
-      const res = await fetch(`http://localhost:5000/api/pharmacy/medicines/${med.id}`, {
+      const res = await fetch(`${API_BASE_URL}/api/pharmacy/medicines/${med.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: nextStatus })
@@ -168,7 +169,7 @@ export default function Medicines({ pharmacy, showAddModal, onCloseAddModal, edi
   const handleDelete = async (medId) => {
     if (!window.confirm('Are you sure you want to delete this medicine listing?')) return;
     try {
-      const res = await fetch(`http://localhost:5000/api/pharmacy/medicines/${medId}`, {
+      const res = await fetch(`${API_BASE_URL}/api/pharmacy/medicines/${medId}`, {
         method: 'DELETE'
       });
       if (res.ok) {

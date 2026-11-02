@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../config';
 import React, { useState, useEffect } from 'react';
 import { 
   Bell, 
@@ -33,9 +34,9 @@ export default function Notifications() {
     setLoading(true);
     try {
       const [notifsRes, usersRes, pharmaciesRes] = await Promise.all([
-        fetch('http://localhost:5000/api/admin/notifications'),
-        fetch('http://localhost:5000/api/admin/users'),
-        fetch('http://localhost:5000/api/admin/pharmacies')
+        fetch(`${API_BASE_URL}/api/admin/notifications`),
+        fetch(`${API_BASE_URL}/api/admin/users`),
+        fetch(`${API_BASE_URL}/api/admin/pharmacies`)
       ]);
       
       if (notifsRes.ok) {
@@ -85,7 +86,7 @@ export default function Notifications() {
     const target = audiences.length === 3 ? 'all' : audiences.join(',');
 
     try {
-      const res = await fetch('http://localhost:5000/api/admin/announcements', {
+      const res = await fetch(`${API_BASE_URL}/api/admin/announcements`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

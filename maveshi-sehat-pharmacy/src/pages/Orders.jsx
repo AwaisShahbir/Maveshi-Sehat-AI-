@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../config';
 import React, { useState, useEffect } from 'react';
 import { ChevronRight, ChevronDown, Clock, ShoppingBag, Truck, CheckCircle, AlertTriangle } from 'lucide-react';
 import '../styles/Orders.css';
@@ -20,7 +21,7 @@ export default function Orders({ pharmacy, onOrderAction, formatPrice, getStatus
   const fetchOrders = async () => {
     try {
       setLoading(true);
-      const res = await fetch(`http://localhost:5000/api/pharmacy/orders?pharmacyId=${pharmacy.id}`);
+      const res = await fetch(`${API_BASE_URL}/api/pharmacy/orders?pharmacyId=${pharmacy.id}`);
       const data = await res.json();
       if (res.ok) {
         setOrders(data);
@@ -42,7 +43,7 @@ export default function Orders({ pharmacy, onOrderAction, formatPrice, getStatus
 
     if (nextState && !orderDetails[orderId]) {
       try {
-        const res = await fetch(`http://localhost:5000/api/pharmacy/orders/${orderId}/items`);
+        const res = await fetch(`${API_BASE_URL}/api/pharmacy/orders/${orderId}/items`);
         const data = await res.json();
         if (res.ok) {
           setOrderDetails({ ...orderDetails, [orderId]: data });

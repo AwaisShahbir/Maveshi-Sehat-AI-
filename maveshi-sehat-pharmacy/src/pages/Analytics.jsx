@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../config';
 import React, { useState, useEffect } from 'react';
 import { 
   TrendingUp, BarChart3, Users, DollarSign, 
@@ -16,7 +17,7 @@ export default function Analytics({ pharmacy, formatPrice }) {
   const fetchAnalyticsData = async () => {
     try {
       setLoading(true);
-      const res = await fetch(`http://localhost:5000/api/pharmacy/analytics?pharmacyId=${pharmacy.id}`);
+      const res = await fetch(`${API_BASE_URL}/api/pharmacy/analytics?pharmacyId=${pharmacy.id}`);
       if (res.ok) {
         const json = await res.json();
         setData(json);

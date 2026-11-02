@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../config';
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -36,7 +37,7 @@ export default function Dashboard() {
 
   const fetchStats = async () => {
     try {
-      const res = await fetch('http://localhost:5000/api/admin/dashboard-stats');
+      const res = await fetch(`${API_BASE_URL}/api/admin/dashboard-stats`);
       if (res.ok) {
         const data = await res.json();
         setStats(data);
@@ -54,7 +55,7 @@ export default function Dashboard() {
 
   const handleUserAction = async (userId, action) => {
     try {
-      const res = await fetch('http://localhost:5000/api/admin/users/action', {
+      const res = await fetch(`${API_BASE_URL}/api/admin/users/action`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId, action })
@@ -70,7 +71,7 @@ export default function Dashboard() {
 
   const handlePharmacyAction = async (pharmacyId, action) => {
     try {
-      const res = await fetch('http://localhost:5000/api/admin/pharmacies/approve', {
+      const res = await fetch(`${API_BASE_URL}/api/admin/pharmacies/approve`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ pharmacyId, action })

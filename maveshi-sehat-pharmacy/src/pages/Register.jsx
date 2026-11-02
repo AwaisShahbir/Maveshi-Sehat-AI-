@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../config';
 import React, { useState } from 'react';
 import { ShieldCheck, Info, MapPin, Award, Store, ArrowLeft, Send } from 'lucide-react';
 import '../styles/Register.css';
@@ -44,7 +45,7 @@ export default function Register({ onViewChange }) {
     setLoading(true);
 
     try {
-      const response = await fetch('http://localhost:5000/api/pharmacy/register', {
+      const response = await fetch(`${API_BASE_URL}/api/pharmacy/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

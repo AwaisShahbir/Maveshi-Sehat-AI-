@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../config';
 import React, { useState, useEffect } from 'react';
 import { AreaChart, Area, PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import { FileDown, RefreshCw } from 'lucide-react';
@@ -11,7 +12,7 @@ export default function DiseaseAnalytics() {
   const fetchRecords = async () => {
     setLoading(true);
     try {
-      const res = await fetch('http://localhost:5000/api/admin/health-records');
+      const res = await fetch(`${API_BASE_URL}/api/admin/health-records`);
       if (res.ok) {
         const data = await res.json();
         setRecords(data);

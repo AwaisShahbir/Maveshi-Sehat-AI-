@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../config';
 import React, { useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
 import { 
@@ -43,7 +44,7 @@ export default function Sidebar({ onLogout, adminUser }) {
   useEffect(() => {
     const fetchSidebarStats = async () => {
       try {
-        const res = await fetch('http://localhost:5000/api/admin/dashboard-stats');
+        const res = await fetch(`${API_BASE_URL}/api/admin/dashboard-stats`);
         if (res.ok) {
           const data = await res.json();
           setStats(data);

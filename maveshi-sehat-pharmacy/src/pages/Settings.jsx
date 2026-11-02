@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../config';
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   User, Lock, Bell, Store, CheckCircle2, AlertCircle, 
@@ -57,7 +58,7 @@ export default function Settings({ pharmacy }) {
 
     const fetchProfileAndSettings = async () => {
       try {
-        const res = await fetch(`http://localhost:5000/api/pharmacy/profile?pharmacyId=${pharmacy.id}`);
+        const res = await fetch(`${API_BASE_URL}/api/pharmacy/profile?pharmacyId=${pharmacy.id}`);
         if (res.ok) {
           const data = await res.json();
           setName(data.name || '');
@@ -141,7 +142,7 @@ export default function Settings({ pharmacy }) {
     setLoading(true);
 
     try {
-      const res = await fetch('http://localhost:5000/api/pharmacy/profile', {
+      const res = await fetch(`${API_BASE_URL}/api/pharmacy/profile`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -206,7 +207,7 @@ export default function Settings({ pharmacy }) {
     setLoading(true);
 
     try {
-      const res = await fetch('http://localhost:5000/api/pharmacy/change-password', {
+      const res = await fetch(`${API_BASE_URL}/api/pharmacy/change-password`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

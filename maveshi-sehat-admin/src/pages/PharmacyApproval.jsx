@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../config';
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { 
@@ -26,7 +27,7 @@ export default function PharmacyApproval() {
   const fetchPharmacies = async () => {
     setLoading(true);
     try {
-      const res = await fetch('http://localhost:5000/api/admin/pharmacies');
+      const res = await fetch(`${API_BASE_URL}/api/admin/pharmacies`);
       if (res.ok) {
         const data = await res.json();
         setPharmacies(data);
@@ -40,7 +41,7 @@ export default function PharmacyApproval() {
 
   const fetchPlatformStats = async () => {
     try {
-      const res = await fetch('http://localhost:5000/api/admin/dashboard-stats');
+      const res = await fetch(`${API_BASE_URL}/api/admin/dashboard-stats`);
       if (res.ok) {
         const data = await res.json();
         setPlatformStats(data);
@@ -54,8 +55,8 @@ export default function PharmacyApproval() {
     setMedsLoading(true);
     try {
       const url = pharmacyId 
-        ? `http://localhost:5000/api/admin/medicines?pharmacyId=${pharmacyId}`
-        : 'http://localhost:5000/api/admin/medicines';
+        ? `${API_BASE_URL}/api/admin/medicines?pharmacyId=${pharmacyId}`
+        : `${API_BASE_URL}/api/admin/medicines`;
       const res = await fetch(url);
       if (res.ok) {
         const data = await res.json();
@@ -96,7 +97,7 @@ export default function PharmacyApproval() {
     if (confirmMsg && !window.confirm(confirmMsg)) return;
 
     try {
-      const res = await fetch('http://localhost:5000/api/admin/pharmacies/approve', {
+      const res = await fetch(`${API_BASE_URL}/api/admin/pharmacies/approve`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ pharmacyId, action })

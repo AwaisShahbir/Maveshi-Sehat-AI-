@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../config';
 import React, { useState, useEffect } from 'react';
 import { Eye, ShieldAlert, ShieldCheck, Download, Search, RefreshCw, X, Mail, Phone, MapPin, Calendar, Award } from 'lucide-react';
 import '../styles/UserManagement.css';
@@ -12,7 +13,7 @@ export default function UserManagement() {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const res = await fetch('http://localhost:5000/api/admin/users');
+      const res = await fetch(`${API_BASE_URL}/api/admin/users`);
       if (res.ok) {
         const data = await res.json();
         setUsers(data);
@@ -34,7 +35,7 @@ export default function UserManagement() {
     if (!window.confirm(confirmMsg)) return;
 
     try {
-      const res = await fetch('http://localhost:5000/api/admin/users/action', {
+      const res = await fetch(`${API_BASE_URL}/api/admin/users/action`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId, action })

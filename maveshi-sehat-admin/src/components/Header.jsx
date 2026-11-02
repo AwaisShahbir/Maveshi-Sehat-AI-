@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../config';
 import React, { useState, useEffect } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { Search, Bell } from 'lucide-react';
@@ -29,7 +30,7 @@ export default function Header({ adminUser }) {
   useEffect(() => {
     const fetchUnreadCount = async () => {
       try {
-        const res = await fetch('http://localhost:5000/api/admin/notifications');
+        const res = await fetch(`${API_BASE_URL}/api/admin/notifications`);
         if (res.ok) {
           const data = await res.json();
           const unread = data.filter(n => !n.read).length;

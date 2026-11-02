@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../config';
 import React, { useState, useEffect, useRef } from 'react';
 import { User, Lock, Bell, Settings as SettingsIcon, CheckCircle2, AlertCircle, Bot, Power, ShieldAlert, Cpu } from 'lucide-react';
 import '../styles/Settings.css';
@@ -44,8 +45,8 @@ export default function Settings({ onProfileUpdate }) {
     const fetchProfileAndSettings = async () => {
       try {
         const [profileRes, settingsRes] = await Promise.all([
-          fetch('http://localhost:5000/api/admin/profile'),
-          fetch('http://localhost:5000/api/admin/settings')
+          fetch(`${API_BASE_URL}/api/admin/profile`),
+          fetch(`${API_BASE_URL}/api/admin/settings`)
         ]);
 
         if (profileRes.ok) {
@@ -132,7 +133,7 @@ export default function Settings({ onProfileUpdate }) {
     setLoading(true);
 
     try {
-      const res = await fetch('http://localhost:5000/api/admin/profile', {
+      const res = await fetch(`${API_BASE_URL}/api/admin/profile`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -200,7 +201,7 @@ export default function Settings({ onProfileUpdate }) {
     setLoading(true);
 
     try {
-      const res = await fetch('http://localhost:5000/api/admin/change-password', {
+      const res = await fetch(`${API_BASE_URL}/api/admin/change-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -231,7 +232,7 @@ export default function Settings({ onProfileUpdate }) {
     setLoading(true);
 
     try {
-      const res = await fetch('http://localhost:5000/api/admin/settings', {
+      const res = await fetch(`${API_BASE_URL}/api/admin/settings`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -265,7 +266,7 @@ export default function Settings({ onProfileUpdate }) {
     setLoading(true);
 
     try {
-      const res = await fetch('http://localhost:5000/api/admin/settings', {
+      const res = await fetch(`${API_BASE_URL}/api/admin/settings`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -300,7 +301,7 @@ export default function Settings({ onProfileUpdate }) {
     const targetEnabled = quickToggleVal !== null ? quickToggleVal : aiEnabled;
 
     try {
-      const res = await fetch('http://localhost:5000/api/admin/settings', {
+      const res = await fetch(`${API_BASE_URL}/api/admin/settings`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

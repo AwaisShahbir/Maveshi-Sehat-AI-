@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../config';
 import React, { useState, useEffect } from 'react';
 import { Store, ShieldCheck, Mail, Phone, Clock, FileText, Check } from 'lucide-react';
 import '../styles/Profile.css';
@@ -26,7 +27,7 @@ export default function Profile({ pharmacy, onProfileUpdate }) {
   const fetchProfile = async () => {
     try {
       setLoading(true);
-      const res = await fetch(`http://localhost:5000/api/pharmacy/profile?pharmacyId=${pharmacy.id}`);
+      const res = await fetch(`${API_BASE_URL}/api/pharmacy/profile?pharmacyId=${pharmacy.id}`);
       const data = await res.json();
       if (res.ok) {
         setProfile(data);
@@ -64,7 +65,7 @@ export default function Profile({ pharmacy, onProfileUpdate }) {
     setSuccessMsg('');
 
     try {
-      const res = await fetch('http://localhost:5000/api/pharmacy/profile', {
+      const res = await fetch(`${API_BASE_URL}/api/pharmacy/profile`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

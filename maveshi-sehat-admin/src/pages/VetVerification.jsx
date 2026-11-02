@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../config';
 import { useState, useEffect } from 'react';
 import { 
   Check, 
@@ -28,7 +29,7 @@ export default function VetVerification() {
   const fetchVets = async () => {
     setLoading(true);
     try {
-      const res = await fetch('http://localhost:5000/api/admin/users');
+      const res = await fetch(`${API_BASE_URL}/api/admin/users`);
       if (res.ok) {
         const users = await res.json();
         const vetUsers = users.filter(user => user.role === 'vet');
@@ -47,7 +48,7 @@ export default function VetVerification() {
 
   const handleAction = async (userId, action) => {
     try {
-      const res = await fetch('http://localhost:5000/api/admin/users/action', {
+      const res = await fetch(`${API_BASE_URL}/api/admin/users/action`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId, action })
@@ -85,7 +86,7 @@ export default function VetVerification() {
 
   const submitInfoRequest = async () => {
     try {
-      const res = await fetch('http://localhost:5000/api/admin/users/action', {
+      const res = await fetch(`${API_BASE_URL}/api/admin/users/action`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 

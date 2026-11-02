@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../config';
 import React, { useState, useEffect } from 'react';
 import { 
   Users, 
@@ -27,8 +28,8 @@ export default function Analytics() {
   const fetchAnalyticsData = async () => {
     setLoading(true);
     try {
-      const usersRes = await fetch('http://localhost:5000/api/admin/users');
-      const recordsRes = await fetch('http://localhost:5000/api/admin/health-records');
+      const usersRes = await fetch(`${API_BASE_URL}/api/admin/users`);
+      const recordsRes = await fetch(`${API_BASE_URL}/api/admin/health-records`);
       
       if (usersRes.ok) {
         const usersData = await usersRes.json();

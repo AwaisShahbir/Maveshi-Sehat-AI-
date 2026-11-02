@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../config';
 import React, { useState, useEffect } from 'react';
 import { 
   MessageSquare, 
@@ -81,7 +82,7 @@ export default function CommunityForum() {
   const fetchPosts = async () => {
     setLoading(true);
     try {
-      const res = await fetch('http://localhost:5000/api/forum/posts');
+      const res = await fetch(`${API_BASE_URL}/api/forum/posts`);
       if (res.ok) {
         const data = await res.json();
         setPosts(data);
@@ -105,7 +106,7 @@ export default function CommunityForum() {
     if (!window.confirm(confirmMsg)) return;
 
     try {
-      const res = await fetch(`http://localhost:5000/api/forum/posts/${postId}`, {
+      const res = await fetch(`${API_BASE_URL}/api/forum/posts/${postId}`, {
         method: 'DELETE'
       });
       if (res.ok) {
@@ -128,7 +129,7 @@ export default function CommunityForum() {
     setSelectedThread(post);
     setThreadLoading(true);
     try {
-      const res = await fetch(`http://localhost:5000/api/forum/posts/${post.id}`);
+      const res = await fetch(`${API_BASE_URL}/api/forum/posts/${post.id}`);
       if (res.ok) {
         const data = await res.json();
         setThreadComments(data.comments || []);
@@ -145,7 +146,7 @@ export default function CommunityForum() {
     if (!window.confirm('Are you sure you want to delete this comment?')) return;
 
     try {
-      const res = await fetch(`http://localhost:5000/api/forum/comments/${commentId}`, {
+      const res = await fetch(`${API_BASE_URL}/api/forum/comments/${commentId}`, {
         method: 'DELETE'
       });
       if (res.ok) {

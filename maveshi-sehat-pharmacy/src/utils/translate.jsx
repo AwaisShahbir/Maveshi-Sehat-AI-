@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../config';
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 const TranslationContext = createContext();
@@ -7,7 +8,7 @@ let isTranslating = false;
 export const TranslationProvider = ({ children }) => {
   const [translations, setTranslations] = useState({});
   const [targetLang, setTargetLang] = useState('en');
-  const baseUrl = 'http://localhost:5000';
+  const baseUrl = `${API_BASE_URL}`;
 
   useEffect(() => {
     const loadCache = () => {

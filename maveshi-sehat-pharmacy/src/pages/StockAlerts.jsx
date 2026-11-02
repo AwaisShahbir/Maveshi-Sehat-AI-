@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../config';
 import React, { useState, useEffect } from 'react';
 import { AlertTriangle, ShieldAlert, CheckCircle2, Edit3, Plus } from 'lucide-react';
 import '../styles/StockAlerts.css';
@@ -9,7 +10,7 @@ export default function StockAlerts({ pharmacy, onEditMedicine, onAddMedicine })
   const fetchMedicines = async () => {
     try {
       setLoading(true);
-      const res = await fetch(`http://localhost:5000/api/pharmacy/medicines?pharmacyId=${pharmacy.id}`);
+      const res = await fetch(`${API_BASE_URL}/api/pharmacy/medicines?pharmacyId=${pharmacy.id}`);
       if (res.ok) {
         const data = await res.json();
         setMedicines(data);

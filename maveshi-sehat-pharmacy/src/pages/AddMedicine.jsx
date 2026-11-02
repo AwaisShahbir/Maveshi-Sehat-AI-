@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../config';
 import React, { useState } from 'react';
 import { Pill, Upload, X, Check, HelpCircle, Save, Ban } from 'lucide-react';
 import '../styles/AddMedicine.css';
@@ -42,7 +43,7 @@ export default function AddMedicine({ pharmacy, onSaveSuccess, onCancel }) {
       formData.append('license', file);
       
       try {
-        const res = await fetch('http://localhost:5000/upload', {
+        const res = await fetch(`${API_BASE_URL}/upload`, {
           method: 'POST',
           body: formData
         });
@@ -70,7 +71,7 @@ export default function AddMedicine({ pharmacy, onSaveSuccess, onCancel }) {
 
     try {
       setLoading(true);
-      const res = await fetch('http://localhost:5000/api/pharmacy/medicines', {
+      const res = await fetch(`${API_BASE_URL}/api/pharmacy/medicines`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

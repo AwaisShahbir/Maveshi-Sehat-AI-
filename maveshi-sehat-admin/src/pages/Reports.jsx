@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../config';
 import React, { useState } from 'react';
 import { Download, Calendar, HardDrive, FileSpreadsheet } from 'lucide-react';
 import '../styles/Reports.css';
@@ -90,7 +91,7 @@ export default function Reports() {
   const handleDownload = async (reportId) => {
     try {
       if (reportId === 1) {
-        const res = await fetch('http://localhost:5000/api/admin/health-records');
+        const res = await fetch(`${API_BASE_URL}/api/admin/health-records`);
         if (!res.ok) throw new Error('Failed to fetch health records');
         const data = await res.json();
         const headers = ['ID', 'Owner Name', 'Animal Type', 'Disease', 'Confidence (%)', 'Risk Level', 'Province', 'Status', 'Created At'];
@@ -107,7 +108,7 @@ export default function Reports() {
         ]);
         downloadCSV('Monthly_Disease_Detection_Report.csv', headers, rows);
       } else if (reportId === 2) {
-        const res = await fetch('http://localhost:5000/api/admin/users');
+        const res = await fetch(`${API_BASE_URL}/api/admin/users`);
         if (!res.ok) throw new Error('Failed to fetch users');
         const data = await res.json();
         const headers = ['ID', 'Full Name', 'Email', 'Phone Number', 'District', 'Role', 'Status', 'Created At'];
@@ -123,8 +124,8 @@ export default function Reports() {
         ]);
         downloadCSV('User_Activity_Report.csv', headers, rows);
       } else if (reportId === 3) {
-        const resUsers = await fetch('http://localhost:5000/api/admin/users');
-        const resRecords = await fetch('http://localhost:5000/api/admin/health-records');
+        const resUsers = await fetch(`${API_BASE_URL}/api/admin/users`);
+        const resRecords = await fetch(`${API_BASE_URL}/api/admin/health-records`);
         if (!resUsers.ok || !resRecords.ok) throw new Error('Failed to fetch database records');
         const users = await resUsers.json();
         const records = await resRecords.json();
@@ -153,7 +154,7 @@ export default function Reports() {
         });
         downloadCSV('Vet_Performance_Report.csv', headers, rows);
       } else if (reportId === 4) {
-        const res = await fetch('http://localhost:5000/api/admin/orders');
+        const res = await fetch(`${API_BASE_URL}/api/admin/orders`);
         if (!res.ok) throw new Error('Failed to fetch orders');
         const data = await res.json();
         const headers = ['Order ID', 'Owner Name', 'Phone', 'Address', 'Status', 'Total Price (PKR)', 'Created At'];
@@ -168,7 +169,7 @@ export default function Reports() {
         ]);
         downloadCSV('Pharmacy_Sales_Report.csv', headers, rows);
       } else if (reportId === 5) {
-        const res = await fetch('http://localhost:5000/api/admin/health-records');
+        const res = await fetch(`${API_BASE_URL}/api/admin/health-records`);
         if (!res.ok) throw new Error('Failed to fetch records');
         const data = await res.json();
         const provMap = {};
@@ -193,7 +194,7 @@ export default function Reports() {
         ]);
         downloadCSV('Province_Disease_Distribution_Report.csv', headers, rows);
       } else if (reportId === 6) {
-        const res = await fetch('http://localhost:5000/api/admin/health-records');
+        const res = await fetch(`${API_BASE_URL}/api/admin/health-records`);
         if (!res.ok) throw new Error('Failed to fetch health records');
         const data = await res.json();
         const headers = ['Model Architecture', 'Target Disease', 'Tested Scans', 'Benchmark Accuracy', 'Precision', 'Recall'];

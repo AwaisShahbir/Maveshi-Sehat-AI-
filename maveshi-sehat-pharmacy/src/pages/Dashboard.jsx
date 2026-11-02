@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../config';
 import React, { useState, useEffect } from 'react';
 import { 
   LayoutDashboard, BarChart3, Pill, PlusCircle, Tags, AlertTriangle, 
@@ -48,7 +49,7 @@ export default function Dashboard({ pharmacy, onLogout }) {
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      const res = await fetch(`http://localhost:5000/api/pharmacy/dashboard-stats?pharmacyId=${pharmacy.id}`);
+      const res = await fetch(`${API_BASE_URL}/api/pharmacy/dashboard-stats?pharmacyId=${pharmacy.id}`);
       const data = await res.json();
       if (res.ok) {
         setStats(data.stats || {});
@@ -59,7 +60,7 @@ export default function Dashboard({ pharmacy, onLogout }) {
 
       // Fetch broadcasts from admin
       try {
-        const annRes = await fetch('http://localhost:5000/api/pharmacy/announcements');
+        const annRes = await fetch(`${API_BASE_URL}/api/pharmacy/announcements`);
         if (annRes.ok) {
           const annData = await annRes.json();
           setAnnouncements(annData);
@@ -123,7 +124,7 @@ export default function Dashboard({ pharmacy, onLogout }) {
 
   const handleOrderAction = async (orderId, newStatus) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/pharmacy/orders/${orderId}/status`, {
+      const res = await fetch(`${API_BASE_URL}/api/pharmacy/orders/${orderId}/status`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus })

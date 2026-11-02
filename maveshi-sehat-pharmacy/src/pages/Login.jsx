@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../config';
 import React, { useState } from 'react';
 import { ShieldAlert, CheckCircle, Clock, Heart, TrendingUp, KeyRound, Mail, LogIn, Eye, EyeOff } from 'lucide-react';
 import '../styles/Login.css';
@@ -15,7 +16,7 @@ export default function Login({ onLoginSuccess, onViewChange }) {
     setLoading(true);
 
     try {
-      const response = await fetch('http://localhost:5000/api/pharmacy/login', {
+      const response = await fetch(`${API_BASE_URL}/api/pharmacy/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

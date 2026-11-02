@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../config';
 import React, { useState, useEffect } from 'react';
 import { 
   Eye, Download, Search, FileDown, RefreshCw, X, 
@@ -22,7 +23,7 @@ export default function HealthRecords() {
   const fetchRecords = async () => {
     setLoading(true);
     try {
-      const res = await fetch('http://localhost:5000/api/admin/health-records');
+      const res = await fetch(`${API_BASE_URL}/api/admin/health-records`);
       if (res.ok) {
         const data = await res.json();
         setRecords(data);
@@ -59,7 +60,7 @@ export default function HealthRecords() {
     setIsUpdatingStatus(true);
     setStatusSuccessMsg('');
     try {
-      const res = await fetch(`http://localhost:5000/api/admin/health-records/${selectedRecord.id}/status`, {
+      const res = await fetch(`${API_BASE_URL}/api/admin/health-records/${selectedRecord.id}/status`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatusValue })
@@ -92,7 +93,7 @@ export default function HealthRecords() {
     if (!window.confirm(confirmMsg)) return;
 
     try {
-      const res = await fetch(`http://localhost:5000/api/admin/health-records/${encodeURIComponent(rec.id)}`, {
+      const res = await fetch(`${API_BASE_URL}/api/admin/health-records/${encodeURIComponent(rec.id)}`, {
         method: 'DELETE',
       });
       if (res.ok) {
