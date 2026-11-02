@@ -788,26 +788,35 @@ export const getStyles = (colors = LIGHT_THEME, isDark = false) => {
       color: '#FFFFFF',
     },
 
-    bottomNavContainer: {
+    bottomNav: {
       position: 'absolute',
       bottom: 0,
       left: 0,
       right: 0,
-      backgroundColor: colors.bottomNav,
-      borderTopLeftRadius: 24,
-      borderTopRightRadius: 24,
-      borderTopWidth: isDark ? 1 : 0,
-      borderTopColor: colors.border,
-      elevation: 10,
-    },
-    bottomNav: {
+      backgroundColor: colors.navBackground,
+      borderTopWidth: 1,
+      borderTopColor: colors.navBorder,
       flexDirection: 'row',
       justifyContent: 'space-around',
-      paddingVertical: 14,
-      paddingBottom: Platform.OS === 'ios' ? 24 : 14,
+      paddingTop: 10,
+      paddingBottom: Platform.OS === 'ios' ? 24 : 10,
+      elevation: 12,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: -3 },
+      shadowOpacity: 0.1,
+      shadowRadius: 5,
     },
-    navItem: { alignItems: 'center' },
-    navText: { fontSize: 10, color: colors.navText, marginTop: 4, fontWeight: '700' },
+    navItem: { 
+      alignItems: 'center',
+      minWidth: 48,
+      minHeight: 48,
+      justifyContent: 'center',
+    },
+    navText: { 
+      fontSize: 11, 
+      marginTop: 4, 
+      fontWeight: '600' 
+    },
   });
 };
 

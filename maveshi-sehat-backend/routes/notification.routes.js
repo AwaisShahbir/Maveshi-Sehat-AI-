@@ -20,8 +20,12 @@ module.exports = (pool, io) => {
       const params = [userId];
 
       if (type && type !== 'all' && type !== 'All') {
-        params.push(type);
-        query += ` AND type = $${params.length}`;
+        if (type === 'announcement' || type === 'alerts' || type === 'Alerts') {
+          query += ` AND type IN ('announcement', 'heat_alert', 'alert', 'system')`;
+        } else {
+          params.push(type);
+          query += ` AND type = $${params.length}`;
+        }
       }
 
       query += ` ORDER BY created_at DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;

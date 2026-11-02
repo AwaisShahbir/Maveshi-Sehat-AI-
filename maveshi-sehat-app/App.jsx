@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { NavigationContainer, useNavigationContainerRef } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { syncSystemLanguage, getProfile } from './src/utils/profileStore';
+import { syncSystemLanguage, getProfile, subscribeProfile } from './src/utils/profileStore';
 import { ThemeProvider } from './src/utils/themeContext';
 import { initNotifications, setNotificationNavigationRef } from './src/services/notificationService';
 
@@ -44,6 +44,8 @@ export default function App() {
     if (profile?.userId) {
       initNotifications(profile.userId);
     }
+    const unsub = subscribeProfile((p) => { if (p?.userId) initNotifications(p.userId); });
+    return () => unsub();
   }, [navigationRef]);
 
   useEffect(() => {

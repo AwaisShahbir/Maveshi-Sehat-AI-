@@ -310,28 +310,40 @@ async function fetchFullWeatherData(lat, lng) {
     // Process 24-Hour Hourly Forecast
     const hourly = data.hourly || {};
     const hourlyTimes = hourly.time || [];
-    const now = new Date();
-    const currentHourIso = now.toISOString().slice(0, 13);
-
-    let startIdx = hourlyTimes.findIndex(t => t.startsWith(currentHourIso));
+    
+    // Align start hour with Open-Meteo local time
+    const currentLocalHour = (current.time || '').slice(0, 13);
+    let startIdx = -1;
+    if (currentLocalHour) {
+      startIdx = hourlyTimes.findIndex(t => t.startsWith(currentLocalHour));
+    }
+    if (startIdx === -1) {
+      // Fallback: match by local hour
+      const targetHour = new Date().getHours();
+      startIdx = hourlyTimes.findIndex(t => {
+        const h = parseInt(t.slice(11, 13), 10);
+        return h === targetHour;
+      });
+    }
     if (startIdx === -1) startIdx = 0;
 
     const next24Hours = [];
     for (let i = startIdx; i < Math.min(startIdx + 24, hourlyTimes.length); i++) {
       const timeStr = hourlyTimes[i];
-      const dateObj = new Date(timeStr);
-      const hourNumber = dateObj.getHours();
+      const hourNumber = parseInt(timeStr.slice(11, 13), 10);
       const isAm = hourNumber < 12;
       const hour12 = hourNumber % 12 === 0 ? 12 : hourNumber % 12;
-      const timeLabel = i === startIdx ? 'Now' : `${hour12} ${isAm ? 'AM' : 'PM'}`;
+      const isNow = i === startIdx;
+      const timeLabel = isNow ? 'Now' : `${hour12} ${isAm ? 'AM' : 'PM'}`;
 
-      const tempH = Math.round(hourly.temperature_2m[i] ?? currentTemp);
-      const rhH = Math.round(hourly.relative_humidity_2m[i] ?? currentRH);
-      const thiH = calculateTHI(tempH, rhH);
-      const stressH = getStressCategory(thiH);
+      // Guarantee "Now" column strictly matches current real-time observations
+      const tempH = isNow ? currentTemp : Math.round(hourly.temperature_2m[i] ?? currentTemp);
+      const rhH = isNow ? currentRH : Math.round(hourly.relative_humidity_2m[i] ?? currentRH);
+      const thiH = isNow ? currentTHI : calculateTHI(tempH, rhH);
+      const stressH = isNow ? stress : getStressCategory(thiH);
       const popH = Math.round(hourly.precipitation_probability[i] ?? 0);
-      const windH = Math.round(hourly.wind_speed_10m[i] ?? 10);
-      const codeH = hourly.weather_code[i] ?? 0;
+      const windH = isNow ? Math.round(current.wind_speed_10m ?? 0) : Math.round(hourly.wind_speed_10m[i] ?? 10);
+      const codeH = isNow ? (current.weather_code ?? 0) : (hourly.weather_code[i] ?? 0);
 
       next24Hours.push({
         time: timeStr,

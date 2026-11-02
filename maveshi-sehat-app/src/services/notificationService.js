@@ -68,6 +68,14 @@ export const setupNotificationChannels = async () => {
   if (Platform.OS === 'android' && notifee && typeof notifee.createChannel === 'function') {
     try {
       await notifee.createChannel({
+        id: 'maveshi_heat_alerts',
+        name: 'Livestock Heat & Emergency Alerts',
+        importance: AndroidImportance.HIGH,
+        sound: 'default',
+        vibration: true,
+      });
+
+      await notifee.createChannel({
         id: 'maveshi_consultations',
         name: 'Consultations & Cases',
         importance: AndroidImportance.HIGH,
@@ -174,12 +182,13 @@ export const displayLocalNotification = async (remoteMessage) => {
   if (!notifee || typeof notifee.displayNotification !== 'function') return;
   try {
     const { notification, data } = remoteMessage || {};
-    const title = notification?.title || data?.title || 'Maveshi Sehat Alert';
+    const title = notification?.title || data?.title || data?.title_en || 'Maveshi Sehat Alert';
     const body = notification?.body || data?.body || data?.message_en || '';
     const type = data?.type || 'general';
 
     let channelId = 'maveshi_general';
-    if (type === 'consultation') channelId = 'maveshi_consultations';
+    if (type === 'heat_alert') channelId = 'maveshi_heat_alerts';
+    else if (type === 'consultation') channelId = 'maveshi_consultations';
     else if (type === 'chat' || type === 'prescription') channelId = 'maveshi_messages';
 
     await notifee.displayNotification({
@@ -200,6 +209,50 @@ export const displayLocalNotification = async (remoteMessage) => {
   }
 };
 
+let globalSocket = null;
+
+/**
+ * Real-time Socket.IO listener that pushes notifications directly to Android status bar
+ */
+export const initSocketNotifications = (userId) => {
+  if (!userId) return () => {};
+  try {
+    if (globalSocket) {
+      try { globalSocket.disconnect(); } catch (e) {}
+    }
+    const ioClient = require('socket.io-client');
+    globalSocket = ioClient(BASE_URL);
+    globalSocket.emit('join_user', userId);
+
+    globalSocket.on('new_notification', async (notif) => {
+      notifyListeners(notif);
+      if (notif) {
+        await displayLocalNotification({
+          notification: {
+            title: notif.title_en || notif.title_ur || '🚨 Heat Stress Alert',
+            body: notif.message_en || notif.message_ur || 'Livestock THI alert received'
+          },
+          data: {
+            ...(notif.data || {}),
+            type: notif.type || 'heat_alert',
+            targetScreen: notif.type === 'heat_alert' ? 'HeatAlert' : 'Notifications'
+          }
+        });
+      }
+    });
+
+    return () => {
+      if (globalSocket) {
+        try { globalSocket.disconnect(); } catch (e) {}
+        globalSocket = null;
+      }
+    };
+  } catch (err) {
+    console.warn('Socket notification setup error:', err.message);
+    return () => {};
+  }
+};
+
 /**
  * Initialize FCM listeners and token registration
  */
@@ -208,10 +261,13 @@ export const initNotifications = async (userId) => {
     await setupNotificationChannels();
     await requestNotificationPermission();
 
+    // Start Socket.IO system notification listener
+    const unsubSocket = initSocketNotifications(userId);
+
     const msg = getMessagingInstance();
     if (!msg) {
       console.log('ℹ️ Firebase Messaging not initialized on device. Running in Socket.IO and REST notification mode.');
-      return () => {};
+      return unsubSocket;
     }
 
     // Retrieve FCM token
@@ -323,6 +379,8 @@ export const handleNotificationPress = (data) => {
       navigationRef.navigate('VetCases');
     } else if (targetScreen === 'MyConsultations') {
       navigationRef.navigate('MyConsultations');
+    } else if (targetScreen === 'HeatAlert' || data.type === 'heat_alert') {
+      navigationRef.navigate('HeatAlert');
     } else if (targetScreen === 'Notifications') {
       navigationRef.navigate('Notifications');
     } else if (targetScreen === 'VetNotificationCenter') {

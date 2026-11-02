@@ -98,6 +98,11 @@ export default function FarmerNotificationCenterScreen({ navigation }) {
       setUnreadCount(prev => Math.max(0, prev - 1));
     }
 
+    if (item.type === 'heat_alert' || item.data?.type === 'heat_alert' || item.data?.targetScreen === 'HeatAlert') {
+      navigation.navigate('HeatAlert');
+      return;
+    }
+
     if (item.data) {
       handleNotificationPress(item.data);
     }
@@ -152,6 +157,8 @@ export default function FarmerNotificationCenterScreen({ navigation }) {
 
   const getNotificationIcon = (type) => {
     switch (type) {
+      case 'heat_alert':
+        return { name: 'alert-triangle', color: '#EF4444', bg: isDark ? '#7F1D1D' : '#FEE2E2' };
       case 'consultation':
         return { name: 'calendar', color: '#10B981', bg: isDark ? '#064E3B' : '#D1FAE5' };
       case 'prescription':

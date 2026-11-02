@@ -287,23 +287,30 @@ export default function HeatAlertScreen() {
           // Process 24-hr forecast
           const hours = [];
           const nowHour = new Date().getHours();
+          const hourlyTimes = data.hourly?.time || [];
+          const currentLocalHour = (data.current?.time || '').slice(0, 13);
+          let startIdx = currentLocalHour ? hourlyTimes.findIndex(t => t.startsWith(currentLocalHour)) : -1;
+          if (startIdx === -1) startIdx = nowHour;
+
           for (let i = 0; i < 24; i++) {
+            const dataIdx = (startIdx + i) % (data.hourly?.temperature_2m?.length || 24);
             const h = (nowHour + i) % 24;
             const isAm = h < 12;
             const hour12 = h % 12 === 0 ? 12 : h % 12;
-            const tempH = Math.round(data.hourly?.temperature_2m[i] ?? tVal);
-            const rhH = Math.round(data.hourly?.relative_humidity_2m[i] ?? rhVal);
-            const thiH = calculateTHI(tempH, rhH);
-            const stressH = getStressLevel(thiH);
+            const isNow = i === 0;
+            const tempH = isNow ? tVal : Math.round(data.hourly?.temperature_2m[dataIdx] ?? tVal);
+            const rhH = isNow ? rhVal : Math.round(data.hourly?.relative_humidity_2m[dataIdx] ?? rhVal);
+            const thiH = isNow ? thi : calculateTHI(tempH, rhH);
+            const stressH = isNow ? status : getStressLevel(thiH);
 
             hours.push({
-              label: i === 0 ? 'Now' : `${hour12} ${isAm ? 'AM' : 'PM'}`,
+              label: isNow ? 'Now' : `${hour12} ${isAm ? 'AM' : 'PM'}`,
               hour: h,
               temp: tempH,
               thi: thiH,
               stressColor: stressH.color,
-              pop: Math.round(data.hourly?.precipitation_probability[i] ?? 0),
-              windSpeed: Math.round(data.hourly?.wind_speed_10m[i] ?? 12),
+              pop: Math.round(data.hourly?.precipitation_probability[dataIdx] ?? 0),
+              windSpeed: isNow ? Math.round(data.current?.wind_speed_10m || 10) : Math.round(data.hourly?.wind_speed_10m[dataIdx] ?? 12),
               isNight: h < 6 || h >= 19
             });
           }
@@ -1029,41 +1036,39 @@ export default function HeatAlertScreen() {
       </Modal>
 
       {/* Bottom Navigation */}
-      <View style={styles.bottomNavContainer}>
-        <View style={styles.bottomNav}>
-          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Dashboard')}>
-            <Feather name="home" size={24} color={colors.primaryLight} />
-            <Text style={[styles.navText, { color: colors.primaryLight }]}>{t('Home')}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.navItem}
-            onPress={() => navigation.navigate('AiScan', { userName, userId })}
-          >
-            <MaterialCommunityIcons name="line-scan" size={24} color={colors.primaryLight} />
-            <Text style={[styles.navText, { color: colors.primaryLight }]}>{t('AI Scan')}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.navItem}
-            onPress={() => navigation.navigate('HealthRecords', { userName, userId })}
-          >
-            <Feather name="file-text" size={24} color={colors.primaryLight} />
-            <Text style={[styles.navText, { color: colors.primaryLight }]}>{t('Records')}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.navItem}
-            onPress={() => navigation.navigate('CommunityForum', { userName, userId })}
-          >
-            <Feather name="message-square" size={24} color={colors.primaryLight} />
-            <Text style={[styles.navText, { color: colors.primaryLight }]}>{t('Forum')}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.navItem}
-            onPress={() => navigation.navigate('Profile', { userId })}
-          >
-            <Feather name="user" size={24} color={colors.primaryLight} />
-            <Text style={[styles.navText, { color: colors.primaryLight }]}>{t('Profile')}</Text>
-          </TouchableOpacity>
-        </View>
+      <View style={styles.bottomNav}>
+        <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Dashboard')}>
+          <Feather name="home" size={24} color={colors.navInactive} />
+          <Text style={[styles.navText, { color: colors.navInactive }, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Home')}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.navItem}
+          onPress={() => navigation.navigate('AiScan', { userName, userId })}
+        >
+          <MaterialCommunityIcons name="line-scan" size={24} color={colors.navInactive} />
+          <Text style={[styles.navText, { color: colors.navInactive }, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('AI Scan')}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.navItem}
+          onPress={() => navigation.navigate('HealthRecords', { userName, userId })}
+        >
+          <Feather name="file-text" size={24} color={colors.navInactive} />
+          <Text style={[styles.navText, { color: colors.navInactive }, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Records')}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.navItem}
+          onPress={() => navigation.navigate('CommunityForum', { userName, userId })}
+        >
+          <Feather name="message-square" size={24} color={colors.navInactive} />
+          <Text style={[styles.navText, { color: colors.navInactive }, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Forum')}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.navItem}
+          onPress={() => navigation.navigate('Profile', { userName, userId })}
+        >
+          <Feather name="user" size={24} color={colors.navInactive} />
+          <Text style={[styles.navText, { color: colors.navInactive }, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Profile')}</Text>
+        </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
