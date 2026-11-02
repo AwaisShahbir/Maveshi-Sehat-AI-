@@ -9,7 +9,7 @@ export const getStyles = (colors = LIGHT_THEME, isDark = false) => {
       backgroundColor: isDark ? colors.headerBackground : '#059669' // Signature emerald brand color
     },
     scrollContent: { 
-      paddingBottom: 110 
+      paddingBottom: 24 
     },
 
     // Header with Emerald Gradient/Solid Brand identity
@@ -789,18 +789,15 @@ export const getStyles = (colors = LIGHT_THEME, isDark = false) => {
     },
 
     bottomNav: {
-      position: 'absolute',
-      bottom: 0,
-      left: 0,
-      right: 0,
-      backgroundColor: colors.navBackground,
+      backgroundColor: isDark ? '#1E293B' : '#FFFFFF',
       borderTopWidth: 1,
-      borderTopColor: colors.navBorder,
+      borderTopColor: isDark ? '#334155' : '#E2E8F0',
       flexDirection: 'row',
       justifyContent: 'space-around',
-      paddingTop: 10,
-      paddingBottom: Platform.OS === 'ios' ? 24 : 10,
-      elevation: 12,
+      alignItems: 'center',
+      paddingTop: 8,
+      paddingBottom: Platform.OS === 'ios' ? 24 : 8,
+      elevation: 16,
       shadowColor: '#000',
       shadowOffset: { width: 0, height: -3 },
       shadowOpacity: 0.1,
@@ -811,11 +808,13 @@ export const getStyles = (colors = LIGHT_THEME, isDark = false) => {
       minWidth: 48,
       minHeight: 48,
       justifyContent: 'center',
+      paddingVertical: 2,
     },
     navText: { 
       fontSize: 11, 
       marginTop: 4, 
-      fontWeight: '600' 
+      fontWeight: '600',
+      color: isDark ? '#94A3B8' : '#64748B',
     },
   });
 };

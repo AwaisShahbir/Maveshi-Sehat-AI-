@@ -22,7 +22,8 @@ import {
   markAllNotificationsAsRead,
   deleteNotification,
   clearAllNotifications,
-  handleNotificationPress
+  handleNotificationPress,
+  displayLocalNotification
 } from '../../services/notificationService';
 
 const SOCKET_URL = 'http://10.0.2.2:5000';
@@ -71,6 +72,19 @@ export default function FarmerNotificationCenterScreen({ navigation }) {
     socket.on('new_notification', (newNotif) => {
       setNotifications(prev => [newNotif, ...prev]);
       setUnreadCount(prev => prev + 1);
+      if (newNotif) {
+        displayLocalNotification({
+          notification: {
+            title: isUrdu ? (newNotif.title_ur || newNotif.title_en) : (newNotif.title_en || newNotif.title_ur),
+            body: isUrdu ? (newNotif.message_ur || newNotif.message_en) : (newNotif.message_en || newNotif.message_ur)
+          },
+          data: {
+            ...(newNotif.data || {}),
+            type: newNotif.type || 'heat_alert',
+            targetScreen: newNotif.type === 'heat_alert' ? 'HeatAlert' : 'Notifications'
+          }
+        });
+      }
     });
 
     socket.on('notification_unread_count', (data) => {

@@ -187,9 +187,30 @@ export const displayLocalNotification = async (remoteMessage) => {
     const type = data?.type || 'general';
 
     let channelId = 'maveshi_general';
-    if (type === 'heat_alert') channelId = 'maveshi_heat_alerts';
-    else if (type === 'consultation') channelId = 'maveshi_consultations';
-    else if (type === 'chat' || type === 'prescription') channelId = 'maveshi_messages';
+    let channelName = 'General Announcements';
+    if (type === 'heat_alert') {
+      channelId = 'maveshi_heat_alerts';
+      channelName = 'Livestock Heat & Emergency Alerts';
+    } else if (type === 'consultation') {
+      channelId = 'maveshi_consultations';
+      channelName = 'Consultations & Cases';
+    } else if (type === 'chat' || type === 'prescription') {
+      channelId = 'maveshi_messages';
+      channelName = 'Chat & Prescriptions';
+    }
+
+    // Ensure notification channel is created on device
+    try {
+      await notifee.createChannel({
+        id: channelId,
+        name: channelName,
+        importance: AndroidImportance.HIGH,
+        sound: 'default',
+        vibration: true,
+      });
+    } catch (chanErr) {
+      console.warn('Channel creation warning:', chanErr.message);
+    }
 
     await notifee.displayNotification({
       title,
@@ -201,7 +222,6 @@ export const displayLocalNotification = async (remoteMessage) => {
         pressAction: {
           id: 'default',
         },
-        smallIcon: 'ic_launcher',
       },
     });
   } catch (err) {

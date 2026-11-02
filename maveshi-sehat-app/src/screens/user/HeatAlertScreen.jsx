@@ -1038,36 +1038,36 @@ export default function HeatAlertScreen() {
       {/* Bottom Navigation */}
       <View style={styles.bottomNav}>
         <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Dashboard')}>
-          <Feather name="home" size={24} color={colors.navInactive} />
-          <Text style={[styles.navText, { color: colors.navInactive }, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Home')}</Text>
+          <Feather name="home" size={24} color={isDark ? '#94A3B8' : '#64748B'} />
+          <Text style={[styles.navText, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Home')}</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.navItem}
           onPress={() => navigation.navigate('AiScan', { userName, userId })}
         >
-          <MaterialCommunityIcons name="line-scan" size={24} color={colors.navInactive} />
-          <Text style={[styles.navText, { color: colors.navInactive }, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('AI Scan')}</Text>
+          <MaterialCommunityIcons name="line-scan" size={24} color={isDark ? '#94A3B8' : '#64748B'} />
+          <Text style={[styles.navText, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('AI Scan')}</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.navItem}
           onPress={() => navigation.navigate('HealthRecords', { userName, userId })}
         >
-          <Feather name="file-text" size={24} color={colors.navInactive} />
-          <Text style={[styles.navText, { color: colors.navInactive }, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Records')}</Text>
+          <Feather name="file-text" size={24} color={isDark ? '#94A3B8' : '#64748B'} />
+          <Text style={[styles.navText, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Records')}</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.navItem}
           onPress={() => navigation.navigate('CommunityForum', { userName, userId })}
         >
-          <Feather name="message-square" size={24} color={colors.navInactive} />
-          <Text style={[styles.navText, { color: colors.navInactive }, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Forum')}</Text>
+          <Feather name="message-square" size={24} color={isDark ? '#94A3B8' : '#64748B'} />
+          <Text style={[styles.navText, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Forum')}</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.navItem}
           onPress={() => navigation.navigate('Profile', { userName, userId })}
         >
-          <Feather name="user" size={24} color={colors.navInactive} />
-          <Text style={[styles.navText, { color: colors.navInactive }, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Profile')}</Text>
+          <Feather name="user" size={24} color={isDark ? '#94A3B8' : '#64748B'} />
+          <Text style={[styles.navText, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Profile')}</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>

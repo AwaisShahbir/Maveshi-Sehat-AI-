@@ -11,7 +11,7 @@ import { useTheme } from '../../utils/themeContext';
 import fonts from '../../styles/fonts';
 import { getStyles } from '../../styles/DashboardScreenStyles';
 import io from 'socket.io-client';
-import { fetchUnreadCount } from '../../services/notificationService';
+import { fetchUnreadCount, displayLocalNotification } from '../../services/notificationService';
 
 export default function DashboardScreen() {
   const navigation = useNavigation();
@@ -110,8 +110,21 @@ export default function DashboardScreen() {
       }
     });
 
-    socket.on('new_notification', () => {
+    socket.on('new_notification', (newNotif) => {
       setNotificationsCount(prev => prev + 1);
+      if (newNotif) {
+        displayLocalNotification({
+          notification: {
+            title: isUrdu ? (newNotif.title_ur || newNotif.title_en) : (newNotif.title_en || newNotif.title_ur),
+            body: isUrdu ? (newNotif.message_ur || newNotif.message_en) : (newNotif.message_en || newNotif.message_ur)
+          },
+          data: {
+            ...(newNotif.data || {}),
+            type: newNotif.type || 'heat_alert',
+            targetScreen: newNotif.type === 'heat_alert' ? 'HeatAlert' : 'Notifications'
+          }
+        });
+      }
     });
 
     const unsubscribeFocus = navigation.addListener('focus', () => {
