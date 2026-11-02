@@ -129,6 +129,28 @@ pool.connect((err, client, release) => {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
 
+      CREATE TABLE IF NOT EXISTS forum_posts (
+        id SERIAL PRIMARY KEY,
+        user_id INT REFERENCES users(id) ON DELETE CASCADE,
+        title VARCHAR(255) NOT NULL,
+        description TEXT NOT NULL,
+        category VARCHAR(100) DEFAULT 'General',
+        image_url VARCHAR(500),
+        likes_count INT DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS forum_comments (
+        id SERIAL PRIMARY KEY,
+        post_id INT REFERENCES forum_posts(id) ON DELETE CASCADE,
+        user_id INT REFERENCES users(id) ON DELETE CASCADE,
+        comment TEXT NOT NULL,
+        parent_comment_id INT REFERENCES forum_comments(id) ON DELETE CASCADE,
+        image_url VARCHAR(500),
+        likes_count INT DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+
       ALTER TABLE forum_posts ADD COLUMN IF NOT EXISTS image_url VARCHAR(500);
       ALTER TABLE forum_comments ADD COLUMN IF NOT EXISTS image_url VARCHAR(500);
     `, (migrationErr) => {
