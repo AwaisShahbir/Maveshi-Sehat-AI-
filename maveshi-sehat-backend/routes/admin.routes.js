@@ -189,10 +189,34 @@ module.exports = (pool, io) => {
     }
   });
 
-  // Admin User Actions (Approve, Reject, Block, Unblock, Request Info)
+  // Admin User Actions (Approve, Reject, Block, Unblock, Request Info, Delete)
   router.post('/api/admin/users/action', async (req, res) => {
     try {
       const { userId, action, message } = req.body;
+      const targetId = parseInt(userId);
+
+      if (action === 'delete') {
+        const checkRes = await pool.query('SELECT id, full_name, email, role FROM users WHERE id = $1', [targetId]);
+        if (checkRes.rows.length === 0) return res.status(404).json({ error: 'User not found' });
+        const userToDelete = checkRes.rows[0];
+        if (userToDelete.role === 'admin') return res.status(403).json({ error: 'Admin account cannot be deleted.' });
+
+        await pool.query('DELETE FROM otps WHERE LOWER(email) = LOWER($1)', [userToDelete.email]);
+        await pool.query('DELETE FROM messages WHERE sender_id = $1', [targetId]);
+        await pool.query('DELETE FROM conversations WHERE farmer_id = $1 OR vet_id = $1', [targetId]);
+        await pool.query('DELETE FROM consultations WHERE farmer_id = $1 OR vet_id = $1', [targetId]);
+        await pool.query('DELETE FROM user_notifications WHERE user_id = $1', [targetId]);
+        await pool.query('DELETE FROM user_push_tokens WHERE user_id = $1', [targetId]);
+        await pool.query('DELETE FROM user_notification_preferences WHERE user_id = $1', [targetId]);
+        await pool.query('DELETE FROM forum_comments WHERE user_id = $1', [targetId]);
+        await pool.query('DELETE FROM forum_posts WHERE user_id = $1', [targetId]);
+        await pool.query('DELETE FROM farmer_vaccinations WHERE farmer_id = $1', [targetId]);
+        await pool.query('UPDATE detections SET vet_id = NULL WHERE vet_id = $1', [targetId]);
+        await pool.query('DELETE FROM users WHERE id = $1', [targetId]);
+
+        return res.status(200).json({ message: `User "${userToDelete.full_name}" deleted successfully.` });
+      }
+
       let newStatus = 'approved';
       if (action === 'approve') newStatus = 'verified';
       else if (action === 'reject') newStatus = 'rejected';
@@ -200,10 +224,10 @@ module.exports = (pool, io) => {
       else if (action === 'unblock') newStatus = 'active';
       else if (action === 'request_info') newStatus = 'info_requested';
 
-      await pool.query("UPDATE users SET status = $1 WHERE id = $2", [newStatus, userId]);
+      await pool.query("UPDATE users SET status = $1 WHERE id = $2", [newStatus, targetId]);
 
       if (action === 'request_info') {
-        const userRes = await pool.query("SELECT full_name, email FROM users WHERE id = $1", [userId]);
+        const userRes = await pool.query("SELECT full_name, email FROM users WHERE id = $1", [targetId]);
         if (userRes.rows.length > 0) {
           const user = userRes.rows[0];
           try {
@@ -222,7 +246,40 @@ module.exports = (pool, io) => {
 
       res.status(200).json({ message: `User status updated to ${newStatus} successfully.` });
     } catch (err) {
+      console.error('Error updating user status:', err);
       res.status(500).json({ error: 'Failed to update user status' });
+    }
+  });
+
+  // Admin Delete User endpoint (DELETE /api/admin/users/:id)
+  router.delete('/api/admin/users/:id', async (req, res) => {
+    try {
+      const targetId = parseInt(req.params.id);
+      if (isNaN(targetId)) return res.status(400).json({ error: 'Invalid user ID' });
+
+      const checkRes = await pool.query('SELECT id, full_name, email, role FROM users WHERE id = $1', [targetId]);
+      if (checkRes.rows.length === 0) return res.status(404).json({ error: 'User not found' });
+      const userToDelete = checkRes.rows[0];
+      if (userToDelete.role === 'admin') return res.status(403).json({ error: 'Admin account cannot be deleted.' });
+
+      await pool.query('DELETE FROM otps WHERE LOWER(email) = LOWER($1)', [userToDelete.email]);
+      await pool.query('DELETE FROM messages WHERE sender_id = $1', [targetId]);
+      await pool.query('DELETE FROM conversations WHERE farmer_id = $1 OR vet_id = $1', [targetId]);
+      await pool.query('DELETE FROM consultations WHERE farmer_id = $1 OR vet_id = $1', [targetId]);
+      await pool.query('DELETE FROM user_notifications WHERE user_id = $1', [targetId]);
+      await pool.query('DELETE FROM user_push_tokens WHERE user_id = $1', [targetId]);
+      await pool.query('DELETE FROM user_notification_preferences WHERE user_id = $1', [targetId]);
+      await pool.query('DELETE FROM forum_comments WHERE user_id = $1', [targetId]);
+      await pool.query('DELETE FROM forum_posts WHERE user_id = $1', [targetId]);
+      await pool.query('DELETE FROM farmer_vaccinations WHERE farmer_id = $1', [targetId]);
+      await pool.query('UPDATE detections SET vet_id = NULL WHERE vet_id = $1', [targetId]);
+      await pool.query('DELETE FROM users WHERE id = $1', [targetId]);
+
+      console.log(`[Admin] Deleted user ${userToDelete.full_name} (ID: ${targetId}, Email: ${userToDelete.email})`);
+      res.status(200).json({ message: `User "${userToDelete.full_name}" deleted successfully.` });
+    } catch (err) {
+      console.error('Error deleting user:', err);
+      res.status(500).json({ error: 'Failed to delete user: ' + err.message });
     }
   });
 

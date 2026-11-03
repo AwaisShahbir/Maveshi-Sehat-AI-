@@ -94,22 +94,17 @@ module.exports = (pool) => {
           await pool.query('DELETE FROM otps WHERE LOWER(email) = $1', [cleanEmail]);
           await pool.query('INSERT INTO otps (email, otp) VALUES ($1, $2)', [cleanEmail, otp]);
 
-          const mailPromise = transporter.sendMail({
-            from: `"Maveshi Sehat AI" <${transporter.emailUser || process.env.EMAIL_USER}>`,
-            to: cleanEmail,
-            subject: `${otp} is your Maveshi Sehat AI verification code`,
-            html: getOtpEmailHtml(cleanName, otp),
-            text: `Welcome to Maveshi Sehat AI! Your verification code is: ${otp}`
-          });
-
           try {
-            await Promise.race([
-              mailPromise,
-              new Promise((_, reject) => setTimeout(() => reject(new Error('SMTP timeout')), 8000))
-            ]);
-            console.log(`[OTP] Sent updated OTP ${otp} to unverified user ${cleanEmail}`);
+            const mailInfo = await transporter.sendMail({
+              from: `"Maveshi Sehat AI" <${transporter.emailUser || process.env.EMAIL_USER}>`,
+              to: cleanEmail,
+              subject: `${otp} is your Maveshi Sehat AI verification code`,
+              html: getOtpEmailHtml(cleanName, otp),
+              text: `Welcome to Maveshi Sehat AI! Your verification code is: ${otp}`
+            });
+            console.log(`[OTP] Sent updated OTP ${otp} to unverified user ${cleanEmail}: ${mailInfo.response}`);
           } catch (mailErr) {
-            console.warn(`[OTP] Mail send notice for ${cleanEmail}: ${mailErr.message} (OTP: ${otp})`);
+            console.error(`[OTP] Mail send error for ${cleanEmail}:`, mailErr.message);
           }
 
           return res.status(200).json({
@@ -177,22 +172,17 @@ module.exports = (pool) => {
         await pool.query('DELETE FROM otps WHERE LOWER(email) = $1', [cleanEmail]);
         await pool.query('INSERT INTO otps (email, otp) VALUES ($1, $2)', [cleanEmail, otp]);
 
-        const mailPromise = transporter.sendMail({
-          from: `"Maveshi Sehat AI" <${transporter.emailUser || process.env.EMAIL_USER}>`,
-          to: cleanEmail,
-          subject: `${otp} is your Maveshi Sehat AI verification code`,
-          html: getOtpEmailHtml(cleanName, otp),
-          text: `Welcome to Maveshi Sehat AI! Your verification code is: ${otp}`
-        });
-
         try {
-          await Promise.race([
-            mailPromise,
-            new Promise((_, reject) => setTimeout(() => reject(new Error('SMTP timeout')), 8000))
-          ]);
-          console.log(`[OTP] Sent OTP ${otp} to new user ${cleanEmail}`);
+          const mailInfo = await transporter.sendMail({
+            from: `"Maveshi Sehat AI" <${transporter.emailUser || process.env.EMAIL_USER}>`,
+            to: cleanEmail,
+            subject: `${otp} is your Maveshi Sehat AI verification code`,
+            html: getOtpEmailHtml(cleanName, otp),
+            text: `Welcome to Maveshi Sehat AI! Your verification code is: ${otp}`
+          });
+          console.log(`[OTP] Sent OTP ${otp} to new user ${cleanEmail}: ${mailInfo.response}`);
         } catch (mailErr) {
-          console.warn(`[OTP] Mail send notice for ${cleanEmail}: ${mailErr.message} (OTP: ${otp})`);
+          console.error(`[OTP] Mail send error for ${cleanEmail}:`, mailErr.message);
         }
 
         return res.status(201).json({
@@ -262,22 +252,17 @@ module.exports = (pool) => {
       await pool.query('DELETE FROM otps WHERE LOWER(email) = $1', [cleanEmail]);
       await pool.query('INSERT INTO otps (email, otp) VALUES ($1, $2)', [cleanEmail, otp]);
 
-      const mailPromise = transporter.sendMail({
-        from: `"Maveshi Sehat AI" <${transporter.emailUser || process.env.EMAIL_USER}>`,
-        to: cleanEmail,
-        subject: `${otp} is your Maveshi Sehat AI verification code`,
-        html: getOtpEmailHtml(user.full_name, otp),
-        text: `Your Maveshi Sehat verification code is: ${otp}. It expires in 10 minutes.`
-      });
-
       try {
-        await Promise.race([
-          mailPromise,
-          new Promise((_, reject) => setTimeout(() => reject(new Error('SMTP timeout')), 8000))
-        ]);
-        console.log(`[OTP] Resent OTP ${otp} to ${cleanEmail}`);
+        const mailInfo = await transporter.sendMail({
+          from: `"Maveshi Sehat AI" <${transporter.emailUser || process.env.EMAIL_USER}>`,
+          to: cleanEmail,
+          subject: `${otp} is your Maveshi Sehat AI verification code`,
+          html: getOtpEmailHtml(user.full_name, otp),
+          text: `Your Maveshi Sehat verification code is: ${otp}. It expires in 10 minutes.`
+        });
+        console.log(`[OTP] Resent OTP ${otp} to ${cleanEmail}: ${mailInfo.response}`);
       } catch (mailErr) {
-        console.warn(`[OTP] Resend mail notice: ${mailErr.message} (OTP: ${otp})`);
+        console.error(`[OTP] Resend mail error for ${cleanEmail}:`, mailErr.message);
       }
 
       res.status(200).json({ 
@@ -413,6 +398,36 @@ module.exports = (pool) => {
     } catch (err) {
       console.error('Admin Auth Login Error:', err.message);
       res.status(500).json({ error: 'Server error during administrator login.' });
+    }
+  });
+
+  // Diagnostic Test Email Endpoint
+  router.get('/test-mail', async (req, res) => {
+    try {
+      const targetEmail = req.query.email || 'codersxcareer@gmail.com';
+      const testOtp = Math.floor(1000 + Math.random() * 9000).toString();
+      const mailInfo = await transporter.sendMail({
+        from: `"Maveshi Sehat AI" <${transporter.emailUser || process.env.EMAIL_USER}>`,
+        to: targetEmail,
+        subject: `${testOtp} is your Maveshi Sehat AI verification code`,
+        html: getOtpEmailHtml('Tester', testOtp),
+        text: `Your Maveshi Sehat AI verification code is: ${testOtp}`
+      });
+      res.status(200).json({
+        success: true,
+        response: mailInfo.response,
+        messageId: mailInfo.messageId,
+        sentTo: targetEmail,
+        sender: transporter.emailUser || process.env.EMAIL_USER
+      });
+    } catch (err) {
+      console.error('Test mail error:', err);
+      res.status(500).json({
+        success: false,
+        error: err.message,
+        code: err.code,
+        sender: transporter.emailUser || process.env.EMAIL_USER
+      });
     }
   });
 

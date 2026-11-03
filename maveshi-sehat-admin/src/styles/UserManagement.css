@@ -153,6 +153,16 @@
   color: var(--color-red);
 }
 
+.btn-action-delete {
+  cursor: pointer;
+  color: #ef4444;
+}
+
+.btn-action-delete:hover {
+  background-color: #fee2e2;
+  color: #dc2626;
+}
+
 .table-footer-count {
   display: flex;
   justify-content: space-between;

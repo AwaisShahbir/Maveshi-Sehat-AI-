@@ -1,6 +1,6 @@
 import { API_BASE_URL } from '../config';
 import React, { useState, useEffect } from 'react';
-import { Eye, ShieldAlert, ShieldCheck, Download, Search, RefreshCw, X, Mail, Phone, MapPin, Calendar, Award } from 'lucide-react';
+import { Eye, ShieldAlert, ShieldCheck, Trash2, Download, Search, RefreshCw, X, Mail, Phone, MapPin, Calendar, Award } from 'lucide-react';
 import '../styles/UserManagement.css';
 
 export default function UserManagement() {
@@ -51,6 +51,31 @@ export default function UserManagement() {
       }
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  const handleDeleteUser = async (userId, userName) => {
+    const confirmMsg = `Are you sure you want to permanently delete user "${userName || 'this user'}"?\n\nAll their records, chats, and account data will be completely removed. This cannot be undone.`;
+    if (!window.confirm(confirmMsg)) return;
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/admin/users/${userId}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      const data = await res.json();
+      if (res.ok) {
+        alert(data.message || 'User deleted successfully.');
+        if (selectedUser && selectedUser.id === userId) {
+          setSelectedUser(null);
+        }
+        fetchUsers();
+      } else {
+        alert(data.error || 'Failed to delete user.');
+      }
+    } catch (err) {
+      console.error('Delete error:', err);
+      alert('Error deleting user: ' + err.message);
     }
   };
 
@@ -243,6 +268,14 @@ export default function UserManagement() {
                             onClick={() => handleBlockAction(user.id, user.status)}
                           >
                             {user.status === 'blocked' ? <ShieldCheck size={16} /> : <ShieldAlert size={16} />}
+                          </button>
+                          <button 
+                            className="btn-icon-only btn-action-delete"
+                            title="Delete user"
+                            style={{ color: '#ef4444' }}
+                            onClick={() => handleDeleteUser(user.id, user.full_name)}
+                          >
+                            <Trash2 size={16} />
                           </button>
                         </div>
                       </td>
@@ -456,6 +489,15 @@ export default function UserManagement() {
               >
                 {selectedUser.status === 'blocked' ? <ShieldCheck size={15} /> : <ShieldAlert size={15} />}
                 <span>{selectedUser.status === 'blocked' ? 'Unblock User' : 'Block User'}</span>
+              </button>
+
+              <button
+                onClick={() => handleDeleteUser(selectedUser.id, selectedUser.full_name)}
+                className="um-block-btn"
+                style={{ backgroundColor: '#fee2e2', color: '#dc2626', borderColor: '#fca5a5' }}
+              >
+                <Trash2 size={15} />
+                <span>Delete User</span>
               </button>
 
               <button

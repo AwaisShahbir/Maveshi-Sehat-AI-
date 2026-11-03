@@ -194,7 +194,7 @@ export default function VerifyScreen() {
               >
                 <Feather name="check-circle" size={16} color={isDark ? '#4ADE80' : '#2E7D32'} style={{ marginRight: 8 }} />
                 <Text style={{ color: isDark ? '#86EFAC' : '#1B5E20', fontSize: 13, fontWeight: '700' }}>
-                  {t(`Auto-Fill Code: ${currentOtp}`, `خودکار کوڈ درج کریں: ${currentOtp}`)}
+                  {t('Auto-Fill Code', 'خودکار کوڈ درج کریں')}
                 </Text>
               </TouchableOpacity>
             )}
