@@ -22,6 +22,7 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import io from 'socket.io-client';
 import { pick, types, isCancel } from '@react-native-documents/picker';
 import { t } from '../../utils/translate';
+import { getProfile } from '../../utils/profileStore';
 import { useTheme } from '../../utils/themeContext';
 import { getStyles } from '../../styles/ChatScreenStyles';
 
@@ -87,30 +88,35 @@ export default function ChatScreen() {
     
     const initChat = async () => {
       try {
-        
+        const storedProfile = getProfile();
         const convResponse = await fetch(`${baseUrl}/api/chat/conversation`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
+            conversationId: conversationId,
             farmerName: userRole === 'farmer' ? userName : partnerName,
-            vetId: vetId
+            vetId: vetId || (userRole === 'vet' ? (storedProfile?.userId || 1) : 1)
           })
         });
 
         const convData = await convResponse.json();
-        if (convResponse.ok) {
-          setConversationStatus(convData.status);
-          setOurUserId(userRole === 'farmer' ? convData.farmer_id : convData.vet_id);
+        if (convResponse.ok && convData) {
+          setConversationStatus(convData.status || 'active');
+          const resolvedUserId = userRole === 'farmer' ? convData.farmer_id : convData.vet_id;
+          setOurUserId(resolvedUserId || storedProfile?.userId || (userRole === 'vet' ? (vetId || 1) : 1));
+        } else {
+          setOurUserId(storedProfile?.userId || (userRole === 'vet' ? (vetId || 1) : 1));
         }
 
-        
         const msgResponse = await fetch(`${baseUrl}/api/chat/messages?conversationId=${conversationId}`);
         const msgData = await msgResponse.json();
-        if (msgResponse.ok) {
+        if (msgResponse.ok && Array.isArray(msgData)) {
           setMessages(msgData);
         }
       } catch (error) {
         console.error('Error initializing chat:', error);
+        const storedProfile = getProfile();
+        setOurUserId(storedProfile?.userId || (userRole === 'vet' ? (vetId || 1) : 1));
       } finally {
         setLoading(false);
       }
@@ -151,26 +157,60 @@ export default function ChatScreen() {
     }
   }, [loading]);
 
-  const handleSendMessage = (text = '', imageUrl = null, isPrescription = false, prescriptionData = null, isVaccination = false, vaccinationData = null, consultationIdOverride = null) => {
+  const handleSendMessage = async (text = '', imageUrl = null, isPrescription = false, prescriptionData = null, isVaccination = false, vaccinationData = null, consultationIdOverride = null) => {
     const finalMsg = text.trim();
     if (!finalMsg && !imageUrl && !isPrescription && !selectedAttachmentUri && !isVaccination) return;
 
-    if (socketRef.current && ourUserId) {
-      socketRef.current.emit('send_message', {
-        conversationId,
-        senderId: ourUserId,
-        message: finalMsg || null,
-        imageUrl: imageUrl || selectedAttachmentUri || null,
-        isPrescription,
-        prescriptionData,
-        isVaccination,
-        vaccinationData,
-        consultationId: consultationIdOverride || selectedConsultationId
-      });
+    const storedProfile = getProfile();
+    const currentSenderId = ourUserId || storedProfile?.userId || (userRole === 'vet' ? (vetId || 1) : 1);
+
+    const payload = {
+      conversationId: Number(conversationId),
+      senderId: Number(currentSenderId),
+      message: finalMsg || null,
+      imageUrl: imageUrl || selectedAttachmentUri || null,
+      isPrescription: !!isPrescription,
+      prescriptionData: prescriptionData || null,
+      isVaccination: !!isVaccination,
+      vaccinationData: vaccinationData || null,
+      consultationId: consultationIdOverride || selectedConsultationId
+    };
+
+    if (socketRef.current && socketRef.current.connected) {
+      socketRef.current.emit('send_message', payload);
       setInputText('');
       setSelectedAttachmentUri(null);
     } else {
-        alert('Failed to send prescription');
+      // Robust REST API Fallback
+      try {
+        const res = await fetch(`${baseUrl}/api/chat/message`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData.error || 'Failed to send message');
+        }
+        const savedMessage = await res.json();
+        setMessages((prev) => {
+          if (prev.some((m) => m.id === savedMessage.id)) return prev;
+          return [...prev, savedMessage];
+        });
+        setInputText('');
+        setSelectedAttachmentUri(null);
+        setTimeout(() => {
+          flatListRef.current?.scrollToEnd({ animated: true });
+        }, 100);
+      } catch (err) {
+        console.error('Failed to send message:', err);
+        Alert.alert(
+          t('Message Notice'),
+          isPrescription
+            ? t('Failed to send prescription. Please check your internet connection.')
+            : t('Unable to send message. Please check your internet connection and try again.')
+        );
+      }
     }
   };
 

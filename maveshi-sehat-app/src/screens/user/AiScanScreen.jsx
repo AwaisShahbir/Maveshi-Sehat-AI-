@@ -182,8 +182,8 @@ export default function AiScanScreen() {
       cameraType: 'back',
       maxWidth: 1024,
       maxHeight: 1024,
-      quality: 0.7,
-      includeBase64: true,
+      quality: 0.8,
+      includeBase64: false,
       saveToPhotos: false,
     };
 
@@ -228,8 +228,8 @@ export default function AiScanScreen() {
       mediaType: 'photo',
       maxWidth: 1024,
       maxHeight: 1024,
-      quality: 0.7,
-      includeBase64: true,
+      quality: 0.8,
+      includeBase64: false,
     };
 
     try {
@@ -285,7 +285,27 @@ export default function AiScanScreen() {
       let response;
       const effectiveAnimalId = (animalTagId && animalTagId.trim()) ? animalTagId.trim() : null;
 
-      if (selectedImage.base64) {
+      const resolvedAnimalId = (animalTagId && animalTagId.trim())
+        ? animalTagId.trim()
+        : `${(animalType || 'COW').toUpperCase()}-${Math.floor(100 + Math.random() * 900)}`;
+
+      if (selectedImage.uri && selectedImage.isLocal) {
+        const formData = new FormData();
+        formData.append('image', {
+          uri: Platform.OS === 'android' ? selectedImage.uri : selectedImage.uri.replace('file://', ''),
+          name: selectedImage.fileName || `scan-${Date.now()}.jpg`,
+          type: selectedImage.type || 'image/jpeg'
+        });
+        formData.append('animalType', animalType || 'Cow');
+        formData.append('ownerName', userName || 'Farmer');
+        formData.append('animalId', resolvedAnimalId);
+        formData.append('province', 'Punjab');
+
+        response = await fetch(`${BASE_URL}/api/ai/scan-disease`, {
+          method: 'POST',
+          body: formData,
+        });
+      } else if (selectedImage.base64) {
         response = await fetch(`${BASE_URL}/api/ai/scan-disease`, {
           method: 'POST',
           headers: {
@@ -295,25 +315,9 @@ export default function AiScanScreen() {
             imageBase64: selectedImage.base64,
             animalType: animalType || 'Cow',
             ownerName: userName || 'Farmer',
-            animalId: effectiveAnimalId,
+            animalId: resolvedAnimalId,
             province: 'Punjab'
           }),
-        });
-      } else if (selectedImage.uri && selectedImage.isLocal) {
-        const formData = new FormData();
-        formData.append('image', {
-          uri: selectedImage.uri,
-          name: selectedImage.fileName || 'scan.jpg',
-          type: selectedImage.type || 'image/jpeg'
-        });
-        formData.append('animalType', animalType || 'Cow');
-        formData.append('ownerName', userName || 'Farmer');
-        if (effectiveAnimalId) formData.append('animalId', effectiveAnimalId);
-        formData.append('province', 'Punjab');
-
-        response = await fetch(`${BASE_URL}/api/ai/scan-disease`, {
-          method: 'POST',
-          body: formData,
         });
       } else {
         response = await fetch(`${BASE_URL}/api/ai/scan-disease`, {
@@ -325,7 +329,7 @@ export default function AiScanScreen() {
             imageUrl: selectedImage.uri,
             animalType: animalType || 'Cow',
             ownerName: userName || 'Farmer',
-            animalId: effectiveAnimalId,
+            animalId: resolvedAnimalId,
             province: 'Punjab'
           }),
         });
@@ -334,7 +338,19 @@ export default function AiScanScreen() {
       clearTimeout(t1);
       clearTimeout(t2);
 
-      const data = await response.json();
+      const rawResponseText = await response.text();
+      let data;
+      try {
+        data = JSON.parse(rawResponseText);
+      } catch (parseErr) {
+        if (response.status === 413) {
+          throw new Error('Image is too large. Please take a photo with standard resolution.');
+        }
+        if (response.status >= 500) {
+          throw new Error('AI analysis server is waking up on Render. Please try again in 5 seconds.');
+        }
+        throw new Error(`Server response error (${response.status}): ${rawResponseText.slice(0, 100)}`);
+      }
 
       if (!response.ok || !data.success) {
         throw new Error(data.error || 'Failed to detect disease');
@@ -473,6 +489,45 @@ export default function AiScanScreen() {
               </TouchableOpacity>
             </View>
           )}
+
+          {/* Cattle Tag / Animal ID Input */}
+          <View style={{ marginTop: 14, marginBottom: 12 }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+              <Text style={styles.fieldLabel}>{t('Cattle Tag / Animal ID', 'جانور کا ٹیگ نمبر / شناختی نمبر')}</Text>
+              <Text style={{ fontSize: 12, color: colors.textSecondary }}>{t('User Assigned', 'صارف تفویض کردہ')}</Text>
+            </View>
+            <View style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              backgroundColor: colors.inputBackground || (isDark ? '#1E293B' : '#F8FAFC'),
+              borderWidth: 1.5,
+              borderColor: animalTagId ? colors.primary : (colors.border || '#E2E8F0'),
+              borderRadius: 14,
+              paddingHorizontal: 14,
+              height: 50,
+            }}>
+              <Feather name="tag" size={18} color={animalTagId ? colors.primary : '#94A3B8'} style={{ marginRight: 10 }} />
+              <TextInput
+                value={animalTagId}
+                onChangeText={setAnimalTagId}
+                placeholder={animalType === 'Buffalo' ? t('e.g. BUF-101, Tag #42...', 'مثال: BUF-101') : t('e.g. COW-101, Tag #24...', 'مثال: COW-101')}
+                placeholderTextColor="#94A3B8"
+                style={{
+                  flex: 1,
+                  fontSize: 15,
+                  fontWeight: '600',
+                  color: colors.textPrimary || '#0F172A',
+                  paddingVertical: 0
+                }}
+                autoCapitalize="characters"
+              />
+              {!!animalTagId && (
+                <TouchableOpacity onPress={() => setAnimalTagId('')} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                  <Feather name="x-circle" size={16} color="#94A3B8" />
+                </TouchableOpacity>
+              )}
+            </View>
+          </View>
 
           {/* Upload / Capture Section */}
           {!selectedImage ? (

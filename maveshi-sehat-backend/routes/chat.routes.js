@@ -1,33 +1,52 @@
 const express = require('express');
 const router = express.Router();
 
-module.exports = (pool) => {
+module.exports = (pool, io) => {
   // Create or Get Conversation
   router.post('/api/chat/conversation', async (req, res) => {
     try {
-      const { farmerId, farmerName, vetId } = req.body;
-      if ((!farmerId && !farmerName) || !vetId) {
-        return res.status(400).json({ error: 'farmerId/farmerName and vetId are required' });
+      const { conversationId, farmerId, farmerName, vetId } = req.body;
+
+      // If direct conversationId is passed, look it up immediately
+      if (conversationId) {
+        const convRes = await pool.query('SELECT * FROM conversations WHERE id = $1', [conversationId]);
+        if (convRes.rows.length > 0) {
+          return res.status(200).json(convRes.rows[0]);
+        }
       }
 
       let fId = farmerId;
-      if (!fId) {
-        const farmerRes = await pool.query("SELECT id FROM users WHERE full_name ILIKE $1 AND role = 'farmer'", [farmerName]);
-        if (farmerRes.rows.length === 0) {
-          return res.status(404).json({ error: 'Farmer user not found' });
+      if (!fId && farmerName) {
+        const farmerRes = await pool.query(
+          "SELECT id FROM users WHERE (full_name ILIKE $1 OR phone_number ILIKE $1) AND role = 'farmer' LIMIT 1",
+          [farmerName]
+        );
+        if (farmerRes.rows.length > 0) {
+          fId = farmerRes.rows[0].id;
+        } else {
+          // Fallback to any active farmer or first farmer ID if name is generic placeholder
+          const fallbackRes = await pool.query("SELECT id FROM users WHERE role = 'farmer' ORDER BY id ASC LIMIT 1");
+          if (fallbackRes.rows.length > 0) {
+            fId = fallbackRes.rows[0].id;
+          } else {
+            fId = 1;
+          }
         }
-        fId = farmerRes.rows[0].id;
+      } else if (!fId) {
+        fId = 1;
       }
 
+      const safeVetId = vetId || 1;
+
       let convRes = await pool.query(
-        'SELECT * FROM conversations WHERE farmer_id = $1 AND vet_id = $2',
-        [fId, vetId]
+        'SELECT * FROM conversations WHERE farmer_id = $1 AND vet_id = $2 ORDER BY id DESC LIMIT 1',
+        [fId, safeVetId]
       );
 
       if (convRes.rows.length === 0) {
         convRes = await pool.query(
           "INSERT INTO conversations (farmer_id, vet_id, status) VALUES ($1, $2, 'active') RETURNING *",
-          [fId, vetId]
+          [fId, safeVetId]
         );
       }
 
@@ -35,6 +54,56 @@ module.exports = (pool) => {
     } catch (err) {
       console.error('Error creating conversation:', err.message);
       res.status(500).json({ error: 'Server error handling conversation' });
+    }
+  });
+
+  // REST Message Send Endpoint (Reliable fallback if WebSocket disconnects)
+  router.post('/api/chat/message', async (req, res) => {
+    try {
+      const {
+        conversationId,
+        senderId,
+        message,
+        imageUrl,
+        isPrescription,
+        prescriptionData,
+        isVaccination,
+        vaccinationData,
+        consultationId
+      } = req.body;
+
+      if (!conversationId) {
+        return res.status(400).json({ error: 'conversationId is required' });
+      }
+
+      const result = await pool.query(
+        `INSERT INTO messages (
+          conversation_id, sender_id, message, image_url, is_prescription, prescription_data,
+          is_vaccination, vaccination_data, consultation_id
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
+        [
+          conversationId,
+          senderId || null,
+          message || null,
+          imageUrl || null,
+          !!isPrescription,
+          prescriptionData ? (typeof prescriptionData === 'string' ? prescriptionData : JSON.stringify(prescriptionData)) : null,
+          !!isVaccination,
+          vaccinationData ? (typeof vaccinationData === 'string' ? vaccinationData : JSON.stringify(vaccinationData)) : null,
+          consultationId || null
+        ]
+      );
+
+      const savedMessage = result.rows[0];
+
+      if (io) {
+        io.to(String(conversationId)).emit('receive_message', savedMessage);
+      }
+
+      res.status(201).json(savedMessage);
+    } catch (err) {
+      console.error('Error sending message via REST:', err);
+      res.status(500).json({ error: 'Server error sending message' });
     }
   });
 

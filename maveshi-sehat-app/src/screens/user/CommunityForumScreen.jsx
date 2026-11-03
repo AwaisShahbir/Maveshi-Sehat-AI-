@@ -589,44 +589,89 @@ export default function CommunityForumScreen() {
 
       {/* Bottom Navigation */}
       <View style={[styles.bottomNav, { paddingBottom: Math.max(insets.bottom, 12) + 6 }]}>
-        <TouchableOpacity
-          style={styles.navItem}
-          onPress={() => navigation.navigate('Dashboard', { userName, userId })}
-        >
-          <Feather name="home" size={22} color={colors.navInactive} />
-          <Text style={styles.navText}>{t('Home')}</Text>
-        </TouchableOpacity>
+        {userRole === 'vet' ? (
+          <>
+            <TouchableOpacity
+              style={styles.navItem}
+              onPress={() => navigation.navigate('VetDashboard')}
+            >
+              <Feather name="home" size={22} color={colors.navInactive} />
+              <Text style={styles.navText}>{t('Home')}</Text>
+            </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.navItem}
-          onPress={() => navigation.navigate('AiScan', { userName, userId })}
-        >
-          <MaterialCommunityIcons name="line-scan" size={22} color={colors.navInactive} />
-          <Text style={styles.navText}>{t('AI Scan')}</Text>
-        </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.navItem}
+              onPress={() => navigation.navigate('VetCases')}
+            >
+              <MaterialCommunityIcons name="clipboard-pulse-outline" size={22} color={colors.navInactive} />
+              <Text style={styles.navText}>{t('Cases')}</Text>
+            </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.navItem}
-          onPress={() => navigation.navigate('HealthRecords', { userName, userId })}
-        >
-          <Feather name="file-text" size={22} color={colors.navInactive} />
-          <Text style={styles.navText}>{t('Records')}</Text>
-        </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.navItem}
+              onPress={() => navigation.navigate('VetConsultations', { userName, userId })}
+            >
+              <Feather name="message-circle" size={22} color={colors.navInactive} />
+              <Text style={styles.navText}>{t('Consults')}</Text>
+            </TouchableOpacity>
 
-        <TouchableOpacity style={styles.navItem}>
-          <MaterialCommunityIcons name="forum" size={22} color={colors.primary} />
-          <Text style={[styles.navText, styles.navTextActive]}>
-            {t('Forum')}
-          </Text>
-        </TouchableOpacity>
+            <TouchableOpacity style={styles.navItem}>
+              <MaterialCommunityIcons name="forum" size={22} color={colors.primary} />
+              <Text style={[styles.navText, styles.navTextActive]}>
+                {t('Forum')}
+              </Text>
+            </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.navItem}
-          onPress={() => navigation.navigate('Profile', { userName, userId })}
-        >
-          <Feather name="user" size={22} color={colors.navInactive} />
-          <Text style={styles.navText}>{t('Profile')}</Text>
-        </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.navItem}
+              onPress={() => navigation.navigate('VetProfile')}
+            >
+              <Feather name="user" size={22} color={colors.navInactive} />
+              <Text style={styles.navText}>{t('Profile')}</Text>
+            </TouchableOpacity>
+          </>
+        ) : (
+          <>
+            <TouchableOpacity
+              style={styles.navItem}
+              onPress={() => navigation.navigate('Dashboard', { userName, userId })}
+            >
+              <Feather name="home" size={22} color={colors.navInactive} />
+              <Text style={styles.navText}>{t('Home')}</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.navItem}
+              onPress={() => navigation.navigate('AiScan', { userName, userId })}
+            >
+              <MaterialCommunityIcons name="line-scan" size={22} color={colors.navInactive} />
+              <Text style={styles.navText}>{t('AI Scan')}</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.navItem}
+              onPress={() => navigation.navigate('HealthRecords', { userName, userId })}
+            >
+              <Feather name="file-text" size={22} color={colors.navInactive} />
+              <Text style={styles.navText}>{t('Records')}</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.navItem}>
+              <MaterialCommunityIcons name="forum" size={22} color={colors.primary} />
+              <Text style={[styles.navText, styles.navTextActive]}>
+                {t('Forum')}
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.navItem}
+              onPress={() => navigation.navigate('Profile', { userName, userId })}
+            >
+              <Feather name="user" size={22} color={colors.navInactive} />
+              <Text style={styles.navText}>{t('Profile')}</Text>
+            </TouchableOpacity>
+          </>
+        )}
       </View>
 
       {/* Create Discussion Modal ("Form") */}

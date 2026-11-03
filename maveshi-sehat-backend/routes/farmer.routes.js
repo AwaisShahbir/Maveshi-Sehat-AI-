@@ -238,9 +238,13 @@ module.exports = (pool, io) => {
       let imageFilePath = null;
       let publicImageUrl = null;
 
+      const host = req.get('host');
+      const protocol = req.protocol === 'https' || req.headers['x-forwarded-proto'] === 'https' ? 'https' : 'http';
+      const baseUrl = `${protocol}://${host}`;
+
       if (req.file) {
         imageFilePath = req.file.path;
-        publicImageUrl = `/uploads/${req.file.filename}`;
+        publicImageUrl = `${baseUrl}/uploads/${req.file.filename}`;
       } else if (req.body.imageBase64) {
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
         const fileName = `scan-b64-${uniqueSuffix}.jpg`;
@@ -251,7 +255,7 @@ module.exports = (pool, io) => {
         imageFilePath = path.join(uploadDir, fileName);
         const cleanBase64 = req.body.imageBase64.replace(/^data:image\/\w+;base64,/, '');
         fs.writeFileSync(imageFilePath, Buffer.from(cleanBase64, 'base64'));
-        publicImageUrl = `/uploads/${fileName}`;
+        publicImageUrl = `${baseUrl}/uploads/${fileName}`;
       } else if (req.body.imageUrl) {
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
         const fileName = `scan-url-${uniqueSuffix}.jpg`;
@@ -263,7 +267,7 @@ module.exports = (pool, io) => {
         const axios = require('axios');
         const imageRes = await axios.get(req.body.imageUrl, { responseType: 'arraybuffer', timeout: 10000 });
         fs.writeFileSync(imageFilePath, Buffer.from(imageRes.data));
-        publicImageUrl = `/uploads/${fileName}`;
+        publicImageUrl = `${baseUrl}/uploads/${fileName}`;
       } else {
         return res.status(400).json({ error: 'Please provide an image file, base64 image data, or imageUrl.' });
       }
