@@ -148,7 +148,32 @@ async function analyzeWithAIVision(imagePath, animalType = 'Cow') {
     const prompt = `You are a Senior Veterinary Clinical Pathologist and Livestock Health Specialist specializing in cattle (${animalType === 'Buffalo' ? 'Water Buffalo / Nili-Ravi / Kundi' : 'Cow / Sahiwal / Cholistani / Crossbred'} in Pakistan and South Asia).
 
 Analyze the provided animal image thoroughly.
-Identify any visible disease, lesion, blister, ulcer, swelling, alopecia, eye discharge, nodule, inflammation, or wound on this animal, including but not limited to:
+
+CRITICAL FIRST VALIDATION STEP:
+Examine whether this photo depicts a cow, cattle, calf, bull, or water buffalo (or an anatomical body part of one: skin, coat, udder, teats, mouth, muzzle, hooves, eyes, or torso).
+If the image is NOT a cow or buffalo (e.g. it is a laptop, keyboard, desk, indoor furniture, vehicle, human face, dog/cat, food, or non-livestock object):
+You MUST set "isCattle": false and return:
+{
+  "isCattle": false,
+  "detected": false,
+  "name": "Non-Livestock Image",
+  "urdu": "یہ تصویر گائے یا بھینس کی نہیں ہے",
+  "confidence": "0%",
+  "riskLevel": "Low",
+  "severity": "Invalid Image",
+  "severityColor": "#94A3B8",
+  "severityBg": "#F1F5F9",
+  "description": "The uploaded photo does not appear to show a cow or buffalo. Please take a clear photo of the cattle or affected anatomical area.",
+  "firstAid": [
+    "Step 1: Point your camera directly at the cow or buffalo.",
+    "Step 2: Focus the camera lens on the suspected lesion, swelling, or affected body part.",
+    "Step 3: Ensure adequate lighting and avoid blurry or obstructed angles.",
+    "Step 4: Keep the device steady and re-scan the animal."
+  ]
+}
+
+If the image IS cattle/buffalo, proceed to clinical disease diagnosis:
+Detect any visible disease, lesion, blister, ulcer, swelling, alopecia, eye discharge, nodule, inflammation, or wound on this animal, including but not limited to:
 - Lumpy Skin Disease (LSD)
 - Foot and Mouth Disease (FMD)
 - Bovine Mastitis (udder/teat infection)
@@ -164,7 +189,8 @@ Identify any visible disease, lesion, blister, ulcer, swelling, alopecia, eye di
 
 Return ONLY valid JSON matching this schema:
 {
-  "detected": true,
+  "isCattle": true,
+  "detected": true/false,
   "name": "Full English Disease Name",
   "urdu": "اردو نام",
   "confidence": "94.5%",
@@ -215,6 +241,29 @@ async function detectDiseaseFromImage(imagePath, confidenceThreshold = 30, anima
   try {
     const aiVision = await analyzeWithAIVision(imagePath, animalType);
     if (aiVision && aiVision.name) {
+      if (aiVision.isCattle === false) {
+        return {
+          isCattle: false,
+          detected: false,
+          status: 'Non-Livestock Image',
+          name: 'Non-Livestock Image',
+          urdu: aiVision.urdu || 'یہ تصویر گائے یا بھینس کی نہیں ہے',
+          confidence: '0%',
+          riskLevel: 'Low',
+          severity: 'Invalid Image',
+          severityColor: '#94A3B8',
+          severityBg: '#F1F5F9',
+          description: aiVision.description || 'The uploaded photo does not appear to show a cow or buffalo. Please take a clear photo of the cattle or affected anatomical area.',
+          firstAid: Array.isArray(aiVision.firstAid) && aiVision.firstAid.length > 0 ? aiVision.firstAid : [
+            'Point your camera directly at the cow or buffalo.',
+            'Focus the camera lens on the suspected lesion, swelling, or affected body part.',
+            'Ensure adequate lighting and avoid blurry or obstructed angles.',
+            'Keep the device steady and re-scan the animal.'
+          ],
+          predictions: []
+        };
+      }
+
       const isDetected = Boolean(aiVision.detected);
       const diseaseName = isDetected ? aiVision.name : 'Healthy (No Symptoms)';
       const urduName = isDetected ? (aiVision.urdu || 'بیماری کی علامات') : 'تندرست (کوئی علامت نہیں پائی گئی)';

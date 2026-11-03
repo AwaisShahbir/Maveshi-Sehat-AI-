@@ -279,6 +279,28 @@ module.exports = (pool, io) => {
       // Run Universal AI Multimodal Vision Disease Inference
       const diagnosis = await detectDiseaseFromImage(imageFilePath, 30, animalType);
 
+      // If uploaded image is not a cow or buffalo, return validation report without storing invalid detection
+      if (diagnosis.isCattle === false) {
+        return res.status(200).json({
+          success: true,
+          diagnosis: {
+            isCattle: false,
+            detected: false,
+            status: diagnosis.name,
+            name: diagnosis.name,
+            urdu: diagnosis.urdu,
+            confidence: '0%',
+            riskLevel: 'Low',
+            severity: 'Invalid Image',
+            severityColor: '#94A3B8',
+            severityBg: '#F1F5F9',
+            description: diagnosis.description,
+            firstAid: diagnosis.firstAid,
+            imageUrl: publicImageUrl
+          }
+        });
+      }
+
       // Assigned cattle ID or automatic ear-tag generation
       let assignedAnimalId = (animalId && typeof animalId === 'string' && animalId.trim().length > 0)
         ? animalId.trim()

@@ -22,7 +22,8 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import { addRecord, loadRecords } from '../../utils/recordsStore';
 
 const BASE_URL = 'https://maveshi-sehat-api.onrender.com';
-import { t, getLocalizedDescription, getLocalizedFirstAid } from '../../utils/translate';
+import { t, useTranslation, getLocalizedDescription, getLocalizedFirstAid } from '../../utils/translate';
+import fonts from '../../styles/fonts';
 import { useTheme } from '../../utils/themeContext';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import { getStyles } from '../../styles/AiScanScreenStyles';
@@ -106,6 +107,7 @@ export default function AiScanScreen() {
   const navigation = useNavigation();
   const route = useRoute();
   const { colors, isDark } = useTheme();
+  const { isUrdu } = useTranslation();
   const styles = React.useMemo(() => getStyles(colors, isDark), [colors, isDark]);
   const params = route.params || {};
   const userName = params.userName || 'Muhammad Ahmed';
@@ -367,6 +369,20 @@ export default function AiScanScreen() {
       }
 
       const diagnosis = data.diagnosis;
+
+      if (diagnosis.isCattle === false) {
+        setScanResult({
+          ...diagnosis,
+          generatedAnimalId: effectiveAnimalId || 'N/A',
+          statusUrdu: diagnosis.urdu,
+          scanTime: exactScanTime,
+          date: exactScanTime,
+          uri: fullImageUrl
+        });
+        setShowReport(true);
+        return;
+      }
+
       const isHealthy = !diagnosis.detected;
 
       const serverImg = diagnosis.imageUrl || (data.record && data.record.image_url);
