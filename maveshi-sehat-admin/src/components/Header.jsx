@@ -1,10 +1,10 @@
 import { API_BASE_URL } from '../config';
 import React, { useState, useEffect } from 'react';
 import { useLocation, Link } from 'react-router-dom';
-import { Search, Bell } from 'lucide-react';
+import { Search, Bell, Menu } from 'lucide-react';
 import '../styles/Header.css';
 
-export default function Header({ adminUser }) {
+export default function Header({ adminUser, onToggleSidebar }) {
   const location = useLocation();
   const [unreadCount, setUnreadCount] = useState(0);
   const [avatar, setAvatar] = useState(() => localStorage.getItem('adminAvatar') || '');
@@ -67,6 +67,13 @@ export default function Header({ adminUser }) {
     <header className="main-header">
       
       <div className="header-title-container">
+        <button 
+          className="header-hamburger-btn" 
+          onClick={onToggleSidebar} 
+          aria-label="Toggle navigation drawer"
+        >
+          <Menu size={22} />
+        </button>
         <h1 className="header-title-en">{currentTitle}</h1>
       </div>
 

@@ -1287,3 +1287,57 @@ textarea.form-control {
   color: var(--text-muted);
   width: 100%;
 }
+
+/* =========================================
+   GLOBAL MOBILE & TABLET RESPONSIVE SYSTEM
+   ========================================= */
+
+@media (max-width: 1024px) {
+  .page-container {
+    padding: 20px 16px;
+  }
+}
+
+@media (max-width: 640px) {
+  .page-container {
+    padding: 14px 10px;
+  }
+
+  .grid-4 {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .grid-3 {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .grid-2-1 {
+    grid-template-columns: 1fr;
+    gap: 14px;
+    margin-bottom: 16px;
+  }
+
+  .card {
+    padding: 16px 14px;
+    border-radius: var(--radius-md);
+  }
+
+  .table-responsive {
+    border-radius: var(--radius-md);
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .custom-table {
+    min-width: 560px;
+    font-size: 13px;
+  }
+
+  .custom-table th,
+  .custom-table td {
+    padding: 10px 12px;
+  }
+}

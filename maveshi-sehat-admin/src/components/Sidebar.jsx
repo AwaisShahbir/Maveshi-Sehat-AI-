@@ -13,12 +13,13 @@ import {
   Settings, 
   LogOut,
   Activity,
-  MessageSquare
+  MessageSquare,
+  X
 } from 'lucide-react';
 import logoImg from '../assets/logo.png';
 import '../styles/Sidebar.css';
 
-export default function Sidebar({ onLogout, adminUser }) {
+export default function Sidebar({ onLogout, adminUser, isOpen, onClose }) {
   const [stats, setStats] = useState(null);
   const [avatar, setAvatar] = useState(() => localStorage.getItem('adminAvatar') || '');
 
@@ -107,7 +108,7 @@ export default function Sidebar({ onLogout, adminUser }) {
   };
 
   return (
-    <div className="sidebar">
+    <div className={`sidebar ${isOpen ? 'sidebar-open' : ''}`}>
       
       <div className="sidebar-brand">
         <img 
@@ -119,6 +120,13 @@ export default function Sidebar({ onLogout, adminUser }) {
           <h2 className="brand-name">Maveshi Sehat AI</h2>
           <span className="brand-tag">Admin Panel</span>
         </div>
+        <button 
+          className="sidebar-close-btn" 
+          onClick={onClose} 
+          aria-label="Close navigation menu"
+        >
+          <X size={20} />
+        </button>
       </div>
 
       <div className="sidebar-profile">
@@ -146,6 +154,7 @@ export default function Sidebar({ onLogout, adminUser }) {
                     to={item.path} 
                     className={({ isActive }) => `menu-item ${isActive ? 'active' : ''}`}
                     end={item.path === '/'}
+                    onClick={onClose}
                   >
                     <item.icon className="menu-icon" size={18} />
                     <div className="menu-labels">

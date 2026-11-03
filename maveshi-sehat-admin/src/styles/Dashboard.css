@@ -517,3 +517,62 @@
   padding: 10px 14px;
   font-size: 12px;
 }
+
+
+/* =========================================
+   DASHBOARD MOBILE RESPONSIVE ENHANCEMENTS
+   ========================================= */
+
+@media (max-width: 768px) {
+  .chart-container-300 {
+    height: 250px;
+  }
+}
+
+@media (max-width: 640px) {
+  .dashboard-kpi-card {
+    padding: 16px 14px;
+    gap: 14px;
+  }
+
+  .kpi-icon-wrapper {
+    width: 44px;
+    height: 44px;
+  }
+
+  .kpi-card-value {
+    font-size: 22px;
+  }
+
+  .kpi-card-label {
+    font-size: 12px;
+  }
+
+  .kpi-card-trend {
+    font-size: 10.5px;
+  }
+
+  .outbreak-surveillance-banner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 14px 16px;
+  }
+
+  .disease-chips-row {
+    width: 100%;
+  }
+
+  .secondary-stat-card {
+    padding: 12px 14px;
+  }
+
+  .sec-stat-icon-wrap {
+    width: 36px;
+    height: 36px;
+  }
+
+  .sec-stat-val {
+    font-size: 16px;
+  }
+}

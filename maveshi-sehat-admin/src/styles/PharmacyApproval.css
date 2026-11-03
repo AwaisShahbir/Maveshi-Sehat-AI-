@@ -848,3 +848,76 @@
 }
 
 
+
+
+/* =========================================
+   PHARMACY APPROVAL MOBILE RESPONSIVE SYSTEM
+   ========================================= */
+
+@media (max-width: 768px) {
+  .pharmacy-tabs-container {
+    overflow-x: auto;
+    white-space: nowrap;
+    flex-wrap: nowrap;
+    gap: 14px;
+    padding-bottom: 6px;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+  }
+
+  .pharmacy-pro-card {
+    padding: 16px;
+  }
+
+  .pharm-header-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .pharm-brand-block {
+    width: 100%;
+  }
+
+  .pharm-header-actions {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .pharm-header-actions button,
+  .pharm-header-actions a,
+  .pharm-header-actions div {
+    width: 100%;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .pharm-details-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .pharm-footer-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .pharm-action-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .pharmacy-modal-backdrop {
+    padding: 12px;
+  }
+
+  .pharmacy-modal-card {
+    width: 95vw;
+    max-width: 95vw;
+    padding: 18px 16px;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+}

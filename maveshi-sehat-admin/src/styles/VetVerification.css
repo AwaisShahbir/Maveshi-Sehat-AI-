@@ -489,3 +489,81 @@
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+
+/* =========================================
+   VET VERIFICATION MOBILE RESPONSIVE SYSTEM
+   ========================================= */
+
+@media (max-width: 768px) {
+  .vet-top-controls {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+  }
+
+  .vet-filter-group {
+    overflow-x: auto;
+    white-space: nowrap;
+    flex-wrap: nowrap;
+    padding-bottom: 6px;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+  }
+
+  .vet-search-wrapper {
+    width: 100%;
+  }
+
+  .vet-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .vet-card {
+    padding: 18px 16px;
+  }
+
+  .vet-card-actions {
+    flex-direction: column;
+  }
+
+  .vet-modal-backdrop {
+    padding: 12px;
+  }
+
+  .vet-modal-content {
+    width: 95vw;
+    max-width: 95vw;
+    padding: 18px 16px;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  .vet-modal-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .vet-modal-cert-box {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .vet-cert-view-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .vet-modal-actions {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .vet-cancel-btn, .vet-submit-req-btn {
+    width: 100%;
+    text-align: center;
+    justify-content: center;
+  }
+}

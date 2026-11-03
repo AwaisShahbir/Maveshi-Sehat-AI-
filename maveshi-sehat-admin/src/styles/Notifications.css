@@ -385,3 +385,33 @@
 .announcement-submit-btn:hover {
   opacity: 0.9;
 }
+
+/* Notifications Mobile Responsive */
+@media (max-width: 768px) {
+  .notifications-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  .notifications-tabs {
+    overflow-x: auto;
+    white-space: nowrap;
+    flex-wrap: nowrap;
+    gap: 10px;
+    padding-bottom: 6px;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+  }
+  .notifications-card-item {
+    padding: 14px;
+    gap: 12px;
+  }
+  .announcement-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+  .announcement-preview-btn,
+  .announcement-submit-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}

@@ -209,3 +209,24 @@
   font-weight: 700;
   color: #135431;
 }
+
+/* Analytics Mobile Responsive */
+@media (max-width: 768px) {
+  .analytics-top-bar {
+    justify-content: stretch;
+    width: 100%;
+  }
+  .analytics-time-selector {
+    width: 100%;
+    justify-content: space-between;
+    overflow-x: auto;
+  }
+  .analytics-stat-card {
+    padding: 16px;
+  }
+}
+@media (max-width: 640px) {
+  .analytics-stats-grid {
+    grid-template-columns: 1fr !important;
+  }
+}

@@ -33,6 +33,7 @@ function PlaceholderPage({ name }) {
 }
 
 export default function App() {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [adminUser, setAdminUser] = useState(() => {
     const saved = sessionStorage.getItem('adminUser');
     if (!saved) return null;
@@ -117,10 +118,25 @@ export default function App() {
   return (
     <BrowserRouter>
       <div className="app-container">
-        <Sidebar onLogout={handleLogout} adminUser={adminUser} />
+        {sidebarOpen && (
+          <div 
+            className="sidebar-backdrop" 
+            onClick={() => setSidebarOpen(false)}
+            aria-hidden="true" 
+          />
+        )}
+        <Sidebar 
+          isOpen={sidebarOpen} 
+          onClose={() => setSidebarOpen(false)} 
+          onLogout={handleLogout} 
+          adminUser={adminUser} 
+        />
         
         <div className="main-content">
-          <Header adminUser={adminUser} />
+          <Header 
+            adminUser={adminUser} 
+            onToggleSidebar={() => setSidebarOpen(prev => !prev)} 
+          />
           
           <main className="page-container">
             <Routes>

@@ -299,3 +299,32 @@
   border-radius: 12px;
   padding: 2px 8px;
 }
+
+/* Disease Analytics Mobile Responsive */
+@media (max-width: 768px) {
+  .da-top-controls {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  .da-timerange-group {
+    width: 100%;
+    justify-content: space-between;
+    overflow-x: auto;
+  }
+  .da-action-group {
+    width: 100%;
+  }
+  .da-export-btn {
+    width: 100%;
+    justify-content: center;
+  }
+  .da-stat-card {
+    padding: 16px;
+  }
+}
+@media (max-width: 640px) {
+  .da-stats-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
