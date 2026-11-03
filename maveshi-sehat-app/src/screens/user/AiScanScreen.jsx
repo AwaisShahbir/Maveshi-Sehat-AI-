@@ -20,7 +20,7 @@ import Feather from 'react-native-vector-icons/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { addRecord, loadRecords } from '../../utils/recordsStore';
 
-const BASE_URL = Platform.OS === 'android' ? 'http://10.0.2.2:5000' : 'http://localhost:5000';
+const BASE_URL = 'https://maveshi-sehat-api.onrender.com';
 import { t, getLocalizedDescription, getLocalizedFirstAid } from '../../utils/translate';
 import { useTheme } from '../../utils/themeContext';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
