@@ -212,7 +212,7 @@ export default function Notifications() {
     if (aud === 'all') {
       return (
         <span className="badge-audience audience-all">
-          🌐 Sent to: All Platform Users (Farmers, Vets & Pharmacies)
+          🌐 All Platform Users (Farmers, Vets, Pharmacies)
         </span>
       );
     }
@@ -224,7 +224,7 @@ export default function Notifications() {
     if (includesOwners && includesVets && includesPharmacies) {
       return (
         <span className="badge-audience audience-all">
-          🌐 Sent to: All Users (Farmers, Vets & Pharmacies)
+          🌐 All Users (Farmers, Vets, Pharmacies)
         </span>
       );
     }
@@ -236,7 +236,7 @@ export default function Notifications() {
 
     return (
       <span className="badge-audience audience-targeted">
-        📢 Sent to: {recipients.join(' & ')}
+        📢 {recipients.join(' & ')}
       </span>
     );
   };

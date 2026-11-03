@@ -59,10 +59,22 @@ export default function Header({ adminUser, onToggleSidebar }) {
     '/orders': 'Order Management',
     '/notifications': 'Notifications',
     '/community-forum': 'Community Forum',
+    '/community': 'Community Forum',
+    '/forum': 'Community Forum',
     '/settings': 'Settings & Configuration'
   };
 
-  const currentTitle = routeTitles[location.pathname] || 'Admin Panel';
+  const cleanPath = location.pathname.replace(/\/+$/, '') || '/';
+  let currentTitle = routeTitles[cleanPath];
+  if (!currentTitle) {
+    for (const [key, val] of Object.entries(routeTitles)) {
+      if (key !== '/' && cleanPath.startsWith(key)) {
+        currentTitle = val;
+        break;
+      }
+    }
+  }
+  if (!currentTitle) currentTitle = 'Admin Panel';
 
   return (
     <header className="main-header">

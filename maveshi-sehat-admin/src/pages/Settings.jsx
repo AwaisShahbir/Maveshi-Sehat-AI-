@@ -597,10 +597,10 @@ export default function Settings({ onProfileUpdate }) {
                 </div>
               </div>
 
-              <div style={{ marginBottom: '20px', padding: '16px', background: '#F8FAF9', borderRadius: '12px', border: '1px solid #E2E8F0' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div>
-                    <span style={{ fontWeight: 600, fontSize: '14px', color: '#1E293B', display: 'block' }}>
+              <div className="settings-enforce-card">
+                <div className="settings-enforce-row">
+                  <div className="settings-enforce-text">
+                    <span className="settings-enforce-title">
                       Enforce Admin Language on Mobile App
                     </span>
                     <span className="settings-slider-hint" style={{ marginTop: '3px', display: 'block' }}>

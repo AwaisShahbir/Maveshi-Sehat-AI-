@@ -153,10 +153,7 @@ export default function VetVerification() {
           {filteredVets.map(vet => (
             <div className={`vet-card-item card status-${vet.status}`} key={vet.id}>
               
-              <div className="vet-card-layout">
-                
-                {/* Left Side: Avatar, Name & Metadata */}
-                <div className="vet-card-left">
+              <div className="vet-card-body">
                   <div className="vet-avatar-box">
                     {getInitials(vet.full_name)}
                   </div>
@@ -239,35 +236,28 @@ export default function VetVerification() {
                         </a>
                       </div>
                     )}
-                  </div>
-                </div>
+                                    </div>
+              </div>
 
-                {/* Right Side: Status, Actions & View Profile Button */}
-                <div className="vet-card-right">
-                  <span className={`badge ${
-                    vet.status === 'verified' || vet.status === 'approved' 
-                      ? 'badge-green' 
-                      : vet.status === 'info_requested' 
-                      ? 'badge-orange' 
-                      : vet.status === 'rejected'
-                      ? 'badge-red'
-                      : 'badge-orange'
-                  }`}>
-                    {vet.status === 'verified' || vet.status === 'approved' 
-                      ? 'VERIFIED DOCTOR' 
-                      : vet.status === 'info_requested' 
-                      ? 'INFO REQUESTED' 
-                      : vet.status.toUpperCase()}
-                  </span>
+              {/* Card Footer: Status on one end, View Full Profile on opposite end */}
+              <div className="vet-card-footer">
+                <span className={`badge ${
+                  vet.status === 'verified' || vet.status === 'approved' 
+                    ? 'badge-green' 
+                    : vet.status === 'info_requested' 
+                    ? 'badge-orange' 
+                    : vet.status === 'rejected'
+                    ? 'badge-red'
+                    : 'badge-orange'
+                }`}>
+                  {vet.status === 'verified' || vet.status === 'approved' 
+                    ? 'VERIFIED DOCTOR' 
+                    : vet.status === 'info_requested' 
+                    ? 'INFO REQUESTED' 
+                    : vet.status.toUpperCase()}
+                </span>
 
-                  <button 
-                    className="vet-view-profile-btn" 
-                    onClick={() => setSelectedVetForProfile(vet)}
-                  >
-                    <span>View Full Profile</span>
-                    <ExternalLink size={12} />
-                  </button>
-
+                <div className="vet-card-footer-actions">
                   {activeTab === 'pending' && (
                     <div className="vet-action-btns">
                       <button 
@@ -286,18 +276,17 @@ export default function VetVerification() {
                         <X size={14} />
                         <span>Reject</span>
                       </button>
-                      <button 
-                        className="vet-req-info-btn" 
-                        onClick={() => setSelectedVetForInfo(vet)}
-                        title="Request additional information from doctor"
-                      >
-                        <HelpCircle size={14} />
-                        <span>Request Info</span>
-                      </button>
                     </div>
                   )}
-                </div>
 
+                  <button 
+                    className="vet-view-profile-btn" 
+                    onClick={() => setSelectedVetForProfile(vet)}
+                  >
+                    <span>View Full Profile</span>
+                    <ExternalLink size={12} />
+                  </button>
+                </div>
               </div>
 
             </div>
