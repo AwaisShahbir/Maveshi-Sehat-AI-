@@ -18,6 +18,7 @@ import '../styles/Dashboard.css';
 export default function Dashboard({ pharmacy, onLogout }) {
   const [currentView, setCurrentView] = useState('dashboard'); 
   const [editMedId, setEditMedId] = useState(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [stats, setStats] = useState({
     totalRevenue: 0,
     todayRevenue: 0,
