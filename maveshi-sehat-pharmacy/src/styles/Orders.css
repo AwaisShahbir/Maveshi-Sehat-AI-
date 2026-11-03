@@ -57,3 +57,17 @@
   font-size: 13px;
   border-top: 1px solid #f1f5f9;
 }
+
+
+@media (max-width: 640px) {
+  .orders-filter-container {
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+    padding-bottom: 6px;
+  }
+
+  .orders-filter-tab {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+}

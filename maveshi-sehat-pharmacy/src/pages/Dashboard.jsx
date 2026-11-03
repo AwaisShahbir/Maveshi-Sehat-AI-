@@ -164,19 +164,40 @@ export default function Dashboard({ pharmacy, onLogout }) {
   };
 
   return (
-    <div className="app-container flex min-h-screen w-screen overflow-x-hidden bg-slate-50">
+    <div className="app-container flex min-h-screen w-full max-w-[100vw] overflow-x-hidden bg-slate-50 relative">
       
-      <aside className="w-[280px] bg-[#135431] border-r border-[#0e3a22] flex flex-col h-screen sticky top-0 z-50">
-        <div className="flex items-center gap-3 p-6 border-b border-[#0e3a22]/60">
-          <img 
-            src={logoImg} 
-            alt="Maveshi Sehat AI Logo" 
-            className="pharmacy-sidebar-logo" 
-          />
-          <div>
-            <span className="font-heading text-sm font-extrabold text-white block leading-tight">Maveshi Sehat AI</span>
-            <span className="text-[11px] text-[#c5dbd0] font-bold block mt-0.5">Pharmacy Portal</span>
+      {/* Mobile Drawer Backdrop */}
+      {sidebarOpen && (
+        <div 
+          className="sidebar-backdrop fixed inset-0 bg-black/50 z-40 lg:hidden backdrop-blur-xs transition-opacity"
+          onClick={() => setSidebarOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
+      {/* Sidebar Navigation */}
+      <aside className={`pharmacy-sidebar w-[280px] bg-[#135431] border-r border-[#0e3a22] flex flex-col h-screen fixed lg:sticky top-0 z-50 transition-transform duration-300 ease-in-out ${
+        sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+      }`}>
+        <div className="flex items-center justify-between p-5 md:p-6 border-b border-[#0e3a22]/60">
+          <div className="flex items-center gap-3">
+            <img 
+              src={logoImg} 
+              alt="Maveshi Sehat AI Logo" 
+              className="pharmacy-sidebar-logo" 
+            />
+            <div>
+              <span className="font-heading text-sm font-extrabold text-white block leading-tight">Maveshi Sehat AI</span>
+              <span className="text-[11px] text-[#c5dbd0] font-bold block mt-0.5">Pharmacy Portal</span>
+            </div>
           </div>
+          <button 
+            className="lg:hidden text-[#c5dbd0] hover:text-white p-1.5 rounded-lg bg-black/20 hover:bg-black/40 transition-colors"
+            onClick={() => setSidebarOpen(false)}
+            aria-label="Close menu"
+          >
+            <X size={18} />
+          </button>
         </div>
 
         <div className="flex items-center gap-3 px-6 py-5 border-b border-[#0e3a22]/60 bg-black/10">
@@ -195,7 +216,7 @@ export default function Dashboard({ pharmacy, onLogout }) {
             <ul className="list-none flex flex-col gap-1.5">
               <li>
                 <button 
-                  onClick={() => setCurrentView('dashboard')}
+                  onClick={() => { setCurrentView('dashboard'); setSidebarOpen(false); }}
                   className={`flex items-center gap-3.5 mx-3 px-3.5 py-2.5 w-[calc(100%-24px)] text-left cursor-pointer text-sm rounded-xl transition-all duration-200 ${
                     currentView === 'dashboard' 
                       ? 'text-white bg-[#3da860] font-bold shadow-md shadow-emerald-950/20' 
@@ -210,7 +231,7 @@ export default function Dashboard({ pharmacy, onLogout }) {
               </li>
               <li>
                 <button 
-                  onClick={() => setCurrentView('analytics')}
+                  onClick={() => { setCurrentView('analytics'); setSidebarOpen(false); }}
                   className={`flex items-center gap-3.5 mx-3 px-3.5 py-2.5 w-[calc(100%-24px)] text-left cursor-pointer text-sm rounded-xl transition-all duration-200 ${
                     currentView === 'analytics' 
                       ? 'text-white bg-[#3da860] font-bold shadow-md shadow-emerald-950/20' 
@@ -231,7 +252,7 @@ export default function Dashboard({ pharmacy, onLogout }) {
             <ul className="list-none flex flex-col gap-1.5">
               <li>
                 <button 
-                  onClick={() => setCurrentView('listings')}
+                  onClick={() => { setCurrentView('listings'); setSidebarOpen(false); }}
                   className={`flex items-center gap-3.5 mx-3 px-3.5 py-2.5 w-[calc(100%-24px)] text-left cursor-pointer text-sm rounded-xl transition-all duration-200 ${
                     currentView === 'listings' 
                       ? 'text-white bg-[#3da860] font-bold shadow-md shadow-emerald-950/20' 
@@ -249,7 +270,7 @@ export default function Dashboard({ pharmacy, onLogout }) {
               </li>
               <li>
                 <button 
-                  onClick={() => setCurrentView('add-medicine')}
+                  onClick={() => { setCurrentView('add-medicine'); setSidebarOpen(false); }}
                   className={`flex items-center gap-3.5 mx-3 px-3.5 py-2.5 w-[calc(100%-24px)] text-left cursor-pointer text-sm rounded-xl transition-all duration-200 ${
                     currentView === 'add-medicine' 
                       ? 'text-white bg-[#3da860] font-bold shadow-md shadow-emerald-950/20' 
@@ -265,7 +286,7 @@ export default function Dashboard({ pharmacy, onLogout }) {
 
               <li>
                 <button 
-                  onClick={() => setCurrentView('stock-alerts')}
+                  onClick={() => { setCurrentView('stock-alerts'); setSidebarOpen(false); }}
                   className={`flex items-center gap-3.5 mx-3 px-3.5 py-2.5 w-[calc(100%-24px)] text-left cursor-pointer text-sm rounded-xl transition-all duration-200 ${
                     currentView === 'stock-alerts' 
                       ? 'text-white bg-[#3da860] font-bold shadow-md shadow-emerald-950/20' 
@@ -289,7 +310,7 @@ export default function Dashboard({ pharmacy, onLogout }) {
             <ul className="list-none flex flex-col gap-1.5">
               <li>
                 <button 
-                  onClick={() => setCurrentView('orders')}
+                  onClick={() => { setCurrentView('orders'); setSidebarOpen(false); }}
                   className={`flex items-center gap-3.5 mx-3 px-3.5 py-2.5 w-[calc(100%-24px)] text-left cursor-pointer text-sm rounded-xl transition-all duration-200 ${
                     currentView === 'orders' 
                       ? 'text-white bg-[#3da860] font-bold shadow-md shadow-emerald-950/20' 
@@ -313,7 +334,7 @@ export default function Dashboard({ pharmacy, onLogout }) {
             <ul className="list-none flex flex-col gap-1.5">
               <li>
                 <button 
-                  onClick={() => setCurrentView('profile')}
+                  onClick={() => { setCurrentView('profile'); setSidebarOpen(false); }}
                   className={`flex items-center gap-3.5 mx-3 px-3.5 py-2.5 w-[calc(100%-24px)] text-left cursor-pointer text-sm rounded-xl transition-all duration-200 ${
                     currentView === 'profile' 
                       ? 'text-white bg-[#3da860] font-bold shadow-md shadow-emerald-950/20' 
@@ -328,7 +349,7 @@ export default function Dashboard({ pharmacy, onLogout }) {
               </li>
               <li>
                 <button 
-                  onClick={() => setCurrentView('settings')}
+                  onClick={() => { setCurrentView('settings'); setSidebarOpen(false); }}
                   className={`flex items-center gap-3.5 mx-3 px-3.5 py-2.5 w-[calc(100%-24px)] text-left cursor-pointer text-sm rounded-xl transition-all duration-200 ${
                     currentView === 'settings' 
                       ? 'text-white bg-[#3da860] font-bold shadow-md shadow-emerald-950/20' 
@@ -358,9 +379,16 @@ export default function Dashboard({ pharmacy, onLogout }) {
 
       
       <main className="main-content flex-1 flex flex-col h-screen overflow-y-auto bg-[#eff7f2]">
-        <header className="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-8 sticky top-0 z-40 shadow-sm">
-          <div className="flex flex-col">
-            <h2 className="font-heading text-xl font-bold text-slate-900">
+        <header className="h-16 md:h-20 bg-white border-b border-slate-200 flex items-center justify-between px-4 sm:px-6 md:px-8 sticky top-0 z-30 shadow-sm">
+          <div className="flex items-center gap-3 min-w-0 flex-1 mr-2">
+            <button 
+              className="lg:hidden p-2 rounded-xl bg-slate-100 text-slate-800 hover:bg-slate-200 transition-colors shrink-0 cursor-pointer"
+              onClick={() => setSidebarOpen(true)}
+              aria-label="Open navigation menu"
+            >
+              <Menu size={20} />
+            </button>
+            <h2 className="font-heading text-base sm:text-lg md:text-xl font-bold text-slate-900 truncate">
               {currentView === 'dashboard' && 'Dashboard'}
               {currentView === 'analytics' && 'Analytics'}
               {currentView === 'listings' && 'Medicine Listings'}
@@ -372,7 +400,7 @@ export default function Dashboard({ pharmacy, onLogout }) {
             </h2>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4 shrink-0">
             
             <div className="relative">
               <button 
@@ -398,7 +426,7 @@ export default function Dashboard({ pharmacy, onLogout }) {
 
             <div 
               className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-full cursor-pointer hover:bg-slate-50 transition-colors" 
-              onClick={() => setCurrentView('profile')}
+              onClick={() => { setCurrentView('profile'); setSidebarOpen(false); }}
             >
               <Store size={16} className="text-[#3da860]" />
               <span className="text-xs font-bold text-slate-900">{pharmacy.name}</span>
@@ -406,7 +434,7 @@ export default function Dashboard({ pharmacy, onLogout }) {
           </div>
         </header>
 
-        <div className="page-container p-8 flex-1">
+        <div className="page-container p-4 sm:p-6 md:p-8 flex-1 min-w-0 max-w-full overflow-x-hidden">
           {currentView === 'dashboard' && (
             <>
               
@@ -566,7 +594,7 @@ export default function Dashboard({ pharmacy, onLogout }) {
                     </div>
                     <button 
                       className="flex items-center gap-1 text-[#3da860] hover:text-[#2e8c4e] text-xs font-bold bg-transparent border-none cursor-pointer" 
-                      onClick={() => setCurrentView('orders')}
+                      onClick={() => { setCurrentView('orders'); setSidebarOpen(false); }}
                     >
                       <span>View All</span>
                       <ArrowUpRight size={14} />
@@ -580,7 +608,7 @@ export default function Dashboard({ pharmacy, onLogout }) {
                   ) : (
                     <div className="flex flex-col gap-4">
                       {recentOrders.map(order => (
-                        <div key={order.id} className="flex justify-between items-center p-4 bg-slate-50 rounded-xl border border-slate-200">
+                        <div key={order.id} className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 p-3.5 sm:p-4 bg-slate-50 rounded-xl border border-slate-200">
                           <div className="flex flex-col">
                             <span className="text-sm font-bold text-[#3da860]">{order.id}</span>
                             <span className="text-xs font-bold text-slate-900 mt-0.5">{order.buyer_name}</span>
@@ -636,7 +664,7 @@ export default function Dashboard({ pharmacy, onLogout }) {
                       </div>
                       <button 
                         className="flex items-center gap-1 text-[#3da860] hover:text-[#2e8c4e] text-xs font-bold bg-transparent border-none cursor-pointer" 
-                        onClick={() => setCurrentView('stock-alerts')}
+                        onClick={() => { setCurrentView('stock-alerts'); setSidebarOpen(false); }}
                       >
                         <span>View All</span>
                         <ArrowUpRight size={14} />
@@ -685,7 +713,7 @@ export default function Dashboard({ pharmacy, onLogout }) {
                     <div className="flex flex-col gap-3">
                       <button 
                         className="btn btn-primary w-full h-11 text-xs font-bold bg-[#3da860] hover:bg-[#2e8c4e] shadow-md shadow-[#3da860]/10 flex justify-start items-center pl-4 gap-2.5 rounded-xl"
-                        onClick={() => setCurrentView('add-medicine')}
+                        onClick={() => { setCurrentView('add-medicine'); setSidebarOpen(false); }}
                       >
                         <PlusCircle size={16} />
                         <span>Add New Medicine</span>
@@ -693,7 +721,7 @@ export default function Dashboard({ pharmacy, onLogout }) {
 
                       <button 
                         className="btn btn-secondary w-full h-11 text-xs font-semibold bg-[#eff7f2] hover:bg-[#c5dbd0]/30 border border-[#3da860]/20 text-slate-800 flex justify-start items-center pl-4 gap-2.5 rounded-xl"
-                        onClick={() => setCurrentView('orders')}
+                        onClick={() => { setCurrentView('orders'); setSidebarOpen(false); }}
                       >
                         <ShoppingBag size={16} className="text-[#3da860]" />
                         <span>View Pending Orders</span>
@@ -701,7 +729,7 @@ export default function Dashboard({ pharmacy, onLogout }) {
 
                       <button 
                         className="btn btn-secondary w-full h-11 text-xs font-semibold bg-[#eff7f2] hover:bg-[#c5dbd0]/30 border border-[#3da860]/20 text-slate-800 flex justify-start items-center pl-4 gap-2.5 rounded-xl"
-                        onClick={() => setCurrentView('stock-alerts')}
+                        onClick={() => { setCurrentView('stock-alerts'); setSidebarOpen(false); }}
                       >
                         <Pill size={16} className="text-[#3da860]" />
                         <span>Manage Stock</span>
@@ -725,7 +753,7 @@ export default function Dashboard({ pharmacy, onLogout }) {
                   </div>
                   <button 
                     className="flex items-center gap-1 text-[#3da860] hover:text-[#2e8c4e] text-xs font-bold bg-transparent border-none cursor-pointer"
-                    onClick={() => setCurrentView('listings')}
+                    onClick={() => { setCurrentView('listings'); setSidebarOpen(false); }}
                   >
                     <span>View All Catalog</span>
                     <ArrowUpRight size={14} />
@@ -737,7 +765,7 @@ export default function Dashboard({ pharmacy, onLogout }) {
                     No confirmed sales yet. As farmers and veterinarians order medicines, top selling items will appear here.
                   </div>
                 ) : (
-                  <div className="overflow-x-auto">
+                  <div className="table-responsive overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                       <thead>
                         <tr className="border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider">

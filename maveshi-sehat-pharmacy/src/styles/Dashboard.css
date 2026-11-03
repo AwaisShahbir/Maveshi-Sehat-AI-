@@ -132,3 +132,62 @@
   color: #475569;
 }
 
+
+
+/* =========================================
+   PHARMACY DASHBOARD MOBILE RESPONSIVE
+   ========================================= */
+
+@media (max-width: 1024px) {
+  .pharmacy-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    z-index: 100;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+  }
+}
+
+@media (max-width: 640px) {
+  .pipeline-strip {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .pipeline-card {
+    padding: 10px 12px;
+    gap: 10px;
+    border-radius: 12px;
+  }
+
+  .pipeline-icon-circle {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+  }
+
+  .pipeline-icon-circle svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .pipeline-count {
+    font-size: 15px;
+  }
+
+  .pipeline-title {
+    font-size: 9.5px;
+  }
+
+  .top-selling-table-card {
+    padding: 16px 12px;
+    border-radius: 14px;
+    margin-top: 16px;
+  }
+
+  .pharmacy-stat-card {
+    padding: 14px 12px;
+  }
+}

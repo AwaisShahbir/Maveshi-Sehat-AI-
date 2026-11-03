@@ -91,7 +91,7 @@ export default function Register({ onViewChange }) {
   return (
     <div className="pharmacy-register-view">
       
-      <header className="flex items-center p-6 md:px-8 bg-white border-b border-slate-200 gap-6">
+      <header className="flex items-center p-4 sm:p-6 md:px-8 bg-white border-b border-slate-200 gap-3 sm:gap-6">
         <button 
           className="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 text-slate-900 rounded-xl font-semibold text-xs cursor-pointer hover:bg-[#eff7f2] transition-colors duration-200" 
           onClick={() => onViewChange('login')}
@@ -105,12 +105,12 @@ export default function Register({ onViewChange }) {
       </header>
 
       
-      <main className="flex-1 max-w-[800px] w-full mx-auto py-10 px-6">
+      <main className="flex-1 max-w-[800px] w-full mx-auto py-6 sm:py-10 px-3.5 sm:px-6">
         <form onSubmit={handleSubmit} className="flex flex-col gap-6" autoComplete="off">
           {error && <div className="bg-red-50 text-red-600 p-4 rounded-xl border border-red-100 font-semibold text-sm">{error}</div>}
 
           
-          <section className="bg-white rounded-2xl border border-slate-200 p-6 md:p-8 shadow-sm">
+          <section className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-6 md:p-8 shadow-sm">
             <div className="flex items-center gap-3 mb-5 border-b border-slate-100 pb-3">
               <Info size={20} className="text-[#3da860]" />
               <h2 className="text-sm font-bold text-slate-900">Basic Information</h2>
@@ -177,7 +177,7 @@ export default function Register({ onViewChange }) {
           </section>
 
           
-          <section className="bg-white rounded-2xl border border-slate-200 p-6 md:p-8 shadow-sm">
+          <section className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-6 md:p-8 shadow-sm">
             <div className="flex items-center gap-3 mb-5 border-b border-slate-100 pb-3">
               <Store size={20} className="text-[#3da860]" />
               <h2 className="text-sm font-bold text-slate-900">Contact Information</h2>
@@ -228,7 +228,7 @@ export default function Register({ onViewChange }) {
           </section>
 
           
-          <section className="bg-white rounded-2xl border border-slate-200 p-6 md:p-8 shadow-sm">
+          <section className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-6 md:p-8 shadow-sm">
             <div className="flex items-center gap-3 mb-5 border-b border-slate-100 pb-3">
               <MapPin size={20} className="text-[#3da860]" />
               <h2 className="text-sm font-bold text-slate-900">Location</h2>
@@ -283,7 +283,7 @@ export default function Register({ onViewChange }) {
           </section>
 
           
-          <section className="bg-white rounded-2xl border border-slate-200 p-6 md:p-8 shadow-sm">
+          <section className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-6 md:p-8 shadow-sm">
             <div className="flex items-center gap-3 mb-5 border-b border-slate-100 pb-3">
               <Award size={20} className="text-[#3da860]" />
               <h2 className="text-sm font-bold text-slate-900">License Information</h2>
@@ -320,7 +320,7 @@ export default function Register({ onViewChange }) {
           </section>
 
           
-          <section className="bg-white rounded-2xl border border-slate-200 p-6 md:p-8 shadow-sm">
+          <section className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-6 md:p-8 shadow-sm">
             <div className="flex items-center gap-3 mb-5 border-b border-slate-100 pb-3">
               <Store size={20} className="text-[#3da860]" />
               <h2 className="text-sm font-bold text-slate-900">Business Details</h2>
@@ -354,7 +354,7 @@ export default function Register({ onViewChange }) {
           </section>
 
           
-          <section className="bg-white rounded-2xl border border-slate-200 p-6 md:p-8 shadow-sm">
+          <section className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-6 md:p-8 shadow-sm">
             <div className="flex items-center gap-3 mb-5 border-b border-slate-100 pb-3">
               <Award size={20} className="text-[#3da860]" />
               <h2 className="text-sm font-bold text-slate-900">Security</h2>

@@ -143,7 +143,7 @@ export default function Analytics({ pharmacy, formatPrice }) {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
         <div className="card lg:col-span-2 flex flex-col">
-          <div className="flex justify-between items-center mb-4">
+          <div className="flex justify-between items-center flex-wrap gap-2 mb-4">
             <div>
               <h3 className="card-title">Revenue Overview</h3>
               <p className="card-subtitle">Monthly sales tracking</p>

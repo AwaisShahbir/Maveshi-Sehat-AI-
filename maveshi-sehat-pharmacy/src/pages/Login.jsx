@@ -105,9 +105,9 @@ export default function Login({ onLoginSuccess, onViewChange }) {
 
       
       <div 
-        className="pharmacy-login-form-pane flex items-center justify-center p-6 md:p-12"
+        className="pharmacy-login-form-pane flex items-center justify-center p-4 sm:p-6 md:p-12"
       >
-        <div className="w-full max-w-[460px] bg-white rounded-[24px] border border-slate-200 p-8 md:p-12 shadow-xl flex flex-col">
+        <div className="w-full max-w-[460px] bg-white rounded-[24px] border border-slate-200 p-6 sm:p-8 md:p-12 shadow-xl flex flex-col">
           <h2 className="font-heading text-2xl font-bold text-slate-900 text-center">Welcome Back</h2>
           <p className="text-sm text-slate-500 text-center mt-1">Login to your pharmacy portal</p>
 
