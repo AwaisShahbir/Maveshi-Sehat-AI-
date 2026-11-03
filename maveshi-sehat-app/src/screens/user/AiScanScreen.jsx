@@ -127,30 +127,39 @@ export default function AiScanScreen() {
 
   
   const scanLineAnim = useRef(new Animated.Value(0)).current;
+  const animationLoopRef = useRef(null);
 
-  
+  useEffect(() => {
+    return () => {
+      if (animationLoopRef.current) {
+        animationLoopRef.current.stop();
+      }
+    };
+  }, []);
+
   const startScanAnimation = () => {
     scanLineAnim.setValue(0);
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(scanLineAnim, {
-          toValue: 1,
-          duration: 1500,
-          easing: Easing.inOut(Easing.quad),
-          useNativeDriver: true,
-        }),
-        Animated.timing(scanLineAnim, {
-          toValue: 0,
-          duration: 1500,
-          easing: Easing.inOut(Easing.quad),
-          useNativeDriver: true,
-        }),
-      ])
-    ).start();
+    if (animationLoopRef.current) {
+      animationLoopRef.current.stop();
+    }
+    animationLoopRef.current = Animated.loop(
+      Animated.timing(scanLineAnim, {
+        toValue: 1,
+        duration: 2000,
+        easing: Easing.linear,
+        useNativeDriver: true,
+      })
+    );
+    animationLoopRef.current.start();
   };
 
   const stopScanAnimation = () => {
+    if (animationLoopRef.current) {
+      animationLoopRef.current.stop();
+      animationLoopRef.current = null;
+    }
     scanLineAnim.stopAnimation();
+    scanLineAnim.setValue(0);
   };
 
   const handleSelectMockImage = (img) => {
@@ -421,8 +430,8 @@ export default function AiScanScreen() {
 
   
   const translateY = scanLineAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, 195], 
+    inputRange: [0, 0.5, 1],
+    outputRange: [0, 195, 0], 
   });
 
   return (
