@@ -166,7 +166,11 @@ export default function AiScanScreen() {
     const options = {
       mediaType: 'photo',
       cameraType: 'back',
-      quality: 0.8,
+      maxWidth: 1024,
+      maxHeight: 1024,
+      quality: 0.7,
+      includeBase64: true,
+      saveToPhotos: false,
     };
 
     try {
@@ -184,6 +188,9 @@ export default function AiScanScreen() {
           const asset = response.assets[0];
           setSelectedImage({
             uri: asset.uri,
+            base64: asset.base64,
+            type: asset.type || 'image/jpeg',
+            fileName: asset.fileName || 'scan.jpg',
             isLocal: true
           });
           setShowReport(false);
@@ -205,7 +212,10 @@ export default function AiScanScreen() {
 
     const options = {
       mediaType: 'photo',
-      quality: 0.8,
+      maxWidth: 1024,
+      maxHeight: 1024,
+      quality: 0.7,
+      includeBase64: true,
     };
 
     try {
@@ -223,6 +233,9 @@ export default function AiScanScreen() {
           const asset = response.assets[0];
           setSelectedImage({
             uri: asset.uri,
+            base64: asset.base64,
+            type: asset.type || 'image/jpeg',
+            fileName: asset.fileName || 'scan.jpg',
             isLocal: true
           });
           setShowReport(false);
@@ -253,22 +266,34 @@ export default function AiScanScreen() {
 
     try {
       let response;
-      if (selectedImage.uri && selectedImage.isLocal) {
-        // Upload local camera or gallery photo
-        const formData = new FormData();
-        formData.append('image', {
-          uri: selectedImage.uri,
-          name: 'scan.jpg',
-          type: 'image/jpeg'
-        });
-        formData.append('animalType', animalType || 'Cow');
-        formData.append('ownerName', userName || 'Farmer');
-
+      if (selectedImage.base64) {
+        // High-reliability JSON base64 payload - avoids all multipart/FormData native Android crashes and OOM
         response = await fetch(`${BASE_URL}/api/ai/scan-disease`, {
           method: 'POST',
           headers: {
-            'Content-Type': 'multipart/form-data',
+            'Content-Type': 'application/json',
           },
+          body: JSON.stringify({
+            imageBase64: selectedImage.base64,
+            animalType: animalType || 'Cow',
+            ownerName: userName || 'Farmer',
+            province: 'Punjab'
+          }),
+        });
+      } else if (selectedImage.uri && selectedImage.isLocal) {
+        // Fallback: FormData without manual Content-Type (OkHttp will automatically supply boundary)
+        const formData = new FormData();
+        formData.append('image', {
+          uri: selectedImage.uri,
+          name: selectedImage.fileName || 'scan.jpg',
+          type: selectedImage.type || 'image/jpeg'
+        });
+        formData.append('animalType', animalType || 'Cow');
+        formData.append('ownerName', userName || 'Farmer');
+        formData.append('province', 'Punjab');
+
+        response = await fetch(`${BASE_URL}/api/ai/scan-disease`, {
+          method: 'POST',
           body: formData,
         });
       } else {
@@ -281,7 +306,8 @@ export default function AiScanScreen() {
           body: JSON.stringify({
             imageUrl: selectedImage.uri,
             animalType: animalType || 'Cow',
-            ownerName: userName || 'Farmer'
+            ownerName: userName || 'Farmer',
+            province: 'Punjab'
           }),
         });
       }

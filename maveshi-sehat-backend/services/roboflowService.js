@@ -136,7 +136,7 @@ async function detectDiseaseFromImage(imagePath, confidenceThreshold = 30) {
     const rawClass = top.class;
 
     // Check if the top prediction is a healthy class
-    const isHealthyClass = rawClass.toLowerCase().includes('healthy');
+    const isHealthyClass = rawClass.toLowerCase().includes('healthy') || rawClass.toLowerCase().includes('normal');
 
     if (isHealthyClass) {
       return {

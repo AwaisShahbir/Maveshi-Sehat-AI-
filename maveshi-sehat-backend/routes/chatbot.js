@@ -186,9 +186,13 @@ module.exports = (pool) => {
       let audioUrl = null;
       if (enableTts && reply) {
         try {
-          const { audioBuffer } = await synthesizeSpeech(reply);
-          const audioFileName = `reply-${Date.now()}.mp3`;
-          const audioFilePath = path.join(__dirname, '../uploads', audioFileName);
+          const uploadDir = path.join(__dirname, '../uploads');
+          if (!fs.existsSync(uploadDir)) {
+            fs.mkdirSync(uploadDir, { recursive: true });
+          }
+          const { audioBuffer } = await synthesizeSpeech(reply, isUrdu ? 'ur' : null);
+          const audioFileName = `reply-${Date.now()}-${Math.round(Math.random() * 1e6)}.mp3`;
+          const audioFilePath = path.join(uploadDir, audioFileName);
           fs.writeFileSync(audioFilePath, audioBuffer);
           audioUrl = `/uploads/${audioFileName}`;
         } catch (ttsErr) {
@@ -328,6 +332,37 @@ module.exports = (pool) => {
           fs.unlinkSync(localFilePath);
         } catch (e) {}
       }
+    }
+  });
+
+  /**
+   * POST /api/chat/tts
+   * Standalone text-to-speech synthesis endpoint for on-demand audio playback
+   */
+  router.post('/tts', async (req, res) => {
+    try {
+      const { text, lang } = req.body;
+      if (!text || typeof text !== 'string' || text.trim().length === 0) {
+        return res.status(400).json({ error: 'Text is required for TTS synthesis' });
+      }
+
+      const uploadDir = path.join(__dirname, '../uploads');
+      if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
+      }
+
+      const { audioBuffer } = await synthesizeSpeech(text, lang);
+      const fileName = `tts-${Date.now()}-${Math.round(Math.random() * 1e6)}.mp3`;
+      const filePath = path.join(uploadDir, fileName);
+      fs.writeFileSync(filePath, audioBuffer);
+
+      return res.json({
+        success: true,
+        audioUrl: `/uploads/${fileName}`
+      });
+    } catch (err) {
+      console.error('Standalone TTS error:', err.message);
+      return res.status(500).json({ error: 'Failed to synthesize speech', details: err.message });
     }
   });
 

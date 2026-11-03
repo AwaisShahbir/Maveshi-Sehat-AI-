@@ -53,8 +53,9 @@ class AudioModule(private val reactContext: ReactApplicationContext) : ReactCont
             try {
                 val tempFile = File(reactContext.cacheDir, "audio_play_${System.currentTimeMillis()}.mp3")
                 val connection = URL(u).openConnection() as HttpURLConnection
-                connection.connectTimeout = 5000
-                connection.readTimeout = 15000
+                connection.connectTimeout = 15000
+                connection.readTimeout = 30000
+                connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Linux; Android) MaveshiSehat/1.0")
                 connection.instanceFollowRedirects = true
                 val responseCode = connection.responseCode
                 if (responseCode in 200..299) {
@@ -66,6 +67,8 @@ class AudioModule(private val reactContext: ReactApplicationContext) : ReactCont
                     if (tempFile.exists() && tempFile.length() > 0) {
                         return tempFile
                     }
+                } else {
+                    lastException = java.io.IOException("HTTP $responseCode from $u")
                 }
             } catch (e: Exception) {
                 lastException = e
