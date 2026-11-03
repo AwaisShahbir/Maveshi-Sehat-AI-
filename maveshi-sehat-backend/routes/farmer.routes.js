@@ -276,8 +276,8 @@ module.exports = (pool, io) => {
         return res.status(400).json({ error: 'Please provide an image file, base64 image data, or imageUrl.' });
       }
 
-      // Run Roboflow AI Inference
-      const diagnosis = await detectDiseaseFromImage(imageFilePath);
+      // Run Universal AI Multimodal Vision Disease Inference
+      const diagnosis = await detectDiseaseFromImage(imageFilePath, 30, animalType);
 
       // Assigned cattle ID or automatic ear-tag generation
       let assignedAnimalId = (animalId && typeof animalId === 'string' && animalId.trim().length > 0)
