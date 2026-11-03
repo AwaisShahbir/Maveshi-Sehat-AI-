@@ -4,11 +4,15 @@ export const resolveImageUrl = (url) => {
   if (!url) return null;
   if (url.startsWith('data:')) return url;
   if (url.startsWith('http://') || url.startsWith('https://')) {
-    if (url.includes('10.0.2.2:5000') || url.includes('localhost:5000') || url.includes('127.0.0.1:5000')) {
-      const part = url.split('/uploads/')[1];
-      return part ? `${API_BASE_URL}/uploads/${part}` : url;
+    let clean = url;
+    if (clean.startsWith('http://maveshi-sehat-api.onrender.com')) {
+      clean = clean.replace('http://', 'https://');
     }
-    return url;
+    if (clean.includes('10.0.2.2:5000') || clean.includes('localhost:5000') || clean.includes('127.0.0.1:5000')) {
+      const part = clean.split('/uploads/')[1];
+      return part ? `${API_BASE_URL}/uploads/${part}` : clean;
+    }
+    return clean;
   }
   return `${API_BASE_URL}${url.startsWith('/') ? '' : '/'}${url}`;
 };

@@ -5,6 +5,7 @@ const multer = require('multer');
 const path = require('path');
 const transporter = require('../config/mail');
 const { getOtpEmailHtml, getVetWelcomeEmailHtml } = require('../utils/emailTemplates');
+const { persistUploadedFile } = require('../utils/fileStore');
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -31,12 +32,18 @@ const upload = multer({
 
 module.exports = (pool) => {
   // Upload license or document
-  router.post('/upload', upload.single('license'), (req, res) => {
+  router.post('/upload', upload.single('license'), async (req, res) => {
     try {
       if (!req.file) {
         return res.status(400).json({ error: 'Please select a file to upload.' });
       }
-      const fileUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
+      const host = req.get('host');
+      const protocol = (host && host.includes('onrender.com')) || req.protocol === 'https' || req.headers['x-forwarded-proto'] === 'https' ? 'https' : 'http';
+      const baseUrl = `${protocol}://${host}`;
+      const fileUrl = `${baseUrl}/uploads/${req.file.filename}`;
+
+      await persistUploadedFile(pool, req.file.filename, req.file.path, req.file.mimetype);
+
       res.status(200).json({
         message: 'File uploaded successfully!',
         fileUrl: fileUrl,

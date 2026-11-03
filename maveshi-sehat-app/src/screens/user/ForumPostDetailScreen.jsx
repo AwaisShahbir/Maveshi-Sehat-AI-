@@ -26,6 +26,18 @@ import { getStyles } from '../../styles/ForumPostDetailScreenStyles';
 
 const BASE_URL = 'https://maveshi-sehat-api.onrender.com';
 
+const resolveForumImageUrl = (url) => {
+  if (!url) return null;
+  let clean = url.trim();
+  if (clean.startsWith('http://maveshi-sehat-api.onrender.com')) {
+    clean = clean.replace('http://', 'https://');
+  }
+  if (!clean.startsWith('http://') && !clean.startsWith('https://')) {
+    clean = `${BASE_URL}${clean.startsWith('/') ? '' : '/'}${clean}`;
+  }
+  return clean;
+};
+
 export default function ForumPostDetailScreen() {
   const { colors, isDark } = useTheme();
   const styles = React.useMemo(() => getStyles(colors, isDark), [colors, isDark]);
@@ -338,7 +350,7 @@ export default function ForumPostDetailScreen() {
         {reply.image_url ? (
           <View style={styles.commentImageWrapper}>
             <Image
-              source={{ uri: reply.image_url }}
+              source={{ uri: resolveForumImageUrl(reply.image_url) }}
               style={styles.commentImage}
               resizeMode="cover"
             />
@@ -402,7 +414,7 @@ export default function ForumPostDetailScreen() {
         {item.image_url ? (
           <View style={styles.commentImageWrapper}>
             <Image
-              source={{ uri: item.image_url }}
+              source={{ uri: resolveForumImageUrl(item.image_url) }}
               style={styles.commentImage}
               resizeMode="cover"
             />
@@ -508,7 +520,7 @@ export default function ForumPostDetailScreen() {
           {post.image_url ? (
             <View style={styles.detailImageWrapper}>
               <Image
-                source={{ uri: post.image_url }}
+                source={{ uri: resolveForumImageUrl(post.image_url) }}
                 style={styles.detailImage}
                 resizeMode="cover"
               />

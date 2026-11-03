@@ -3,6 +3,7 @@ const router = express.Router();
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const { persistUploadedFile } = require('../utils/fileStore');
 
 const uploadDir = path.join(__dirname, '../uploads');
 if (!fs.existsSync(uploadDir)) {
@@ -35,12 +36,18 @@ const upload = multer({
 
 module.exports = (pool) => {
   // Standalone upload endpoint
-  router.post('/api/forum/upload', upload.single('image'), (req, res) => {
+  router.post('/api/forum/upload', upload.single('image'), async (req, res) => {
     try {
       if (!req.file) {
         return res.status(400).json({ error: 'No image file uploaded' });
       }
-      const imageUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
+      const host = req.get('host');
+      const protocol = (host && host.includes('onrender.com')) || req.protocol === 'https' || req.headers['x-forwarded-proto'] === 'https' ? 'https' : 'http';
+      const baseUrl = `${protocol}://${host}`;
+      const imageUrl = `${baseUrl}/uploads/${req.file.filename}`;
+
+      await persistUploadedFile(pool, req.file.filename, req.file.path, req.file.mimetype);
+
       res.status(200).json({ imageUrl });
     } catch (err) {
       res.status(500).json({ error: err.message || 'Image upload failed' });
@@ -101,7 +108,11 @@ module.exports = (pool) => {
 
       let finalImageUrl = directImageUrl || null;
       if (req.file) {
-        finalImageUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
+        const host = req.get('host');
+        const protocol = (host && host.includes('onrender.com')) || req.protocol === 'https' || req.headers['x-forwarded-proto'] === 'https' ? 'https' : 'http';
+        const baseUrl = `${protocol}://${host}`;
+        finalImageUrl = `${baseUrl}/uploads/${req.file.filename}`;
+        await persistUploadedFile(pool, req.file.filename, req.file.path, req.file.mimetype);
       }
 
       const result = await pool.query(
@@ -174,7 +185,11 @@ module.exports = (pool) => {
 
       let finalImageUrl = directImageUrl || null;
       if (req.file) {
-        finalImageUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
+        const host = req.get('host');
+        const protocol = (host && host.includes('onrender.com')) || req.protocol === 'https' || req.headers['x-forwarded-proto'] === 'https' ? 'https' : 'http';
+        const baseUrl = `${protocol}://${host}`;
+        finalImageUrl = `${baseUrl}/uploads/${req.file.filename}`;
+        await persistUploadedFile(pool, req.file.filename, req.file.path, req.file.mimetype);
       }
 
       const result = await pool.query(

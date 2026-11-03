@@ -4,6 +4,7 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const { detectDiseaseFromImage } = require('../services/roboflowService');
+const { persistUploadedFile } = require('../utils/fileStore');
 
 const scanStorage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -245,6 +246,7 @@ module.exports = (pool, io) => {
       if (req.file) {
         imageFilePath = req.file.path;
         publicImageUrl = `${baseUrl}/uploads/${req.file.filename}`;
+        await persistUploadedFile(pool, req.file.filename, imageFilePath, req.file.mimetype);
       } else if (req.body.imageBase64) {
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
         const fileName = `scan-b64-${uniqueSuffix}.jpg`;
@@ -256,6 +258,7 @@ module.exports = (pool, io) => {
         const cleanBase64 = req.body.imageBase64.replace(/^data:image\/\w+;base64,/, '');
         fs.writeFileSync(imageFilePath, Buffer.from(cleanBase64, 'base64'));
         publicImageUrl = `${baseUrl}/uploads/${fileName}`;
+        await persistUploadedFile(pool, fileName, imageFilePath, 'image/jpeg');
       } else if (req.body.imageUrl) {
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
         const fileName = `scan-url-${uniqueSuffix}.jpg`;
@@ -268,6 +271,7 @@ module.exports = (pool, io) => {
         const imageRes = await axios.get(req.body.imageUrl, { responseType: 'arraybuffer', timeout: 10000 });
         fs.writeFileSync(imageFilePath, Buffer.from(imageRes.data));
         publicImageUrl = `${baseUrl}/uploads/${fileName}`;
+        await persistUploadedFile(pool, fileName, imageFilePath, 'image/jpeg');
       } else {
         return res.status(400).json({ error: 'Please provide an image file, base64 image data, or imageUrl.' });
       }

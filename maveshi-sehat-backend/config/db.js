@@ -153,6 +153,13 @@ pool.connect((err, client, release) => {
 
       ALTER TABLE forum_posts ADD COLUMN IF NOT EXISTS image_url VARCHAR(500);
       ALTER TABLE forum_comments ADD COLUMN IF NOT EXISTS image_url VARCHAR(500);
+
+      CREATE TABLE IF NOT EXISTS uploaded_files (
+        filename VARCHAR(255) PRIMARY KEY,
+        mime_type VARCHAR(100),
+        data BYTEA,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
     `, (migrationErr) => {
       release();
       if (migrationErr) {

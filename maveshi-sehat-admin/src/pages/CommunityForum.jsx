@@ -648,6 +648,9 @@ export default function CommunityForum() {
                       alt="Attached" 
                       style={{ maxHeight: '180px', borderRadius: '8px', cursor: 'pointer' }}
                       onClick={() => setZoomedImage(resolveImageUrl(selectedThread.image_url))}
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                      }}
                     />
                   </div>
                 )}

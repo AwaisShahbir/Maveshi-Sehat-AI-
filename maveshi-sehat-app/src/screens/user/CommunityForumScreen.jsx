@@ -28,6 +28,18 @@ import { getStyles } from '../../styles/CommunityForumScreenStyles';
 
 const BASE_URL = 'https://maveshi-sehat-api.onrender.com';
 
+const resolveForumImageUrl = (url) => {
+  if (!url) return null;
+  let clean = url.trim();
+  if (clean.startsWith('http://maveshi-sehat-api.onrender.com')) {
+    clean = clean.replace('http://', 'https://');
+  }
+  if (!clean.startsWith('http://') && !clean.startsWith('https://')) {
+    clean = `${BASE_URL}${clean.startsWith('/') ? '' : '/'}${clean}`;
+  }
+  return clean;
+};
+
 const CATEGORIES = [
   { id: 'All Posts', label: 'All Discussions', labelUrdu: 'تمام', icon: 'message-square' },
   { id: 'Trending', label: 'Trending', labelUrdu: 'مقبول', icon: 'trending-up' },
@@ -380,7 +392,7 @@ export default function CommunityForumScreen() {
         {item.image_url ? (
           <View style={styles.postImageContainer}>
             <Image
-              source={{ uri: item.image_url }}
+              source={{ uri: resolveForumImageUrl(item.image_url) }}
               style={styles.postImage}
               resizeMode="cover"
             />
