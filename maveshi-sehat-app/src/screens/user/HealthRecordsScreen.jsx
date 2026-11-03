@@ -263,7 +263,7 @@ export default function HealthRecordsScreen() {
                 <View style={styles.detailsContainer}>
                   <Text style={[styles.diseaseTitle, isUrdu && { fontFamily: fonts.urduBold }]}>{t(rec.disease)}</Text>
                   <Text style={[styles.animalSub, isUrdu && { fontFamily: fonts.urduRegular }]}>
-                    {rec.animalId} • {rec.timeAgo === 'Just now' ? t('Just now') : rec.timeAgo}
+                    {rec.animalId} • {rec.timeAgo || rec.date}
                   </Text>
                   
                   <View style={styles.badgesRow}>

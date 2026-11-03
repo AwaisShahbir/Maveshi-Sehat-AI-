@@ -145,6 +145,19 @@ module.exports = (pool, io) => {
           severityBg = '#FFF5E5';
         }
 
+        const createdAtDate = row.created_at ? new Date(row.created_at) : new Date();
+        const formattedDate = createdAtDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ', ' + createdAtDate.toLocaleDateString([], { day: '2-digit', month: 'short', year: 'numeric' });
+
+        let imageFullUrl = row.image_url;
+        if (imageFullUrl && !imageFullUrl.startsWith('http')) {
+          imageFullUrl = `https://maveshi-sehat-api.onrender.com${imageFullUrl.startsWith('/') ? '' : '/'}${imageFullUrl}`;
+        }
+        if (!imageFullUrl) {
+          imageFullUrl = row.animal_type === 'Buffalo'
+            ? 'https://images.unsplash.com/photo-1558024920-b41e1887dc32?q=80&w=400&auto=format&fit=crop'
+            : 'https://images.unsplash.com/photo-1570042225831-d98fa7577f1e?q=80&w=400&auto=format&fit=crop';
+        }
+
         return {
           id: row.id,
           animalId: row.id,
@@ -152,14 +165,15 @@ module.exports = (pool, io) => {
           disease: row.disease,
           diseaseUrdu: row.disease_urdu || (isHealthy ? 'صحت مند' : row.disease),
           confidence: row.confidence ? `${parseFloat(row.confidence).toFixed(1)}%` : '0%',
-          timeAgo: 'Just now',
-          date: new Date(row.created_at).toLocaleString(),
+          timeAgo: formattedDate,
+          date: formattedDate,
           risk: row.risk_level === 'High' ? 'High Risk' : (row.risk_level === 'Medium' ? 'Medium Risk' : 'Low Risk'),
           status: row.status || (isHealthy ? 'Healthy' : 'Active'),
           icon: isHealthy ? 'check-circle' : (row.risk_level === 'High' ? 'alert-circle' : 'trending-up'),
           color: severityColor,
           bg: severityBg,
-          uri: row.image_url || 'https://images.unsplash.com/photo-1570042225831-d98fa7577f1e?q=80&w=400&auto=format&fit=crop',
+          uri: imageFullUrl,
+          imageUrl: imageFullUrl,
           description: row.description || '',
           firstAid: row.first_aid || []
         };
@@ -220,7 +234,7 @@ module.exports = (pool, io) => {
   // AI Disease Detection Scanner via Roboflow
   router.post('/api/ai/scan-disease', scanUpload.single('image'), async (req, res) => {
     try {
-      const { animalType = 'Cow', ownerName = 'Farmer', province = 'Punjab' } = req.body;
+      const { animalType = 'Cow', ownerName = 'Farmer', province = 'Punjab', animalId } = req.body;
       let imageFilePath = null;
       let publicImageUrl = null;
 
@@ -257,9 +271,23 @@ module.exports = (pool, io) => {
       // Run Roboflow AI Inference
       const diagnosis = await detectDiseaseFromImage(imageFilePath);
 
-      // Generate unique animal ear-tag ID
-      const randomIdNum = Math.floor(100 + Math.random() * 900);
-      const generatedAnimalId = `${(animalType || 'COW').toUpperCase()}-${randomIdNum}`;
+      // Assigned cattle ID or automatic ear-tag generation
+      let assignedAnimalId = (animalId && typeof animalId === 'string' && animalId.trim().length > 0)
+        ? animalId.trim()
+        : `${(animalType || 'COW').toUpperCase()}-${Math.floor(100 + Math.random() * 900)}`;
+
+      // Guard against primary key collision
+      let recordId = assignedAnimalId;
+      try {
+        const existing = await pool.query('SELECT id FROM detections WHERE id = $1 LIMIT 1', [recordId]);
+        if (existing.rows.length > 0) {
+          const countRes = await pool.query('SELECT COUNT(*) FROM detections WHERE id LIKE $1', [`${assignedAnimalId}%`]);
+          const seq = parseInt(countRes.rows[0].count, 10) + 1;
+          recordId = `${assignedAnimalId}-${seq}`;
+        }
+      } catch (checkErr) {
+        console.warn('Animal ID existence check warning:', checkErr.message);
+      }
 
       // Insert record directly into database
       const insertQuery = `
@@ -274,7 +302,7 @@ module.exports = (pool, io) => {
       const statusValue = diagnosis.detected ? (diagnosis.status.includes('Mastitis') ? 'Under Treatment' : 'Active') : 'Healthy';
 
       const dbRes = await pool.query(insertQuery, [
-        generatedAnimalId,
+        recordId,
         ownerName,
         animalType,
         diagnosis.status,
@@ -293,13 +321,18 @@ module.exports = (pool, io) => {
         io.emit('new_detection', dbRes.rows[0]);
       }
 
+      const fullPublicImageUrl = publicImageUrl && !publicImageUrl.startsWith('http')
+        ? `https://maveshi-sehat-api.onrender.com${publicImageUrl.startsWith('/') ? '' : '/'}${publicImageUrl}`
+        : publicImageUrl;
+
       res.status(200).json({
         success: true,
         record: dbRes.rows[0],
         diagnosis: {
           ...diagnosis,
-          animalId: generatedAnimalId,
-          imageUrl: publicImageUrl
+          animalId: assignedAnimalId,
+          recordId: recordId,
+          imageUrl: fullPublicImageUrl
         }
       });
     } catch (err) {

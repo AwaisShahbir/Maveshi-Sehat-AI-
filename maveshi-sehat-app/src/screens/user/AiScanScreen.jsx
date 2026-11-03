@@ -115,6 +115,8 @@ export default function AiScanScreen() {
   const [showDropdown, setShowDropdown] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
   const [pickerModalVisible, setPickerModalVisible] = useState(false);
+  const [animalTagId, setAnimalTagId] = useState('');
+  const [sampleTab, setSampleTab] = useState('Cow');
   
   
   const [isScanning, setIsScanning] = useState(false);
@@ -148,6 +150,18 @@ export default function AiScanScreen() {
 
   const stopScanAnimation = () => {
     scanLineAnim.stopAnimation();
+  };
+
+  const handleSelectMockImage = (img) => {
+    setSelectedImage({
+      uri: img.uri,
+      isLocal: false,
+      sampleInfo: img,
+    });
+    setAnimalType(img.type);
+    setSampleTab(img.type);
+    setPickerModalVisible(false);
+    setShowReport(false);
   };
 
   const handleSelectAnimal = (type) => {
@@ -254,6 +268,9 @@ export default function AiScanScreen() {
     setShowReport(false);
     startScanAnimation();
 
+    const scanNow = new Date();
+    const exactScanTime = scanNow.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ', ' + scanNow.toLocaleDateString([], { day: '2-digit', month: 'short', year: 'numeric' });
+
     setScanProgressText(t('Uploading Image to Maveshi AI...'));
 
     const t1 = setTimeout(() => {
@@ -266,8 +283,9 @@ export default function AiScanScreen() {
 
     try {
       let response;
+      const effectiveAnimalId = (animalTagId && animalTagId.trim()) ? animalTagId.trim() : null;
+
       if (selectedImage.base64) {
-        // High-reliability JSON base64 payload - avoids all multipart/FormData native Android crashes and OOM
         response = await fetch(`${BASE_URL}/api/ai/scan-disease`, {
           method: 'POST',
           headers: {
@@ -277,11 +295,11 @@ export default function AiScanScreen() {
             imageBase64: selectedImage.base64,
             animalType: animalType || 'Cow',
             ownerName: userName || 'Farmer',
+            animalId: effectiveAnimalId,
             province: 'Punjab'
           }),
         });
       } else if (selectedImage.uri && selectedImage.isLocal) {
-        // Fallback: FormData without manual Content-Type (OkHttp will automatically supply boundary)
         const formData = new FormData();
         formData.append('image', {
           uri: selectedImage.uri,
@@ -290,6 +308,7 @@ export default function AiScanScreen() {
         });
         formData.append('animalType', animalType || 'Cow');
         formData.append('ownerName', userName || 'Farmer');
+        if (effectiveAnimalId) formData.append('animalId', effectiveAnimalId);
         formData.append('province', 'Punjab');
 
         response = await fetch(`${BASE_URL}/api/ai/scan-disease`, {
@@ -297,7 +316,6 @@ export default function AiScanScreen() {
           body: formData,
         });
       } else {
-        // Web sample image
         response = await fetch(`${BASE_URL}/api/ai/scan-disease`, {
           method: 'POST',
           headers: {
@@ -307,6 +325,7 @@ export default function AiScanScreen() {
             imageUrl: selectedImage.uri,
             animalType: animalType || 'Cow',
             ownerName: userName || 'Farmer',
+            animalId: effectiveAnimalId,
             province: 'Punjab'
           }),
         });
@@ -324,26 +343,33 @@ export default function AiScanScreen() {
       const diagnosis = data.diagnosis;
       const isHealthy = !diagnosis.detected;
 
+      const serverImg = diagnosis.imageUrl || (data.record && data.record.image_url);
+      const fullImageUrl = serverImg
+        ? (serverImg.startsWith('http') ? serverImg : `${BASE_URL}${serverImg.startsWith('/') ? '' : '/'}${serverImg}`)
+        : selectedImage.uri;
+
+      const finalAnimalId = diagnosis.animalId || effectiveAnimalId || (data.record && data.record.id) || 'COW-101';
+
       const newRecord = {
-        id: (data.record && data.record.id) || Date.now().toString(),
-        animalId: diagnosis.animalId,
+        id: (data.record && data.record.id) || finalAnimalId,
+        animalId: finalAnimalId,
         animalType: animalType || 'Cow',
         disease: diagnosis.name || diagnosis.status,
         diseaseUrdu: diagnosis.urdu,
         confidence: diagnosis.confidence,
-        timeAgo: 'Just now',
-        date: new Date().toLocaleString(),
+        timeAgo: exactScanTime,
+        date: exactScanTime,
         risk: diagnosis.riskLevel === 'High' ? 'High Risk' : (diagnosis.riskLevel === 'Medium' ? 'Medium Risk' : 'Low Risk'),
         status: isHealthy ? 'Healthy' : 'Active',
         icon: isHealthy ? 'check-circle' : (diagnosis.riskLevel === 'High' ? 'alert-circle' : 'trending-up'),
         color: diagnosis.severityColor,
         bg: diagnosis.severityBg,
-        uri: selectedImage.uri,
+        uri: fullImageUrl,
+        imageUrl: fullImageUrl,
         description: diagnosis.description,
         firstAid: diagnosis.firstAid
       };
 
-      // Refresh records store
       if (typeof loadRecords === 'function') {
         loadRecords(userName);
       } else {
@@ -352,9 +378,11 @@ export default function AiScanScreen() {
 
       setScanResult({
         ...diagnosis,
-        generatedAnimalId: diagnosis.animalId,
+        generatedAnimalId: finalAnimalId,
         statusUrdu: diagnosis.urdu,
-        uri: selectedImage.uri
+        scanTime: exactScanTime,
+        date: exactScanTime,
+        uri: fullImageUrl
       });
       setShowReport(true);
     } catch (err) {
@@ -510,6 +538,18 @@ export default function AiScanScreen() {
             </View>
 
             <View style={styles.resultDetails}>
+              {(scanResult.uri || selectedImage?.uri) && (
+                <View style={{ borderRadius: 12, overflow: 'hidden', marginBottom: 14, borderWidth: 1, borderColor: isDark ? 'rgba(255,255,255,0.12)' : '#E5E7EB' }}>
+                  <Image 
+                    source={{ uri: scanResult.uri || selectedImage?.uri }} 
+                    style={{ width: '100%', height: 180, resizeMode: 'cover' }} 
+                  />
+                </View>
+              )}
+              <View style={styles.resultRow}>
+                <Text style={styles.resultLabel}>{t('Scan Time:')}</Text>
+                <Text style={styles.resultVal}>{scanResult.scanTime || scanResult.date}</Text>
+              </View>
               <View style={styles.resultRow}>
                 <Text style={styles.resultLabel}>{t('Animal ID:')}</Text>
                 <Text style={[styles.resultVal, { color: '#FFB020', fontWeight: 'bold' }]}>

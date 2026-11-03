@@ -1,4 +1,4 @@
-import { API_BASE_URL } from '../config';
+import { API_BASE_URL, resolveImageUrl } from '../config';
 import React, { useState, useEffect } from 'react';
 import { 
   MessageSquare, 
@@ -47,11 +47,6 @@ export default function CommunityForum() {
   const showToast = (message, type = 'success') => {
     setFeedback({ message, type });
     setTimeout(() => setFeedback(null), 4000);
-  };
-
-  const resolveImageUrl = (url) => {
-    if (!url) return null;
-    return url.replace('10.0.2.2:5000', 'localhost:5000');
   };
 
   const formatRelativeTime = (timestamp) => {

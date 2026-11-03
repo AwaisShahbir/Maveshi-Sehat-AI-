@@ -1,4 +1,4 @@
-import { API_BASE_URL } from '../config';
+import { API_BASE_URL, resolveImageUrl } from '../config';
 import React, { useState, useEffect } from 'react';
 import { 
   Eye, Download, Search, FileDown, RefreshCw, X, 
@@ -200,7 +200,7 @@ Document generated from Maveshi Sehat AI Administrative Console.
       ? rec.first_aid.map(step => `<li style="margin-bottom: 8px;">${step}</li>`).join('')
       : '<li>Standard quarantine and veterinary observation recommended.</li>';
 
-    const normalizedImg = rec.image_url ? rec.image_url.replace('10.0.2.2', 'localhost') : null;
+    const normalizedImg = resolveImageUrl(rec.image_url);
 
     printWindow.document.write(`
       <!DOCTYPE html>
@@ -600,7 +600,7 @@ Document generated from Maveshi Sehat AI Administrative Console.
                     </div>
                     <div className="hr-scan-img-box">
                       <img 
-                        src={selectedRecord.image_url.replace('10.0.2.2', 'localhost')} 
+                        src={resolveImageUrl(selectedRecord.image_url)} 
                         alt="Diagnosis Scan"
                         className="hr-scan-img"
                         onError={(e) => {
@@ -608,7 +608,7 @@ Document generated from Maveshi Sehat AI Administrative Console.
                         }}
                       />
                       <a 
-                        href={selectedRecord.image_url.replace('10.0.2.2', 'localhost')} 
+                        href={resolveImageUrl(selectedRecord.image_url)} 
                         target="_blank" 
                         rel="noreferrer"
                         className="hr-scan-zoom-link"

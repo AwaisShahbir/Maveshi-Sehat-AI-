@@ -5,6 +5,14 @@ const BASE_URL = 'https://maveshi-sehat-api.onrender.com';
 let records = [];
 let listeners = [];
 
+export const resolveAppImageUrl = (url) => {
+  if (!url) return null;
+  if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('file://') || url.startsWith('data:')) {
+    return url;
+  }
+  return `${BASE_URL}${url.startsWith('/') ? '' : '/'}${url}`;
+};
+
 export const getRecords = () => records;
 
 export const loadRecords = async (ownerName) => {
@@ -12,7 +20,11 @@ export const loadRecords = async (ownerName) => {
     const response = await fetch(`${BASE_URL}/api/detections?ownerName=${encodeURIComponent(ownerName)}`);
     if (response.ok) {
       const data = await response.json();
-      records = data;
+      records = data.map(item => ({
+        ...item,
+        uri: resolveAppImageUrl(item.uri || item.imageUrl || item.image_url),
+        imageUrl: resolveAppImageUrl(item.imageUrl || item.image_url || item.uri)
+      }));
       
       listeners.forEach(listener => {
         try {
@@ -30,8 +42,13 @@ export const loadRecords = async (ownerName) => {
 };
 
 export const addRecord = async (record, ownerName) => {
-  
-  records = [record, ...records];
+  const resolvedRecord = {
+    ...record,
+    uri: resolveAppImageUrl(record.uri || record.imageUrl),
+    imageUrl: resolveAppImageUrl(record.imageUrl || record.uri)
+  };
+
+  records = [resolvedRecord, ...records];
   listeners.forEach(listener => {
     try {
       listener(records);
@@ -41,7 +58,6 @@ export const addRecord = async (record, ownerName) => {
   });
 
   try {
-    
     let uploadedImageUrl = record.uri;
     if (record.uri && !record.uri.startsWith('http')) {
       const formData = new FormData();
@@ -53,17 +69,13 @@ export const addRecord = async (record, ownerName) => {
       const uploadRes = await fetch(`${BASE_URL}/upload`, {
         method: 'POST',
         body: formData,
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
       });
       if (uploadRes.ok) {
         const uploadData = await uploadRes.json();
-        uploadedImageUrl = uploadData.fileUrl;
+        uploadedImageUrl = resolveAppImageUrl(uploadData.fileUrl);
       }
     }
 
-    
     const postRes = await fetch(`${BASE_URL}/api/detections`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -73,7 +85,7 @@ export const addRecord = async (record, ownerName) => {
         animalType: record.animalType,
         disease: record.disease,
         diseaseUrdu: record.diseaseUrdu,
-        confidence: parseFloat(record.confidence.replace('%', '')),
+        confidence: parseFloat(String(record.confidence).replace('%', '')),
         riskLevel: record.risk === 'High Risk' ? 'High' : (record.risk === 'Medium Risk' ? 'Medium' : 'Low'),
         imageUrl: uploadedImageUrl,
         description: record.description,
