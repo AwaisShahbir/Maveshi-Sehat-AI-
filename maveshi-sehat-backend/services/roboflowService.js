@@ -89,7 +89,7 @@ const DISEASE_KNOWLEDGE_BASE = {
  * @param {number} [confidenceThreshold=30] - Minimum confidence percentage (0-100)
  */
 async function detectDiseaseFromImage(imagePath, confidenceThreshold = 30) {
-  const apiKey = process.env.ROBOFLOW_API_KEY;
+  const apiKey = process.env.ROBOFLOW_API_KEY || '4pedAHng4E1YnDynGAeQ';
   const modelId = process.env.ROBOFLOW_MODEL_ID || 'bovine-disease-detection-combined';
   const version = process.env.ROBOFLOW_MODEL_VERSION || '1';
 
@@ -186,3 +186,4 @@ module.exports = {
   detectDiseaseFromImage,
   DISEASE_KNOWLEDGE_BASE
 };
+
