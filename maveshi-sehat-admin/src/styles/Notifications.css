@@ -365,7 +365,7 @@
 
 .announcement-preview-btn {
   flex: 1;
-  height: 42px;
+  height: 38px; border-radius: 8px;
   border: 1px solid var(--border-light);
   background-color: #ffffff;
   border-radius: 10px;
@@ -385,7 +385,7 @@
 
 .announcement-submit-btn {
   flex: 1.2;
-  height: 42px;
+  height: 38px; border-radius: 8px;
   background-color: #3da860;
   color: #ffffff;
   border: none;
@@ -455,13 +455,28 @@
   }
 
   .announcement-actions {
-    flex-direction: column;
-    gap: 8px;
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    width: 100%;
+    margin-top: 6px;
   }
 
-  .announcement-preview-btn,
-  .announcement-submit-btn {
-    width: 100%;
+  .announcement-preview-btn {
+    flex: 1;
+    height: 38px;
+    font-size: 12.5px;
+    border-radius: 8px;
     justify-content: center;
+    white-space: nowrap;
+  }
+
+  .announcement-submit-btn {
+    flex: 1.4;
+    height: 38px;
+    font-size: 12.5px;
+    border-radius: 8px;
+    justify-content: center;
+    white-space: nowrap;
   }
 }
