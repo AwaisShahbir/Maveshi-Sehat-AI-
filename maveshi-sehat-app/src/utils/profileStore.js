@@ -1,6 +1,6 @@
 import { Platform } from 'react-native';
 
-const BASE_URL = Platform.OS === 'android' ? 'http://10.0.2.2:5000' : 'http://localhost:5000';
+const BASE_URL = 'https://maveshi-sehat-api.onrender.com';
 
 let profile = {
   userId: null,

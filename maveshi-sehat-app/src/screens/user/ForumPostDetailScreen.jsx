@@ -24,7 +24,7 @@ import { t } from '../../utils/translate';
 import { useTheme } from '../../utils/themeContext';
 import { getStyles } from '../../styles/ForumPostDetailScreenStyles';
 
-const BASE_URL = Platform.OS === 'android' ? 'http://10.0.2.2:5000' : 'http://localhost:5000';
+const BASE_URL = 'https://maveshi-sehat-api.onrender.com';
 
 export default function ForumPostDetailScreen() {
   const { colors, isDark } = useTheme();

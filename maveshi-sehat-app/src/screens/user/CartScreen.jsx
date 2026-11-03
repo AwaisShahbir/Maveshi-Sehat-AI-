@@ -17,7 +17,7 @@ import { getStyles } from '../../styles/CartScreenStyles';
 const getImageUrl = (url) => {
   if (!url) return null;
   if (Platform.OS === 'android') {
-    return url.replace('localhost:5000', '10.0.2.2:5000').replace('127.0.0.1:5000', '10.0.2.2:5000');
+    return url.replace('localhost:5000', 'maveshi-sehat-api.onrender.com').replace('127.0.0.1:5000', 'maveshi-sehat-api.onrender.com');
   }
   return url;
 };
@@ -207,7 +207,7 @@ export default function CartScreen() {
   const submitOrder = async ({ method, paymentStatus, transactionId }) => {
     try {
       setLoading(true);
-      const baseUrl = Platform.OS === 'android' ? 'http://10.0.2.2:5000' : 'http://localhost:5000';
+      const baseUrl = 'https://maveshi-sehat-api.onrender.com';
       const primaryPharmacyId = cartItems[0].pharmacyId;
 
       const fullDeliveryAddress = `${streetAddress}${district ? `, ${district}` : ''}`;

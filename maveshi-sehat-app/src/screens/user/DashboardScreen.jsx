@@ -98,7 +98,7 @@ export default function DashboardScreen() {
       fetchUnreadCount(userId).then(count => setNotificationsCount(count));
     }
 
-    const socketUrl = Platform.OS === 'android' ? 'http://10.0.2.2:5000' : 'http://localhost:5000';
+    const socketUrl = 'https://maveshi-sehat-api.onrender.com';
     const socket = io(socketUrl);
     if (userId) {
       socket.emit('join_user', userId);

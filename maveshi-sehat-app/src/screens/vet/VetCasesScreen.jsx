@@ -30,7 +30,7 @@ export default function VetCasesScreen() {
 
   const fetchCases = async () => {
     try {
-      const baseUrl = Platform.OS === 'android' ? 'http://10.0.2.2:5000' : 'http://localhost:5000';
+      const baseUrl = 'https://maveshi-sehat-api.onrender.com';
       const url = `${baseUrl}/api/consultations/vet/${userId}`;
       const response = await fetch(url);
       if (!response.ok) throw new Error('Failed to fetch cases');

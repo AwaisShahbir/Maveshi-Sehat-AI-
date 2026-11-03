@@ -19,7 +19,7 @@ export default function MyConsultationsScreen() {
   const fetchConsultations = async () => {
     try {
       setLoading(true);
-      const baseUrl = Platform.OS === 'android' ? 'http://10.0.2.2:5000' : 'http://localhost:5000';
+      const baseUrl = 'https://maveshi-sehat-api.onrender.com';
       const response = await fetch(`${baseUrl}/api/consultations/farmer/${profile.userId || 2}`);
       const data = await response.json();
       if (response.ok) {
@@ -53,7 +53,7 @@ export default function MyConsultationsScreen() {
           style: 'destructive',
           onPress: async () => {
             try {
-              const baseUrl = Platform.OS === 'android' ? 'http://10.0.2.2:5000' : 'http://localhost:5000';
+              const baseUrl = 'https://maveshi-sehat-api.onrender.com';
               const idsToDelete = item.consultations?.map(c => c.id) || [item.id];
               for (const cId of idsToDelete) {
                 await fetch(`${baseUrl}/api/consultations/${cId}`, { method: 'DELETE' });
@@ -72,7 +72,7 @@ export default function MyConsultationsScreen() {
 
   const handleStartChat = async (consult) => {
     try {
-      const baseUrl = Platform.OS === 'android' ? 'http://10.0.2.2:5000' : 'http://localhost:5000';
+      const baseUrl = 'https://maveshi-sehat-api.onrender.com';
       const response = await fetch(`${baseUrl}/api/chat/conversation`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

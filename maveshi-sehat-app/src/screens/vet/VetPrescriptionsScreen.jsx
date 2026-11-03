@@ -28,7 +28,7 @@ export default function VetPrescriptionsScreen() {
   const [prescriptions, setPrescriptions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
-  const baseUrl = Platform.OS === 'android' ? 'http://10.0.2.2:5000' : 'http://localhost:5000';
+  const baseUrl = 'https://maveshi-sehat-api.onrender.com';
 
   const fetchPrescriptions = async () => {
     try {

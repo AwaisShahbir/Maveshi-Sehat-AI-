@@ -27,13 +27,13 @@ import fonts from '../../styles/fonts';
 import { getStyles } from '../../styles/ChatbotScreenStyles';
 
 const { AudioModule } = NativeModules;
-const BASE_URL = Platform.OS === 'android' ? 'http://10.0.2.2:5000' : 'http://localhost:5000';
+const BASE_URL = 'https://maveshi-sehat-api.onrender.com';
 
 // High reliability fetcher with automatic host fallback for Android (10.0.2.2 <-> localhost <-> 127.0.0.1)
 const tryFetch = async (endpoint, options = {}) => {
   const hosts = Platform.OS === 'android'
-    ? ['http://10.0.2.2:5000', 'http://localhost:5000', 'http://127.0.0.1:5000']
-    : ['http://localhost:5000'];
+    ? ['https://maveshi-sehat-api.onrender.com', 'https://maveshi-sehat-api.onrender.com', 'http://127.0.0.1:5000']
+    : ['https://maveshi-sehat-api.onrender.com'];
 
   let lastErr = null;
   for (const host of hosts) {

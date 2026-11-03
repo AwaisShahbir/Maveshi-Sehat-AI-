@@ -204,7 +204,7 @@ export default function HeatAlertScreen() {
 
   const fetchWeatherData = async (lat, lng, districtName = '') => {
     setLoading(true);
-    const baseUrl = Platform.OS === 'android' ? 'http://10.0.2.2:5000' : 'http://localhost:5000';
+    const baseUrl = 'https://maveshi-sehat-api.onrender.com';
     let fetchedFromBackend = false;
 
     // 1. Try Maveshi Sehat backend meteorological & THI service

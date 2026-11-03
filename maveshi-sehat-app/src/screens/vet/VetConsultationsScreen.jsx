@@ -32,7 +32,7 @@ export default function VetConsultationsScreen() {
 
   const fetchConsultations = async () => {
     try {
-      const baseUrl = Platform.OS === 'android' ? 'http://10.0.2.2:5000' : 'http://localhost:5000';
+      const baseUrl = 'https://maveshi-sehat-api.onrender.com';
       const url = `${baseUrl}/api/consultations/vet/${userId}`;
       const response = await fetch(url);
       if (!response.ok) {
@@ -59,7 +59,7 @@ export default function VetConsultationsScreen() {
 
   const handleStatusUpdate = async (id, status) => {
     try {
-      const baseUrl = Platform.OS === 'android' ? 'http://10.0.2.2:5000' : 'http://localhost:5000';
+      const baseUrl = 'https://maveshi-sehat-api.onrender.com';
       const response = await fetch(`${baseUrl}/api/consultations/${id}/status`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -82,7 +82,7 @@ export default function VetConsultationsScreen() {
           style: 'destructive',
           onPress: async () => {
             try {
-              const baseUrl = Platform.OS === 'android' ? 'http://10.0.2.2:5000' : 'http://localhost:5000';
+              const baseUrl = 'https://maveshi-sehat-api.onrender.com';
               const idsToDelete = item.consultations?.map(c => c.id) || [item.id];
               for (const cId of idsToDelete) {
                 await fetch(`${baseUrl}/api/consultations/${cId}`, { method: 'DELETE' });
@@ -101,7 +101,7 @@ export default function VetConsultationsScreen() {
 
   const openChat = async (item) => {
     try {
-      const baseUrl = Platform.OS === 'android' ? 'http://10.0.2.2:5000' : 'http://localhost:5000';
+      const baseUrl = 'https://maveshi-sehat-api.onrender.com';
       const response = await fetch(`${baseUrl}/api/chat/conversation`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

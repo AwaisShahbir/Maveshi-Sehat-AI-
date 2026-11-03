@@ -54,7 +54,7 @@ export default function VetProfileScreen() {
   const [formSpec, setFormSpec] = useState(profile.specialization || '');
   const [formAvail, setFormAvail] = useState(profile.availability || profile.availabilitySchedule || '');
 
-  const baseUrl = Platform.OS === 'android' ? 'http://10.0.2.2:5000' : 'http://localhost:5000';
+  const baseUrl = 'https://maveshi-sehat-api.onrender.com';
   const vetId = profile.userId || params.userId;
 
   useEffect(() => {

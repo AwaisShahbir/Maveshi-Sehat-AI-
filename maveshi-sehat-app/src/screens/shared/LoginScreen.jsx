@@ -57,7 +57,7 @@ export default function LoginScreen() {
     setLoading(true);
     try {
       const mappedRole = role === 'owner' ? 'farmer' : 'vet';
-      const baseUrl = Platform.OS === 'android' ? 'http://10.0.2.2:5000' : 'http://localhost:5000';
+      const baseUrl = 'https://maveshi-sehat-api.onrender.com';
       const response = await fetch(`${baseUrl}/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

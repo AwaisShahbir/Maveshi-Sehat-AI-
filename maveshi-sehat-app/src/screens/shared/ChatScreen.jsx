@@ -81,7 +81,7 @@ export default function ChatScreen() {
 
   const socketRef = useRef(null);
   const flatListRef = useRef(null);
-  const baseUrl = Platform.OS === 'android' ? 'http://10.0.2.2:5000' : 'http://localhost:5000';
+  const baseUrl = 'https://maveshi-sehat-api.onrender.com';
 
   useEffect(() => {
     

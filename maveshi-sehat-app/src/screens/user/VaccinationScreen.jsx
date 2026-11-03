@@ -64,7 +64,7 @@ export default function VaccinationScreen() {
   const [notes, setNotes] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  const baseUrl = Platform.OS === 'android' ? 'http://10.0.2.2:5000' : 'http://localhost:5000';
+  const baseUrl = 'https://maveshi-sehat-api.onrender.com';
 
   // Listen for language changes
   useEffect(() => {

@@ -15,7 +15,7 @@ import { getStyles } from '../../styles/MarketplaceScreenStyles';
 const getImageUrl = (url) => {
   if (!url) return null;
   if (Platform.OS === 'android') {
-    return url.replace('localhost:5000', '10.0.2.2:5000').replace('127.0.0.1:5000', '10.0.2.2:5000');
+    return url.replace('localhost:5000', 'maveshi-sehat-api.onrender.com').replace('127.0.0.1:5000', 'maveshi-sehat-api.onrender.com');
   }
   return url;
 };
@@ -50,7 +50,7 @@ export default function MarketplaceScreen() {
 
   const fetchMedicines = async () => {
     try {
-      const baseUrl = Platform.OS === 'android' ? 'http://10.0.2.2:5000' : 'http://localhost:5000';
+      const baseUrl = 'https://maveshi-sehat-api.onrender.com';
       const response = await fetch(`${baseUrl}/api/admin/medicines`);
       if (!response.ok) throw new Error('Failed to fetch medicines');
       const data = await response.json();

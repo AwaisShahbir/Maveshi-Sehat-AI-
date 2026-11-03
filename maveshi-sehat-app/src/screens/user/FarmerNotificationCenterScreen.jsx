@@ -26,7 +26,7 @@ import {
   displayLocalNotification
 } from '../../services/notificationService';
 
-const SOCKET_URL = 'http://10.0.2.2:5000';
+const SOCKET_URL = 'https://maveshi-sehat-api.onrender.com';
 
 export default function FarmerNotificationCenterScreen({ navigation }) {
   const { colors, isDark } = useTheme();
