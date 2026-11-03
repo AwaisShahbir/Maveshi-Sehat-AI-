@@ -576,3 +576,59 @@
     font-size: 16px;
   }
 }
+
+
+/* Responsive enhancements for Dashboard */
+.top-demanded-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+@media (max-width: 640px) {
+  .chart-container-300 {
+    height: 220px;
+  }
+
+  .pending-item {
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 10px 12px;
+  }
+
+  .pending-info {
+    flex: 1;
+    min-width: 130px;
+  }
+
+  .pending-btns {
+    width: 100%;
+    display: flex;
+    gap: 8px;
+  }
+
+  .p-btn-rect-approve, 
+  .p-btn-rect-reject {
+    flex: 1;
+    text-align: center;
+    padding: 8px 10px;
+    font-size: 11.5px;
+  }
+
+  .status-item {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 8px 0;
+  }
+
+  .status-item-details {
+    margin-left: auto;
+  }
+
+  .pharmacy-view-meds-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}

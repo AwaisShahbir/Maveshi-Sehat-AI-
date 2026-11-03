@@ -921,3 +921,75 @@
     overflow-y: auto;
   }
 }
+
+
+/* Responsive enhancements for Pharmacy Approval & Medicine Directory */
+.pharmacy-meds-card {
+  padding: 24px;
+}
+
+@media (max-width: 768px) {
+  .pharmacy-meds-card {
+    padding: 14px 12px;
+  }
+
+  .pharmacy-meds-filter-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    padding: 12px 14px;
+  }
+
+  .pharmacy-filter-controls-group {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    width: 100%;
+  }
+
+  .pharmacy-filter-controls-group > div {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .pharmacy-select-filter {
+    width: 100% !important;
+    box-sizing: border-box;
+    height: 40px;
+  }
+
+  .pharmacy-search-input {
+    width: 100% !important;
+    box-sizing: border-box;
+    height: 40px;
+  }
+
+  .pharm-actions-toolbar {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .pharm-actions-toolbar button {
+    flex: 1 1 auto;
+    justify-content: center;
+    min-height: 36px;
+    font-size: 11.5px;
+    padding: 6px 10px;
+  }
+
+  .pharmacy-meds-card .table-responsive {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    display: block;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .pharmacy-meds-card .custom-table {
+    min-width: 680px;
+  }
+}

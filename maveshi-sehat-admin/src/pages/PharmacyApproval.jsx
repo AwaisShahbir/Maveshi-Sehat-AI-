@@ -261,7 +261,7 @@ export default function PharmacyApproval() {
         <div className="pharmacy-loading-msg">Loading pharmacy records...</div>
       ) : activeTab === 'medicines' ? (
         /* Master Medicine Catalog & Live Stock Status Directory */
-        <div className="card" style={{ padding: '24px' }}>
+        <div className="card pharmacy-meds-card">
           <div className="pharmacy-meds-filter-bar">
             <div className="pharmacy-filter-controls-group">
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -476,17 +476,13 @@ export default function PharmacyApproval() {
                 {/* Card Footer Toolbar */}
                 <div className="pharm-card-footer">
                   <div className="pharm-inventory-preview">
-                    <button 
-                      className="pharm-inv-tag"
-                      onClick={() => handleOpenPharmacyCatalog(pharm)}
-                      title="Inspect pharmacy medicine catalog"
-                    >
-                      <Pill size={14} style={{ color: '#0ea5e9' }} />
-                      <span><strong>{pharm.medicines_count || 0}</strong> cataloged medicines</span>
-                    </button>
-                    {pharm.address && pharm.address.toLowerCase() !== 'no address' && (
+                    {pharm.address && pharm.address.toLowerCase() !== 'no address' ? (
                       <span className="pharm-address-line" title={pharm.address}>
                         📍 {pharm.address}
+                      </span>
+                    ) : (
+                      <span className="pharm-address-line" style={{ color: '#94a3b8' }}>
+                        Registered Vendor
                       </span>
                     )}
                   </div>

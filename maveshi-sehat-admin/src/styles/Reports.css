@@ -197,12 +197,28 @@
   }
   .reports-card-footer {
     width: 100%;
-    flex-direction: column;
-    align-items: stretch;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .reports-meta-wrap {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
     gap: 8px;
   }
-  .reports-card-footer button {
-    width: 100%;
-    justify-content: center;
+  .reports-download-btn {
+    width: auto !important;
+    height: 36px;
+    padding: 0 16px;
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
   }
 }

@@ -278,7 +278,7 @@ export default function Dashboard() {
               <Activity className="text-muted" size={20} />
             </div>
             <div className="chart-container-300">
-              <ResponsiveContainer>
+              <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={trendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
                   <XAxis dataKey="name" tick={{ fontSize: 12, fill: '#64748b' }} />
@@ -494,8 +494,8 @@ export default function Dashboard() {
       </div>
 
       {/* Top Demanded Livestock Medicines & Pharmacy Ownership */}
-      <div className="card" style={{ marginTop: '24px' }}>
-        <div className="card-title-container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div className="card top-demanded-pharmacy-card" style={{ marginTop: '24px' }}>
+        <div className="card-title-container top-demanded-header">
           <div>
             <h3 className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Pill size={18} style={{ color: '#3da860' }} />

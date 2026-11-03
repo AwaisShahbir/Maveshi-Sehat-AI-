@@ -58,6 +58,7 @@ export default function Header({ adminUser, onToggleSidebar }) {
     '/medicines': 'Medicine Catalogue',
     '/orders': 'Order Management',
     '/notifications': 'Notifications',
+    '/community-forum': 'Community Forum',
     '/settings': 'Settings & Configuration'
   };
 
