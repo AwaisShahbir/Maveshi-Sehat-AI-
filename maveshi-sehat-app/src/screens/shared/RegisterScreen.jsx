@@ -66,7 +66,7 @@ export default function RegisterScreen() {
       const formData = new FormData();
       formData.append('license', file);
       
-      const response = await fetch('http://localhost:5000/upload', {
+      const response = await fetch(`${baseUrl}/upload`, {
         method: 'POST',
         body: formData
       });
@@ -175,7 +175,7 @@ export default function RegisterScreen() {
 
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:5000/register', {
+      const response = await fetch(`${baseUrl}/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 

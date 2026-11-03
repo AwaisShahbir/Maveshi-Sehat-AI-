@@ -6,6 +6,8 @@ import { t } from '../../utils/translate';
 import { useTheme } from '../../utils/themeContext';
 import { getStyles } from '../../styles/VerifyScreenStyles';
 
+const baseUrl = 'https://maveshi-sehat-api.onrender.com';
+
 export default function VerifyScreen() {
   const { colors, isDark } = useTheme();
   const styles = React.useMemo(() => getStyles(colors, isDark), [colors, isDark]);
@@ -41,7 +43,7 @@ export default function VerifyScreen() {
 
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:5000/verify-otp', {
+      const response = await fetch(`${baseUrl}/verify-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, otp: otpValue })
