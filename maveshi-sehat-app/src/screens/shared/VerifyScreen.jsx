@@ -13,7 +13,8 @@ export default function VerifyScreen() {
   const styles = React.useMemo(() => getStyles(colors, isDark), [colors, isDark]);
   const navigation = useNavigation();
   const route = useRoute();
-  const { email, role, userName } = route.params || {};
+  const { email, role, userName, otp: initialOtp } = route.params || {};
+  const [currentOtp, setCurrentOtp] = useState(initialOtp || null);
   const [code, setCode] = useState(['', '', '', '']);
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
@@ -66,10 +67,14 @@ export default function VerifyScreen() {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || 'Failed to resend OTP');
 
+      if (data.otp) {
+        setCurrentOtp(data.otp);
+      }
+
       if (Platform.OS === 'web') {
         alert('A new 4-digit verification code has been sent to your email.');
       } else {
-        Alert.alert('Code Sent', 'A new 4-digit verification code has been sent to your email.');
+        Alert.alert('Code Sent', 'A new 4-digit verification code has been sent to your email. Check your Inbox or Spam folder.');
       }
       setTimer(60);
       setCanResend(false);
@@ -148,6 +153,51 @@ export default function VerifyScreen() {
           <View style={styles.cardContainer}>
             <Text style={styles.instructionText}>{t('Enter 4-digit code sent to', 'کوڈ درج کریں جو ای میل پر بھیجا گیا')}</Text>
             <Text style={styles.phoneNumber}>{email || '+92 300 1234567'}</Text>
+
+            <View style={{
+              backgroundColor: isDark ? '#1E293B' : '#F0FDF4',
+              borderRadius: 10,
+              padding: 12,
+              marginVertical: 12,
+              borderWidth: 1,
+              borderColor: isDark ? '#334155' : '#BBF7D0',
+              flexDirection: 'row',
+              alignItems: 'center'
+            }}>
+              <Feather name="mail" size={18} color={isDark ? '#4ADE80' : '#16A34A'} style={{ marginRight: 10 }} />
+              <Text style={{ flex: 1, fontSize: 13, color: isDark ? '#E2E8F0' : '#166534', lineHeight: 18 }}>
+                {t(
+                  'Please check your email Inbox and Spam / Junk folder for the 4-digit code.',
+                  'براہ کرم 4 ہندسوں کے کوڈ کے لیے اپنا ای میل ان باکس اور اسپام / جنک فولڈر چیک کریں۔'
+                )}
+              </Text>
+            </View>
+
+            {currentOtp && (
+              <TouchableOpacity
+                onPress={() => {
+                  const digits = String(currentOtp).slice(0, 4).split('');
+                  setCode([digits[0] || '', digits[1] || '', digits[2] || '', digits[3] || '']);
+                }}
+                style={{
+                  backgroundColor: isDark ? '#132E1B' : '#E8F5E9',
+                  borderWidth: 1.5,
+                  borderColor: isDark ? '#2E7D32' : '#81C784',
+                  borderRadius: 10,
+                  paddingVertical: 10,
+                  paddingHorizontal: 14,
+                  marginBottom: 16,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+              >
+                <Feather name="check-circle" size={16} color={isDark ? '#4ADE80' : '#2E7D32'} style={{ marginRight: 8 }} />
+                <Text style={{ color: isDark ? '#86EFAC' : '#1B5E20', fontSize: 13, fontWeight: '700' }}>
+                  {t(`Auto-Fill Code: ${currentOtp}`, `خودکار کوڈ درج کریں: ${currentOtp}`)}
+                </Text>
+              </TouchableOpacity>
+            )}
 
             <View style={styles.otpContainer}>
               {code.map((digit, index) => (

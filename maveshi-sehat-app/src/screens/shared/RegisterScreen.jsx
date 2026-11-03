@@ -210,7 +210,12 @@ export default function RegisterScreen() {
           );
         }
       } else {
-        navigation.navigate('Verify', { email: data.email, role: role, userName: fullName });
+        navigation.navigate('Verify', { 
+          email: data.email, 
+          role: role, 
+          userName: fullName,
+          otp: data.otp 
+        });
       }
     } catch (error) {
       setErrorMsg(error.message);

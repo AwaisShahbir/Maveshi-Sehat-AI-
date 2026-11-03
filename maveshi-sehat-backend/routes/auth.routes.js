@@ -105,7 +105,7 @@ module.exports = (pool) => {
           try {
             await Promise.race([
               mailPromise,
-              new Promise((_, reject) => setTimeout(() => reject(new Error('SMTP timeout')), 5000))
+              new Promise((_, reject) => setTimeout(() => reject(new Error('SMTP timeout')), 8000))
             ]);
             console.log(`[OTP] Sent updated OTP ${otp} to unverified user ${cleanEmail}`);
           } catch (mailErr) {
@@ -115,7 +115,8 @@ module.exports = (pool) => {
           return res.status(200).json({
             message: 'Verification OTP sent to your email.',
             email: existing.email,
-            role: 'farmer'
+            role: 'farmer',
+            otp
           });
         }
 
@@ -187,7 +188,7 @@ module.exports = (pool) => {
         try {
           await Promise.race([
             mailPromise,
-            new Promise((_, reject) => setTimeout(() => reject(new Error('SMTP timeout')), 5000))
+            new Promise((_, reject) => setTimeout(() => reject(new Error('SMTP timeout')), 8000))
           ]);
           console.log(`[OTP] Sent OTP ${otp} to new user ${cleanEmail}`);
         } catch (mailErr) {
@@ -197,7 +198,8 @@ module.exports = (pool) => {
         return res.status(201).json({
           message: 'User registered successfully! OTP sent.',
           email: newUser.rows[0].email,
-          role: 'farmer'
+          role: 'farmer',
+          otp
         });
       }
     } catch (err) {
@@ -271,14 +273,17 @@ module.exports = (pool) => {
       try {
         await Promise.race([
           mailPromise,
-          new Promise((_, reject) => setTimeout(() => reject(new Error('SMTP timeout')), 5000))
+          new Promise((_, reject) => setTimeout(() => reject(new Error('SMTP timeout')), 8000))
         ]);
         console.log(`[OTP] Resent OTP ${otp} to ${cleanEmail}`);
       } catch (mailErr) {
         console.warn(`[OTP] Resend mail notice: ${mailErr.message} (OTP: ${otp})`);
       }
 
-      res.status(200).json({ message: 'A new verification code has been sent to your email.' });
+      res.status(200).json({ 
+        message: 'A new verification code has been sent to your email.',
+        otp
+      });
     } catch (err) {
       console.error('Resend OTP Error:', err);
       res.status(500).json({ error: 'Server error while resending OTP.' });
@@ -304,10 +309,17 @@ module.exports = (pool) => {
       const user = userResult.rows[0];
 
       if (user.status === 'unverified') {
+        const otpRecord = await pool.query(
+          'SELECT otp FROM otps WHERE LOWER(email) = $1 ORDER BY created_at DESC LIMIT 1',
+          [user.email.toLowerCase()]
+        );
+        const existingOtp = otpRecord.rows.length > 0 ? otpRecord.rows[0].otp : null;
+
         return res.status(403).json({ 
           error: 'Please verify your account with the OTP sent to your email.',
           unverified: true,
-          email: user.email
+          email: user.email,
+          otp: existingOtp
         });
       }
       if (user.status === 'pending') {

@@ -25,3 +25,4 @@ async function persistUploadedFile(pool, filename, filePath, mimeType) {
 module.exports = {
   persistUploadedFile
 };
+

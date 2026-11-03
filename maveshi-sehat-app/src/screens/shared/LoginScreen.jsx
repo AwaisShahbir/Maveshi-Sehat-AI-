@@ -73,7 +73,7 @@ export default function LoginScreen() {
             'Your account is not verified yet. Please enter the OTP code sent to your email to verify.',
             [
               { text: 'Cancel', style: 'cancel' },
-              { text: 'Verify Now', onPress: () => navigation.navigate('Verify', { email: data.email, role: mappedRole }) }
+              { text: 'Verify Now', onPress: () => navigation.navigate('Verify', { email: data.email, role: mappedRole, otp: data.otp }) }
             ]
           );
           return;
