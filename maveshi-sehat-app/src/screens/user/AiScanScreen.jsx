@@ -18,7 +18,9 @@ import {
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import { addRecord } from '../../utils/recordsStore';
+import { addRecord, loadRecords } from '../../utils/recordsStore';
+
+const BASE_URL = Platform.OS === 'android' ? 'http://10.0.2.2:5000' : 'http://localhost:5000';
 import { t, getLocalizedDescription, getLocalizedFirstAid } from '../../utils/translate';
 import { useTheme } from '../../utils/themeContext';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
@@ -232,128 +234,112 @@ export default function AiScanScreen() {
     }
   };
 
-  const handleAnalyze = () => {
+  const handleAnalyze = async () => {
     if (!selectedImage) return;
 
     setIsScanning(true);
     setShowReport(false);
     startScanAnimation();
 
-    
     setScanProgressText(t('Uploading Image to Maveshi AI...'));
-    
-    
-    setTimeout(() => {
-      setScanProgressText(t('Analyzing Symptoms...'));
+
+    const t1 = setTimeout(() => {
+      setScanProgressText(t('Analyzing Symptoms with Roboflow AI...'));
     }, 1200);
 
-    
-    setTimeout(() => {
+    const t2 = setTimeout(() => {
       setScanProgressText(t('Generating Health Diagnosis...'));
     }, 2400);
 
-    
-    setTimeout(() => {
-      setIsScanning(false);
-      stopScanAnimation();
-      
-      const DISEASES = [
-        {
-          status: 'Lumpy Skin Disease',
-          
-          confidence: `${(85 + Math.random() * 12).toFixed(1)}%`,
-          severity: 'High Severity',
-          severityColor: '#FF4D4D',
-          severityBg: '#FFEBEB',
-          description: 'Nodular lesions on skin, fever, and enlargement of superficial lymph nodes.',
-          firstAid: [
-            'Isolate the infected animal from the rest of the herd immediately.',
-            'Apply antiseptic solution to open skin lesions to prevent secondary infections.',
-            'Control flies, mosquitoes, and ticks in the stable to stop the spread.',
-            'Provide soft feed and clean, fresh drinking water.'
-          ],
-        },
-        {
-          status: 'Foot and Mouth Disease',
-          
-          confidence: `${(85 + Math.random() * 12).toFixed(1)}%`,
-          severity: 'Severe Stress',
-          severityColor: '#FF9500',
-          severityBg: '#FFF5E5',
-          description: 'Blisters on mouth, tongue, and hooves. Excessive salivation, lameness, and high fever.',
-          firstAid: [
-            'Wash the mouth lesions with mild antiseptic like potassium permanganate.',
-            'Apply boric acid paste/glycine mix on mouth blisters.',
-            'Keep the animal in dry and mud-free environment to avoid hoof infection.',
-            'Feed soft mashes or gruel to ease chewing.'
-          ],
-        },
-        {
-          status: 'Mastitis',
-          
-          confidence: `${(80 + Math.random() * 15).toFixed(1)}%`,
-          severity: 'Medium Risk',
-          severityColor: '#FFB020',
-          severityBg: '#FFF5E5',
-          description: 'Swollen, painful, warm udder. Discolored milk, blood clots in milk, decrease in yield.',
-          firstAid: [
-            'Milk the affected quarter frequently (every 2 hours) to remove pathogens.',
-            'Apply cold packs on swollen udder, followed by warm massage if udder is dry.',
-            'Maintain strict milking hygiene, wash hands and dip teats before/after milking.',
-            'Provide comfortable bedding to avoid further udder damage.'
-          ],
-        },
-        {
-          status: 'Healthy (No Symptoms)',
-          
-          confidence: `${(95 + Math.random() * 4).toFixed(1)}%`,
-          severity: 'No Stress',
-          severityColor: '#4CB85C',
-          severityBg: '#E8F8EA',
-          description: 'Normal feed intake, clear skin, bright eyes, clean hooves, active rumination, and alert posture.',
-          firstAid: [
-            'Maintain regular balanced vaccination and feeding schedule.',
-            'Keep the housing dry, well-ventilated, and clean.',
-            'Perform regular health check-ups.'
-          ]
-        }
-      ];
+    try {
+      let response;
+      if (selectedImage.uri && selectedImage.isLocal) {
+        // Upload local camera or gallery photo
+        const formData = new FormData();
+        formData.append('image', {
+          uri: selectedImage.uri,
+          name: 'scan.jpg',
+          type: 'image/jpeg'
+        });
+        formData.append('animalType', animalType || 'Cow');
+        formData.append('ownerName', userName || 'Farmer');
 
-      const randomOutcome = DISEASES[Math.floor(Math.random() * DISEASES.length)];
-      const randomIdNum = Math.floor(100 + Math.random() * 900);
-      const generatedAnimalId = `${animalType.toUpperCase()}-${randomIdNum}`;
-      
-      const isHealthy = randomOutcome.status.includes('Healthy');
-      
+        response = await fetch(`${BASE_URL}/api/ai/scan-disease`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+          body: formData,
+        });
+      } else {
+        // Web sample image
+        response = await fetch(`${BASE_URL}/api/ai/scan-disease`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            imageUrl: selectedImage.uri,
+            animalType: animalType || 'Cow',
+            ownerName: userName || 'Farmer'
+          }),
+        });
+      }
+
+      clearTimeout(t1);
+      clearTimeout(t2);
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || 'Failed to detect disease');
+      }
+
+      const diagnosis = data.diagnosis;
+      const isHealthy = !diagnosis.detected;
+
       const newRecord = {
-        id: Date.now().toString(),
-        animalId: generatedAnimalId,
-        animalType: animalType,
-        disease: isHealthy ? 'Healthy' : randomOutcome.status,
-        
-        confidence: randomOutcome.confidence,
+        id: (data.record && data.record.id) || Date.now().toString(),
+        animalId: diagnosis.animalId,
+        animalType: animalType || 'Cow',
+        disease: diagnosis.name || diagnosis.status,
+        diseaseUrdu: diagnosis.urdu,
+        confidence: diagnosis.confidence,
         timeAgo: 'Just now',
         date: new Date().toLocaleString(),
-        risk: isHealthy ? 'Low Risk' : (randomOutcome.severity.includes('High') || randomOutcome.severity.includes('Severe') ? 'High Risk' : 'Medium Risk'),
-        status: isHealthy ? 'Healthy' : (randomOutcome.status === 'Mastitis' ? 'Under Treatment' : 'Active'),
-        icon: isHealthy ? 'check-circle' : (randomOutcome.severity.includes('High') || randomOutcome.severity.includes('Severe') ? 'alert-circle' : 'trending-up'),
-        color: randomOutcome.severityColor,
-        bg: randomOutcome.severityBg,
+        risk: diagnosis.riskLevel === 'High' ? 'High Risk' : (diagnosis.riskLevel === 'Medium' ? 'Medium Risk' : 'Low Risk'),
+        status: isHealthy ? 'Healthy' : 'Active',
+        icon: isHealthy ? 'check-circle' : (diagnosis.riskLevel === 'High' ? 'alert-circle' : 'trending-up'),
+        color: diagnosis.severityColor,
+        bg: diagnosis.severityBg,
         uri: selectedImage.uri,
-        description: randomOutcome.description,
-        firstAid: randomOutcome.firstAid
+        description: diagnosis.description,
+        firstAid: diagnosis.firstAid
       };
 
-      addRecord(newRecord, userName);
-      
-      
+      // Refresh records store
+      if (typeof loadRecords === 'function') {
+        loadRecords(userName);
+      } else {
+        addRecord(newRecord, userName);
+      }
+
       setScanResult({
-        ...randomOutcome,
-        generatedAnimalId,
+        ...diagnosis,
+        generatedAnimalId: diagnosis.animalId,
+        statusUrdu: diagnosis.urdu,
         uri: selectedImage.uri
       });
       setShowReport(true);
-    }, 3600);
+    } catch (err) {
+      clearTimeout(t1);
+      clearTimeout(t2);
+      console.error('Scan Error:', err);
+      Alert.alert(t('Scan Failed'), err.message || 'Unable to complete AI disease detection. Please try again.');
+    } finally {
+      setIsScanning(false);
+      stopScanAnimation();
+    }
   };
 
   const handleReset = () => {

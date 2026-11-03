@@ -1,5 +1,20 @@
 const express = require('express');
 const router = express.Router();
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+const { detectDiseaseFromImage } = require('../services/roboflowService');
+
+const scanStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'uploads/');
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+    cb(null, 'scan-' + uniqueSuffix + path.extname(file.originalname));
+  }
+});
+const scanUpload = multer({ storage: scanStorage });
 
 function getTimeAgo(date) {
   const seconds = Math.floor((new Date() - new Date(date)) / 1000);
@@ -199,6 +214,97 @@ module.exports = (pool, io) => {
     } catch (err) {
       console.error('Error saving detection:', err.message);
       res.status(500).json({ error: 'Server error saving detection' });
+    }
+  });
+
+  // AI Disease Detection Scanner via Roboflow
+  router.post('/api/ai/scan-disease', scanUpload.single('image'), async (req, res) => {
+    try {
+      const { animalType = 'Cow', ownerName = 'Farmer', province = 'Punjab' } = req.body;
+      let imageFilePath = null;
+      let publicImageUrl = null;
+
+      if (req.file) {
+        imageFilePath = req.file.path;
+        publicImageUrl = `/uploads/${req.file.filename}`;
+      } else if (req.body.imageBase64) {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+        const fileName = `scan-b64-${uniqueSuffix}.jpg`;
+        const uploadDir = path.join(__dirname, '..', 'uploads');
+        if (!fs.existsSync(uploadDir)) {
+          fs.mkdirSync(uploadDir, { recursive: true });
+        }
+        imageFilePath = path.join(uploadDir, fileName);
+        const cleanBase64 = req.body.imageBase64.replace(/^data:image\/\w+;base64,/, '');
+        fs.writeFileSync(imageFilePath, Buffer.from(cleanBase64, 'base64'));
+        publicImageUrl = `/uploads/${fileName}`;
+      } else if (req.body.imageUrl) {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+        const fileName = `scan-url-${uniqueSuffix}.jpg`;
+        const uploadDir = path.join(__dirname, '..', 'uploads');
+        if (!fs.existsSync(uploadDir)) {
+          fs.mkdirSync(uploadDir, { recursive: true });
+        }
+        imageFilePath = path.join(uploadDir, fileName);
+        const axios = require('axios');
+        const imageRes = await axios.get(req.body.imageUrl, { responseType: 'arraybuffer', timeout: 10000 });
+        fs.writeFileSync(imageFilePath, Buffer.from(imageRes.data));
+        publicImageUrl = `/uploads/${fileName}`;
+      } else {
+        return res.status(400).json({ error: 'Please provide an image file, base64 image data, or imageUrl.' });
+      }
+
+      // Run Roboflow AI Inference
+      const diagnosis = await detectDiseaseFromImage(imageFilePath);
+
+      // Generate unique animal ear-tag ID
+      const randomIdNum = Math.floor(100 + Math.random() * 900);
+      const generatedAnimalId = `${(animalType || 'COW').toUpperCase()}-${randomIdNum}`;
+
+      // Insert record directly into database
+      const insertQuery = `
+        INSERT INTO detections (
+          id, owner_name, animal_type, disease, confidence, risk_level,
+          image_url, description, first_aid, disease_urdu, province, status
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+        RETURNING *;
+      `;
+
+      const confNumber = parseFloat(diagnosis.confidence.replace('%', '')) || 0;
+      const statusValue = diagnosis.detected ? (diagnosis.status.includes('Mastitis') ? 'Under Treatment' : 'Active') : 'Healthy';
+
+      const dbRes = await pool.query(insertQuery, [
+        generatedAnimalId,
+        ownerName,
+        animalType,
+        diagnosis.status,
+        confNumber,
+        diagnosis.riskLevel,
+        publicImageUrl,
+        diagnosis.description,
+        diagnosis.firstAid,
+        diagnosis.urdu,
+        province,
+        statusValue
+      ]);
+
+      // Emit realtime websocket event if IO is present
+      if (io) {
+        io.emit('new_detection', dbRes.rows[0]);
+      }
+
+      res.status(200).json({
+        success: true,
+        record: dbRes.rows[0],
+        diagnosis: {
+          ...diagnosis,
+          animalId: generatedAnimalId,
+          imageUrl: publicImageUrl
+        }
+      });
+    } catch (err) {
+      console.error('Scan Disease API Error:', err);
+      res.status(500).json({ error: err.message || 'Error processing AI disease scan' });
     }
   });
 
