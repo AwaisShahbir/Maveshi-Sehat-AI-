@@ -98,6 +98,7 @@ export default function UserManagement() {
   const getStatusBadge = (status) => {
     if (status === 'blocked') return <span className="badge badge-red">Blocked</span>;
     if (status === 'pending') return <span className="badge badge-orange">Pending</span>;
+    if (status === 'unverified') return <span className="badge badge-orange">Unverified</span>;
     if (status === 'verified') return <span className="badge badge-green">Verified</span>;
     return <span className="badge badge-green">Active</span>;
   };

@@ -1,5 +1,5 @@
-import React, { useState, useRef } from 'react';
-import { View, Text, TextInput, TouchableOpacity, SafeAreaView, StatusBar, KeyboardAvoidingView, Platform, ScrollView, Alert } from 'react-native';
+import React, { useState, useRef, useEffect } from 'react';
+import { View, Text, TextInput, TouchableOpacity, SafeAreaView, StatusBar, KeyboardAvoidingView, Platform, ScrollView, Alert, ActivityIndicator } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
 import { t } from '../../utils/translate';
@@ -16,13 +16,30 @@ export default function VerifyScreen() {
   const { email, role, userName } = route.params || {};
   const [code, setCode] = useState(['', '', '', '']);
   const [loading, setLoading] = useState(false);
+  const [resending, setResending] = useState(false);
+  const [timer, setTimer] = useState(60);
+  const [canResend, setCanResend] = useState(false);
   const inputRefs = [useRef(null), useRef(null), useRef(null), useRef(null)];
+
+  useEffect(() => {
+    let interval = null;
+    if (timer > 0) {
+      interval = setInterval(() => {
+        setTimer((prev) => prev - 1);
+      }, 1000);
+    } else {
+      setCanResend(true);
+      if (interval) clearInterval(interval);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [timer]);
 
   const handleChange = (text, index) => {
     const newCode = [...code];
     newCode[index] = text;
     setCode(newCode);
-
 
     if (text && index < 3) {
       inputRefs[index + 1].current.focus();
@@ -32,6 +49,38 @@ export default function VerifyScreen() {
   const handleKeyPress = (e, index) => {
     if (e.nativeEvent.key === 'Backspace' && !code[index] && index > 0) {
       inputRefs[index - 1].current.focus();
+    }
+  };
+
+  const handleResendOtp = async () => {
+    if (!email) {
+      return Platform.OS === 'web' ? alert('Email address missing.') : Alert.alert('Error', 'Email address missing.');
+    }
+    setResending(true);
+    try {
+      const response = await fetch(`${baseUrl}/resend-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Failed to resend OTP');
+
+      if (Platform.OS === 'web') {
+        alert('A new 4-digit verification code has been sent to your email.');
+      } else {
+        Alert.alert('Code Sent', 'A new 4-digit verification code has been sent to your email.');
+      }
+      setTimer(60);
+      setCanResend(false);
+    } catch (err) {
+      if (Platform.OS === 'web') {
+        alert('Resend Error: ' + err.message);
+      } else {
+        Alert.alert('Resend Error', err.message);
+      }
+    } finally {
+      setResending(false);
     }
   };
 
@@ -93,14 +142,12 @@ export default function VerifyScreen() {
               <Feather name="shield" size={40} color="#FFFFFF" />
             </View>
 
-            <Text style={styles.mainTitle}>Verify Phone</Text>
+            <Text style={styles.mainTitle}>{t('Verify Account', 'اکاؤنٹ کی تصدیق')}</Text>
           </View>
 
-
           <View style={styles.cardContainer}>
-            <Text style={styles.instructionText}>Enter 4-digit code sent to</Text>
+            <Text style={styles.instructionText}>{t('Enter 4-digit code sent to', 'کوڈ درج کریں جو ای میل پر بھیجا گیا')}</Text>
             <Text style={styles.phoneNumber}>{email || '+92 300 1234567'}</Text>
-
 
             <View style={styles.otpContainer}>
               {code.map((digit, index) => (
@@ -117,15 +164,17 @@ export default function VerifyScreen() {
               ))}
             </View>
 
-
-            <Text style={styles.timerText}>
-              Resend code in <Text style={styles.timerHighlight}>60s</Text>
-            </Text>
-
-            <TouchableOpacity>
-              <Text style={styles.resendLink}>{t('Resend OTP', 'دوبارہ بھیجیں')}</Text>
-            </TouchableOpacity>
-
+            {canResend ? (
+              <TouchableOpacity onPress={handleResendOtp} disabled={resending} style={{ marginBottom: 24, paddingVertical: 4 }}>
+                <Text style={styles.resendLink}>
+                  {resending ? t('Sending code...', 'کوڈ بھیجا جا رہا ہے...') : t('Resend OTP Code', 'دوبارہ کوڈ حاصل کریں')}
+                </Text>
+              </TouchableOpacity>
+            ) : (
+              <Text style={styles.timerText}>
+                {t('Resend code in', 'دوبارہ کوڈ')} <Text style={styles.timerHighlight}>{timer}s</Text>
+              </Text>
+            )}
 
             <TouchableOpacity
               style={[styles.verifyBtn, loading && { opacity: 0.7 }]}
@@ -133,6 +182,11 @@ export default function VerifyScreen() {
               onPress={handleVerify}
               disabled={loading}
             >
+              {loading ? (
+                <ActivityIndicator size="small" color="#FFFFFF" />
+              ) : (
+                <Text style={styles.verifyBtnText}>{t('Verify & Continue', 'تصدیق کریں')}</Text>
+              )}
             </TouchableOpacity>
           </View>
         </ScrollView>
@@ -140,4 +194,3 @@ export default function VerifyScreen() {
     </SafeAreaView>
   );
 }
-
