@@ -1,7 +1,7 @@
 import { API_BASE_URL } from '../config';
 import React, { useState, useEffect } from 'react';
-import { 
-  LayoutDashboard, BarChart3, Pill, PlusCircle, Tags, AlertTriangle, 
+import {
+  Menu, X, LayoutDashboard, BarChart3, Pill, PlusCircle, Tags, AlertTriangle, 
   ShoppingBag, Clock, Truck, CheckCircle, User, Settings, LogOut, Bell, Store, ArrowUpRight,
   TrendingUp, ShieldCheck, PackageCheck, FileText, Calendar
 } from 'lucide-react';
