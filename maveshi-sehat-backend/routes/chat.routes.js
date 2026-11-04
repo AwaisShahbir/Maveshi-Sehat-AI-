@@ -69,7 +69,7 @@ module.exports = (pool, io) => {
   });
 
   // REST Message Send Endpoint (Reliable fallback if WebSocket disconnects)
-  router.post('/api/chat/message', async (req, res) => {
+  router.post('/api/chat/message', async (req, res, next) => {
     try {
       const {
         conversationId,
@@ -84,6 +84,10 @@ module.exports = (pool, io) => {
       } = req.body;
 
       if (!conversationId) {
+        // Pass request to next handler (AI Chatbot) if not a consultation message
+        if (typeof next === 'function') {
+          return next();
+        }
         return res.status(400).json({ error: 'conversationId is required' });
       }
 

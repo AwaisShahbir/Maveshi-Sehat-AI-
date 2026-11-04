@@ -90,6 +90,7 @@ app.use('/', forumRoutes);
 app.use('/', translateRoutes);
 app.use('/', notificationRoutes);
 app.use('/', weatherRoutes);
+app.use('/api/chatbot', chatbotRoutes);
 app.use('/api/chat', chatbotRoutes);
 
 // Initialize Automated Heat Stress Monitoring Daemon

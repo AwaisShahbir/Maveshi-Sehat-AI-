@@ -184,12 +184,39 @@ ${sharedConstraints}`;
   }
 };
 
+async function chatWithOpenAI(userMessage, history = [], systemPrompt = '') {
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) throw new Error('OPENAI_API_KEY is not set');
+  const OpenAI = require('openai');
+  const openai = new OpenAI({ apiKey });
+
+  const messages = [{ role: 'system', content: systemPrompt }];
+  for (const h of history) {
+    if (h.content && typeof h.content === 'string' && h.content.trim()) {
+      messages.push({
+        role: (h.role === 'assistant' || h.role === 'model') ? 'assistant' : 'user',
+        content: h.content
+      });
+    }
+  }
+  messages.push({ role: 'user', content: userMessage });
+
+  const completion = await openai.chat.completions.create({
+    model: 'gpt-4o-mini',
+    messages,
+    max_tokens: 600,
+    temperature: 0.3
+  });
+
+  return completion.choices[0]?.message?.content?.trim() || '';
+}
+
 /**
  * Intelligent AI Router:
  * 1. Executes deterministic domain boundary guardrail check
  * 2. Selects role-tailored system prompt (Farmer vs Veterinarian)
  * 3. Attaches dynamic language enforcement directive and platform directory
- * 4. Routes through Google Gemini (Primary) with Groq Llama 3.3 70B fallback
+ * 4. Routes through Google Gemini (Primary) with Groq and OpenAI fallback
  */
 const routeChatMessage = async (userMessage, history = [], options = {}) => {
   // 1. Guardrail Check
@@ -229,8 +256,14 @@ const routeChatMessage = async (userMessage, history = [], options = {}) => {
       const reply = await chatWithGroq(userMessage, history, combinedSystemPrompt);
       return { reply, provider: 'groq' };
     } catch (groqError) {
-      console.error('Fallback AI (Groq) also failed. Error:', groqError.message);
-      throw new Error(`Both AI services failed. Gemini: ${geminiError.message} | Groq: ${groqError.message}`);
+      console.warn('Fallback AI (Groq) failed, attempting OpenAI fallback. Error:', groqError.message);
+      try {
+        const reply = await chatWithOpenAI(userMessage, history, combinedSystemPrompt);
+        return { reply, provider: 'openai' };
+      } catch (openAiError) {
+        console.error('All AI services failed:', openAiError.message);
+        throw new Error(`All AI services failed. Gemini: ${geminiError.message} | Groq: ${groqError.message} | OpenAI: ${openAiError.message}`);
+      }
     }
   }
 };
