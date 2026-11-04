@@ -315,20 +315,6 @@ export default function ForgotPasswordScreen() {
                   />
                 </View>
 
-                {/* Auto-fill button with privacy */}
-                {receivedOtp ? (
-                  <TouchableOpacity
-                    style={styles.autoFillButton}
-                    onPress={() => setOtp(receivedOtp)}
-                    activeOpacity={0.7}
-                  >
-                    <Feather name="zap" size={14} color="#10B981" />
-                    <Text style={[styles.autoFillText, isUrdu && { fontFamily: fonts.urduRegular }]}>
-                      {isUrdu ? 'خودکار کوڈ درج کریں' : 'Auto-Fill Code'}
-                    </Text>
-                  </TouchableOpacity>
-                ) : null}
-
                 {/* Timer & Resend */}
                 <View style={styles.timerRow}>
                   {timer > 0 ? (

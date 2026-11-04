@@ -173,32 +173,6 @@ export default function VerifyScreen() {
               </Text>
             </View>
 
-            {currentOtp && (
-              <TouchableOpacity
-                onPress={() => {
-                  const digits = String(currentOtp).slice(0, 4).split('');
-                  setCode([digits[0] || '', digits[1] || '', digits[2] || '', digits[3] || '']);
-                }}
-                style={{
-                  backgroundColor: isDark ? '#132E1B' : '#E8F5E9',
-                  borderWidth: 1.5,
-                  borderColor: isDark ? '#2E7D32' : '#81C784',
-                  borderRadius: 10,
-                  paddingVertical: 10,
-                  paddingHorizontal: 14,
-                  marginBottom: 16,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}
-              >
-                <Feather name="check-circle" size={16} color={isDark ? '#4ADE80' : '#2E7D32'} style={{ marginRight: 8 }} />
-                <Text style={{ color: isDark ? '#86EFAC' : '#1B5E20', fontSize: 13, fontWeight: '700' }}>
-                  {t('Auto-Fill Code', 'خودکار کوڈ درج کریں')}
-                </Text>
-              </TouchableOpacity>
-            )}
-
             <View style={styles.otpContainer}>
               {code.map((digit, index) => (
                 <TextInput

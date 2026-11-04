@@ -123,8 +123,7 @@ module.exports = (pool) => {
           return res.status(200).json({
             message: 'Verification OTP sent to your email.',
             email: existing.email,
-            role: 'farmer',
-            otp
+            role: 'farmer'
           });
         }
 
@@ -197,10 +196,9 @@ module.exports = (pool) => {
         }
 
         return res.status(201).json({
-          message: 'User registered successfully! OTP sent.',
+          message: 'User registered successfully! OTP sent to your email.',
           email: newUser.rows[0].email,
-          role: 'farmer',
-          otp
+          role: 'farmer'
         });
       }
     } catch (err) {
@@ -276,8 +274,7 @@ module.exports = (pool) => {
       }
 
       res.status(200).json({ 
-        message: 'A new verification code has been sent to your email.',
-        otp
+        message: 'A new verification code has been sent to your email.'
       });
     } catch (err) {
       console.error('Resend OTP Error:', err);
@@ -327,8 +324,7 @@ module.exports = (pool) => {
         return res.status(403).json({ 
           error: 'Please verify your account with the OTP sent to your email.',
           unverified: true,
-          email: user.email,
-          otp: existingOtp
+          email: user.email
         });
       }
       if (user.status === 'pending') {
@@ -476,8 +472,7 @@ module.exports = (pool) => {
       return res.status(200).json({
         success: true,
         message: 'Password reset code has been sent to your email.',
-        email: targetEmail,
-        otp
+        email: targetEmail
       });
     } catch (err) {
       console.error('Forgot Password Error:', err.message);
