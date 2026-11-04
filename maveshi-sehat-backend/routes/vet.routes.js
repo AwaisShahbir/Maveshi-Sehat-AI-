@@ -274,22 +274,6 @@ module.exports = (pool, io) => {
       res.status(500).json({ error: 'Failed to update consultation status' });
     }
   });
-          data: {
-            consultationId: consultation.id,
-            status,
-            targetScreen: 'MyConsultations'
-          }
-        });
-      } catch (notifErr) {
-        console.error('Failed to notify farmer about consultation status:', notifErr.message);
-      }
-
-      res.json({ success: true, consultation: result.rows[0] });
-    } catch (err) {
-      console.error('Error updating consultation status:', err);
-      res.status(500).json({ error: 'Failed to update consultation' });
-    }
-  });
 
   // Get Vet Prescriptions
   router.get('/api/vet/prescriptions', async (req, res) => {
