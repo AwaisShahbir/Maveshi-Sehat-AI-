@@ -188,7 +188,7 @@ export default function LoginScreen() {
             </View>
 
             <Text style={[styles.label, isUrdu && { fontFamily: fonts.urduBold, fontSize: 15, marginTop: 14, marginBottom: 6, includeFontPadding: false }]}>
-              {isUrdu ? 'فون نمبر یا ای میل' : 'Phone Number or Email'}
+              {t('Phone Number or Email')}
             </Text>
             <View style={styles.inputContainer}>
               <Feather
@@ -199,7 +199,7 @@ export default function LoginScreen() {
               />
               <TextInput
                 style={styles.input}
-                placeholder={isUrdu ? 'Phone no یا ای میل درج کریں' : 'Phone no or email'}
+                placeholder={t('Phone Number or Email')}
                 placeholderTextColor={colors.inputPlaceholder}
                 keyboardType="email-address"
                 autoCapitalize="none"

@@ -41,12 +41,12 @@ const resolveForumImageUrl = (url) => {
 };
 
 const CATEGORIES = [
-  { id: 'All Posts', label: 'All Discussions', labelUrdu: 'تمام', icon: 'message-square' },
-  { id: 'Trending', label: 'Trending', labelUrdu: 'مقبول', icon: 'trending-up' },
-  { id: 'Disease & Health', label: 'Disease & Health', labelUrdu: 'صحت و امراض', icon: 'activity' },
-  { id: 'Breeding', label: 'Breeding & Calving', labelUrdu: 'نسل کشی', icon: 'heart' },
-  { id: 'Feed & Nutrition', label: 'Feed & Nutrition', labelUrdu: 'خوراک و چارہ', icon: 'feather' },
-  { id: 'General', label: 'General Advice', labelUrdu: 'عام سوالات', icon: 'help-circle' },
+  { id: 'All Posts', label: 'All Discussions', icon: 'message-square' },
+  { id: 'Trending', label: 'Trending', icon: 'trending-up' },
+  { id: 'Disease & Health', label: 'Disease & Health', icon: 'activity' },
+  { id: 'Breeding', label: 'Breeding & Calving', icon: 'heart' },
+  { id: 'Feed & Nutrition', label: 'Feed & Nutrition', icon: 'feather' },
+  { id: 'General', label: 'General Advice', icon: 'help-circle' },
 ];
 
 const MODAL_CATEGORIES = [

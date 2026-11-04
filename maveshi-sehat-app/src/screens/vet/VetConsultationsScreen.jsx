@@ -365,48 +365,108 @@ export default function VetConsultationsScreen() {
           </Text>
         ) : null}
 
-        <View style={styles.cardFooter}>
-          <View style={styles.statusRow}>
-            <Feather name="clock" size={12} color={colors.textSecondary} />
-            <Text style={[styles.statusText, { color: colors.textSecondary, marginLeft: 4 }]}>
-              {timeText}
-            </Text>
+        <View style={{ marginTop: 12, borderTopWidth: 1, borderTopColor: isDark ? colors.border : '#E2E8F0', paddingTop: 10 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Feather name="clock" size={12} color={colors.textSecondary} />
+              <Text style={{ fontSize: 12, color: colors.textSecondary, marginLeft: 5 }}>
+                {timeText}
+              </Text>
+            </View>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <MaterialCommunityIcons name="chat-outline" size={14} color={colors.textSecondary} style={{ marginRight: 4 }} />
+              <Text style={{ fontSize: 12, color: colors.textSecondary, fontWeight: '600' }}>
+                {item.type === 'online_chat' ? 'Online Chat' : 'Physical'}
+              </Text>
+            </View>
           </View>
-          
+
           {isPending ? (
-            <View style={{ flexDirection: 'row', gap: 8 }}>
+            <View style={{ flexDirection: 'row', gap: 10 }}>
               <TouchableOpacity
-                style={[styles.actionBtn, { backgroundColor: '#EF4444', paddingHorizontal: 12 }]}
+                style={{
+                  flex: 1,
+                  height: 44,
+                  borderRadius: 12,
+                  backgroundColor: isDark ? 'rgba(239, 68, 68, 0.15)' : '#FEE2E2',
+                  borderWidth: 1,
+                  borderColor: isDark ? 'rgba(239, 68, 68, 0.3)' : '#FCA5A5',
+                  flexDirection: 'row',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}
                 onPress={() => handleDecline(item)}
+                activeOpacity={0.8}
               >
-                <Text style={styles.actionBtnText}>{t('Decline')}</Text>
+                <Feather name="x-circle" size={16} color="#DC2626" style={{ marginRight: 6 }} />
+                <Text style={{ color: '#DC2626', fontWeight: '700', fontSize: 14 }}>
+                  {t('Decline')}
+                </Text>
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={[styles.actionBtn, { backgroundColor: colors.primary, paddingHorizontal: 14 }]}
+                style={{
+                  flex: 1.4,
+                  height: 44,
+                  borderRadius: 12,
+                  backgroundColor: '#059669',
+                  flexDirection: 'row',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  elevation: 2,
+                  shadowColor: '#059669',
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.25,
+                  shadowRadius: 4,
+                }}
                 onPress={() => handleApproveAndChat(item)}
+                activeOpacity={0.8}
               >
-                <Text style={styles.actionBtnText}>
-                  {t('Accept & Consult →')}
+                <Feather name="check-circle" size={16} color="#FFFFFF" style={{ marginRight: 6 }} />
+                <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 14 }}>
+                  {t('Accept & Consult')}
                 </Text>
               </TouchableOpacity>
             </View>
           ) : isActive ? (
             <TouchableOpacity
-              style={styles.actionBtn}
+              style={{
+                width: '100%',
+                height: 44,
+                borderRadius: 12,
+                backgroundColor: colors.primary,
+                flexDirection: 'row',
+                justifyContent: 'center',
+                alignItems: 'center',
+                elevation: 2,
+              }}
               onPress={() => openChat(item)}
+              activeOpacity={0.8}
             >
-              <Text style={styles.actionBtnText}>
-                {t('Continue Chat →')}
+              <Feather name="message-square" size={16} color="#FFFFFF" style={{ marginRight: 8 }} />
+              <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 14 }}>
+                {t('Continue Consultation →')}
               </Text>
             </TouchableOpacity>
           ) : (
             <TouchableOpacity
-              style={[styles.actionBtn, { backgroundColor: colors.cardElevated }]}
+              style={{
+                width: '100%',
+                height: 44,
+                borderRadius: 12,
+                backgroundColor: isDark ? colors.cardElevated : '#F1F5F9',
+                borderWidth: 1,
+                borderColor: colors.border,
+                flexDirection: 'row',
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}
               onPress={() => openChat(item)}
+              activeOpacity={0.8}
             >
-              <Text style={[styles.actionBtnText, { color: colors.textPrimary }]}>
-                {t('View Chat')}
+              <Feather name="lock" size={14} color="#64748B" style={{ marginRight: 6 }} />
+              <Text style={{ color: colors.textPrimary, fontWeight: '700', fontSize: 14 }}>
+                {t('View Consultation History')}
               </Text>
             </TouchableOpacity>
           )}

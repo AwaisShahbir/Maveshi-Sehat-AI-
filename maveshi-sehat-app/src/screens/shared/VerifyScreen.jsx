@@ -147,11 +147,11 @@ export default function VerifyScreen() {
               <Feather name="shield" size={40} color="#FFFFFF" />
             </View>
 
-            <Text style={styles.mainTitle}>{t('Verify Account', 'اکاؤنٹ کی تصدیق')}</Text>
+            <Text style={styles.mainTitle}>{t('Verify Account')}</Text>
           </View>
 
           <View style={styles.cardContainer}>
-            <Text style={styles.instructionText}>{t('Enter 4-digit code sent to', 'کوڈ درج کریں جو ای میل پر بھیجا گیا')}</Text>
+            <Text style={styles.instructionText}>{t('Enter 4-digit code sent to')}</Text>
             <Text style={styles.phoneNumber}>{email || '+92 300 1234567'}</Text>
 
             <View style={{
@@ -166,10 +166,7 @@ export default function VerifyScreen() {
             }}>
               <Feather name="mail" size={18} color={isDark ? '#4ADE80' : '#16A34A'} style={{ marginRight: 10 }} />
               <Text style={{ flex: 1, fontSize: 13, color: isDark ? '#E2E8F0' : '#166534', lineHeight: 18 }}>
-                {t(
-                  'Please check your email Inbox and Spam / Junk folder for the 4-digit code.',
-                  'براہ کرم 4 ہندسوں کے کوڈ کے لیے اپنا ای میل ان باکس اور اسپام / جنک فولڈر چیک کریں۔'
-                )}
+                {t('Please check your email Inbox and Spam / Junk folder for the 4-digit code.')}
               </Text>
             </View>
 
@@ -191,12 +188,12 @@ export default function VerifyScreen() {
             {canResend ? (
               <TouchableOpacity onPress={handleResendOtp} disabled={resending} style={{ marginBottom: 24, paddingVertical: 4 }}>
                 <Text style={styles.resendLink}>
-                  {resending ? t('Sending code...', 'کوڈ بھیجا جا رہا ہے...') : t('Resend OTP Code', 'دوبارہ کوڈ حاصل کریں')}
+                  {resending ? t('Sending code...') : t('Resend OTP Code')}
                 </Text>
               </TouchableOpacity>
             ) : (
               <Text style={styles.timerText}>
-                {t('Resend code in', 'دوبارہ کوڈ')} <Text style={styles.timerHighlight}>{timer}s</Text>
+                {t('Resend code in')} <Text style={styles.timerHighlight}>{timer}s</Text>
               </Text>
             )}
 
@@ -209,7 +206,7 @@ export default function VerifyScreen() {
               {loading ? (
                 <ActivityIndicator size="small" color="#FFFFFF" />
               ) : (
-                <Text style={styles.verifyBtnText}>{t('Verify & Continue', 'تصدیق کریں')}</Text>
+                <Text style={styles.verifyBtnText}>{t('Verify & Continue')}</Text>
               )}
             </TouchableOpacity>
           </View>

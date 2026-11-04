@@ -4,7 +4,7 @@ import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/nativ
 import Feather from 'react-native-vector-icons/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { getProfile, subscribeProfile } from '../../utils/profileStore';
-import { t } from '../../utils/translate';
+import { t, useTranslation } from '../../utils/translate';
 import { useTheme } from '../../utils/themeContext';
 import { getStyles } from '../../styles/VetDashboardScreenStyles';
 import io from 'socket.io-client';
@@ -15,6 +15,7 @@ export default function VetDashboardScreen() {
   const styles = React.useMemo(() => getStyles(colors, isDark), [colors, isDark]);
   const navigation = useNavigation();
   const route = useRoute();
+  const { isUrdu } = useTranslation();
   const params = route.params || {};
 
   const [profile, setProfile] = useState(getProfile());
@@ -131,12 +132,13 @@ export default function VetDashboardScreen() {
           </View>
         </View>
 
-        <Text style={styles.diseaseText}>{diseaseName}</Text>
+        <Text style={styles.diseaseText}>{t(diseaseName)}</Text>
         
         <View style={styles.cardFooter}>
           {confidence ? (
             <View style={styles.confidenceSection}>
               <View style={[styles.statusBadge, { backgroundColor: statusColor }]}>
+                <Text style={styles.statusText}>{t(statusLabel)}</Text>
               </View>
               <View style={styles.confidenceRow}>
                 <Text style={styles.confidenceValue}>{confidence}%</Text>
@@ -147,7 +149,7 @@ export default function VetDashboardScreen() {
             </View>
           ) : (
             <View style={[styles.statusBadge, { backgroundColor: statusColor, alignSelf: 'flex-start', marginBottom: 10 }]}>
-              <Text style={styles.statusText}>{statusLabel}</Text>
+              <Text style={styles.statusText}>{t(statusLabel)}</Text>
             </View>
           )}
 
@@ -203,7 +205,7 @@ export default function VetDashboardScreen() {
 
           <View style={styles.welcomeCard}>
             <View style={styles.welcomeLeft}>
-              <Text style={styles.welcomeTitle}>Good Morning, {userName}</Text>
+              <Text style={styles.welcomeTitle}>{t('Good Morning')}, {userName}</Text>
             </View>
             <View style={styles.availableToggle}>
               <Switch
@@ -268,8 +270,8 @@ export default function VetDashboardScreen() {
 
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>{t('New Cases')}</Text>
-          <TouchableOpacity onPress={() => navigation.navigate('VetCases')}>
-            <Text style={styles.viewAllBtn}>View All →</Text>
+          <TouchableOpacity onPress={() => navigation.navigate('VetCases', { userName, userId })}>
+            <Text style={styles.viewAllBtn}>{t('View All →')}</Text>
           </TouchableOpacity>
         </View>
 
@@ -280,7 +282,7 @@ export default function VetDashboardScreen() {
             cases.slice(0, 2).map(renderCaseCard)
           ) : (
             <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>No new cases today.</Text>
+              <Text style={styles.emptyText}>{t('No new cases today.')}</Text>
             </View>
           )}
         </View>
@@ -290,7 +292,7 @@ export default function VetDashboardScreen() {
         </View>
 
         <View style={styles.quickActionsGrid}>
-          <TouchableOpacity style={styles.actionCard} onPress={() => navigation.navigate('VetCases')}>
+          <TouchableOpacity style={styles.actionCard} onPress={() => navigation.navigate('VetCases', { userName, userId })}>
             <View style={[styles.actionIconBox, { backgroundColor: isDark ? 'rgba(59, 130, 246, 0.15)' : '#EFF6FF' }]}>
               <Feather name="clipboard" size={28} color="#3B82F6" />
             </View>
@@ -339,7 +341,7 @@ export default function VetDashboardScreen() {
           <MaterialCommunityIcons name="home-variant" size={26} color={colors.primary} />
           <Text style={[styles.navText, { color: colors.primary, fontWeight: '700' }]}>{t('Home')}</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('VetCases')}>
+        <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('VetCases', { userName, userId })}>
           <MaterialCommunityIcons name="clipboard-text-outline" size={26} color={colors.textSecondary} />
           <Text style={[styles.navText, { color: colors.textSecondary }]}>{t('Cases')}</Text>
         </TouchableOpacity>

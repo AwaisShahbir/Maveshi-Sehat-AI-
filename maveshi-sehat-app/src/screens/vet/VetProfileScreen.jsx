@@ -130,7 +130,7 @@ export default function VetProfileScreen() {
     const profile = getProfile();
     const lang = profile.language || 'English';
     
-    let leftText = title;
+    let leftText = t(title);
     let rightText = '';
     
     if (lang === 'Urdu') {
@@ -231,9 +231,9 @@ export default function VetProfileScreen() {
 
           <Text style={styles.sectionHeading}>{t('Community & Practice')}</Text>
           <View style={styles.menuCard}>
-            {renderMenuItem('users', 'Community Forum', 'کمیونٹی فورم', null, () => navigation.navigate('CommunityForum', { userName: profile.userName || userName, userId: vetId }))}
+            {renderMenuItem('users', 'Community Forum', null, null, () => navigation.navigate('CommunityForum', { userName: profile.userName || userName, userId: vetId }))}
             <View style={styles.menuDivider} />
-            {renderMenuItem('activity', 'Animal Health Records', 'صحت کے ریکارڈ', null, () => navigation.navigate('VetHealthRecords'))}
+            {renderMenuItem('activity', 'Animal Health Records', null, null, () => navigation.navigate('VetHealthRecords'))}
           </View>
 
           <Text style={styles.sectionHeading}>{t('Preferences')}</Text>

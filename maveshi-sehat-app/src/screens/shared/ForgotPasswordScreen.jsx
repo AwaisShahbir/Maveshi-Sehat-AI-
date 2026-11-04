@@ -90,7 +90,7 @@ export default function ForgotPasswordScreen() {
     setErrorMsg('');
     const cleanId = identifier.trim();
     if (!cleanId) {
-      setErrorMsg(isUrdu ? 'برائے مہربانی اپنا فون نمبر یا ای میل درج کریں' : 'Please enter your phone number or email');
+      setErrorMsg(t('Please enter your phone number or email'));
       return;
     }
 
@@ -113,7 +113,7 @@ export default function ForgotPasswordScreen() {
     setErrorMsg('');
     const cleanOtp = otp.trim();
     if (!cleanOtp || cleanOtp.length < 4) {
-      setErrorMsg(isUrdu ? 'براہ کرم 4 ہندسوں کا درست کوڈ درج کریں' : 'Please enter the 4-digit verification code');
+      setErrorMsg(t('Please enter the 4-digit verification code'));
       return;
     }
 
@@ -132,15 +132,15 @@ export default function ForgotPasswordScreen() {
   const handleResetPassword = async () => {
     setErrorMsg('');
     if (!newPassword.trim()) {
-      setErrorMsg(isUrdu ? 'براہ کرم نیا پاسورڈ درج کریں' : 'Please enter a new password');
+      setErrorMsg(t('Please enter a new password'));
       return;
     }
     if (newPassword.length < 6) {
-      setErrorMsg(isUrdu ? 'پاسورڈ کم از کم 6 حروف پر مشتمل ہونا چاہیے' : 'Password must be at least 6 characters long');
+      setErrorMsg(t('Password must be at least 6 characters long'));
       return;
     }
     if (newPassword !== confirmPassword) {
-      setErrorMsg(isUrdu ? 'پاسورڈ مماثل نہیں ہیں' : 'Passwords do not match');
+      setErrorMsg(t('Passwords do not match'));
       return;
     }
 
@@ -153,11 +153,11 @@ export default function ForgotPasswordScreen() {
       });
 
       Alert.alert(
-        isUrdu ? 'کامیابی' : 'Success',
-        isUrdu ? 'آپ کا پاسورڈ کامیابی کے ساتھ تبدیل کر دیا گیا ہے! اب آپ لاگ ان کر سکتے ہیں۔' : 'Password reset successfully! You can now log in with your new password.',
+        t('Success'),
+        t('Password reset successfully! You can now log in with your new password.'),
         [
           {
-            text: isUrdu ? 'لاگ ان کریں' : 'Login Now',
+            text: t('Login Now'),
             onPress: () => navigation.navigate('Login')
           }
         ]
@@ -178,8 +178,8 @@ export default function ForgotPasswordScreen() {
       setTimer(60);
       setCanResend(false);
       Alert.alert(
-        isUrdu ? 'کوڈ دوبارہ بھیج دیا گیا' : 'Code Resent',
-        isUrdu ? 'ایک نیا تصدیقی کوڈ آپ کے ای میل پر بھیج دیا گیا ہے۔' : 'A fresh verification code has been dispatched to your email.'
+        t('Code Resent'),
+        t('A fresh verification code has been dispatched to your email.')
       );
     } catch (err) {
       setErrorMsg(err.message);
@@ -210,7 +210,7 @@ export default function ForgotPasswordScreen() {
             >
               <Feather name="chevron-left" size={24} color="#FFFFFF" />
               <Text style={[styles.backText, isUrdu && { fontFamily: fonts.urduBold }]}>
-                {t('Back', 'واپس')}
+                {t('Back')}
               </Text>
             </TouchableOpacity>
 
@@ -220,12 +220,12 @@ export default function ForgotPasswordScreen() {
             </View>
 
             <Text style={[styles.mainTitle, isUrdu && { fontFamily: fonts.urduBold, fontSize: 26, lineHeight: 42 }]}>
-              {isUrdu ? 'پاسورڈ تبدیل کریں' : 'Reset Password'}
+              {t('Reset Password')}
             </Text>
             <Text style={[styles.subTitle, isUrdu && { fontFamily: fonts.urduRegular }]}>
-              {step === 1 && (isUrdu ? 'اکاؤنٹ کا فون نمبر یا ای میل درج کریں تاکہ کوڈ بھیجا جا سکے' : 'Enter your registered phone number or email to receive a verification code.')}
-              {step === 2 && (isUrdu ? 'ای میل پر موصولہ 4 ہندسوں کا تصدیقی کوڈ درج کریں' : 'Enter the 4-digit verification code sent to your email.')}
-              {step === 3 && (isUrdu ? 'اپنا نیا اور محفوظ پاسورڈ درج کریں' : 'Create a secure new password for your account.')}
+              {step === 1 && t('Enter your registered phone number or email to receive a verification code.')}
+              {step === 2 && t('Enter the 4-digit verification code sent to your email.')}
+              {step === 3 && t('Create a secure new password for your account.')}
             </Text>
           </View>
 
@@ -244,7 +244,7 @@ export default function ForgotPasswordScreen() {
             {step === 1 && (
               <View>
                 <Text style={[styles.label, { color: isDark ? colors.text : '#1E293B' }, isUrdu && { fontFamily: fonts.urduBold }]}>
-                  {isUrdu ? 'فون نمبر یا ای میل ایڈریس' : 'Phone Number or Email'}
+                  {t('Phone Number or Email')}
                 </Text>
                 <View style={[
                   styles.inputContainer,
@@ -261,7 +261,7 @@ export default function ForgotPasswordScreen() {
                   />
                   <TextInput
                     style={[styles.input, { color: isDark ? colors.text : '#0F172A' }]}
-                    placeholder={isUrdu ? '03001234567 یا ای میل درج کریں' : '03001234567 or email@domain.com'}
+                    placeholder={t('03001234567 or email@domain.com')}
                     placeholderTextColor={isDark ? colors.inputPlaceholder : '#94A3B8'}
                     keyboardType="email-address"
                     autoCapitalize="none"
@@ -280,7 +280,7 @@ export default function ForgotPasswordScreen() {
                     <ActivityIndicator color="#FFFFFF" size="small" />
                   ) : (
                     <Text style={[styles.actionButtonText, isUrdu && { fontFamily: fonts.urduBold }]}>
-                      {isUrdu ? 'تصدیقی کوڈ بھیجیں' : 'Send Reset Code'}
+                      {t('Send Reset Code')}
                     </Text>
                   )}
                 </TouchableOpacity>
@@ -293,13 +293,13 @@ export default function ForgotPasswordScreen() {
                 <View style={styles.infoBanner}>
                   <Feather name="mail" size={20} color="#10B981" />
                   <Text style={[styles.infoBannerText, { color: isDark ? colors.textSecondary : '#334155' }]}>
-                    {isUrdu ? 'ہم نے تصدیقی کوڈ اس ای میل پر بھیجا ہے:\n' : 'We sent a 4-digit code to:\n'}
+                    {t('We sent a 4-digit code to:') + '\n'}
                     <Text style={{ fontWeight: '700', color: '#10B981' }}>{targetEmail}</Text>
                   </Text>
                 </View>
 
                 <Text style={[styles.label, { color: isDark ? colors.text : '#1E293B' }, isUrdu && { fontFamily: fonts.urduBold }]}>
-                  {isUrdu ? '4 ہندسوں کا کوڈ' : '4-Digit Verification Code'}
+                  {t('4-Digit Verification Code')}
                 </Text>
                 <View style={[
                   styles.inputContainer,
@@ -324,12 +324,12 @@ export default function ForgotPasswordScreen() {
                 <View style={styles.timerRow}>
                   {timer > 0 ? (
                     <Text style={[styles.timerText, { color: isDark ? colors.textSecondary : '#64748B' }]}>
-                      {isUrdu ? `دوبارہ بھیجیں: ${timer} سیکنڈ` : `Resend code in ${timer}s`}
+                      {`${t('Resend code in')} ${timer}s`}
                     </Text>
                   ) : (
                     <TouchableOpacity onPress={handleResend} disabled={loading}>
                       <Text style={styles.resendLink}>
-                        {isUrdu ? 'کوڈ دوبارہ بھیجیں' : 'Resend Code Now'}
+                        {t('Resend Code Now')}
                       </Text>
                     </TouchableOpacity>
                   )}
@@ -345,7 +345,7 @@ export default function ForgotPasswordScreen() {
                     <ActivityIndicator color="#FFFFFF" size="small" />
                   ) : (
                     <Text style={[styles.actionButtonText, isUrdu && { fontFamily: fonts.urduBold }]}>
-                      {isUrdu ? 'کوڈ کی تصدیق کریں' : 'Verify Code'}
+                      {t('Verify Code')}
                     </Text>
                   )}
                 </TouchableOpacity>
@@ -356,7 +356,7 @@ export default function ForgotPasswordScreen() {
             {step === 3 && (
               <View>
                 <Text style={[styles.label, { color: isDark ? colors.text : '#1E293B' }, isUrdu && { fontFamily: fonts.urduBold }]}>
-                  {isUrdu ? 'نیا پاسورڈ' : 'New Password'}
+                  {t('New Password')}
                 </Text>
                 <View style={[
                   styles.inputContainer,
@@ -368,7 +368,7 @@ export default function ForgotPasswordScreen() {
                   <Feather name="lock" size={20} color="#10B981" style={styles.inputIcon} />
                   <TextInput
                     style={[styles.input, { color: isDark ? colors.text : '#0F172A' }]}
-                    placeholder={isUrdu ? 'کم از کم 6 حروف' : 'At least 6 characters'}
+                    placeholder={t('At least 6 characters')}
                     placeholderTextColor={isDark ? colors.inputPlaceholder : '#94A3B8'}
                     secureTextEntry={!showPassword}
                     value={newPassword}
@@ -380,7 +380,7 @@ export default function ForgotPasswordScreen() {
                 </View>
 
                 <Text style={[styles.label, { color: isDark ? colors.text : '#1E293B' }, isUrdu && { fontFamily: fonts.urduBold }]}>
-                  {isUrdu ? 'پاسورڈ کی تصدیق کریں' : 'Confirm New Password'}
+                  {t('Confirm New Password')}
                 </Text>
                 <View style={[
                   styles.inputContainer,
@@ -392,7 +392,7 @@ export default function ForgotPasswordScreen() {
                   <Feather name="check-circle" size={20} color="#10B981" style={styles.inputIcon} />
                   <TextInput
                     style={[styles.input, { color: isDark ? colors.text : '#0F172A' }]}
-                    placeholder={isUrdu ? 'دوبارہ پاسورڈ درج کریں' : 'Re-enter new password'}
+                    placeholder={t('Re-enter new password')}
                     placeholderTextColor={isDark ? colors.inputPlaceholder : '#94A3B8'}
                     secureTextEntry={!showConfirmPassword}
                     value={confirmPassword}
@@ -413,7 +413,7 @@ export default function ForgotPasswordScreen() {
                     <ActivityIndicator color="#FFFFFF" size="small" />
                   ) : (
                     <Text style={[styles.actionButtonText, isUrdu && { fontFamily: fonts.urduBold }]}>
-                      {isUrdu ? 'نیا پاسورڈ محفوظ کریں' : 'Set New Password'}
+                      {t('Set New Password')}
                     </Text>
                   )}
                 </TouchableOpacity>
@@ -424,7 +424,7 @@ export default function ForgotPasswordScreen() {
             <View style={styles.bottomRow}>
               <TouchableOpacity onPress={() => navigation.navigate('Login')}>
                 <Text style={[styles.backToLoginText, isUrdu && { fontFamily: fonts.urduRegular }]}>
-                  {isUrdu ? 'واپس لاگ ان پر جائیں' : 'Back to Login'}
+                  {t('Back to Login')}
                 </Text>
               </TouchableOpacity>
             </View>

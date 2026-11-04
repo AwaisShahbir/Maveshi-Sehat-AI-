@@ -25,12 +25,12 @@ import { getStyles } from '../../styles/VaccinationScreenStyles';
 import { getProfile } from '../../utils/profileStore';
 
 const VACCINE_PRESETS = [
-  { name: 'Foot & Mouth Disease (FMD)', urdu: 'منہ کھر' },
-  { name: 'Hemorrhagic Septicemia (HS)', urdu: 'گل گھوٹو' },
-  { name: 'Black Quarter (BQ)', urdu: 'چوڑیا' },
-  { name: 'Anthrax Vaccine', urdu: 'تیلی' },
-  { name: 'Lumpy Skin Disease (LSD)', urdu: 'لمپی سکن' },
-  { name: 'Enterotoxemia (ETV)', urdu: 'انتڑیو کا زہر' },
+  { name: 'Foot & Mouth Disease (FMD)', },
+  { name: 'Hemorrhagic Septicemia (HS)', },
+  { name: 'Black Quarter (BQ)', },
+  { name: 'Anthrax Vaccine', },
+  { name: 'Lumpy Skin Disease (LSD)', },
+  { name: 'Enterotoxemia', },
 ];
 
 const ANIMAL_TYPES = ['Cattle', 'Cow', 'Buffalo', 'Goat', 'Sheep'];
@@ -217,12 +217,12 @@ export default function VaccinationScreen() {
   const formatVaccineName = (name) => {
     if (!name) return 'Livestock Vaccine';
     const lower = name.toLowerCase().trim();
-    if (lower === 'fmd' || lower.includes('foot and mouth')) return 'Foot & Mouth Disease (FMD / منہ کھر)';
-    if (lower === 'hs' || lower.includes('hemorrhagic') || lower.includes('septicemia')) return 'Hemorrhagic Septicemia (HS / گل گھوٹو)';
-    if (lower === 'bq' || lower.includes('black quarter') || lower.includes('blackleg')) return 'Black Quarter (BQ / چوڑیا)';
-    if (lower === 'anthrax') return 'Anthrax Vaccine (تیلی)';
+    if (lower === 'fmd' || lower.includes('foot and mouth')) return 'Foot & Mouth Disease (FMD)';
+    if (lower === 'hs' || lower.includes('hemorrhagic') || lower.includes('septicemia')) return 'Hemorrhagic Septicemia (HS)';
+    if (lower === 'bq' || lower.includes('black quarter') || lower.includes('blackleg')) return 'Black Quarter (BQ)';
+    if (lower === 'anthrax') return 'Anthrax Vaccine';
     if (lower === 'lsd' || lower.includes('lumpy')) return 'Lumpy Skin Disease (LSD)';
-    if (lower === 'etv' || lower.includes('enterotoxemia')) return 'Enterotoxemia (انتڑیو کا زہر)';
+    if (lower === 'etv' || lower.includes('enterotoxemia')) return 'Enterotoxemia';
     return name.charAt(0).toUpperCase() + name.slice(1);
   };
 
@@ -575,7 +575,7 @@ export default function VaccinationScreen() {
                       size={20}
                       color={isDark ? '#93C5FD' : '#1D4ED8'}
                     />
-                    <Text style={styles.guideTitle}>{t('Seasonal Vaccination Guide (حکومتی شیڈول)')}</Text>
+                    <Text style={styles.guideTitle}>{t('Seasonal Vaccination Guide')}</Text>
                   </View>
                   <Feather
                     name={guideExpanded ? 'chevron-up' : 'chevron-down'}

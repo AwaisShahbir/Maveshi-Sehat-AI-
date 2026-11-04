@@ -46,10 +46,10 @@ const calculateTHI = (temp, rh) => {
 };
 
 const getStressLevel = (thi) => {
-  if (thi < 72) return { level: 'none', color: '#10B981', bg: '#ECFDF5', label: 'No Stress', labelUr: 'کوئی خطرہ نہیں' };
-  if (thi >= 72 && thi < 79) return { level: 'moderate', color: '#F59E0B', bg: '#FFFBEB', label: 'Moderate Stress', labelUr: 'معتدل گرمی' };
-  if (thi >= 79 && thi < 89) return { level: 'severe', color: '#EF4444', bg: '#FEF2F2', label: 'Severe Stress', labelUr: 'شدید گرمی کا خطرہ' };
-  return { level: 'deadly', color: '#7F1D1D', bg: '#FEE2E2', label: 'Emergency / Fatal', labelUr: 'انتہائی سنگین ایمرجنسی' };
+  if (thi < 72) return { level: 'none', color: '#10B981', bg: '#ECFDF5', label: 'No Stress', };
+  if (thi >= 72 && thi < 79) return { level: 'moderate', color: '#F59E0B', bg: '#FFFBEB', label: 'Moderate Stress', };
+  if (thi >= 79 && thi < 89) return { level: 'severe', color: '#EF4444', bg: '#FEF2F2', label: 'Severe Stress', };
+  return { level: 'deadly', color: '#7F1D1D', bg: '#FEE2E2', label: 'Emergency / Fatal', };
 };
 
 const getAdvisoryText = (level) => {

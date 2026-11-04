@@ -130,12 +130,12 @@ export default function FarmerNotificationCenterScreen({ navigation }) {
 
   const handleDelete = (id) => {
     Alert.alert(
-      isUrdu ? 'نوٹیفکیشن حذف کریں' : 'Delete Notification',
-      isUrdu ? 'کیا آپ واقعی یہ نوٹیفکیشن حذف کرنا چاہتے ہیں؟' : 'Are you sure you want to remove this notification?',
+      t('Delete Notification'),
+      t('Are you sure you want to remove this notification?'),
       [
-        { text: isUrdu ? 'منسوخ' : 'Cancel', style: 'cancel' },
+        { text: t('Cancel'), style: 'cancel' },
         {
-          text: isUrdu ? 'حذف کریں' : 'Delete',
+          text: t('Delete'),
           style: 'destructive',
           onPress: async () => {
             await deleteNotification(id);
@@ -152,12 +152,12 @@ export default function FarmerNotificationCenterScreen({ navigation }) {
 
   const handleClearAll = () => {
     Alert.alert(
-      isUrdu ? 'تمام نوٹیفکیشن حذف کریں' : 'Clear All Notifications',
-      isUrdu ? 'کیا آپ واقعی تمام نوٹیفکیشن حذف کرنا چاہتے ہیں؟' : 'Are you sure you want to remove all notifications?',
+      t('Clear All Notifications'),
+      t('Are you sure you want to remove all notifications?'),
       [
-        { text: isUrdu ? 'منسوخ' : 'Cancel', style: 'cancel' },
+        { text: t('Cancel'), style: 'cancel' },
         {
-          text: isUrdu ? 'حذف کریں' : 'Clear',
+          text: t('Clear'),
           style: 'destructive',
           onPress: async () => {
             await clearAllNotifications(userId);
@@ -196,10 +196,10 @@ export default function FarmerNotificationCenterScreen({ navigation }) {
       const diffHour = Math.floor(diffMin / 60);
       const diffDay = Math.floor(diffHour / 24);
 
-      if (diffMin < 1) return isUrdu ? 'ابھی' : 'Just now';
-      if (diffMin < 60) return `${diffMin}m ${isUrdu ? 'پہلے' : 'ago'}`;
-      if (diffHour < 24) return `${diffHour}h ${isUrdu ? 'پہلے' : 'ago'}`;
-      if (diffDay < 7) return `${diffDay}d ${isUrdu ? 'پہلے' : 'ago'}`;
+      if (diffMin < 1) return t('Just now');
+      if (diffMin < 60) return `${diffMin}m ${t('ago')}`;
+      if (diffHour < 24) return `${diffHour}h ${t('ago')}`;
+      if (diffDay < 7) return `${diffDay}d ${t('ago')}`;
       return date.toLocaleDateString();
     } catch {
       return '';
@@ -245,10 +245,10 @@ export default function FarmerNotificationCenterScreen({ navigation }) {
           >
             <Text style={[styles.actionBtnText, isUrdu && { fontFamily: fonts.urduBold }]}>
               {item.type === 'chat'
-                ? (isUrdu ? 'چیٹ کھولیں' : 'Open Chat')
+                ? t('Open Chat')
                 : item.type === 'prescription'
-                ? (isUrdu ? 'نسخہ دیکھیں' : 'View Prescription')
-                : (isUrdu ? 'تفصیلات دیکھیں' : 'View Details')}
+                ? t('View Prescription')
+                : t('View Details')}
             </Text>
             <Feather name="arrow-right" size={14} color={isDark ? '#34D399' : '#059669'} />
           </TouchableOpacity>
@@ -266,10 +266,10 @@ export default function FarmerNotificationCenterScreen({ navigation }) {
   };
 
   const tabs = [
-    { key: 'All', labelEn: 'All', labelUr: 'تمام' },
-    { key: 'Consultations', labelEn: 'Consultations', labelUr: 'مشاورت' },
-    { key: 'Prescriptions', labelEn: 'Prescriptions', labelUr: 'نسخے' },
-    { key: 'Alerts', labelEn: 'Alerts', labelUr: 'انتباہات' }
+    { key: 'All', labelEn: 'All', },
+    { key: 'Consultations', labelEn: 'Consultations', },
+    { key: 'Prescriptions', labelEn: 'Prescriptions', },
+    { key: 'Alerts', labelEn: 'Alerts', }
   ];
 
   return (
@@ -289,10 +289,10 @@ export default function FarmerNotificationCenterScreen({ navigation }) {
 
           <View style={styles.titleContainer}>
             <Text style={[styles.headerTitle, isUrdu && { fontFamily: fonts.urduBold }]}>
-              {isUrdu ? 'نوٹیفکیشن سنٹر' : 'Notification Center'}
+              {t('Notification Center')}
             </Text>
             <Text style={[styles.headerSubtitle, isUrdu && { fontFamily: fonts.urduRegular }]}>
-              {isUrdu ? 'مشاورت، نسخے اور تازہ ترین پیغامات' : 'Consultations, prescriptions & alerts'}
+              {t('Consultations, prescriptions & alerts')}
             </Text>
           </View>
 
@@ -310,14 +310,14 @@ export default function FarmerNotificationCenterScreen({ navigation }) {
           <View style={styles.badgeInfo}>
             <Feather name="bell" size={16} color="#FFFFFF" />
             <Text style={styles.badgeCountText}>
-              {unreadCount} {isUrdu ? 'نئے نوٹیفکیشن' : 'unread'}
+              {unreadCount} {t('unread')}
             </Text>
           </View>
 
           {unreadCount > 0 && (
             <TouchableOpacity style={styles.quickActionBtn} onPress={handleMarkAllRead}>
               <Text style={[styles.quickActionText, isUrdu && { fontFamily: fonts.urduBold }]}>
-                {isUrdu ? 'سب پڑھے ہوئے نشان زد کریں' : 'Mark all read'}
+                {t('Mark all read')}
               </Text>
             </TouchableOpacity>
           )}
@@ -373,12 +373,10 @@ export default function FarmerNotificationCenterScreen({ navigation }) {
                 <Feather name="bell-off" size={36} color={isDark ? '#64748B' : '#94A3B8'} />
               </View>
               <Text style={[styles.emptyTitle, isUrdu && { fontFamily: fonts.urduBold }]}>
-                {isUrdu ? 'کوئی نیا نوٹیفکیشن نہیں' : 'No Notifications'}
+                {t('No Notifications')}
               </Text>
               <Text style={[styles.emptySubtitle, isUrdu && { fontFamily: fonts.urduRegular }]}>
-                {isUrdu
-                  ? 'جب آپ کے ڈاکٹر یا مشاورت کے حوالے سے کوئی اپ ڈیٹ ہوگی تو آپ کو یہاں مطلع کیا جائے گا۔'
-                  : 'You will receive updates here when veterinarians respond or prescriptions are issued.'}
+                {t('You will receive updates here when veterinarians respond or prescriptions are issued.')}
               </Text>
             </View>
           }

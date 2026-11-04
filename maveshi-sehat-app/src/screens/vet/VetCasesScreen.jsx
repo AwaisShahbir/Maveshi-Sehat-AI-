@@ -4,7 +4,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { t } from '../../utils/translate';
-import { subscribeProfile } from '../../utils/profileStore';
+import { subscribeProfile, getProfile } from '../../utils/profileStore';
 import { useTheme } from '../../utils/themeContext';
 import { getStyles } from '../../styles/VetCasesScreenStyles';
 
@@ -14,7 +14,9 @@ export default function VetCasesScreen() {
   const navigation = useNavigation();
   const route = useRoute();
   const params = route.params || {};
-  const userId = params.user?.id || params.userId || 1;
+  const profile = getProfile();
+  const userId = params.user?.id || params.userId || profile?.userId || 1;
+  const userName = params.userName || profile?.userName || 'Dr. Rahim';
 
   const [, forceUpdate] = useState(0);
   useEffect(() => {
@@ -30,8 +32,9 @@ export default function VetCasesScreen() {
 
   const fetchCases = async () => {
     try {
+      const activeId = params.user?.id || params.userId || getProfile()?.userId || 1;
       const baseUrl = 'https://maveshi-sehat-api.onrender.com';
-      const url = `${baseUrl}/api/consultations/vet/${userId}`;
+      const url = `${baseUrl}/api/consultations/vet/${activeId}`;
       const response = await fetch(url);
       if (!response.ok) throw new Error('Failed to fetch cases');
       const data = await response.json();
@@ -46,7 +49,11 @@ export default function VetCasesScreen() {
 
   useEffect(() => {
     fetchCases();
-  }, [userId]);
+    const unsubscribe = navigation.addListener('focus', () => {
+      fetchCases();
+    });
+    return unsubscribe;
+  }, [userId, navigation]);
 
   const handleRefresh = () => {
     setRefreshing(true);
@@ -56,14 +63,21 @@ export default function VetCasesScreen() {
   const tabs = ['All', 'Pending', 'Urgent', 'Resolved'];
 
   const filteredCases = cases.filter(item => {
+    const s = String(item.status || '').trim().toLowerCase();
+    const isPending = s === 'pending';
+    const isResolved = s === 'resolved' || s === 'completed';
+    const isUrgent = s === 'pending' || (item.reason && item.reason.toLowerCase().includes('urgent')) || (item.ai_record_data && String(item.ai_record_data).toLowerCase().includes('high'));
+
     const matchesTab = 
       activeTab === 'All' ? true : 
-      activeTab === 'Pending' ? item.status === 'pending' : 
-      activeTab === 'Urgent' ? (item.reason && item.reason.toLowerCase().includes('urgent')) : 
-      activeTab === 'Resolved' ? item.status === 'resolved' : true;
+      activeTab === 'Pending' ? isPending : 
+      activeTab === 'Urgent' ? isUrgent : 
+      activeTab === 'Resolved' ? isResolved : true;
       
     const searchLower = searchQuery.toLowerCase();
-    const matchesSearch = item.farmer_name?.toLowerCase().includes(searchLower) || item.reason?.toLowerCase().includes(searchLower);
+    const matchesSearch = item.farmer_name?.toLowerCase().includes(searchLower) ||
+                          item.reason?.toLowerCase().includes(searchLower) ||
+                          (item.ai_record_data && String(item.ai_record_data).toLowerCase().includes(searchLower));
 
     return matchesTab && matchesSearch;
   });
@@ -137,9 +151,9 @@ export default function VetCasesScreen() {
           </View>
           <TouchableOpacity 
             style={styles.reviewBtn}
-            onPress={() => navigation.navigate('VetConsultations', { userName: params.userName, userId })}
+            onPress={() => navigation.navigate('VetConsultations', { userName, userId })}
           >
-            <Text style={styles.reviewBtnText}>Review →</Text>
+            <Text style={styles.reviewBtnText}>{isPending ? 'Review & Accept →' : 'View Details →'}</Text>
           </TouchableOpacity>
         </View>
       </View>

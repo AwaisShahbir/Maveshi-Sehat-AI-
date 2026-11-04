@@ -182,8 +182,8 @@ export default function AiScanScreen() {
   const handleTakePhoto = () => {
     if (!animalTagId || !animalTagId.trim()) {
       Alert.alert(
-        isUrdu ? 'جانور کی آئی ڈی درکار ہے' : 'Livestock ID Required', 
-        isUrdu ? 'براہ کرم تصویر بنانے سے پہلے جانور کی آئی ڈی / ٹیگ نمبر درج کریں۔' : 'Please enter the Livestock ID / Tag number (e.g. COW-101, TAG-201) before taking a photo.'
+        t('Livestock ID Required'), 
+        t('Please enter the Livestock ID / Tag number (e.g. COW-101, TAG-201) before taking a photo.')
       );
       return;
     }
@@ -230,8 +230,8 @@ export default function AiScanScreen() {
   const handleChooseFromGallery = () => {
     if (!animalTagId || !animalTagId.trim()) {
       Alert.alert(
-        isUrdu ? 'جانور کی آئی ڈی درکار ہے' : 'Livestock ID Required', 
-        isUrdu ? 'براہ کرم گیلری سے تصویر منتخب کرنے سے پہلے جانور کی آئی ڈی / ٹیگ نمبر درج کریں۔' : 'Please enter the Livestock ID / Tag number (e.g. COW-101, TAG-201) before choosing from gallery.'
+        t('Livestock ID Required'), 
+        t('Please enter the Livestock ID / Tag number (e.g. COW-101, TAG-201) before choosing from gallery.')
       );
       return;
     }
@@ -278,8 +278,8 @@ export default function AiScanScreen() {
 
     if (!animalTagId || !animalTagId.trim()) {
       Alert.alert(
-        isUrdu ? 'جانور کی آئی ڈی درکار ہے' : 'Livestock ID Required',
-        isUrdu ? 'براہ کرم اے آئی تجزیہ شروع کرنے کے لیے جانور کی آئی ڈی درج کریں۔' : 'Please enter the Livestock ID (e.g. COW-101, TAG-201) before running AI diagnosis.'
+        t('Livestock ID Required'),
+        t('Please enter the Livestock ID (e.g. COW-101, TAG-201) before running AI diagnosis.')
       );
       return;
     }
@@ -382,7 +382,7 @@ export default function AiScanScreen() {
           ...diagnosis,
           isCattle: false,
           generatedAnimalId: effectiveAnimalId,
-          statusUrdu: diagnosis.urdu || 'یہ تصویر مویشی کی نہیں ہے',
+          statusUrdu: diagnosis.urdu || t('No Livestock Detected'),
           scanTime: exactScanTime,
           date: exactScanTime,
           uri: fullImageUrl
@@ -502,10 +502,10 @@ export default function AiScanScreen() {
             <MaterialCommunityIcons name="robot" size={24} color={isDark ? '#4ADE80' : '#16A34A'} style={{ marginRight: 10 }} />
             <View style={{ flex: 1 }}>
               <Text style={{ fontSize: 13, fontWeight: '800', color: isDark ? '#86EFAC' : '#166534' }}>
-                {t('AI Species Auto-Detection Active', 'خودکار جانور کی شناخت فعال ہے')}
+                {t('AI Species Auto-Detection Active')}
               </Text>
               <Text style={{ fontSize: 11, color: isDark ? '#D1FAE5' : '#15803D', marginTop: 2 }}>
-                {t('AI automatically identifies Cow, Buffalo, or Goat from photo', 'اے آئی تصویر سے گائے، بھینس یا بکری کی خودکار شناخت کرے گی')}
+                {t('AI automatically identifies Cow, Buffalo, or Goat from photo')}
               </Text>
             </View>
           </View>
@@ -514,7 +514,7 @@ export default function AiScanScreen() {
           <View style={{ marginBottom: 14 }}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <Text style={styles.fieldLabel}>{t('Livestock ID', 'جانور کی آئی ڈی / ٹیگ نمبر')}</Text>
+                <Text style={styles.fieldLabel}>{t('Livestock ID')}</Text>
                 <Text style={{ color: '#DC2626', fontWeight: '800', marginLeft: 4, fontSize: 16 }}>*</Text>
               </View>
               <View style={{
@@ -526,7 +526,7 @@ export default function AiScanScreen() {
                 paddingVertical: 2
               }}>
                 <Text style={{ fontSize: 11, fontWeight: '700', color: animalTagId.trim() ? '#166534' : '#DC2626' }}>
-                  {animalTagId.trim() ? t('Ready', 'درج شدہ') : t('Required', 'لازمی')}
+                  {animalTagId.trim() ? t('Ready') : t('Required')}
                 </Text>
               </View>
             </View>
@@ -544,7 +544,7 @@ export default function AiScanScreen() {
               <TextInput
                 value={animalTagId}
                 onChangeText={setAnimalTagId}
-                placeholder={t('Enter Livestock ID (e.g. COW-101, TAG-201)*', 'جانور کی آئی ڈی درج کریں (مثال: COW-101)*')}
+                placeholder={t('Enter Livestock ID (e.g. COW-101, TAG-201)*')}
                 placeholderTextColor="#94A3B8"
                 style={{
                   flex: 1,
@@ -622,12 +622,12 @@ export default function AiScanScreen() {
               <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
                 <Feather name="alert-triangle" size={20} color="#DC2626" style={{ marginRight: 8 }} />
                 <Text style={[styles.reportTitle, { color: '#DC2626' }]}>
-                  {t('Non-Livestock Image', 'جانور کی تصویر نہیں ہے')}
+                  {t('Non-Livestock Image')}
                 </Text>
               </View>
               <View style={[styles.severityBadge, { backgroundColor: '#FEE2E2' }]}>
                 <Text style={[styles.severityText, { color: '#DC2626', fontWeight: '800' }]}>
-                  {t('Invalid Image', 'غلط تصویر')}
+                  {t('Invalid Image')}
                 </Text>
               </View>
             </View>
@@ -643,28 +643,28 @@ export default function AiScanScreen() {
               )}
 
               <View style={styles.resultRow}>
-                <Text style={styles.resultLabel}>{t('Scan Result:', 'اسکین نتیجہ:')}</Text>
+                <Text style={styles.resultLabel}>{t('Scan Result:')}</Text>
                 <Text style={[styles.resultVal, { color: '#DC2626', fontWeight: '700' }]}>
-                  {t('No Livestock Detected', 'کوئی مویشی نہیں ملا')}
+                  {t('No Livestock Detected')}
                 </Text>
               </View>
 
               <View style={styles.resultRow}>
-                <Text style={styles.resultLabel}>{t('Livestock ID:', 'جانور کی آئی ڈی:')}</Text>
+                <Text style={styles.resultLabel}>{t('Livestock ID:')}</Text>
                 <Text style={[styles.resultVal, { color: '#0F172A', fontWeight: 'bold' }]}>
                   {scanResult.generatedAnimalId}
                 </Text>
               </View>
 
               <Text style={[styles.descTitle, { color: '#DC2626', marginTop: 12 }, isUrdu && { fontFamily: fonts.urduBold, fontSize: 15 }]}>
-                {t('Detection Notice:', 'تشخیصی وضاحت:')}
+                {t('Detection Notice:')}
               </Text>
               <Text style={[styles.descText, isUrdu && { fontFamily: fonts.urduRegular, fontSize: 14, lineHeight: 24 }]}>
                 {scanResult.description}
               </Text>
 
               <Text style={[styles.aidTitle, { marginTop: 14 }, isUrdu && { fontFamily: fonts.urduBold, fontSize: 15 }]}>
-                {t('How to Capture a Valid Photo:', 'درست تصویر بنانے کا طریقہ:')}
+                {t('How to Capture a Valid Photo:')}
               </Text>
               {((isUrdu && scanResult.firstAidUrdu) ? scanResult.firstAidUrdu : scanResult.firstAid).map((tip, idx) => (
                 <View key={idx} style={[styles.bulletRow, { alignItems: 'flex-start' }]}>
@@ -681,7 +681,7 @@ export default function AiScanScreen() {
               >
                 <Feather name="camera" size={18} color="#FFFFFF" style={{ marginRight: 8 }} />
                 <Text style={[styles.resetBtnText, { color: '#FFFFFF', fontWeight: '800' }]}>
-                  {t('Re-scan Animal', 'دوبارہ تصویر لیں')}
+                  {t('Re-scan Animal')}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -714,13 +714,13 @@ export default function AiScanScreen() {
                 <Text style={styles.resultVal}>{scanResult.scanTime || scanResult.date}</Text>
               </View>
               <View style={styles.resultRow}>
-                <Text style={styles.resultLabel}>{t('Livestock ID:', 'جانور کی آئی ڈی:')}</Text>
+                <Text style={styles.resultLabel}>{t('Livestock ID:')}</Text>
                 <Text style={[styles.resultVal, { color: '#FFB020', fontWeight: 'bold' }]}>
                   {scanResult.generatedAnimalId}
                 </Text>
               </View>
               <View style={styles.resultRow}>
-                <Text style={styles.resultLabel}>{t('Species & Breed:', 'نسل اور قسم:')}</Text>
+                <Text style={styles.resultLabel}>{t('Species & Breed:')}</Text>
                 <Text style={[styles.resultVal, { color: colors.primary, fontWeight: '700' }]}>
                   {scanResult.breed || scanResult.animalType || 'Cow'}
                 </Text>
