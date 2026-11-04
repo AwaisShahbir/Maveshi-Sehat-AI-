@@ -172,19 +172,18 @@ export default function AiScanScreen() {
     });
     setAnimalType(img.type);
     setSampleTab(img.type);
+    if (!animalTagId.trim()) {
+      setAnimalTagId(img.type === 'Buffalo' ? 'BUF-101' : 'COW-101');
+    }
     setPickerModalVisible(false);
     setShowReport(false);
   };
 
-  const handleSelectAnimal = (type) => {
-    setAnimalType(type);
-    setShowDropdown(false);
-  };
-
   const handleTakePhoto = () => {
-    if (!animalType) {
-      Alert.alert(t('Select Animal'), 
-        'Please select an animal type first.'
+    if (!animalTagId || !animalTagId.trim()) {
+      Alert.alert(
+        isUrdu ? 'جانور کی آئی ڈی درکار ہے' : 'Livestock ID Required', 
+        isUrdu ? 'براہ کرم تصویر بنانے سے پہلے جانور کی آئی ڈی / ٹیگ نمبر درج کریں۔' : 'Please enter the Livestock ID / Tag number (e.g. COW-101, TAG-201) before taking a photo.'
       );
       return;
     }
@@ -229,9 +228,10 @@ export default function AiScanScreen() {
   };
 
   const handleChooseFromGallery = () => {
-    if (!animalType) {
-      Alert.alert(t('Select Animal'), 
-        'Please select an animal type first.'
+    if (!animalTagId || !animalTagId.trim()) {
+      Alert.alert(
+        isUrdu ? 'جانور کی آئی ڈی درکار ہے' : 'Livestock ID Required', 
+        isUrdu ? 'براہ کرم گیلری سے تصویر منتخب کرنے سے پہلے جانور کی آئی ڈی / ٹیگ نمبر درج کریں۔' : 'Please enter the Livestock ID / Tag number (e.g. COW-101, TAG-201) before choosing from gallery.'
       );
       return;
     }
@@ -276,6 +276,14 @@ export default function AiScanScreen() {
   const handleAnalyze = async () => {
     if (!selectedImage) return;
 
+    if (!animalTagId || !animalTagId.trim()) {
+      Alert.alert(
+        isUrdu ? 'جانور کی آئی ڈی درکار ہے' : 'Livestock ID Required',
+        isUrdu ? 'براہ کرم اے آئی تجزیہ شروع کرنے کے لیے جانور کی آئی ڈی درج کریں۔' : 'Please enter the Livestock ID (e.g. COW-101, TAG-201) before running AI diagnosis.'
+      );
+      return;
+    }
+
     setIsScanning(true);
     setShowReport(false);
     startScanAnimation();
@@ -283,23 +291,19 @@ export default function AiScanScreen() {
     const scanNow = new Date();
     const exactScanTime = scanNow.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ', ' + scanNow.toLocaleDateString([], { day: '2-digit', month: 'short', year: 'numeric' });
 
-    setScanProgressText(t('Uploading Image to Maveshi AI...'));
+    setScanProgressText(t('Validating Image & Species...'));
 
     const t1 = setTimeout(() => {
-      setScanProgressText(t('Analyzing Symptoms with Roboflow AI...'));
-    }, 1200);
+      setScanProgressText(t('Running Roboflow Vision Core...'));
+    }, 1100);
 
     const t2 = setTimeout(() => {
-      setScanProgressText(t('Generating Health Diagnosis...'));
-    }, 2400);
+      setScanProgressText(t('Synthesizing Clinical Pathology Report...'));
+    }, 2200);
 
     try {
       let response;
-      const effectiveAnimalId = (animalTagId && animalTagId.trim()) ? animalTagId.trim() : null;
-
-      const resolvedAnimalId = (animalTagId && animalTagId.trim())
-        ? animalTagId.trim()
-        : `${(animalType || 'COW').toUpperCase()}-${Math.floor(100 + Math.random() * 900)}`;
+      const effectiveAnimalId = animalTagId.trim();
 
       if (selectedImage.uri && selectedImage.isLocal) {
         const formData = new FormData();
@@ -308,9 +312,8 @@ export default function AiScanScreen() {
           name: selectedImage.fileName || `scan-${Date.now()}.jpg`,
           type: selectedImage.type || 'image/jpeg'
         });
-        formData.append('animalType', animalType || 'Cow');
         formData.append('ownerName', userName || 'Farmer');
-        formData.append('animalId', resolvedAnimalId);
+        formData.append('animalId', effectiveAnimalId);
         formData.append('province', 'Punjab');
 
         response = await fetch(`${BASE_URL}/api/ai/scan-disease`, {
@@ -325,9 +328,8 @@ export default function AiScanScreen() {
           },
           body: JSON.stringify({
             imageBase64: selectedImage.base64,
-            animalType: animalType || 'Cow',
             ownerName: userName || 'Farmer',
-            animalId: resolvedAnimalId,
+            animalId: effectiveAnimalId,
             province: 'Punjab'
           }),
         });
@@ -339,9 +341,8 @@ export default function AiScanScreen() {
           },
           body: JSON.stringify({
             imageUrl: selectedImage.uri,
-            animalType: animalType || 'Cow',
             ownerName: userName || 'Farmer',
-            animalId: resolvedAnimalId,
+            animalId: effectiveAnimalId,
             province: 'Punjab'
           }),
         });
@@ -370,11 +371,18 @@ export default function AiScanScreen() {
 
       const diagnosis = data.diagnosis;
 
+      const serverImg = diagnosis.imageUrl || (data.record && data.record.image_url);
+      const fullImageUrl = serverImg
+        ? (serverImg.startsWith('http') ? serverImg : `${BASE_URL}${serverImg.startsWith('/') ? '' : '/'}${serverImg}`)
+        : selectedImage.uri;
+
+      // Handle non-livestock invalid images cleanly
       if (diagnosis.isCattle === false) {
         setScanResult({
           ...diagnosis,
-          generatedAnimalId: effectiveAnimalId || 'N/A',
-          statusUrdu: diagnosis.urdu,
+          isCattle: false,
+          generatedAnimalId: effectiveAnimalId,
+          statusUrdu: diagnosis.urdu || 'یہ تصویر مویشی کی نہیں ہے',
           scanTime: exactScanTime,
           date: exactScanTime,
           uri: fullImageUrl
@@ -384,18 +392,14 @@ export default function AiScanScreen() {
       }
 
       const isHealthy = !diagnosis.detected;
-
-      const serverImg = diagnosis.imageUrl || (data.record && data.record.image_url);
-      const fullImageUrl = serverImg
-        ? (serverImg.startsWith('http') ? serverImg : `${BASE_URL}${serverImg.startsWith('/') ? '' : '/'}${serverImg}`)
-        : selectedImage.uri;
-
-      const finalAnimalId = diagnosis.animalId || effectiveAnimalId || (data.record && data.record.id) || 'COW-101';
+      const detectedAnimal = diagnosis.animalType || diagnosis.breed || 'Cow';
+      const finalAnimalId = effectiveAnimalId || diagnosis.animalId || 'LIVESTOCK-1';
 
       const newRecord = {
         id: (data.record && data.record.id) || finalAnimalId,
         animalId: finalAnimalId,
-        animalType: animalType || 'Cow',
+        animalType: detectedAnimal,
+        breed: diagnosis.breed || detectedAnimal,
         disease: diagnosis.name || diagnosis.status,
         diseaseUrdu: diagnosis.urdu,
         confidence: diagnosis.confidence,
@@ -409,7 +413,8 @@ export default function AiScanScreen() {
         uri: fullImageUrl,
         imageUrl: fullImageUrl,
         description: diagnosis.description,
-        firstAid: diagnosis.firstAid
+        firstAid: diagnosis.firstAid,
+        firstAidUrdu: diagnosis.firstAidUrdu
       };
 
       if (typeof loadRecords === 'function') {
@@ -420,7 +425,10 @@ export default function AiScanScreen() {
 
       setScanResult({
         ...diagnosis,
+        isCattle: true,
         generatedAnimalId: finalAnimalId,
+        animalType: detectedAnimal,
+        breed: diagnosis.breed || detectedAnimal,
         statusUrdu: diagnosis.urdu,
         scanTime: exactScanTime,
         date: exactScanTime,
@@ -470,73 +478,64 @@ export default function AiScanScreen() {
 
         
         <View style={styles.mainCard}>
-          <Text style={styles.fieldLabel}>{t('Select Animal Type')}</Text>
-          
-          
-          <TouchableOpacity 
-            style={styles.dropdownBtn} 
-            onPress={() => setShowDropdown(!showDropdown)}
-          >
-            <Text style={[styles.dropdownText, !animalType && styles.dropdownPlaceholder]}>
-              {animalType ? t(animalType) : t('Select')}
-            </Text>
-            <Feather name={showDropdown ? 'chevron-up' : 'chevron-down'} size={20} color="#666" />
-          </TouchableOpacity>
-
-          
-          {/* Dropdown Options */}
-          {showDropdown && (
-            <View style={styles.dropdownList}>
-              <TouchableOpacity 
-                style={styles.dropdownItem} 
-                onPress={() => handleSelectAnimal('Cow')}
-                activeOpacity={0.7}
-              >
-                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                  <MaterialCommunityIcons name="cow" size={22} color={colors.primary} style={{ marginRight: 10 }} />
-                  <Text style={styles.dropdownItemText}>{t('Cow')}</Text>
-                </View>
-                {animalType === 'Cow' && (
-                  <Feather name="check" size={18} color={colors.primary} />
-                )}
-              </TouchableOpacity>
-              <TouchableOpacity 
-                style={[styles.dropdownItem, { borderBottomWidth: 0 }]} 
-                onPress={() => handleSelectAnimal('Buffalo')}
-                activeOpacity={0.7}
-              >
-                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                  <MaterialCommunityIcons name="cow" size={22} color={colors.primary} style={{ marginRight: 10 }} />
-                  <Text style={styles.dropdownItemText}>{t('Buffalo')}</Text>
-                </View>
-                {animalType === 'Buffalo' && (
-                  <Feather name="check" size={18} color={colors.primary} />
-                )}
-              </TouchableOpacity>
+          {/* AI Species Auto-Detection Banner */}
+          <View style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            backgroundColor: isDark ? '#064E3B' : '#F0FDF4',
+            borderWidth: 1,
+            borderColor: isDark ? '#059669' : '#86EFAC',
+            borderRadius: 14,
+            paddingHorizontal: 14,
+            paddingVertical: 12,
+            marginBottom: 14
+          }}>
+            <MaterialCommunityIcons name="robot" size={24} color={isDark ? '#4ADE80' : '#16A34A'} style={{ marginRight: 10 }} />
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontSize: 13, fontWeight: '800', color: isDark ? '#86EFAC' : '#166534' }}>
+                {t('AI Species Auto-Detection Active', 'خودکار جانور کی شناخت فعال ہے')}
+              </Text>
+              <Text style={{ fontSize: 11, color: isDark ? '#D1FAE5' : '#15803D', marginTop: 2 }}>
+                {t('AI automatically identifies Cow, Buffalo, or Goat from photo', 'اے آئی تصویر سے گائے، بھینس یا بکری کی خودکار شناخت کرے گی')}
+              </Text>
             </View>
-          )}
+          </View>
 
-          {/* Cattle Tag / Animal ID Input */}
-          <View style={{ marginTop: 14, marginBottom: 12 }}>
+          {/* Mandatory Livestock ID Input */}
+          <View style={{ marginBottom: 14 }}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-              <Text style={styles.fieldLabel}>{t('Cattle Tag / Animal ID', 'جانور کا ٹیگ نمبر / شناختی نمبر')}</Text>
-              <Text style={{ fontSize: 12, color: colors.textSecondary }}>{t('User Assigned', 'صارف تفویض کردہ')}</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Text style={styles.fieldLabel}>{t('Livestock ID', 'جانور کی آئی ڈی / ٹیگ نمبر')}</Text>
+                <Text style={{ color: '#DC2626', fontWeight: '800', marginLeft: 4, fontSize: 16 }}>*</Text>
+              </View>
+              <View style={{
+                backgroundColor: animalTagId.trim() ? (isDark ? '#064E3B' : '#DCFCE7') : (isDark ? '#7F1D1D' : '#FEE2E2'),
+                borderWidth: 1,
+                borderColor: animalTagId.trim() ? '#86EFAC' : '#FCA5A5',
+                borderRadius: 6,
+                paddingHorizontal: 8,
+                paddingVertical: 2
+              }}>
+                <Text style={{ fontSize: 11, fontWeight: '700', color: animalTagId.trim() ? '#166534' : '#DC2626' }}>
+                  {animalTagId.trim() ? t('Ready', 'درج شدہ') : t('Required', 'لازمی')}
+                </Text>
+              </View>
             </View>
             <View style={{
               flexDirection: 'row',
               alignItems: 'center',
               backgroundColor: colors.inputBackground || (isDark ? '#1E293B' : '#F8FAFC'),
               borderWidth: 1.5,
-              borderColor: animalTagId ? colors.primary : (colors.border || '#E2E8F0'),
+              borderColor: animalTagId.trim() ? colors.primary : '#DC2626',
               borderRadius: 14,
               paddingHorizontal: 14,
               height: 50,
             }}>
-              <Feather name="tag" size={18} color={animalTagId ? colors.primary : '#94A3B8'} style={{ marginRight: 10 }} />
+              <Feather name="tag" size={18} color={animalTagId.trim() ? colors.primary : '#DC2626'} style={{ marginRight: 10 }} />
               <TextInput
                 value={animalTagId}
                 onChangeText={setAnimalTagId}
-                placeholder={animalType === 'Buffalo' ? t('e.g. BUF-101, Tag #42...', 'مثال: BUF-101') : t('e.g. COW-101, Tag #24...', 'مثال: COW-101')}
+                placeholder={t('Enter Livestock ID (e.g. COW-101, TAG-201)*', 'جانور کی آئی ڈی درج کریں (مثال: COW-101)*')}
                 placeholderTextColor="#94A3B8"
                 style={{
                   flex: 1,
@@ -607,7 +606,81 @@ export default function AiScanScreen() {
         </View>
 
         
-        {showReport && scanResult && (
+        {/* Report Card: Invalid Non-Livestock Image */}
+        {showReport && scanResult && scanResult.isCattle === false && (
+          <View style={[styles.reportCard, { borderColor: '#F87171', borderWidth: 1.5 }]}>
+            <View style={[styles.reportHeader, { borderBottomColor: '#FEE2E2' }]}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+                <Feather name="alert-triangle" size={20} color="#DC2626" style={{ marginRight: 8 }} />
+                <Text style={[styles.reportTitle, { color: '#DC2626' }]}>
+                  {t('Non-Livestock Image', 'جانور کی تصویر نہیں ہے')}
+                </Text>
+              </View>
+              <View style={[styles.severityBadge, { backgroundColor: '#FEE2E2' }]}>
+                <Text style={[styles.severityText, { color: '#DC2626', fontWeight: '800' }]}>
+                  {t('Invalid Image', 'غلط تصویر')}
+                </Text>
+              </View>
+            </View>
+
+            <View style={styles.resultDetails}>
+              {(scanResult.uri || selectedImage?.uri) && (
+                <View style={{ borderRadius: 12, overflow: 'hidden', marginBottom: 14, borderWidth: 1, borderColor: '#FCA5A5' }}>
+                  <Image 
+                    source={{ uri: scanResult.uri || selectedImage?.uri }} 
+                    style={{ width: '100%', height: 180, resizeMode: 'cover' }} 
+                  />
+                </View>
+              )}
+
+              <View style={styles.resultRow}>
+                <Text style={styles.resultLabel}>{t('Scan Result:', 'اسکین نتیجہ:')}</Text>
+                <Text style={[styles.resultVal, { color: '#DC2626', fontWeight: '700' }]}>
+                  {t('No Livestock Detected', 'کوئی مویشی نہیں ملا')}
+                </Text>
+              </View>
+
+              <View style={styles.resultRow}>
+                <Text style={styles.resultLabel}>{t('Livestock ID:', 'جانور کی آئی ڈی:')}</Text>
+                <Text style={[styles.resultVal, { color: '#0F172A', fontWeight: 'bold' }]}>
+                  {scanResult.generatedAnimalId}
+                </Text>
+              </View>
+
+              <Text style={[styles.descTitle, { color: '#DC2626', marginTop: 12 }, isUrdu && { fontFamily: fonts.urduBold, fontSize: 15 }]}>
+                {t('Detection Notice:', 'تشخیصی وضاحت:')}
+              </Text>
+              <Text style={[styles.descText, isUrdu && { fontFamily: fonts.urduRegular, fontSize: 14, lineHeight: 24 }]}>
+                {scanResult.description}
+              </Text>
+
+              <Text style={[styles.aidTitle, { marginTop: 14 }, isUrdu && { fontFamily: fonts.urduBold, fontSize: 15 }]}>
+                {t('How to Capture a Valid Photo:', 'درست تصویر بنانے کا طریقہ:')}
+              </Text>
+              {((isUrdu && scanResult.firstAidUrdu) ? scanResult.firstAidUrdu : scanResult.firstAid).map((tip, idx) => (
+                <View key={idx} style={[styles.bulletRow, { alignItems: 'flex-start' }]}>
+                  <Text style={[styles.bulletDot, { color: '#DC2626' }, isUrdu && { marginTop: 4 }]}>•</Text>
+                  <Text style={[styles.bulletText, isUrdu && { fontFamily: fonts.urduRegular, fontSize: 14, lineHeight: 24 }]}>{tip}</Text>
+                </View>
+              ))}
+            </View>
+
+            <View style={styles.reportActions}>
+              <TouchableOpacity 
+                style={[styles.resetBtn, { flex: 1, backgroundColor: '#059669', borderColor: '#059669', paddingVertical: 14 }]} 
+                onPress={handleReset}
+              >
+                <Feather name="camera" size={18} color="#FFFFFF" style={{ marginRight: 8 }} />
+                <Text style={[styles.resetBtnText, { color: '#FFFFFF', fontWeight: '800' }]}>
+                  {t('Re-scan Animal', 'دوبارہ تصویر لیں')}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
+
+        {/* Report Card: Valid Livestock Disease Diagnosis */}
+        {showReport && scanResult && scanResult.isCattle !== false && (
           <View style={styles.reportCard}>
             <View style={styles.reportHeader}>
               <Text style={styles.reportTitle}>{t('Health Status Report')}</Text>
@@ -632,9 +705,15 @@ export default function AiScanScreen() {
                 <Text style={styles.resultVal}>{scanResult.scanTime || scanResult.date}</Text>
               </View>
               <View style={styles.resultRow}>
-                <Text style={styles.resultLabel}>{t('Animal ID:')}</Text>
+                <Text style={styles.resultLabel}>{t('Livestock ID:', 'جانور کی آئی ڈی:')}</Text>
                 <Text style={[styles.resultVal, { color: '#FFB020', fontWeight: 'bold' }]}>
                   {scanResult.generatedAnimalId}
+                </Text>
+              </View>
+              <View style={styles.resultRow}>
+                <Text style={styles.resultLabel}>{t('Species & Breed:', 'نسل اور قسم:')}</Text>
+                <Text style={[styles.resultVal, { color: colors.primary, fontWeight: '700' }]}>
+                  {scanResult.breed || scanResult.animalType || 'Cow'}
                 </Text>
               </View>
               <View style={styles.resultRow}>
@@ -650,7 +729,7 @@ export default function AiScanScreen() {
               <Text style={[styles.descText, isUrdu && { fontFamily: fonts.urduRegular, fontSize: 14, lineHeight: 28 }]}>{getLocalizedDescription(scanResult.status, scanResult.description)}</Text>
               
               <Text style={[styles.aidTitle, isUrdu && { fontFamily: fonts.urduBold, fontSize: 15 }]}>{t('Recommended First Aid:')}</Text>
-              {getLocalizedFirstAid(scanResult.status, scanResult.firstAid).map((tip, idx) => (
+              {((isUrdu && scanResult.firstAidUrdu) ? scanResult.firstAidUrdu : getLocalizedFirstAid(scanResult.status, scanResult.firstAid)).map((tip, idx) => (
                 <View key={idx} style={[styles.bulletRow, { alignItems: 'flex-start' }]}>
                   <Text style={[styles.bulletDot, isUrdu && { marginTop: 4 }]}>•</Text>
                   <Text style={[styles.bulletText, isUrdu && { fontFamily: fonts.urduRegular, fontSize: 14, lineHeight: 28 }]}>{tip}</Text>

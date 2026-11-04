@@ -276,11 +276,15 @@ module.exports = (pool, io) => {
         return res.status(400).json({ error: 'Please provide an image file, base64 image data, or imageUrl.' });
       }
 
-      // Run Universal AI Multimodal Vision Disease Inference
-      const diagnosis = await detectDiseaseFromImage(imageFilePath, 30, animalType);
+      // Run Universal Two-Stage AI Multimodal Vision Disease Inference
+      const diagnosis = await detectDiseaseFromImage(imageFilePath, 25, animalType);
 
-      // If uploaded image is not a cow or buffalo, return validation report without storing invalid detection
+      // If uploaded image is not livestock (e.g. keyboard, car, human face), return validation report
       if (diagnosis.isCattle === false) {
+        const fullPublicImageUrl = publicImageUrl && !publicImageUrl.startsWith('http')
+          ? `https://maveshi-sehat-api.onrender.com${publicImageUrl.startsWith('/') ? '' : '/'}${publicImageUrl}`
+          : publicImageUrl;
+
         return res.status(200).json({
           success: true,
           diagnosis: {
@@ -294,17 +298,23 @@ module.exports = (pool, io) => {
             severity: 'Invalid Image',
             severityColor: '#94A3B8',
             severityBg: '#F1F5F9',
+            animalType: 'N/A',
+            breed: 'N/A',
             description: diagnosis.description,
             firstAid: diagnosis.firstAid,
-            imageUrl: publicImageUrl
+            firstAidUrdu: diagnosis.firstAidUrdu,
+            imageUrl: fullPublicImageUrl
           }
         });
       }
 
-      // Assigned cattle ID or automatic ear-tag generation
+      // Auto-detected animal species / breed from Vision AI
+      const finalSpecies = diagnosis.animalType || req.body.animalType || 'Cow';
+
+      // Assigned livestock ID (mandatory from user or ear-tag fallback)
       let assignedAnimalId = (animalId && typeof animalId === 'string' && animalId.trim().length > 0)
         ? animalId.trim()
-        : `${(animalType || 'COW').toUpperCase()}-${Math.floor(100 + Math.random() * 900)}`;
+        : `${finalSpecies.toUpperCase()}-${Math.floor(100 + Math.random() * 900)}`;
 
       // Guard against primary key collision
       let recordId = assignedAnimalId;
@@ -334,7 +344,7 @@ module.exports = (pool, io) => {
       const dbRes = await pool.query(insertQuery, [
         recordId,
         ownerName,
-        animalType,
+        finalSpecies,
         diagnosis.status,
         confNumber,
         diagnosis.riskLevel,

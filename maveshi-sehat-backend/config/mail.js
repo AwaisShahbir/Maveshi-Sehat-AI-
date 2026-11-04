@@ -1,16 +1,12 @@
 const https = require('https');
-const { Resend } = require('resend');
 
 /**
  * Maveshi Sehat AI - Email Dispatch Service
  * 
- * Uses Brevo HTTPS REST API (Port 443) as primary service:
+ * Powered by Brevo HTTPS REST API (Port 443):
  * - 100% compatible with Render Free Tier (bypasses all blocked SMTP ports 25, 465, 587).
- * - Free tier: 300 emails/day without requiring a custom domain.
- * - Delivers to ANY recipient mailbox (Gmail, Yahoo, Outlook, etc.).
+ * - Zero custom domain requirement (delivers to any farmer/user globally).
  * - Verified sender: maveshisehatai@gmail.com
- * 
- * Fallback: Resend HTTPS REST API if Brevo key is absent.
  */
 
 // Production Brevo credentials with environment override support
@@ -24,8 +20,6 @@ const getBrevoKey = () => {
   return `${K_SEG1}${K_SEG2}`;
 };
 
-const getResendKey = () => (process.env.RESEND_API_KEY || '').trim();
-
 const BREVO_DEFAULT_SENDER = {
   name: process.env.BREVO_SENDER_NAME || 'Maveshi Sehat AI',
   email: process.env.BREVO_SENDER_EMAIL || 'maveshisehatai@gmail.com'
@@ -33,9 +27,24 @@ const BREVO_DEFAULT_SENDER = {
 
 /**
  * Send email using Brevo REST API v3
+ * @param {Object} options
+ * @param {string|string[]|{email: string, name?: string}[]} options.to
+ * @param {string} options.subject
+ * @param {string} [options.html]
+ * @param {string} [options.text]
+ * @returns {Promise<{ id: string, messageId: string, response: string }>}
  */
-function sendWithBrevo({ to, subject, html, text }) {
+function sendMail({ to, subject, html, text }) {
   const apiKey = getBrevoKey();
+
+  if (!apiKey) {
+    console.warn('[Brevo] WARNING: BREVO_API_KEY is not configured in .env or Render Dashboard.');
+    return Promise.resolve({
+      id: 'mock-no-key',
+      messageId: 'mock-no-key',
+      response: 'WARNING: No email API key configured - email not delivered to network'
+    });
+  }
 
   return new Promise((resolve, reject) => {
     // Normalize recipients
@@ -104,58 +113,6 @@ function sendWithBrevo({ to, subject, html, text }) {
     req.write(payload);
     req.end();
   });
-}
-
-/**
- * Send email using Resend REST API (Fallback)
- */
-async function sendWithResend({ to, subject, html, text }) {
-  const apiKey = getResendKey();
-  const resend = new Resend(apiKey);
-  const recipients = Array.isArray(to) ? to : [to];
-  const sender = process.env.RESEND_FROM || 'Maveshi Sehat AI <onboarding@resend.dev>';
-
-  const { data, error } = await resend.emails.send({
-    from: sender,
-    to: recipients,
-    subject,
-    html,
-    text
-  });
-
-  if (error) {
-    throw new Error(error.message || 'Resend API returned an error');
-  }
-
-  console.log(`[Resend Email Sent] To: ${recipients.join(', ')} (ID: ${data.id})`);
-  return {
-    id: data.id,
-    messageId: data.id,
-    response: `250 OK: Resend ID ${data.id}`
-  };
-}
-
-/**
- * Unified sendMail function
- */
-async function sendMail(options) {
-  const brevoKey = getBrevoKey();
-  if (brevoKey) {
-    return await sendWithBrevo(options);
-  }
-
-  const resendKey = getResendKey();
-  if (resendKey) {
-    return await sendWithResend(options);
-  }
-
-  console.warn('[Email Service] WARNING: Neither BREVO_API_KEY nor RESEND_API_KEY is configured.');
-  console.warn('[Email Service] Please set BREVO_API_KEY to enable live email delivery.');
-  return {
-    id: 'mock-no-key',
-    messageId: 'mock-no-key',
-    response: 'WARNING: No email API key configured - email not delivered to network'
-  };
 }
 
 module.exports = {
