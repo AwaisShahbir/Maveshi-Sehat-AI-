@@ -1,9 +1,7 @@
 import { useState, useEffect } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getProfile, subscribeProfile, setUserLanguage } from './profileStore.js';
 
 const BASE_URL = 'https://maveshi-sehat-api.onrender.com';
-const ASYNC_STORAGE_CACHE_KEY = 'maveshi_translation_cache_v2';
 
 /**
  * Built-in Official Pakistani Veterinary & Application UI Dictionary (UVAS / PARC Standards)
@@ -685,24 +683,6 @@ for (const [k, v] of Object.entries(STATIC_URDU_DICTIONARY)) {
 const pendingRequests = new Set();
 let translationListeners = [];
 
-// Load persisted translations from AsyncStorage on startup
-(async () => {
-  try {
-    const stored = await AsyncStorage.getItem(ASYNC_STORAGE_CACHE_KEY);
-    if (stored) {
-      const parsed = JSON.parse(stored);
-      Object.entries(parsed).forEach(([k, v]) => {
-        if (k && v && typeof v === 'string') {
-          translationCache.set(k.trim(), v);
-        }
-      });
-      notifyTranslationListeners();
-    }
-  } catch (e) {
-    // silently fail
-  }
-})();
-
 export const subscribeTranslation = (listener) => {
   translationListeners.push(listener);
   return () => {
@@ -719,24 +699,6 @@ const notifyTranslationListeners = () => {
     }
   });
 };
-
-const persistCacheDebounced = (() => {
-  let timer = null;
-  return () => {
-    if (timer) clearTimeout(timer);
-    timer = setTimeout(async () => {
-      try {
-        const obj = {};
-        translationCache.forEach((v, k) => {
-          obj[k] = v;
-        });
-        await AsyncStorage.setItem(ASYNC_STORAGE_CACHE_KEY, JSON.stringify(obj));
-      } catch (e) {
-        // fail silently
-      }
-    }, 1500);
-  };
-})();
 
 export const CORE_UI_KEYS = Object.keys(STATIC_URDU_DICTIONARY);
 
@@ -764,7 +726,6 @@ export const prefetchTranslations = async (keys = CORE_UI_KEYS, targetLang = 'ur
             translationCache.set(orig.trim(), trans);
           }
         });
-        persistCacheDebounced();
         notifyTranslationListeners();
       }
     }
@@ -816,7 +777,6 @@ export const translateText = async (text, targetLang = 'ur', sourceLang = 'en') 
         translationCache.set(trimmed, trans);
         translationCache.set(cacheKey, trans);
         pendingRequests.delete(trimmed);
-        persistCacheDebounced();
         notifyTranslationListeners();
         return trans;
       }
