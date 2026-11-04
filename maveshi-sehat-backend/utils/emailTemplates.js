@@ -247,8 +247,180 @@ function getVetWelcomeEmailHtml(fullName = 'Doctor') {
   `.trim();
 }
 
+function getResetPasswordEmailHtml(fullName = 'Valued User', otp = '0000') {
+  const safeName = (fullName || 'Valued User').trim();
+  const safeOtp = String(otp).trim();
+
+  return `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reset Your Password - Maveshi Sehat AI</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #f4f6f8;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      color: #1e293b;
+      -webkit-font-smoothing: antialiased;
+    }
+    .wrapper {
+      width: 100%;
+      background-color: #f4f6f8;
+      padding: 36px 12px;
+      box-sizing: border-box;
+    }
+    .card {
+      max-width: 540px;
+      margin: 0 auto;
+      background-color: #ffffff;
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+      border: 1px solid #e2e8f0;
+    }
+    .header {
+      background: linear-gradient(135deg, #135431 0%, #0d3820 100%);
+      padding: 32px 24px;
+      text-align: center;
+      color: #ffffff;
+    }
+    .brand-badge {
+      display: inline-block;
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      padding: 4px 14px;
+      border-radius: 50px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: #86efac;
+      margin-bottom: 12px;
+    }
+    .brand-title {
+      margin: 0;
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      color: #ffffff;
+    }
+    .brand-sub {
+      margin: 6px 0 0;
+      font-size: 13px;
+      color: #d1fae5;
+      font-weight: 500;
+    }
+    .content {
+      padding: 36px 28px;
+    }
+    .greeting {
+      font-size: 18px;
+      font-weight: 700;
+      color: #0f172a;
+      margin-top: 0;
+      margin-bottom: 12px;
+    }
+    .lead-text {
+      font-size: 14px;
+      line-height: 1.6;
+      color: #475569;
+      margin-bottom: 24px;
+    }
+    .otp-container {
+      background: linear-gradient(180deg, #f0fdf4 0%, #ecfdf5 100%);
+      border: 2px dashed #10b981;
+      border-radius: 14px;
+      padding: 24px 16px;
+      text-align: center;
+      margin: 24px 0;
+    }
+    .otp-label {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: #047857;
+      margin-bottom: 8px;
+    }
+    .otp-digits {
+      font-size: 38px;
+      font-weight: 900;
+      letter-spacing: 10px;
+      color: #065f46;
+      font-family: 'SF Pro Text', Consolas, Monaco, monospace;
+      padding-left: 10px;
+    }
+    .otp-expiry {
+      font-size: 12px;
+      color: #059669;
+      margin-top: 8px;
+      font-weight: 500;
+    }
+    .info-box {
+      background-color: #f8fafc;
+      border-left: 4px solid #10b981;
+      padding: 14px 16px;
+      border-radius: 0 8px 8px 0;
+      margin-top: 24px;
+      font-size: 13px;
+      line-height: 1.5;
+      color: #475569;
+    }
+    .footer {
+      background-color: #f8fafc;
+      border-top: 1px solid #e2e8f0;
+      padding: 24px;
+      text-align: center;
+      font-size: 12px;
+      color: #94a3b8;
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="card">
+      <div class="header">
+        <div class="brand-badge">Password Recovery</div>
+        <h1 class="brand-title">Maveshi Sehat AI</h1>
+        <div class="brand-sub">Password Reset Request</div>
+      </div>
+
+      <div class="content">
+        <h2 class="greeting">Hello, ${safeName}</h2>
+        <p class="lead-text">
+          We received a request to reset the password for your Maveshi Sehat AI account. Use the verification code below to set a new password:
+        </p>
+
+        <div class="otp-container">
+          <div class="otp-label">Password Reset Code</div>
+          <div class="otp-digits">${safeOtp}</div>
+          <div class="otp-expiry">⏱️ Valid for 10 minutes</div>
+        </div>
+
+        <div class="info-box">
+          <strong>Security Notice:</strong> Never share this code with anyone. Maveshi Sehat AI support will never ask for your verification code. If you did not make this request, you can safely ignore this email.
+        </div>
+      </div>
+
+      <div class="footer">
+        <div><strong>Maveshi Sehat AI</strong> — Pakistan's National Livestock Platform</div>
+        <div>Empowering Farmers • Advancing Veterinary Healthcare</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+  `.trim();
+}
+
 module.exports = {
   getOtpEmailHtml,
-  getVetWelcomeEmailHtml
+  getVetWelcomeEmailHtml,
+  getResetPasswordEmailHtml
 };
 

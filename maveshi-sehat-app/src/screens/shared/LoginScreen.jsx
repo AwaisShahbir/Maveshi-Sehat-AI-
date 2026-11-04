@@ -16,7 +16,7 @@ export default function LoginScreen() {
   const [, setTick] = useState(0);
 
   const [role, setRole] = useState('owner');
-  const [phoneNumber, setPhoneNumber] = useState('');
+  const [loginIdentifier, setLoginIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -45,13 +45,15 @@ export default function LoginScreen() {
 
   const handleLogin = async () => {
     setErrorMsg('');
+    const cleanId = loginIdentifier.trim();
 
-    if (!phoneNumber.trim() || !password.trim()) {
-      return setErrorMsg('Please enter your phone number and password');
+    if (!cleanId || !password.trim()) {
+      return setErrorMsg('Please enter your phone number or email, and password');
     }
 
-    if (phoneNumber.length < 10) {
-      return setErrorMsg('Please enter a valid phone number');
+    const isEmail = cleanId.includes('@');
+    if (!isEmail && cleanId.replace(/\D/g, '').length < 10) {
+      return setErrorMsg('Please enter a valid phone number or email address');
     }
 
     setLoading(true);
@@ -61,7 +63,13 @@ export default function LoginScreen() {
       const response = await fetch(`${baseUrl}/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phoneNumber, password, role: mappedRole })
+        body: JSON.stringify({
+          identifier: cleanId,
+          phoneNumber: isEmail ? undefined : cleanId,
+          email: isEmail ? cleanId.toLowerCase() : undefined,
+          password,
+          role: mappedRole
+        })
       });
 
       const data = await response.json();
@@ -180,17 +188,24 @@ export default function LoginScreen() {
             </View>
 
             <Text style={[styles.label, isUrdu && { fontFamily: fonts.urduBold, fontSize: 15, marginTop: 14, marginBottom: 6, includeFontPadding: false }]}>
-              {t('Phone Number')}
+              {isUrdu ? 'فون نمبر یا ای میل' : 'Phone Number or Email'}
             </Text>
             <View style={styles.inputContainer}>
-              <Feather name="phone" size={20} color="#10B981" style={styles.inputIcon} />
+              <Feather 
+                name={loginIdentifier.includes('@') ? "mail" : "phone"} 
+                size={20} 
+                color="#10B981" 
+                style={styles.inputIcon} 
+              />
               <TextInput
                 style={styles.input}
-                placeholder="+92 300 1234567"
+                placeholder={isUrdu ? '03001234567 یا ای میل درج کریں' : '03001234567 or email@domain.com'}
                 placeholderTextColor={colors.inputPlaceholder}
-                keyboardType="phone-pad"
-                value={phoneNumber}
-                onChangeText={setPhoneNumber}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
+                value={loginIdentifier}
+                onChangeText={setLoginIdentifier}
               />
             </View>
 
@@ -212,7 +227,11 @@ export default function LoginScreen() {
               </TouchableOpacity>
             </View>
 
-            <TouchableOpacity>
+            <TouchableOpacity 
+              onPress={() => navigation.navigate('ForgotPassword', { initialIdentifier: loginIdentifier })}
+              activeOpacity={0.7}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
               <Text style={[styles.forgotPassword, isUrdu && { fontFamily: fonts.urduRegular, fontSize: 15, includeFontPadding: false }]}>
                 {t('Forgot Password?')}
               </Text>

@@ -8,6 +8,7 @@ import { initNotifications, setNotificationNavigationRef } from './src/services/
 import SplashScreen from './src/screens/shared/SplashScreen';
 import WelcomeScreen from './src/screens/shared/WelcomeScreen';
 import LoginScreen from './src/screens/shared/LoginScreen';
+import ForgotPasswordScreen from './src/screens/shared/ForgotPasswordScreen';
 import RegisterScreen from './src/screens/shared/RegisterScreen';
 import VerifyScreen from './src/screens/shared/VerifyScreen';
 import DashboardScreen from './src/screens/user/DashboardScreen';
@@ -63,6 +64,7 @@ export default function App() {
           <Stack.Screen name="Splash" component={SplashScreen} />
           <Stack.Screen name="Welcome" component={WelcomeScreen} />
           <Stack.Screen name="Login" component={LoginScreen} />
+          <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
           <Stack.Screen name="Register" component={RegisterScreen} />
           <Stack.Screen name="Verify" component={VerifyScreen} />
           <Stack.Screen name="Dashboard" component={DashboardScreen} />

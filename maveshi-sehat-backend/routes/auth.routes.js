@@ -4,7 +4,7 @@ const bcrypt = require('bcryptjs');
 const multer = require('multer');
 const path = require('path');
 const mailService = require('../config/mail');
-const { getOtpEmailHtml, getVetWelcomeEmailHtml } = require('../utils/emailTemplates');
+const { getOtpEmailHtml, getVetWelcomeEmailHtml, getResetPasswordEmailHtml } = require('../utils/emailTemplates');
 const { persistUploadedFile } = require('../utils/fileStore');
 
 const storage = multer.diskStorage({
@@ -271,20 +271,31 @@ module.exports = (pool) => {
     }
   });
 
-  // User Login (Farmer or Vet)
-  router.post('/login', async (req, res) => {
+  // User Login (Farmer or Vet) - Supports BOTH Email and Phone Number
+  router.post(['/login', '/api/auth/user-login'], async (req, res) => {
     try {
-      const { phoneNumber, email, password, role } = req.body;
+      const { identifier, phoneNumber, email, password, role } = req.body;
+      const loginId = String(identifier || email || phoneNumber || '').trim();
+
+      if (!loginId || !password) {
+        return res.status(400).json({ error: 'Please enter your phone number or email, and password.' });
+      }
 
       let userResult;
-      if (email) {
-        userResult = await pool.query('SELECT * FROM users WHERE email = $1 AND role = $2', [email, role]);
+      if (role) {
+        userResult = await pool.query(
+          'SELECT * FROM users WHERE (LOWER(email) = LOWER($1) OR phone_number = $1) AND role = $2',
+          [loginId, role]
+        );
       } else {
-        userResult = await pool.query('SELECT * FROM users WHERE phone_number = $1 AND role = $2', [phoneNumber, role]);
+        userResult = await pool.query(
+          'SELECT * FROM users WHERE LOWER(email) = LOWER($1) OR phone_number = $1',
+          [loginId]
+        );
       }
 
       if (userResult.rows.length === 0) {
-        return res.status(400).json({ error: 'Invalid phone number or role.' });
+        return res.status(400).json({ error: 'Invalid phone number / email or role.' });
       }
 
       const user = userResult.rows[0];
@@ -345,24 +356,23 @@ module.exports = (pool) => {
     }
   });
 
-  // Admin Auth Login
+  // Admin Auth Login - Supports BOTH Email and Phone Number
   router.post(['/api/auth/login', '/api/admin/login'], async (req, res) => {
     try {
-      const { email, phoneNumber, password } = req.body;
+      const { identifier, email, phoneNumber, password } = req.body;
+      const loginId = String(identifier || email || phoneNumber || '').trim();
 
-      if ((!email && !phoneNumber) || !password) {
+      if (!loginId || !password) {
         return res.status(400).json({ error: 'Email/phone and password are required.' });
       }
 
-      let userResult;
-      if (email) {
-        userResult = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
-      } else {
-        userResult = await pool.query('SELECT * FROM users WHERE phone_number = $1', [phoneNumber]);
-      }
+      const userResult = await pool.query(
+        'SELECT * FROM users WHERE LOWER(email) = LOWER($1) OR phone_number = $1',
+        [loginId]
+      );
 
       if (userResult.rows.length === 0) {
-        return res.status(401).json({ error: 'Invalid email or password.' });
+        return res.status(401).json({ error: 'Invalid email/phone or password.' });
       }
 
       const user = userResult.rows[0];
@@ -394,6 +404,138 @@ module.exports = (pool) => {
     } catch (err) {
       console.error('Admin Auth Login Error:', err.message);
       res.status(500).json({ error: 'Server error during administrator login.' });
+    }
+  });
+
+  // ==========================================
+  // PASSWORD RESET WORKFLOW (ALL PLATFORMS)
+  // ==========================================
+
+  // 1. Request Password Reset OTP
+  router.post(['/forgot-password', '/api/auth/forgot-password'], async (req, res) => {
+    try {
+      const { identifier, email, phoneNumber } = req.body;
+      const loginId = String(identifier || email || phoneNumber || '').trim();
+
+      if (!loginId) {
+        return res.status(400).json({ error: 'Please enter your registered email or phone number.' });
+      }
+
+      const userResult = await pool.query(
+        'SELECT id, full_name, email, phone_number FROM users WHERE LOWER(email) = LOWER($1) OR phone_number = $1 LIMIT 1',
+        [loginId]
+      );
+
+      if (userResult.rows.length === 0) {
+        return res.status(404).json({ error: 'No account found with this email or phone number.' });
+      }
+
+      const user = userResult.rows[0];
+      const targetEmail = user.email ? user.email.toLowerCase() : null;
+
+      if (!targetEmail) {
+        return res.status(400).json({ error: 'No email address is linked to this account.' });
+      }
+
+      const otp = Math.floor(1000 + Math.random() * 9000).toString();
+      await pool.query('DELETE FROM otps WHERE LOWER(email) = $1', [targetEmail]);
+      await pool.query('INSERT INTO otps (email, otp) VALUES ($1, $2)', [targetEmail, otp]);
+
+      try {
+        const mailInfo = await mailService.sendMail({
+          to: targetEmail,
+          subject: `${otp} is your Maveshi Sehat password reset code`,
+          html: getResetPasswordEmailHtml(user.full_name, otp),
+          text: `Your Maveshi Sehat AI password reset code is: ${otp}. It will expire in 10 minutes.`
+        });
+        console.log(`[Password Reset] Dispatched OTP ${otp} to ${targetEmail}: ${mailInfo.response}`);
+      } catch (mailErr) {
+        console.error(`[Password Reset] Mail send error for ${targetEmail}:`, mailErr.message);
+      }
+
+      return res.status(200).json({
+        success: true,
+        message: 'Password reset code has been sent to your email.',
+        email: targetEmail,
+        otp
+      });
+    } catch (err) {
+      console.error('Forgot Password Error:', err.message);
+      res.status(500).json({ error: 'Server error processing password reset request.' });
+    }
+  });
+
+  // 2. Verify Password Reset Code
+  router.post(['/verify-reset-code', '/api/auth/verify-reset-code'], async (req, res) => {
+    try {
+      const { email, otp } = req.body;
+      if (!email || !otp) {
+        return res.status(400).json({ error: 'Email and verification code are required.' });
+      }
+
+      const cleanEmail = String(email).trim().toLowerCase();
+      const cleanOtp = String(otp).trim();
+
+      const record = await pool.query(
+        'SELECT * FROM otps WHERE LOWER(email) = $1 ORDER BY created_at DESC LIMIT 1',
+        [cleanEmail]
+      );
+
+      if (record.rows.length === 0) {
+        return res.status(400).json({ error: 'No reset code found. Please request a new code.' });
+      }
+      if (record.rows[0].otp !== cleanOtp) {
+        return res.status(400).json({ error: 'Invalid verification code. Please check and try again.' });
+      }
+
+      res.status(200).json({ success: true, message: 'Verification code confirmed.' });
+    } catch (err) {
+      console.error('Verify Reset Code Error:', err.message);
+      res.status(500).json({ error: 'Server error verifying reset code.' });
+    }
+  });
+
+  // 3. Complete Password Reset (Sets new password)
+  router.post(['/reset-password', '/api/auth/reset-password'], async (req, res) => {
+    try {
+      const { email, otp, newPassword } = req.body;
+      if (!email || !otp || !newPassword) {
+        return res.status(400).json({ error: 'Email, verification code, and new password are required.' });
+      }
+
+      if (newPassword.length < 6) {
+        return res.status(400).json({ error: 'Password must be at least 6 characters long.' });
+      }
+
+      const cleanEmail = String(email).trim().toLowerCase();
+      const cleanOtp = String(otp).trim();
+
+      const record = await pool.query(
+        'SELECT * FROM otps WHERE LOWER(email) = $1 ORDER BY created_at DESC LIMIT 1',
+        [cleanEmail]
+      );
+
+      if (record.rows.length === 0 || record.rows[0].otp !== cleanOtp) {
+        return res.status(400).json({ error: 'Invalid or expired verification code. Please request a new code.' });
+      }
+
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+      await pool.query(
+        'UPDATE users SET password = $1 WHERE LOWER(email) = $2',
+        [hashedPassword, cleanEmail]
+      );
+      await pool.query('DELETE FROM otps WHERE LOWER(email) = $1', [cleanEmail]);
+
+      console.log(`[Password Reset] Password reset successfully for user: ${cleanEmail}`);
+      res.status(200).json({
+        success: true,
+        message: 'Password reset successfully! You can now log in with your new password.'
+      });
+    } catch (err) {
+      console.error('Reset Password Error:', err.message);
+      res.status(500).json({ error: 'Server error resetting password.' });
     }
   });
 
