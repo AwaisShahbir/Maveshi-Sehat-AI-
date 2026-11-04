@@ -28,7 +28,7 @@ export default function ForgotPasswordScreen() {
   const { colors, isDark } = useTheme();
   const [, setTick] = useState(0);
 
-  // Flow steps: 1 = Request Code, 2 = Verify OTP, 3 = New Password, 4 = Success
+  // Flow steps: 1 = Request Code, 2 = Verify OTP, 3 = New Password
   const [step, setStep] = useState(1);
   const [identifier, setIdentifier] = useState(route.params?.initialIdentifier || '');
   const [targetEmail, setTargetEmail] = useState('');
@@ -41,9 +41,6 @@ export default function ForgotPasswordScreen() {
   const [errorMsg, setErrorMsg] = useState('');
   const [timer, setTimer] = useState(60);
   const [canResend, setCanResend] = useState(false);
-
-  // Backend returned OTP for seamless test auto-fill fallback
-  const [receivedOtp, setReceivedOtp] = useState('');
 
   useEffect(() => {
     return subscribeTranslation(() => setTick(t => t + 1));
@@ -62,6 +59,32 @@ export default function ForgotPasswordScreen() {
     return () => clearInterval(interval);
   }, [step, timer]);
 
+  // Safe fetch helper that handles HTML 404/500 responses gracefully
+  const safeFetch = async (endpoint, payload) => {
+    const response = await fetch(`${BASE_URL}${endpoint}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    const rawText = await response.text();
+    let data;
+    try {
+      data = JSON.parse(rawText);
+    } catch {
+      if (response.status === 404) {
+        throw new Error('Backend update in progress. Please push latest backend to Render and try again.');
+      }
+      throw new Error('Server returned an unexpected response. Please try again.');
+    }
+
+    if (!response.ok) {
+      throw new Error(data.error || data.message || 'Operation failed');
+    }
+
+    return data;
+  };
+
   // Step 1: Request Code
   const handleRequestCode = async () => {
     setErrorMsg('');
@@ -73,19 +96,8 @@ export default function ForgotPasswordScreen() {
 
     setLoading(true);
     try {
-      const response = await fetch(`${BASE_URL}/forgot-password`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ identifier: cleanId })
-      });
-
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to send reset code');
-      }
-
+      const data = await safeFetch('/forgot-password', { identifier: cleanId });
       setTargetEmail(data.email);
-      if (data.otp) setReceivedOtp(String(data.otp));
       setTimer(60);
       setCanResend(false);
       setStep(2);
@@ -107,17 +119,7 @@ export default function ForgotPasswordScreen() {
 
     setLoading(true);
     try {
-      const response = await fetch(`${BASE_URL}/verify-reset-code`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: targetEmail, otp: cleanOtp })
-      });
-
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.error || 'Invalid code');
-      }
-
+      await safeFetch('/verify-reset-code', { email: targetEmail, otp: cleanOtp });
       setStep(3);
     } catch (err) {
       setErrorMsg(err.message);
@@ -144,20 +146,11 @@ export default function ForgotPasswordScreen() {
 
     setLoading(true);
     try {
-      const response = await fetch(`${BASE_URL}/reset-password`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: targetEmail,
-          otp: otp.trim(),
-          newPassword: newPassword.trim()
-        })
+      await safeFetch('/reset-password', {
+        email: targetEmail,
+        otp: otp.trim(),
+        newPassword: newPassword.trim()
       });
-
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to reset password');
-      }
 
       Alert.alert(
         isUrdu ? 'کامیابی' : 'Success',
@@ -181,15 +174,7 @@ export default function ForgotPasswordScreen() {
     setErrorMsg('');
     setLoading(true);
     try {
-      const response = await fetch(`${BASE_URL}/forgot-password`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ identifier: targetEmail })
-      });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || 'Failed to resend code');
-
-      if (data.otp) setReceivedOtp(String(data.otp));
+      await safeFetch('/forgot-password', { identifier: targetEmail });
       setTimer(60);
       setCanResend(false);
       Alert.alert(
@@ -204,15 +189,15 @@ export default function ForgotPasswordScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: isDark ? colors.headerBackground : colors.primary }]}>
-      <StatusBar barStyle="light-content" backgroundColor={isDark ? colors.headerBackground : colors.primary} />
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: '#135431' }]}>
+      <StatusBar barStyle="light-content" backgroundColor="#135431" />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{ flex: 1 }}
       >
-        <ScrollView contentContainerStyle={styles.scrollContent} bounces={false}>
+        <ScrollView contentContainerStyle={styles.scrollContent} bounces={false} keyboardShouldPersistTaps="handled">
 
-          {/* Top Header */}
+          {/* Top Header Section */}
           <View style={styles.topSection}>
             <TouchableOpacity
               onPress={() => {
@@ -224,25 +209,33 @@ export default function ForgotPasswordScreen() {
               hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
             >
               <Feather name="chevron-left" size={24} color="#FFFFFF" />
-              <Text style={[styles.backText, isUrdu && { fontFamily: fonts.urduBold }]}>{t('Back')}</Text>
+              <Text style={[styles.backText, isUrdu && { fontFamily: fonts.urduBold }]}>
+                {t('Back', 'واپس')}
+              </Text>
             </TouchableOpacity>
+
+            <View style={styles.badgeContainer}>
+              <Feather name="shield" size={14} color="#86EFAC" style={{ marginRight: 6 }} />
+              <Text style={styles.badgeText}>ACCOUNT SECURITY</Text>
+            </View>
+
             <Text style={[styles.mainTitle, isUrdu && { fontFamily: fonts.urduBold, fontSize: 26, lineHeight: 42 }]}>
-              {isUrdu ? 'پاسورڈ بازیافت' : 'Reset Password'}
+              {isUrdu ? 'پاسورڈ تبدیل کریں' : 'Reset Password'}
             </Text>
             <Text style={[styles.subTitle, isUrdu && { fontFamily: fonts.urduRegular }]}>
-              {step === 1 && (isUrdu ? 'اکاؤنٹ کا فون نمبر یا ای میل درج کریں' : 'Enter your registered phone or email')}
-              {step === 2 && (isUrdu ? 'ای میل پر موصولہ تصدیقی کوڈ درج کریں' : 'Enter the verification code sent to your email')}
-              {step === 3 && (isUrdu ? 'اپنا نیا پاسورڈ منتخب کریں' : 'Create a secure new password')}
+              {step === 1 && (isUrdu ? 'اکاؤنٹ کا فون نمبر یا ای میل درج کریں تاکہ کوڈ بھیجا جا سکے' : 'Enter your registered phone number or email to receive a verification code.')}
+              {step === 2 && (isUrdu ? 'ای میل پر موصولہ 4 ہندسوں کا تصدیقی کوڈ درج کریں' : 'Enter the 4-digit verification code sent to your email.')}
+              {step === 3 && (isUrdu ? 'اپنا نیا اور محفوظ پاسورڈ درج کریں' : 'Create a secure new password for your account.')}
             </Text>
           </View>
 
-          {/* Card Container */}
-          <View style={[styles.cardContainer, { backgroundColor: colors.surface }]}>
+          {/* White Card Container */}
+          <View style={[styles.cardContainer, { backgroundColor: isDark ? colors.surface : '#FFFFFF' }]}>
 
             {/* Error Message Banner */}
             {errorMsg ? (
               <View style={styles.errorContainer}>
-                <Feather name="alert-circle" size={18} color="#FF3B30" />
+                <Feather name="alert-circle" size={18} color="#DC2626" />
                 <Text style={styles.errorText}>{errorMsg}</Text>
               </View>
             ) : null}
@@ -250,10 +243,16 @@ export default function ForgotPasswordScreen() {
             {/* STEP 1: Enter Identifier */}
             {step === 1 && (
               <View>
-                <Text style={[styles.label, { color: colors.text }, isUrdu && { fontFamily: fonts.urduBold }]}>
+                <Text style={[styles.label, { color: isDark ? colors.text : '#1E293B' }, isUrdu && { fontFamily: fonts.urduBold }]}>
                   {isUrdu ? 'فون نمبر یا ای میل ایڈریس' : 'Phone Number or Email'}
                 </Text>
-                <View style={[styles.inputContainer, { backgroundColor: colors.inputBackground, borderColor: colors.border }]}>
+                <View style={[
+                  styles.inputContainer,
+                  {
+                    backgroundColor: isDark ? colors.inputBackground : '#F8FAFC',
+                    borderColor: isDark ? colors.border : '#E2E8F0'
+                  }
+                ]}>
                   <Feather
                     name={identifier.includes('@') ? 'mail' : 'phone'}
                     size={20}
@@ -261,9 +260,9 @@ export default function ForgotPasswordScreen() {
                     style={styles.inputIcon}
                   />
                   <TextInput
-                    style={[styles.input, { color: colors.text }]}
+                    style={[styles.input, { color: isDark ? colors.text : '#0F172A' }]}
                     placeholder={isUrdu ? '03001234567 یا ای میل درج کریں' : '03001234567 or email@domain.com'}
-                    placeholderTextColor={colors.inputPlaceholder}
+                    placeholderTextColor={isDark ? colors.inputPlaceholder : '#94A3B8'}
                     keyboardType="email-address"
                     autoCapitalize="none"
                     value={identifier}
@@ -293,21 +292,27 @@ export default function ForgotPasswordScreen() {
               <View>
                 <View style={styles.infoBanner}>
                   <Feather name="mail" size={20} color="#10B981" />
-                  <Text style={[styles.infoBannerText, { color: colors.textSecondary }]}>
-                    {isUrdu ? `ہم نے کوڈ اس پر بھیجا ہے:\n` : `We sent a 4-digit code to:\n`}
+                  <Text style={[styles.infoBannerText, { color: isDark ? colors.textSecondary : '#334155' }]}>
+                    {isUrdu ? 'ہم نے تصدیقی کوڈ اس ای میل پر بھیجا ہے:\n' : 'We sent a 4-digit code to:\n'}
                     <Text style={{ fontWeight: '700', color: '#10B981' }}>{targetEmail}</Text>
                   </Text>
                 </View>
 
-                <Text style={[styles.label, { color: colors.text }, isUrdu && { fontFamily: fonts.urduBold }]}>
+                <Text style={[styles.label, { color: isDark ? colors.text : '#1E293B' }, isUrdu && { fontFamily: fonts.urduBold }]}>
                   {isUrdu ? '4 ہندسوں کا کوڈ' : '4-Digit Verification Code'}
                 </Text>
-                <View style={[styles.inputContainer, { backgroundColor: colors.inputBackground, borderColor: colors.border }]}>
-                  <Feather name="key" size={20} color="#6366F1" style={styles.inputIcon} />
+                <View style={[
+                  styles.inputContainer,
+                  {
+                    backgroundColor: isDark ? colors.inputBackground : '#F8FAFC',
+                    borderColor: isDark ? colors.border : '#E2E8F0'
+                  }
+                ]}>
+                  <Feather name="key" size={20} color="#10B981" style={styles.inputIcon} />
                   <TextInput
-                    style={[styles.input, styles.otpInput, { color: colors.text }]}
+                    style={[styles.input, styles.otpInput, { color: isDark ? colors.text : '#0F172A' }]}
                     placeholder="• • • •"
-                    placeholderTextColor={colors.inputPlaceholder}
+                    placeholderTextColor={isDark ? colors.inputPlaceholder : '#94A3B8'}
                     keyboardType="number-pad"
                     maxLength={4}
                     value={otp}
@@ -318,7 +323,7 @@ export default function ForgotPasswordScreen() {
                 {/* Timer & Resend */}
                 <View style={styles.timerRow}>
                   {timer > 0 ? (
-                    <Text style={[styles.timerText, { color: colors.textSecondary }]}>
+                    <Text style={[styles.timerText, { color: isDark ? colors.textSecondary : '#64748B' }]}>
                       {isUrdu ? `دوبارہ بھیجیں: ${timer} سیکنڈ` : `Resend code in ${timer}s`}
                     </Text>
                   ) : (
@@ -350,39 +355,51 @@ export default function ForgotPasswordScreen() {
             {/* STEP 3: Set New Password */}
             {step === 3 && (
               <View>
-                <Text style={[styles.label, { color: colors.text }, isUrdu && { fontFamily: fonts.urduBold }]}>
+                <Text style={[styles.label, { color: isDark ? colors.text : '#1E293B' }, isUrdu && { fontFamily: fonts.urduBold }]}>
                   {isUrdu ? 'نیا پاسورڈ' : 'New Password'}
                 </Text>
-                <View style={[styles.inputContainer, { backgroundColor: colors.inputBackground, borderColor: colors.border }]}>
+                <View style={[
+                  styles.inputContainer,
+                  {
+                    backgroundColor: isDark ? colors.inputBackground : '#F8FAFC',
+                    borderColor: isDark ? colors.border : '#E2E8F0'
+                  }
+                ]}>
                   <Feather name="lock" size={20} color="#10B981" style={styles.inputIcon} />
                   <TextInput
-                    style={[styles.input, { color: colors.text }]}
+                    style={[styles.input, { color: isDark ? colors.text : '#0F172A' }]}
                     placeholder={isUrdu ? 'کم از کم 6 حروف' : 'At least 6 characters'}
-                    placeholderTextColor={colors.inputPlaceholder}
+                    placeholderTextColor={isDark ? colors.inputPlaceholder : '#94A3B8'}
                     secureTextEntry={!showPassword}
                     value={newPassword}
                     onChangeText={setNewPassword}
                   />
                   <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeIcon}>
-                    <Feather name={showPassword ? 'eye-off' : 'eye'} size={20} color={colors.textSecondary} />
+                    <Feather name={showPassword ? 'eye-off' : 'eye'} size={20} color="#64748B" />
                   </TouchableOpacity>
                 </View>
 
-                <Text style={[styles.label, { color: colors.text }, isUrdu && { fontFamily: fonts.urduBold }]}>
+                <Text style={[styles.label, { color: isDark ? colors.text : '#1E293B' }, isUrdu && { fontFamily: fonts.urduBold }]}>
                   {isUrdu ? 'پاسورڈ کی تصدیق کریں' : 'Confirm New Password'}
                 </Text>
-                <View style={[styles.inputContainer, { backgroundColor: colors.inputBackground, borderColor: colors.border }]}>
-                  <Feather name="check-circle" size={20} color="#6366F1" style={styles.inputIcon} />
+                <View style={[
+                  styles.inputContainer,
+                  {
+                    backgroundColor: isDark ? colors.inputBackground : '#F8FAFC',
+                    borderColor: isDark ? colors.border : '#E2E8F0'
+                  }
+                ]}>
+                  <Feather name="check-circle" size={20} color="#10B981" style={styles.inputIcon} />
                   <TextInput
-                    style={[styles.input, { color: colors.text }]}
+                    style={[styles.input, { color: isDark ? colors.text : '#0F172A' }]}
                     placeholder={isUrdu ? 'دوبارہ پاسورڈ درج کریں' : 'Re-enter new password'}
-                    placeholderTextColor={colors.inputPlaceholder}
+                    placeholderTextColor={isDark ? colors.inputPlaceholder : '#94A3B8'}
                     secureTextEntry={!showConfirmPassword}
                     value={confirmPassword}
                     onChangeText={setConfirmPassword}
                   />
                   <TouchableOpacity onPress={() => setShowConfirmPassword(!showConfirmPassword)} style={styles.eyeIcon}>
-                    <Feather name={showConfirmPassword ? 'eye-off' : 'eye'} size={20} color={colors.textSecondary} />
+                    <Feather name={showConfirmPassword ? 'eye-off' : 'eye'} size={20} color="#64748B" />
                   </TouchableOpacity>
                 </View>
 
@@ -429,7 +446,8 @@ const styles = StyleSheet.create({
   topSection: {
     paddingHorizontal: 24,
     paddingTop: 16,
-    paddingBottom: 24
+    paddingBottom: 28,
+    backgroundColor: '#135431'
   },
   backButton: {
     flexDirection: 'row',
@@ -440,13 +458,29 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',
-    marginLeft: 4
+    marginLeft: 6
+  },
+  badgeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 20,
+    marginBottom: 8
+  },
+  badgeText: {
+    color: '#86EFAC',
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 1
   },
   mainTitle: {
     color: '#FFFFFF',
     fontSize: 28,
     fontWeight: '800',
-    marginBottom: 4
+    marginBottom: 6
   },
   subTitle: {
     color: 'rgba(255, 255, 255, 0.85)',
@@ -455,11 +489,12 @@ const styles = StyleSheet.create({
   },
   cardContainer: {
     flex: 1,
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
     paddingHorizontal: 24,
-    paddingTop: 28,
-    paddingBottom: 40
+    paddingTop: 32,
+    paddingBottom: 40,
+    minHeight: 480
   },
   label: {
     fontSize: 14,
@@ -473,8 +508,8 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderRadius: 14,
     paddingHorizontal: 14,
-    height: 52,
-    marginBottom: 10
+    height: 54,
+    marginBottom: 12
   },
   inputIcon: {
     marginRight: 10
@@ -485,9 +520,10 @@ const styles = StyleSheet.create({
     height: '100%'
   },
   otpInput: {
-    fontSize: 20,
-    fontWeight: '700',
-    letterSpacing: 8
+    fontSize: 22,
+    fontWeight: '800',
+    letterSpacing: 10,
+    textAlign: 'center'
   },
   eyeIcon: {
     padding: 6
@@ -518,31 +554,13 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
     borderColor: 'rgba(16, 185, 129, 0.25)',
-    marginBottom: 12
+    marginBottom: 16
   },
   infoBannerText: {
     fontSize: 13,
     lineHeight: 18,
     marginLeft: 10,
     flex: 1
-  },
-  autoFillButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    alignSelf: 'flex-start',
-    backgroundColor: 'rgba(16, 185, 129, 0.1)',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
-    marginTop: 4,
-    marginBottom: 10
-  },
-  autoFillText: {
-    color: '#10B981',
-    fontSize: 12,
-    fontWeight: '600',
-    marginLeft: 5
   },
   timerRow: {
     alignItems: 'center',
@@ -559,7 +577,7 @@ const styles = StyleSheet.create({
   },
   bottomRow: {
     alignItems: 'center',
-    marginTop: 24
+    marginTop: 28
   },
   backToLoginText: {
     color: '#10B981',
@@ -569,18 +587,17 @@ const styles = StyleSheet.create({
   errorContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 59, 48, 0.1)',
+    backgroundColor: '#FEF2F2',
     borderWidth: 1,
-    borderColor: 'rgba(255, 59, 48, 0.25)',
+    borderColor: '#FECACA',
     padding: 12,
     borderRadius: 10,
-    marginBottom: 14
+    marginBottom: 16
   },
   errorText: {
-    color: '#FF3B30',
+    color: '#DC2626',
     fontSize: 13,
     marginLeft: 8,
     flex: 1
   }
 });
-

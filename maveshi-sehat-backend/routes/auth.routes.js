@@ -554,10 +554,10 @@ module.exports = (pool) => {
     }
   });
 
-  // Diagnostic Test Email Endpoint (Resend HTTPS REST API)
+  // Diagnostic Test Email Endpoint (Brevo / Resend HTTPS REST API)
   router.get('/test-mail', async (req, res) => {
     try {
-      const targetEmail = req.query.email || 'codersxcareer@gmail.com';
+      const targetEmail = req.query.email || 'mubshar0810@gmail.com';
       const testOtp = Math.floor(1000 + Math.random() * 9000).toString();
       const mailInfo = await mailService.sendMail({
         to: targetEmail,
@@ -567,7 +567,7 @@ module.exports = (pool) => {
       });
       res.status(200).json({
         success: true,
-        provider: 'Resend (HTTPS REST API / Port 443)',
+        provider: 'Brevo (HTTPS REST API / Port 443)',
         response: mailInfo.response,
         messageId: mailInfo.messageId,
         sentTo: targetEmail,
@@ -577,9 +577,9 @@ module.exports = (pool) => {
       console.error('Test mail error:', err);
       res.status(500).json({
         success: false,
-        provider: 'Resend (HTTPS REST API / Port 443)',
+        provider: 'Brevo (HTTPS REST API / Port 443)',
         error: err.message,
-        hint: 'Make sure RESEND_API_KEY is configured in your Render Dashboard / .env file.'
+        hint: 'Make sure BREVO_API_KEY is configured in your Render Dashboard / .env file.'
       });
     }
   });

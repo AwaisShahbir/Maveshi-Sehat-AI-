@@ -1,68 +1,154 @@
+const https = require('https');
 const { Resend } = require('resend');
 
 /**
- * Resend Email Service for Maveshi Sehat AI
- * Operates exclusively over HTTPS (Port 443), completely bypassing
- * Render Free Tier's outbound SMTP port blocking (ports 25, 465, 587).
+ * Maveshi Sehat AI - Email Dispatch Service
+ * 
+ * Uses Brevo HTTPS REST API (Port 443) as primary service:
+ * - 100% compatible with Render Free Tier (bypasses all blocked SMTP ports 25, 465, 587).
+ * - Free tier: 300 emails/day without requiring a custom domain.
+ * - Delivers to ANY recipient mailbox (Gmail, Yahoo, Outlook, etc.).
+ * - Verified sender: maveshisehatai@gmail.com
+ * 
+ * Fallback: Resend HTTPS REST API if Brevo key is absent.
  */
 
-const getApiKey = () => (process.env.RESEND_API_KEY || '').trim();
-const getDefaultFrom = () => process.env.RESEND_FROM || 'Maveshi Sehat AI <onboarding@resend.dev>';
+const getBrevoKey = () => (process.env.BREVO_API_KEY || '').trim();
+const getResendKey = () => (process.env.RESEND_API_KEY || '').trim();
+
+const BREVO_DEFAULT_SENDER = {
+  name: process.env.BREVO_SENDER_NAME || 'Maveshi Sehat AI',
+  email: process.env.BREVO_SENDER_EMAIL || 'maveshisehatai@gmail.com'
+};
 
 /**
- * Send an email via the Resend HTTPS REST API
- * @param {Object} options
- * @param {string} [options.from] - Sender address (e.g. 'Maveshi Sehat AI <onboarding@resend.dev>')
- * @param {string|string[]} options.to - Recipient email address(es)
- * @param {string} options.subject - Email subject
- * @param {string} [options.html] - HTML body
- * @param {string} [options.text] - Plain text body
- * @returns {Promise<{ id: string, messageId: string, response: string }>}
+ * Send email using Brevo REST API v3
  */
-async function sendMail({ from, to, subject, html, text }) {
-  const apiKey = getApiKey();
+function sendWithBrevo({ to, subject, html, text }) {
+  const apiKey = getBrevoKey();
 
-  if (!apiKey) {
-    console.warn('[Resend] WARNING: RESEND_API_KEY is not configured in .env or Render Dashboard.');
-    console.warn('[Resend] Please set RESEND_API_KEY to enable live email delivery.');
-    return {
-      id: 'mock-id-no-api-key',
-      messageId: 'mock-id-no-api-key',
-      response: 'WARNING: RESEND_API_KEY missing - email not delivered to network'
-    };
-  }
-
-  const recipients = Array.isArray(to) ? to : [to];
-  const sender = from || getDefaultFrom();
-
-  try {
-    const resend = new Resend(apiKey);
-    const { data, error } = await resend.emails.send({
-      from: sender,
-      to: recipients,
-      subject,
-      html,
-      text
+  return new Promise((resolve, reject) => {
+    // Normalize recipients
+    const rawList = Array.isArray(to) ? to : [to];
+    const recipients = rawList.map(item => {
+      if (typeof item === 'string') {
+        return { email: item.trim() };
+      }
+      return { email: item.email.trim(), name: item.name || undefined };
     });
 
-    if (error) {
-      console.error('[Resend API Error]:', error);
-      throw new Error(error.message || 'Resend API returned an error');
-    }
+    const payload = JSON.stringify({
+      sender: BREVO_DEFAULT_SENDER,
+      to: recipients,
+      subject: subject || 'Maveshi Sehat AI Notification',
+      htmlContent: html || `<p>${text || ''}</p>`,
+      textContent: text || undefined
+    });
 
-    console.log(`[Resend Success] Email sent to ${recipients.join(', ')} (ID: ${data.id})`);
-    return {
-      id: data.id,
-      messageId: data.id,
-      response: `250 OK: Resend ID ${data.id}`
-    };
-  } catch (err) {
-    console.error(`[Resend Dispatch Failed for ${recipients.join(', ')}]:`, err.message);
-    throw err;
+    const req = https.request('https://api.brevo.com/v3/smtp/email', {
+      method: 'POST',
+      headers: {
+        'api-key': apiKey,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Content-Length': Buffer.byteLength(payload)
+      },
+      timeout: 12000
+    }, (res) => {
+      let rawData = '';
+      res.on('data', chunk => { rawData += chunk; });
+      res.on('end', () => {
+        try {
+          const parsed = JSON.parse(rawData || '{}');
+          if (res.statusCode >= 200 && res.statusCode < 300) {
+            console.log(`[Brevo Email Sent] To: ${recipients.map(r => r.email).join(', ')} (Message ID: ${parsed.messageId || 'ok'})`);
+            resolve({
+              id: parsed.messageId,
+              messageId: parsed.messageId,
+              response: `250 OK: Brevo ID ${parsed.messageId}`
+            });
+          } else {
+            console.error(`[Brevo API Error ${res.statusCode}]:`, parsed);
+            reject(new Error(parsed.message || `Brevo API returned HTTP status ${res.statusCode}`));
+          }
+        } catch (e) {
+          if (res.statusCode >= 200 && res.statusCode < 300) {
+            resolve({ id: 'ok', messageId: 'ok', response: '250 OK: Brevo email queued' });
+          } else {
+            reject(new Error(`Brevo HTTP ${res.statusCode}: ${rawData}`));
+          }
+        }
+      });
+    });
+
+    req.on('timeout', () => {
+      req.destroy();
+      reject(new Error('Brevo API request timed out after 12 seconds'));
+    });
+
+    req.on('error', (err) => {
+      console.error('[Brevo Request Error]:', err.message);
+      reject(err);
+    });
+
+    req.write(payload);
+    req.end();
+  });
+}
+
+/**
+ * Send email using Resend REST API (Fallback)
+ */
+async function sendWithResend({ to, subject, html, text }) {
+  const apiKey = getResendKey();
+  const resend = new Resend(apiKey);
+  const recipients = Array.isArray(to) ? to : [to];
+  const sender = process.env.RESEND_FROM || 'Maveshi Sehat AI <onboarding@resend.dev>';
+
+  const { data, error } = await resend.emails.send({
+    from: sender,
+    to: recipients,
+    subject,
+    html,
+    text
+  });
+
+  if (error) {
+    throw new Error(error.message || 'Resend API returned an error');
   }
+
+  console.log(`[Resend Email Sent] To: ${recipients.join(', ')} (ID: ${data.id})`);
+  return {
+    id: data.id,
+    messageId: data.id,
+    response: `250 OK: Resend ID ${data.id}`
+  };
+}
+
+/**
+ * Unified sendMail function
+ */
+async function sendMail(options) {
+  const brevoKey = getBrevoKey();
+  if (brevoKey) {
+    return await sendWithBrevo(options);
+  }
+
+  const resendKey = getResendKey();
+  if (resendKey) {
+    return await sendWithResend(options);
+  }
+
+  console.warn('[Email Service] WARNING: Neither BREVO_API_KEY nor RESEND_API_KEY is configured.');
+  console.warn('[Email Service] Please set BREVO_API_KEY to enable live email delivery.');
+  return {
+    id: 'mock-no-key',
+    messageId: 'mock-no-key',
+    response: 'WARNING: No email API key configured - email not delivered to network'
+  };
 }
 
 module.exports = {
   sendMail,
-  emailUser: process.env.RESEND_FROM || 'onboarding@resend.dev'
+  emailUser: BREVO_DEFAULT_SENDER.email
 };

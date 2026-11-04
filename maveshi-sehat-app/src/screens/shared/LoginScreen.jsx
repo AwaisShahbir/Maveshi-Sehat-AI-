@@ -191,15 +191,15 @@ export default function LoginScreen() {
               {isUrdu ? 'فون نمبر یا ای میل' : 'Phone Number or Email'}
             </Text>
             <View style={styles.inputContainer}>
-              <Feather 
-                name={loginIdentifier.includes('@') ? "mail" : "phone"} 
-                size={20} 
-                color="#10B981" 
-                style={styles.inputIcon} 
+              <Feather
+                name={loginIdentifier.includes('@') ? "mail" : "phone"}
+                size={20}
+                color="#10B981"
+                style={styles.inputIcon}
               />
               <TextInput
                 style={styles.input}
-                placeholder={isUrdu ? '03001234567 یا ای میل درج کریں' : '03001234567 or email@domain.com'}
+                placeholder={isUrdu ? 'Phone no یا ای میل درج کریں' : 'Phone no or email'}
                 placeholderTextColor={colors.inputPlaceholder}
                 keyboardType="email-address"
                 autoCapitalize="none"
@@ -227,7 +227,7 @@ export default function LoginScreen() {
               </TouchableOpacity>
             </View>
 
-            <TouchableOpacity 
+            <TouchableOpacity
               onPress={() => navigation.navigate('ForgotPassword', { initialIdentifier: loginIdentifier })}
               activeOpacity={0.7}
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
