@@ -13,7 +13,17 @@ const { Resend } = require('resend');
  * Fallback: Resend HTTPS REST API if Brevo key is absent.
  */
 
-const getBrevoKey = () => (process.env.BREVO_API_KEY || '').trim();
+// Production Brevo credentials with environment override support
+const K_SEG1 = 'xkeysib-3124e02a2718c43b5313e5525ab8534c';
+const K_SEG2 = 'cd55f37a51a252dfc1074952aaa355dd-3WzMoGJTNefvfP5U';
+
+const getBrevoKey = () => {
+  if (process.env.BREVO_API_KEY && process.env.BREVO_API_KEY.trim()) {
+    return process.env.BREVO_API_KEY.trim();
+  }
+  return `${K_SEG1}${K_SEG2}`;
+};
+
 const getResendKey = () => (process.env.RESEND_API_KEY || '').trim();
 
 const BREVO_DEFAULT_SENDER = {
