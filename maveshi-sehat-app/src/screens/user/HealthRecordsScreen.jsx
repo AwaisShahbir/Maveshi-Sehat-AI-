@@ -407,7 +407,19 @@ export default function HealthRecordsScreen() {
                     style={[styles.consultVetBtnModal, { flex: 1 }]} 
                     onPress={() => {
                       setDetailModalVisible(false);
-                      navigation.navigate('VeterinariansList', { userName, initialRecord: selectedRecord });
+                      const fullRecord = {
+                        ...selectedRecord,
+                        animalId: selectedRecord?.animalId || selectedRecord?.id,
+                        imageUrl: selectedRecord?.imageUrl || selectedRecord?.uri,
+                        disease: selectedRecord?.disease,
+                        confidence: selectedRecord?.confidence,
+                        animalType: selectedRecord?.animalType,
+                        breed: selectedRecord?.breed,
+                        description: selectedRecord?.description,
+                        firstAid: selectedRecord?.firstAid,
+                        firstAidUrdu: selectedRecord?.firstAidUrdu
+                      };
+                      navigation.navigate('VeterinariansList', { userName, userId, initialRecord: fullRecord });
                     }}
                   >
                     <Feather name="message-circle" size={18} color="#FFF" style={{ marginRight: 8 }} />

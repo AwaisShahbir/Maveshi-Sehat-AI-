@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { View, Text, SafeAreaView, FlatList, TouchableOpacity, ActivityIndicator, Platform, Alert, StatusBar } from 'react-native';
+import { View, Text, SafeAreaView, FlatList, TouchableOpacity, ActivityIndicator, Platform, Alert, StatusBar, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { getProfile } from '../../utils/profileStore';
 import { useTheme } from '../../utils/themeContext';
 import { getStyles } from '../../styles/MyConsultationsScreenStyles';
@@ -54,11 +55,8 @@ export default function MyConsultationsScreen() {
           onPress: async () => {
             try {
               const baseUrl = 'https://maveshi-sehat-api.onrender.com';
-              const idsToDelete = item.consultations?.map(c => c.id) || [item.id];
-              for (const cId of idsToDelete) {
-                await fetch(`${baseUrl}/api/consultations/${cId}`, { method: 'DELETE' });
-              }
-              setConsultations(prev => prev.filter(c => !idsToDelete.includes(c.id)));
+              await fetch(`${baseUrl}/api/consultations/${item.id}`, { method: 'DELETE' });
+              setConsultations(prev => prev.filter(c => c.id !== item.id));
               Alert.alert(t('Success'), t('Consultation record deleted.'));
             } catch (err) {
               console.error('Delete consultation error:', err);
@@ -106,96 +104,215 @@ export default function MyConsultationsScreen() {
         userName: profile.userName || 'Farmer',
         userRole: 'farmer',
         vetId: consult.vet_id,
+        consultationId: consult.id,
+        consultation: consult,
         initialRecord,
-        consultations: consult.consultations || [consult]
+        consultations: [consult]
       });
     } catch (error) {
       Alert.alert(t('Error'), 'Could not start chat.');
     }
   };
 
-  const groupedConsultations = useMemo(() => {
-    const online = consultations.filter(item => item.type === 'online_chat');
-    const physical = consultations.filter(item => item.type !== 'online_chat');
-    const grouped = new Map();
-
-    online.forEach(consultation => {
-      const key = String(consultation.vet_id);
-      const existing = grouped.get(key);
-      if (existing) {
-        existing.consultations.push(consultation);
+  const renderItem = ({ item }) => {
+    let aiData = null;
+    if (item.ai_record_data) {
+      if (typeof item.ai_record_data === 'object') {
+        aiData = item.ai_record_data;
       } else {
-        grouped.set(key, { ...consultation, consultations: [consultation] });
+        try {
+          aiData = JSON.parse(item.ai_record_data);
+        } catch (e) {
+          aiData = null;
+        }
       }
-    });
+    }
 
-    const chatGroups = Array.from(grouped.values()).map(group => {
-      const hasApproved = group.consultations.some(item => item.status === 'approved');
-      const hasPending = group.consultations.some(item => item.status === 'pending');
-      const hasRejected = !hasApproved && !hasPending && group.consultations.some(item => item.status === 'rejected');
-      return {
-        ...group,
-        status: hasApproved ? 'approved' : hasPending ? 'pending' : hasRejected ? 'rejected' : 'completed',
-      };
-    });
+    const isPending = item.status === 'pending';
+    const isApproved = item.status === 'approved';
+    const isRejected = item.status === 'rejected';
 
-    return [...chatGroups, ...physical];
-  }, [consultations]);
+    const statusBadgeBg = isApproved
+      ? (isDark ? 'rgba(16, 185, 129, 0.15)' : '#E8F8EA')
+      : isRejected
+      ? (isDark ? 'rgba(239, 68, 68, 0.15)' : '#FFEBEB')
+      : isPending
+      ? (isDark ? 'rgba(245, 158, 11, 0.15)' : '#FFF3CD')
+      : (isDark ? 'rgba(100, 116, 139, 0.15)' : '#F1F5F9');
 
-  const renderItem = ({ item }) => (
-    <View style={styles.card}>
-      <View style={styles.headerRow}>
-        <View style={{ flex: 1, paddingRight: 8 }}>
-          <Text style={styles.vetName}>{item.vet_name}</Text>
-          <Text style={styles.typeText}>
-            {item.type === 'online_chat'
-              ? `${item.consultations?.length || 1} Online Consultation${(item.consultations?.length || 1) === 1 ? '' : 's'}`
-              : 'Physical Appointment'}
-          </Text>
-        </View>
-        <View style={[styles.statusBadge, { 
-          backgroundColor: item.status === 'approved' 
-            ? (isDark ? 'rgba(16, 185, 129, 0.15)' : '#E8F8EA') 
-            : item.status === 'rejected' 
-            ? (isDark ? 'rgba(239, 68, 68, 0.15)' : '#FFEBEB') 
-            : (isDark ? 'rgba(245, 158, 11, 0.15)' : '#FFF3CD') 
-        }]}>
-          <Text style={[styles.statusText, { 
-            color: item.status === 'approved' ? colors.primary : item.status === 'rejected' ? '#EF4444' : '#F59E0B' 
-          }]}>
-            {(item.status === 'completed' ? 'RESOLVED' : item.status).toUpperCase()}
-          </Text>
-        </View>
-      </View>
+    const statusBadgeColor = isApproved
+      ? colors.primary
+      : isRejected
+      ? '#EF4444'
+      : isPending
+      ? '#D97706'
+      : '#64748B';
 
-      <Text style={styles.reasonText}>Reason: {item.reason}</Text>
-      {item.appointment_date && <Text style={styles.dateText}>Date: {new Date(item.appointment_date).toLocaleString()}</Text>}
+    const statusTextDisplay = isPending
+      ? 'PENDING APPROVAL'
+      : isApproved
+      ? 'APPROVED'
+      : isRejected
+      ? 'DECLINED'
+      : 'RESOLVED';
 
-      <View style={styles.cardActionRow}>
-        {item.type === 'online_chat' && item.status === 'approved' ? (
-          <TouchableOpacity style={[styles.chatBtn, { flex: 1, marginTop: 0 }]} onPress={() => handleStartChat(item)} activeOpacity={0.8}>
-            <Feather name="message-square" size={16} color="#FFF" style={{ marginRight: 8 }} />
-            <Text style={styles.chatBtnText}>{t('Open Chat')}</Text>
-          </TouchableOpacity>
-        ) : item.type === 'online_chat' && item.status === 'pending' ? (
-          <View style={styles.pendingNotice}>
-            <Feather name="clock" size={15} color="#D97706" style={{ marginRight: 6 }} />
-            <Text style={styles.pendingNoticeText}>{t('Waiting for approval')}</Text>
+    const formattedDate = item.created_at
+      ? new Date(item.created_at).toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+      : '';
+
+    return (
+      <View style={styles.card}>
+        <View style={styles.headerRow}>
+          <View style={{ flex: 1, paddingRight: 8 }}>
+            <Text style={styles.vetName}>Dr. {item.vet_name?.replace(/^Dr\.\s*/i, '')}</Text>
+            <Text style={styles.typeText}>
+              {item.vet_specialization ? `${item.vet_specialization} · ` : ''}
+              {item.type === 'online_chat' ? 'Online Consultation' : 'Physical Appointment'}
+            </Text>
           </View>
-        ) : (
-          <View style={{ flex: 1 }} />
+          <View style={[styles.statusBadge, { backgroundColor: statusBadgeBg }]}>
+            <Text style={[styles.statusText, { color: statusBadgeColor, fontWeight: '700' }]}>
+              {statusTextDisplay}
+            </Text>
+          </View>
+        </View>
+
+        {/* Attached AI Scan Card */}
+        {aiData && (
+          <View style={{
+            backgroundColor: isDark ? 'rgba(255, 255, 255, 0.04)' : '#F8FAFC',
+            borderRadius: 14,
+            padding: 12,
+            marginTop: 10,
+            marginBottom: 10,
+            borderWidth: 1,
+            borderColor: isDark ? colors.border : '#E2E8F0'
+          }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+              <MaterialCommunityIcons name="robot" size={16} color={colors.primary} style={{ marginRight: 6 }} />
+              <Text style={{ fontSize: 12, fontWeight: '700', color: colors.primary, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                Attached AI Medical Report
+              </Text>
+            </View>
+
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              {(aiData.imageUrl || aiData.uri) ? (
+                <Image
+                  source={{ uri: aiData.imageUrl || aiData.uri }}
+                  style={{ width: 48, height: 48, borderRadius: 10, marginRight: 12, backgroundColor: '#E2E8F0' }}
+                />
+              ) : (
+                <View style={{
+                  width: 48,
+                  height: 48,
+                  borderRadius: 10,
+                  backgroundColor: isDark ? colors.cardElevated : '#E2E8F0',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  marginRight: 12
+                }}>
+                  <MaterialCommunityIcons name="cow" size={26} color={colors.primary} />
+                </View>
+              )}
+
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontSize: 14, fontWeight: '700', color: colors.textPrimary }}>
+                  Livestock #{aiData.animalId || aiData.id || 'N/A'} {aiData.animalType ? `(${aiData.animalType})` : ''}
+                </Text>
+                <Text style={{ fontSize: 13, color: '#D97706', fontWeight: '600', marginTop: 2 }}>
+                  {aiData.disease || aiData.name || 'AI Analysis'} {aiData.confidence ? `· ${aiData.confidence}` : ''}
+                </Text>
+              </View>
+            </View>
+
+            {aiData.description ? (
+              <Text style={{ fontSize: 12, color: colors.textSecondary, marginTop: 8, fontStyle: 'italic' }} numberOfLines={2}>
+                "{aiData.description}"
+              </Text>
+            ) : null}
+          </View>
         )}
 
-        <TouchableOpacity 
-          style={styles.deleteBtn} 
-          onPress={() => handleDeleteConsultation(item)} 
-          activeOpacity={0.7}
-        >
-          <Feather name="trash-2" size={18} color="#EF4444" />
-        </TouchableOpacity>
+        {item.reason ? (
+          <Text style={[styles.reasonText, { marginTop: 4 }]}>
+            <Text style={{ fontWeight: '700' }}>Reason: </Text>{item.reason}
+          </Text>
+        ) : null}
+
+        {item.appointment_date && (
+          <Text style={styles.dateText}>
+            <Text style={{ fontWeight: '700' }}>Appointment: </Text>{new Date(item.appointment_date).toLocaleString()}
+          </Text>
+        )}
+
+        {formattedDate ? (
+          <Text style={{ fontSize: 11, color: colors.textSecondary, marginTop: 4 }}>
+            Requested: {formattedDate}
+          </Text>
+        ) : null}
+
+        {/* Action Row */}
+        <View style={[styles.cardActionRow, { marginTop: 12, alignItems: 'center' }]}>
+          {isPending ? (
+            <View style={{
+              flex: 1,
+              flexDirection: 'row',
+              alignItems: 'center',
+              backgroundColor: isDark ? 'rgba(245, 158, 11, 0.12)' : '#FEF3C7',
+              paddingVertical: 10,
+              paddingHorizontal: 12,
+              borderRadius: 12,
+              borderWidth: 1,
+              borderColor: isDark ? 'rgba(245, 158, 11, 0.25)' : '#FDE68A'
+            }}>
+              <Feather name="clock" size={16} color="#D97706" style={{ marginRight: 8 }} />
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontSize: 12, fontWeight: '700', color: '#B45309' }}>
+                  {t('Waiting for Doctor Approval')}
+                </Text>
+                <Text style={{ fontSize: 11, color: '#92400E', marginTop: 1 }}>
+                  Dr. {item.vet_name} is reviewing your report. Chat will unlock once approved.
+                </Text>
+              </View>
+            </View>
+          ) : isApproved ? (
+            <TouchableOpacity
+              style={[styles.chatBtn, { flex: 1, marginTop: 0 }]}
+              onPress={() => handleStartChat(item)}
+              activeOpacity={0.8}
+            >
+              <Feather name="message-square" size={16} color="#FFF" style={{ marginRight: 8 }} />
+              <Text style={styles.chatBtnText}>{t('Open Chat')}</Text>
+            </TouchableOpacity>
+          ) : isRejected ? (
+            <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}>
+              <Feather name="x-circle" size={15} color="#EF4444" style={{ marginRight: 6 }} />
+              <Text style={{ fontSize: 12, color: '#EF4444', fontWeight: '600' }}>
+                Consultation declined by doctor
+              </Text>
+            </View>
+          ) : (
+            <TouchableOpacity
+              style={[styles.chatBtn, { flex: 1, marginTop: 0, backgroundColor: colors.cardElevated }]}
+              onPress={() => handleStartChat(item)}
+              activeOpacity={0.8}
+            >
+              <Feather name="message-square" size={16} color={colors.textPrimary} style={{ marginRight: 8 }} />
+              <Text style={[styles.chatBtnText, { color: colors.textPrimary }]}>{t('View Chat History')}</Text>
+            </TouchableOpacity>
+          )}
+
+          <TouchableOpacity 
+            style={[styles.deleteBtn, { marginLeft: 10 }]} 
+            onPress={() => handleDeleteConsultation(item)} 
+            activeOpacity={0.7}
+          >
+            <Feather name="trash-2" size={18} color="#EF4444" />
+          </TouchableOpacity>
+        </View>
       </View>
-    </View>
-  );
+    );
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -220,7 +337,7 @@ export default function MyConsultationsScreen() {
       ) : (
         <FlatList 
           style={{ flex: 1, backgroundColor: colors.background }}
-          data={groupedConsultations}
+          data={consultations}
           keyExtractor={(i) => i.id.toString()} 
           renderItem={renderItem} 
           contentContainerStyle={{ padding: 16, paddingBottom: 40 }} 

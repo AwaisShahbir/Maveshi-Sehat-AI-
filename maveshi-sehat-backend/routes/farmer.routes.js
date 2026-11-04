@@ -391,12 +391,17 @@ module.exports = (pool, io) => {
       }
 
       const result = await pool.query(
-        `INSERT INTO consultations (farmer_id, vet_id, type, ai_record_data, appointment_date, reason)
-         VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+        `INSERT INTO consultations (farmer_id, vet_id, type, ai_record_data, appointment_date, reason, status)
+         VALUES ($1, $2, $3, $4, $5, $6, 'pending') RETURNING *`,
         [farmer_id, vet_id, type, ai_record_data ? JSON.stringify(ai_record_data) : null, appointment_date, reason]
       );
 
       const createdConsultation = result.rows[0];
+
+      // Realtime websocket emit
+      if (io) {
+        io.emit('new_consultation', createdConsultation);
+      }
 
       // Notify Vet in real-time
       try {
@@ -410,12 +415,12 @@ module.exports = (pool, io) => {
           type: 'consultation',
           title_en: 'New Consultation Request',
           title_ur: 'نئی مشاورت کی درخواست',
-          message_en: `${farmerName} requested a consultation.`,
-          message_ur: `${farmerName} نے معائنے کے لیے مشاورت کی درخواست کی ہے۔`,
+          message_en: `${farmerName} requested a consultation with attached AI scan.`,
+          message_ur: `${farmerName} نے AI اسکین رپورٹ کے ساتھ مشاورت کی درخواست کی ہے۔`,
           data: {
             consultationId: createdConsultation.id,
             farmerId: farmer_id,
-            targetScreen: 'VetCases'
+            targetScreen: 'VetConsultations'
           }
         });
       } catch (notifErr) {
@@ -434,20 +439,13 @@ module.exports = (pool, io) => {
     try {
       const result = await pool.query(
         `SELECT c.*,
-                CASE
-                  WHEN LOWER(TRIM(c.status)) = 'completed' THEN 'completed'
-                  WHEN LOWER(TRIM(c.status)) = 'approved'
-                    AND LOWER(TRIM(COALESCE(conversation.status, ''))) = 'resolved' THEN 'completed'
-                  WHEN LOWER(TRIM(c.status)) = 'pending' THEN 'pending'
-                  ELSE LOWER(TRIM(c.status))
-                END AS status,
-                conversation.status AS conversation_status,
-                u.full_name as vet_name, u.specialization as vet_specialization
+                c.status as status,
+                u.full_name as vet_name,
+                u.specialization as vet_specialization,
+                u.district as vet_district,
+                u.phone_number as vet_phone
          FROM consultations c 
          JOIN users u ON c.vet_id = u.id 
-         LEFT JOIN conversations conversation
-           ON conversation.farmer_id = c.farmer_id
-          AND conversation.vet_id = c.vet_id
          WHERE c.farmer_id = $1 ORDER BY c.created_at DESC`,
         [req.params.id]
       );

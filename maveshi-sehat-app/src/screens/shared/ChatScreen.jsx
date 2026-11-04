@@ -68,6 +68,19 @@ export default function ChatScreen() {
   const [selectedAttachmentUri, setSelectedAttachmentUri] = useState(null);
   const [failedImageIds, setFailedImageIds] = useState({});
   const [selectedConsultationId, setSelectedConsultationId] = useState(null);
+  const [attachedAiRecord, setAttachedAiRecord] = useState(() => {
+    if (params.initialRecord) return params.initialRecord;
+    if (params.consultation?.ai_record_data) {
+      return typeof params.consultation.ai_record_data === 'string'
+        ? JSON.parse(params.consultation.ai_record_data)
+        : params.consultation.ai_record_data;
+    }
+    return null;
+  });
+  const [isPendingApproval, setIsPendingApproval] = useState(() => {
+    return userRole === 'farmer' && params.consultation?.status === 'pending';
+  });
+  const [showAiDetailsModal, setShowAiDetailsModal] = useState(false);
 
   
   const [diagnosis, setDiagnosis] = useState('');
@@ -102,6 +115,21 @@ export default function ChatScreen() {
         const convData = await convResponse.json();
         if (convResponse.ok && convData) {
           setConversationStatus(convData.status || 'active');
+          if (convData.latest_consultation) {
+            if (convData.latest_consultation.status === 'pending' && userRole === 'farmer') {
+              setIsPendingApproval(true);
+            } else if (convData.latest_consultation.status === 'approved') {
+              setIsPendingApproval(false);
+            }
+            if (convData.latest_consultation.ai_record_data && !attachedAiRecord) {
+              try {
+                const parsed = typeof convData.latest_consultation.ai_record_data === 'string'
+                  ? JSON.parse(convData.latest_consultation.ai_record_data)
+                  : convData.latest_consultation.ai_record_data;
+                setAttachedAiRecord(parsed);
+              } catch (e) {}
+            }
+          }
           const resolvedUserId = userRole === 'farmer' ? convData.farmer_id : convData.vet_id;
           setOurUserId(resolvedUserId || storedProfile?.userId || (userRole === 'vet' ? (vetId || 1) : 1));
         } else {
@@ -128,6 +156,17 @@ export default function ChatScreen() {
     socketRef.current = io(baseUrl);
 
     socketRef.current.emit('join_room', conversationId.toString());
+
+    socketRef.current.on('consultation_updated', (updated) => {
+      if (updated && (String(updated.id) === String(params.consultationId) || String(updated.id) === String(params.consultation?.id))) {
+        if (updated.status === 'approved') {
+          setIsPendingApproval(false);
+          setConversationStatus('active');
+        } else if (updated.status === 'completed' || updated.status === 'resolved') {
+          setConversationStatus('resolved');
+        }
+      }
+    });
 
     socketRef.current.on('receive_message', (message) => {
       setMessages((prev) => {
@@ -708,6 +747,56 @@ export default function ChatScreen() {
 
       {renderConsultationPicker()}
 
+      {/* Attached AI Medical Report Banner */}
+      {attachedAiRecord && (
+        <TouchableOpacity
+          style={{
+            marginHorizontal: 14,
+            marginTop: 8,
+            marginBottom: 4,
+            padding: 10,
+            backgroundColor: isDark ? 'rgba(16, 185, 129, 0.12)' : '#ECFDF5',
+            borderRadius: 14,
+            borderWidth: 1,
+            borderColor: isDark ? 'rgba(16, 185, 129, 0.25)' : '#A7F3D0',
+            flexDirection: 'row',
+            alignItems: 'center',
+          }}
+          activeOpacity={0.8}
+          onPress={() => setShowAiDetailsModal(true)}
+        >
+          {(attachedAiRecord.imageUrl || attachedAiRecord.uri) ? (
+            <Image
+              source={{ uri: attachedAiRecord.imageUrl || attachedAiRecord.uri }}
+              style={{ width: 40, height: 40, borderRadius: 8, marginRight: 10, backgroundColor: '#E2E8F0' }}
+            />
+          ) : (
+            <View style={{ width: 40, height: 40, borderRadius: 8, backgroundColor: '#D1FAE5', justifyContent: 'center', alignItems: 'center', marginRight: 10 }}>
+              <MaterialCommunityIcons name="cow" size={24} color="#059669" />
+            </View>
+          )}
+          <View style={{ flex: 1 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Text style={{ fontSize: 11, fontWeight: '700', color: '#059669', textTransform: 'uppercase' }}>
+                AI Medical Report Attached
+              </Text>
+              {attachedAiRecord.confidence ? (
+                <Text style={{ fontSize: 11, color: '#059669', marginLeft: 6, fontWeight: '600' }}>
+                  ({attachedAiRecord.confidence})
+                </Text>
+              ) : null}
+            </View>
+            <Text style={{ fontSize: 13, fontWeight: '700', color: colors.textPrimary }} numberOfLines={1}>
+              Livestock #{attachedAiRecord.animalId || attachedAiRecord.id || 'N/A'}: {attachedAiRecord.disease || attachedAiRecord.name || 'Analysis'}
+            </Text>
+          </View>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Text style={{ fontSize: 11, color: '#059669', fontWeight: '600', marginRight: 2 }}>View</Text>
+            <Feather name="chevron-right" size={16} color="#059669" />
+          </View>
+        </TouchableOpacity>
+      )}
+
       
       {loading ? (
         <View style={styles.loaderContainer}>
@@ -740,7 +829,23 @@ export default function ChatScreen() {
           />
 
           
-          {conversationStatus === 'resolved' ? (
+          {isPendingApproval ? (
+            <View style={[styles.resolvedBanner, { 
+              paddingBottom: Math.max(insets.bottom, 12),
+              backgroundColor: isDark ? 'rgba(245, 158, 11, 0.15)' : '#FEF3C7',
+              borderColor: isDark ? 'rgba(245, 158, 11, 0.3)' : '#FDE68A'
+            }]}>
+              <View style={styles.resolvedBannerTextRow}>
+                <Feather name="clock" size={17} color="#D97706" style={{ marginRight: 6 }} />
+                <Text style={[styles.resolvedBannerText, { color: '#B45309', fontWeight: '700' }]}>
+                  Pending Doctor Approval
+                </Text>
+              </View>
+              <Text style={{ fontSize: 12, color: '#92400E', textAlign: 'center', marginTop: 4, paddingHorizontal: 16 }}>
+                Dr. {partnerName} has not accepted this request yet. Chat will unlock automatically once approved.
+              </Text>
+            </View>
+          ) : conversationStatus === 'resolved' ? (
             <View style={[styles.resolvedBanner, { paddingBottom: Math.max(insets.bottom, 10) }]}>
               <View style={styles.resolvedBannerTextRow}>
                 <MaterialCommunityIcons name="lock" size={17} color="#64748B" style={{ marginRight: 6 }} />
@@ -1002,6 +1107,104 @@ export default function ChatScreen() {
               </TouchableOpacity>
             </ScrollView>
           </KeyboardAvoidingView>
+        </View>
+      </Modal>
+
+      {/* Attached AI Report Modal */}
+      <Modal visible={showAiDetailsModal} animationType="slide" transparent={true}>
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContent, { maxHeight: '85%' }]}>
+            <View style={styles.modalHeader}>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <MaterialCommunityIcons name="stethoscope" size={22} color="#059669" style={{ marginRight: 8 }} />
+                <Text style={styles.modalTitle}>AI Scan Medical Report</Text>
+              </View>
+              <TouchableOpacity onPress={() => setShowAiDetailsModal(false)}>
+                <Feather name="x" size={24} color="#333" />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView showsVerticalScrollIndicator={false}>
+              {attachedAiRecord && (
+                <>
+                  {(attachedAiRecord.imageUrl || attachedAiRecord.uri) ? (
+                    <Image
+                      source={{ uri: attachedAiRecord.imageUrl || attachedAiRecord.uri }}
+                      style={{ width: '100%', height: 180, borderRadius: 12, marginBottom: 14, backgroundColor: '#E2E8F0' }}
+                      resizeMode="cover"
+                    />
+                  ) : null}
+
+                  <View style={{ backgroundColor: '#F8FAFC', padding: 12, borderRadius: 12, marginBottom: 12, borderWidth: 1, borderColor: '#E2E8F0' }}>
+                    <Text style={{ fontSize: 13, color: '#64748B' }}>Livestock Tag / ID</Text>
+                    <Text style={{ fontSize: 18, fontWeight: '800', color: '#1E293B', marginTop: 2 }}>
+                      #{attachedAiRecord.animalId || attachedAiRecord.id || 'N/A'}
+                    </Text>
+
+                    <View style={{ flexDirection: 'row', marginTop: 8, gap: 16 }}>
+                      <View>
+                        <Text style={{ fontSize: 12, color: '#64748B' }}>Species & Breed</Text>
+                        <Text style={{ fontSize: 14, fontWeight: '700', color: '#334155' }}>
+                          {attachedAiRecord.animalType || 'Livestock'} {attachedAiRecord.breed ? `(${attachedAiRecord.breed})` : ''}
+                        </Text>
+                      </View>
+                      <View>
+                        <Text style={{ fontSize: 12, color: '#64748B' }}>Confidence Score</Text>
+                        <Text style={{ fontSize: 14, fontWeight: '700', color: '#059669' }}>
+                          {attachedAiRecord.confidence || 'N/A'}
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
+
+                  <View style={{ marginBottom: 14 }}>
+                    <Text style={{ fontSize: 13, fontWeight: '700', color: '#334155', marginBottom: 4 }}>
+                      Primary Diagnosis:
+                    </Text>
+                    <Text style={{ fontSize: 16, fontWeight: '800', color: '#DC2626' }}>
+                      {attachedAiRecord.disease || attachedAiRecord.name}
+                    </Text>
+                  </View>
+
+                  {attachedAiRecord.description ? (
+                    <View style={{ marginBottom: 14 }}>
+                      <Text style={{ fontSize: 13, fontWeight: '700', color: '#334155', marginBottom: 4 }}>
+                        Clinical Observations:
+                      </Text>
+                      <Text style={{ fontSize: 13, color: '#475569', lineHeight: 20 }}>
+                        {attachedAiRecord.description}
+                      </Text>
+                    </View>
+                  ) : null}
+
+                  {attachedAiRecord.firstAid && (Array.isArray(attachedAiRecord.firstAid) ? attachedAiRecord.firstAid.length > 0 : !!attachedAiRecord.firstAid) ? (
+                    <View style={{ marginBottom: 16 }}>
+                      <Text style={{ fontSize: 13, fontWeight: '700', color: '#334155', marginBottom: 6 }}>
+                        Recommended First Aid:
+                      </Text>
+                      {Array.isArray(attachedAiRecord.firstAid) ? (
+                        attachedAiRecord.firstAid.map((tip, idx) => (
+                          <View key={idx} style={{ flexDirection: 'row', marginBottom: 6 }}>
+                            <Text style={{ color: '#059669', marginRight: 6, fontWeight: '700' }}>•</Text>
+                            <Text style={{ flex: 1, fontSize: 13, color: '#475569', lineHeight: 18 }}>{tip}</Text>
+                          </View>
+                        ))
+                      ) : (
+                        <Text style={{ fontSize: 13, color: '#475569', lineHeight: 18 }}>{attachedAiRecord.firstAid}</Text>
+                      )}
+                    </View>
+                  ) : null}
+                </>
+              )}
+
+              <TouchableOpacity
+                style={[styles.submitPrescriptionButton, { backgroundColor: '#059669', marginTop: 10 }]}
+                onPress={() => setShowAiDetailsModal(false)}
+              >
+                <Text style={styles.submitPrescriptionButtonText}>Close Report</Text>
+              </TouchableOpacity>
+            </ScrollView>
+          </View>
         </View>
       </Modal>
     </SafeAreaView>

@@ -101,7 +101,22 @@ export default function VetCasesScreen() {
           </View>
         </View>
 
-        <Text style={styles.diseaseText}>{diseaseName}</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8, marginBottom: 6 }}>
+          {(aiData?.imageUrl || aiData?.uri) ? (
+            <Image
+              source={{ uri: aiData.imageUrl || aiData.uri }}
+              style={{ width: 44, height: 44, borderRadius: 8, marginRight: 10, backgroundColor: '#E2E8F0' }}
+            />
+          ) : null}
+          <View style={{ flex: 1 }}>
+            <Text style={styles.diseaseText}>{diseaseName}</Text>
+            {aiData?.animalId ? (
+              <Text style={{ fontSize: 12, color: colors.textSecondary }}>
+                Livestock ID: #{aiData.animalId} {aiData.animalType ? `(${aiData.animalType})` : ''}
+              </Text>
+            ) : null}
+          </View>
+        </View>
         
         {confidence && (
           <View style={styles.confidenceSection}>

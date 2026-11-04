@@ -151,20 +151,12 @@ module.exports = (pool, io) => {
     try {
       const result = await pool.query(
         `SELECT c.*,
-                CASE
-                  WHEN LOWER(TRIM(c.status)) = 'completed' THEN 'completed'
-                  WHEN LOWER(TRIM(c.status)) = 'approved'
-                    AND LOWER(TRIM(COALESCE(conversation.status, ''))) = 'resolved' THEN 'completed'
-                  WHEN LOWER(TRIM(c.status)) = 'pending' THEN 'pending'
-                  ELSE LOWER(TRIM(c.status))
-                END AS status,
-                conversation.status AS conversation_status,
-                u.full_name as farmer_name, u.phone_number as farmer_phone
+                c.status as status,
+                u.full_name as farmer_name,
+                u.phone_number as farmer_phone,
+                u.district as farmer_district
          FROM consultations c 
          JOIN users u ON c.farmer_id = u.id 
-         LEFT JOIN conversations conversation
-           ON conversation.farmer_id = c.farmer_id
-          AND conversation.vet_id = c.vet_id
          WHERE c.vet_id = $1 ORDER BY c.created_at DESC`,
         [req.params.id]
       );
@@ -209,12 +201,25 @@ module.exports = (pool, io) => {
           [consultation.farmer_id, consultation.vet_id]
         );
       } else if (status === 'approved') {
-        await pool.query(
-          `UPDATE conversations
-           SET status = 'active', updated_at = CURRENT_TIMESTAMP
-           WHERE farmer_id = $1 AND vet_id = $2`,
+        const convCheck = await pool.query(
+          'SELECT id FROM conversations WHERE farmer_id = $1 AND vet_id = $2 ORDER BY id DESC LIMIT 1',
           [consultation.farmer_id, consultation.vet_id]
         );
+        if (convCheck.rows.length === 0) {
+          await pool.query(
+            "INSERT INTO conversations (farmer_id, vet_id, status) VALUES ($1, $2, 'active')",
+            [consultation.farmer_id, consultation.vet_id]
+          );
+        } else {
+          await pool.query(
+            "UPDATE conversations SET status = 'active', updated_at = CURRENT_TIMESTAMP WHERE id = $1",
+            [convCheck.rows[0].id]
+          );
+        }
+      }
+
+      if (io) {
+        io.emit('consultation_updated', consultation);
       }
 
       // Notify farmer about consultation status update
@@ -230,8 +235,8 @@ module.exports = (pool, io) => {
         if (status === 'approved') {
           titleEn = 'Consultation Approved';
           titleUr = 'مشاورت منظور ہو گئی';
-          messageEn = `Dr. ${vetName} has accepted your consultation request.`;
-          messageUr = `ڈاکٹر ${vetName} نے آپ کی مشاورت کی درخواست منظور کر لی ہے۔`;
+          messageEn = `Dr. ${vetName} has accepted your consultation request. You can now chat!`;
+          messageUr = `ڈاکٹر ${vetName} نے آپ کی مشاورت کی درخواست منظور کر لی ہے۔ اب آپ چیٹ کر سکتے ہیں۔`;
         } else if (status === 'rejected') {
           titleEn = 'Consultation Declined';
           titleUr = 'مشاورت منسوخ';
@@ -253,6 +258,22 @@ module.exports = (pool, io) => {
           title_ur: titleUr,
           message_en: messageEn,
           message_ur: messageUr,
+          data: {
+            consultationId: consultation.id,
+            status: status,
+            targetScreen: 'MyConsultations'
+          }
+        });
+      } catch (notifErr) {
+        console.error('Failed to notify farmer of consultation status update:', notifErr.message);
+      }
+
+      res.status(200).json({ success: true, consultation });
+    } catch (err) {
+      console.error('Error updating consultation status:', err);
+      res.status(500).json({ error: 'Failed to update consultation status' });
+    }
+  });
           data: {
             consultationId: consultation.id,
             status,

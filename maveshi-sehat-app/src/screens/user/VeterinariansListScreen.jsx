@@ -71,6 +71,15 @@ export default function VeterinariansListScreen() {
   const openConsultModal = (vet, type) => {
     setSelectedVet(vet);
     setConsultType(type);
+    if (params.initialRecord) {
+      const rec = params.initialRecord;
+      const tag = rec.animalId || rec.id || '';
+      const diseaseName = rec.disease || rec.name || rec.status || 'Livestock Condition';
+      const defaultReason = tag 
+        ? `AI Scan: ${diseaseName} (Livestock #${tag}). Requesting veterinary consultation and treatment.`
+        : `AI Scan: ${diseaseName}. Requesting veterinary consultation and treatment.`;
+      setReason(defaultReason);
+    }
     setConsultModalVisible(true);
   };
 
@@ -110,9 +119,15 @@ export default function VeterinariansListScreen() {
       setAppointmentDate('');
       setAppointmentTime('');
       
-      Alert.alert(t('Request Sent'),
-        'Your request has been sent to the vet. You can track its status in your Consultations dashboard.',
-        [{ text: 'OK', onPress: () => navigation.navigate('Dashboard') }]
+      Alert.alert(
+        t('Request Sent'),
+        `Your consultation request with attached AI report has been sent to ${selectedVet?.full_name || 'the vet'}. Status is currently Pending until the doctor approves.`,
+        [
+          { 
+            text: 'View Consultations', 
+            onPress: () => navigation.navigate('MyConsultations') 
+          }
+        ]
       );
       
     } catch (error) {
@@ -241,6 +256,30 @@ export default function VeterinariansListScreen() {
           refreshing={refreshing}
           onRefresh={handleRefresh}
           showsVerticalScrollIndicator={false}
+          ListHeaderComponent={
+            params.initialRecord ? (
+              <View style={{
+                marginBottom: 14,
+                backgroundColor: isDark ? 'rgba(16, 185, 129, 0.12)' : '#ECFDF5',
+                borderRadius: 14,
+                borderWidth: 1,
+                borderColor: isDark ? 'rgba(16, 185, 129, 0.3)' : '#A7F3D0',
+                padding: 12,
+                flexDirection: 'row',
+                alignItems: 'center'
+              }}>
+                <MaterialCommunityIcons name="file-document-check-outline" size={20} color="#059669" style={{ marginRight: 10 }} />
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontSize: 13, fontWeight: '700', color: isDark ? '#34D399' : '#047857' }}>
+                    Consultation for Livestock #{params.initialRecord.animalId || params.initialRecord.id}
+                  </Text>
+                  <Text style={{ fontSize: 11, color: colors.textSecondary, marginTop: 2 }}>
+                    Report: {params.initialRecord.disease || 'AI Scan'} will be forwarded to the chosen doctor.
+                  </Text>
+                </View>
+              </View>
+            ) : null
+          }
         />
       ) : (
         <View style={styles.emptyContainer}>
@@ -295,9 +334,36 @@ export default function VeterinariansListScreen() {
             )}
 
             {params.initialRecord && (
-              <View style={styles.aiRecordNotice}>
-                <Feather name="info" size={16} color="#0056b3" style={{ marginRight: 6 }} />
-                <Text style={styles.aiRecordNoticeText}>AI Scan Report will be attached automatically.</Text>
+              <View style={{
+                backgroundColor: isDark ? 'rgba(16, 185, 129, 0.1)' : '#ECFDF5',
+                borderRadius: 14,
+                borderWidth: 1,
+                borderColor: isDark ? 'rgba(16, 185, 129, 0.3)' : '#A7F3D0',
+                padding: 12,
+                marginBottom: 16,
+              }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+                  <MaterialCommunityIcons name="check-decagram" size={16} color="#059669" style={{ marginRight: 6 }} />
+                  <Text style={{ fontSize: 13, fontWeight: '700', color: isDark ? '#34D399' : '#047857' }}>
+                    AI Medical Report Attached
+                  </Text>
+                </View>
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  {params.initialRecord.imageUrl || params.initialRecord.uri ? (
+                    <Image
+                      source={{ uri: params.initialRecord.imageUrl || params.initialRecord.uri }}
+                      style={{ width: 44, height: 44, borderRadius: 8, marginRight: 10, backgroundColor: '#E2E8F0' }}
+                    />
+                  ) : null}
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ fontSize: 13, fontWeight: '700', color: colors.textPrimary }}>
+                      Livestock #{params.initialRecord.animalId || params.initialRecord.id || 'N/A'} ({params.initialRecord.animalType || 'Livestock'})
+                    </Text>
+                    <Text style={{ fontSize: 12, color: colors.textSecondary, marginTop: 2 }}>
+                      Diagnosis: {params.initialRecord.disease || params.initialRecord.name} · {params.initialRecord.confidence}
+                    </Text>
+                  </View>
+                </View>
               </View>
             )}
 

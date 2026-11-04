@@ -427,12 +427,21 @@ export default function AiScanScreen() {
         ...diagnosis,
         isCattle: true,
         generatedAnimalId: finalAnimalId,
+        animalId: finalAnimalId,
         animalType: detectedAnimal,
         breed: diagnosis.breed || detectedAnimal,
+        disease: diagnosis.name || diagnosis.status,
+        confidence: diagnosis.confidence,
+        risk: diagnosis.riskLevel === 'High' ? 'High Risk' : (diagnosis.riskLevel === 'Medium' ? 'Medium Risk' : 'Low Risk'),
+        riskLevel: diagnosis.riskLevel,
         statusUrdu: diagnosis.urdu,
         scanTime: exactScanTime,
         date: exactScanTime,
-        uri: fullImageUrl
+        uri: fullImageUrl,
+        imageUrl: fullImageUrl,
+        description: diagnosis.description,
+        firstAid: diagnosis.firstAid,
+        firstAidUrdu: diagnosis.firstAidUrdu
       });
       setShowReport(true);
     } catch (err) {
@@ -745,7 +754,21 @@ export default function AiScanScreen() {
 
               <TouchableOpacity 
                 style={styles.consultBtn} 
-                onPress={() => navigation.navigate('VeterinariansList', { userName, initialRecord: scanResult })}
+                onPress={() => {
+                  const effectiveRecord = {
+                    ...scanResult,
+                    animalId: scanResult?.animalId || scanResult?.generatedAnimalId || animalTagId.trim() || 'Livestock',
+                    disease: scanResult?.disease || scanResult?.name || scanResult?.status,
+                    confidence: scanResult?.confidence,
+                    imageUrl: scanResult?.imageUrl || scanResult?.uri,
+                    animalType: scanResult?.animalType,
+                    breed: scanResult?.breed,
+                    description: scanResult?.description,
+                    firstAid: scanResult?.firstAid,
+                    firstAidUrdu: scanResult?.firstAidUrdu
+                  };
+                  navigation.navigate('VeterinariansList', { userName, userId, initialRecord: effectiveRecord });
+                }}
               >
                 <Feather name="message-circle" size={16} color="#FFF" style={{ marginRight: 6 }} />
                 <Text style={styles.consultBtnText}>{t('Consult Vet')}</Text>

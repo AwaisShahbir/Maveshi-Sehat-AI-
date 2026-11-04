@@ -50,7 +50,18 @@ module.exports = (pool, io) => {
         );
       }
 
-      res.status(200).json(convRes.rows[0]);
+      const conv = { ...convRes.rows[0] };
+      try {
+        const consultRes = await pool.query(
+          'SELECT id, status, ai_record_data, reason, created_at FROM consultations WHERE farmer_id = $1 AND vet_id = $2 ORDER BY id DESC LIMIT 1',
+          [fId, safeVetId]
+        );
+        conv.latest_consultation = consultRes.rows[0] || null;
+      } catch (cErr) {
+        console.warn('Could not query latest consultation for conversation:', cErr.message);
+      }
+
+      res.status(200).json(conv);
     } catch (err) {
       console.error('Error creating conversation:', err.message);
       res.status(500).json({ error: 'Server error handling conversation' });

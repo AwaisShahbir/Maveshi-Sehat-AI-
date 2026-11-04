@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { View, Text, SafeAreaView, FlatList, TouchableOpacity, StatusBar, ActivityIndicator, Platform, TextInput, Alert } from 'react-native';
+import { View, Text, SafeAreaView, FlatList, TouchableOpacity, StatusBar, ActivityIndicator, Platform, TextInput, Alert, Image } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -135,74 +135,45 @@ export default function VetConsultationsScreen() {
         userName: userName,
         userRole: 'vet',
         vetId: userId,
+        consultationId: item.id,
+        consultation: item,
         initialRecord,
-        consultations: item.consultations || [item]
+        consultations: [item]
       });
     } catch (error) {
       console.error('Error opening chat', error);
     }
   };
 
-  const handleAction = async (item) => {
-    const pendingConsultation = item.consultations.find(
-      consultation => normalizeConsultationStatus(consultation.status) === 'pending'
+  const handleApproveAndChat = async (item) => {
+    await handleStatusUpdate(item.id, 'approved');
+    openChat({ ...item, status: 'approved' });
+  };
+
+  const handleDecline = (item) => {
+    Alert.alert(
+      t('Decline Consultation'),
+      t('Are you sure you want to decline this consultation request?'),
+      [
+        { text: t('Cancel'), style: 'cancel' },
+        {
+          text: t('Decline'),
+          style: 'destructive',
+          onPress: async () => {
+            await handleStatusUpdate(item.id, 'rejected');
+          }
+        }
+      ]
     );
-    if (pendingConsultation) {
-      await handleStatusUpdate(pendingConsultation.id, 'approved');
-      openChat({
-        ...item,
-        status: 'approved',
-        consultations: item.consultations.map(consultation =>
-          consultation.id === pendingConsultation.id
-            ? { ...consultation, status: 'approved' }
-            : consultation
-        )
-      });
-    } else {
-      openChat(item);
-    }
   };
 
   const tabs = ['All', 'Pending', 'Active', 'Resolved'];
 
-  const farmerChats = useMemo(() => {
-    const grouped = new Map();
-    consultations.forEach(consultation => {
-      const key = String(consultation.farmer_id);
-      const existing = grouped.get(key);
-      if (existing) {
-        existing.consultations.push(consultation);
-        return;
-      }
-      grouped.set(key, {
-        ...consultation,
-        consultations: [consultation],
-      });
-    });
-
-    return Array.from(grouped.values()).map(group => {
-      const hasPending = group.consultations.some(
-        item => normalizeConsultationStatus(item.status) === 'pending'
-      );
-      const hasActive = group.consultations.some(
-        item => normalizeConsultationStatus(item.status) === 'approved'
-      );
-      const status = hasPending ? 'pending' : hasActive ? 'approved' : 'resolved';
-      const latest = group.consultations[0];
-      return {
-        ...group,
-        ...latest,
-        status,
-        consultations: group.consultations,
-      };
-    });
-  }, [consultations]);
-
-  const filteredConsultations = farmerChats.filter(item => {
-    const normalizedStatus = normalizeConsultationStatus(item.status) === 'completed' ? 'resolved' : normalizeConsultationStatus(item.status);
-    const isPending = normalizedStatus === 'pending';
-    const isActive = normalizedStatus === 'approved';
-    const isResolved = normalizedStatus === 'resolved';
+  const filteredConsultations = consultations.filter(item => {
+    const s = normalizeConsultationStatus(item.status);
+    const isPending = s === 'pending';
+    const isActive = s === 'approved';
+    const isResolved = s === 'resolved' || s === 'completed';
 
     const matchesTab = 
       activeTab === 'All' ? true : 
@@ -218,27 +189,60 @@ export default function VetConsultationsScreen() {
 
   const getStats = () => {
     return {
-      pending: farmerChats.filter(c => normalizeConsultationStatus(c.status) === 'pending').length,
-      active: farmerChats.filter(c => normalizeConsultationStatus(c.status) === 'approved').length,
-      resolved: farmerChats.filter(c => c.status === 'resolved' || c.status === 'completed').length,
+      pending: consultations.filter(c => normalizeConsultationStatus(c.status) === 'pending').length,
+      active: consultations.filter(c => normalizeConsultationStatus(c.status) === 'approved').length,
+      resolved: consultations.filter(c => ['resolved', 'completed'].includes(normalizeConsultationStatus(c.status))).length,
     };
   };
   const stats = getStats();
 
   const renderConversationCard = ({ item }) => {
-    const timeText = new Date(item.created_at).toLocaleDateString(undefined, {
+    const timeText = item.created_at ? new Date(item.created_at).toLocaleDateString(undefined, {
       month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
-    });
+    }) : '';
 
-    const normalizedStatus = normalizeConsultationStatus(item.status) === 'completed' ? 'resolved' : normalizeConsultationStatus(item.status);
-    const isPending = normalizedStatus === 'pending';
-    const isActive = normalizedStatus === 'approved';
-    const isResolved = normalizedStatus === 'resolved';
+    const s = normalizeConsultationStatus(item.status);
+    const isPending = s === 'pending';
+    const isActive = s === 'approved';
+    const isResolved = s === 'resolved' || s === 'completed';
+    const isRejected = s === 'rejected';
 
-    const statusColor = isPending ? '#FFB020' : isActive ? '#58D66D' : '#888';
-    
-    const aiData = item.ai_record_data ? (typeof item.ai_record_data === 'string' ? JSON.parse(item.ai_record_data) : item.ai_record_data) : null;
-    const animalInfo = aiData ? `${aiData.animalType || 'Animal'}` : 'Consultation';
+    const statusBadgeBg = isActive
+      ? (isDark ? 'rgba(16, 185, 129, 0.15)' : '#E8F8EA')
+      : isRejected
+      ? (isDark ? 'rgba(239, 68, 68, 0.15)' : '#FFEBEB')
+      : isPending
+      ? (isDark ? 'rgba(245, 158, 11, 0.15)' : '#FFF3CD')
+      : (isDark ? 'rgba(100, 116, 139, 0.15)' : '#F1F5F9');
+
+    const statusBadgeColor = isActive
+      ? colors.primary
+      : isRejected
+      ? '#EF4444'
+      : isPending
+      ? '#D97706'
+      : '#64748B';
+
+    const statusTextDisplay = isPending
+      ? 'PENDING'
+      : isActive
+      ? 'ACTIVE'
+      : isRejected
+      ? 'DECLINED'
+      : 'RESOLVED';
+
+    let aiData = null;
+    if (item.ai_record_data) {
+      if (typeof item.ai_record_data === 'object') {
+        aiData = item.ai_record_data;
+      } else {
+        try {
+          aiData = JSON.parse(item.ai_record_data);
+        } catch (e) {
+          aiData = null;
+        }
+      }
+    }
 
     return (
       <View style={styles.card}>
@@ -246,55 +250,165 @@ export default function VetConsultationsScreen() {
           <View style={styles.userInfoRow}>
             <View style={styles.avatar}>
               <Text style={styles.avatarText}>{item.farmer_name ? item.farmer_name.trim().charAt(0).toUpperCase() : 'F'}</Text>
-              {isPending && <View style={styles.avatarBadge}><Text style={styles.avatarBadgeText}>1</Text></View>}
+              {isPending && <View style={styles.avatarBadge}><Text style={styles.avatarBadgeText}>!</Text></View>}
             </View>
             <View>
-              <Text style={styles.farmerName}>{item.farmer_name}</Text>
-                          </View>
+              <Text style={styles.farmerName}>{item.farmer_name || 'Farmer'}</Text>
+              {item.farmer_phone ? (
+                <Text style={{ fontSize: 12, color: colors.textSecondary, marginTop: 2 }}>
+                  {item.farmer_phone}
+                </Text>
+              ) : null}
+            </View>
           </View>
+
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <Text style={styles.timeText}>{timeText}</Text>
+            <View style={[styles.statusBadge, { backgroundColor: statusBadgeBg, marginRight: 6 }]}>
+              <Text style={[styles.statusText, { color: statusBadgeColor, fontWeight: '700' }]}>
+                {statusTextDisplay}
+              </Text>
+            </View>
             <TouchableOpacity
               onPress={() => handleDeleteConsultation(item)}
-              style={{ marginLeft: 8, padding: 4 }}
+              style={{ padding: 4 }}
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
-              <Feather name="trash-2" size={15} color="#EF4444" />
+              <Feather name="trash-2" size={16} color="#EF4444" />
             </TouchableOpacity>
           </View>
         </View>
 
-        <View style={styles.animalInfoRow}>
-          <MaterialCommunityIcons name="cow" size={16} color="#58D66D" style={{ marginRight: 6 }} />
-          <Text style={styles.animalInfoText}>{animalInfo}</Text>
-        </View>
+        {/* Prominent Attached AI Scan Report Box */}
+        {aiData && (
+          <View style={{
+            backgroundColor: isDark ? 'rgba(255, 255, 255, 0.04)' : '#F0FDF4',
+            borderRadius: 14,
+            padding: 12,
+            marginTop: 8,
+            marginBottom: 10,
+            borderWidth: 1,
+            borderColor: isDark ? colors.border : '#BBF7D0'
+          }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8, justifyContent: 'space-between' }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <MaterialCommunityIcons name="stethoscope" size={16} color="#059669" style={{ marginRight: 6 }} />
+                <Text style={{ fontSize: 12, fontWeight: '700', color: '#059669', textTransform: 'uppercase' }}>
+                  AI Clinical Pathology Scan
+                </Text>
+              </View>
+              {aiData.confidence ? (
+                <View style={{ backgroundColor: '#DCFCE7', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6 }}>
+                  <Text style={{ fontSize: 11, fontWeight: '700', color: '#166534' }}>
+                    {aiData.confidence}
+                  </Text>
+                </View>
+              ) : null}
+            </View>
 
-        <Text style={styles.reasonText} numberOfLines={2}>
-          {item.consultations.length > 1 ? `${item.consultations.length} consultations · ` : ''}{item.reason}
-        </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              {(aiData.imageUrl || aiData.uri) ? (
+                <Image
+                  source={{ uri: aiData.imageUrl || aiData.uri }}
+                  style={{ width: 52, height: 52, borderRadius: 10, marginRight: 12, backgroundColor: '#E2E8F0' }}
+                />
+              ) : (
+                <View style={{
+                  width: 52,
+                  height: 52,
+                  borderRadius: 10,
+                  backgroundColor: isDark ? colors.cardElevated : '#E2E8F0',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  marginRight: 12
+                }}>
+                  <MaterialCommunityIcons name="cow" size={28} color={colors.primary} />
+                </View>
+              )}
+
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontSize: 14, fontWeight: '800', color: colors.textPrimary }}>
+                  Livestock #{aiData.animalId || aiData.id || 'N/A'} {aiData.animalType ? `(${aiData.animalType})` : ''}
+                </Text>
+                <Text style={{ fontSize: 13, color: '#D97706', fontWeight: '700', marginTop: 2 }}>
+                  {aiData.disease || aiData.name || 'AI Analysis'}
+                </Text>
+                {aiData.breed ? (
+                  <Text style={{ fontSize: 11, color: colors.textSecondary }}>
+                    Breed: {aiData.breed}
+                  </Text>
+                ) : null}
+              </View>
+            </View>
+
+            {aiData.description ? (
+              <View style={{ marginTop: 8, paddingTop: 8, borderTopWidth: 1, borderTopColor: isDark ? 'rgba(255,255,255,0.08)' : '#E2E8F0' }}>
+                <Text style={{ fontSize: 12, color: colors.textPrimary, lineHeight: 18 }}>
+                  <Text style={{ fontWeight: '700' }}>Clinical Observation: </Text>{aiData.description}
+                </Text>
+              </View>
+            ) : null}
+
+            {aiData.firstAid && (Array.isArray(aiData.firstAid) ? aiData.firstAid.length > 0 : !!aiData.firstAid) ? (
+              <View style={{ marginTop: 4 }}>
+                <Text style={{ fontSize: 11, color: colors.textSecondary, lineHeight: 16 }}>
+                  <Text style={{ fontWeight: '700' }}>Rec. First Aid: </Text>
+                  {Array.isArray(aiData.firstAid) ? aiData.firstAid.slice(0, 2).join('; ') : aiData.firstAid}
+                </Text>
+              </View>
+            ) : null}
+          </View>
+        )}
+
+        {item.reason ? (
+          <Text style={styles.reasonText} numberOfLines={2}>
+            <Text style={{ fontWeight: '700' }}>Farmer Note: </Text>{item.reason}
+          </Text>
+        ) : null}
 
         <View style={styles.cardFooter}>
           <View style={styles.statusRow}>
-            <Feather name="clock" size={12} color={statusColor} />
-            <Text style={[styles.statusText, { color: statusColor }]}>
-              {isPending ? 'Pending' : isActive ? 'Active' : 'Resolved'}
+            <Feather name="clock" size={12} color={colors.textSecondary} />
+            <Text style={[styles.statusText, { color: colors.textSecondary, marginLeft: 4 }]}>
+              {timeText}
             </Text>
           </View>
           
-          {(isPending || isActive) ? (
+          {isPending ? (
+            <View style={{ flexDirection: 'row', gap: 8 }}>
+              <TouchableOpacity
+                style={[styles.actionBtn, { backgroundColor: '#EF4444', paddingHorizontal: 12 }]}
+                onPress={() => handleDecline(item)}
+              >
+                <Text style={styles.actionBtnText}>{t('Decline')}</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.actionBtn, { backgroundColor: colors.primary, paddingHorizontal: 14 }]}
+                onPress={() => handleApproveAndChat(item)}
+              >
+                <Text style={styles.actionBtnText}>
+                  {t('Accept & Consult →')}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          ) : isActive ? (
             <TouchableOpacity
               style={styles.actionBtn}
-              onPress={() => handleAction(item)}
+              onPress={() => openChat(item)}
             >
               <Text style={styles.actionBtnText}>
-                {isPending ? 'Start Consultation →' : 'Continue →'}
+                {t('Continue Chat →')}
               </Text>
             </TouchableOpacity>
           ) : (
-            <View style={styles.resolvedAction}>
-              <Feather name="lock" size={13} color="#64748B" />
-              <Text style={styles.resolvedActionText}>Closed</Text>
-            </View>
+            <TouchableOpacity
+              style={[styles.actionBtn, { backgroundColor: colors.cardElevated }]}
+              onPress={() => openChat(item)}
+            >
+              <Text style={[styles.actionBtnText, { color: colors.textPrimary }]}>
+                {t('View Chat')}
+              </Text>
+            </TouchableOpacity>
           )}
         </View>
       </View>
