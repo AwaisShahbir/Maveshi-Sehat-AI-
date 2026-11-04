@@ -30,6 +30,19 @@ const upload = multer({
   }
 });
 
+function normalizePhoneNumber(phone) {
+  if (!phone) return '';
+  let cleaned = String(phone).trim().replace(/[\s\-\(\)]/g, '');
+  if (cleaned.startsWith('+92')) {
+    cleaned = '0' + cleaned.slice(3);
+  } else if (cleaned.startsWith('0092')) {
+    cleaned = '0' + cleaned.slice(4);
+  } else if (cleaned.startsWith('92') && cleaned.length === 12) {
+    cleaned = '0' + cleaned.slice(2);
+  }
+  return cleaned;
+}
+
 module.exports = (pool) => {
   // Upload license or document
   router.post('/upload', upload.single('license'), async (req, res) => {
@@ -66,13 +79,14 @@ module.exports = (pool) => {
         return res.status(400).json({ error: 'Please provide all required fields.' });
       }
 
-      const cleanPhone = String(phoneNumber).trim();
+      const cleanPhone = normalizePhoneNumber(phoneNumber);
+      const altPhone = cleanPhone.startsWith('0') ? '+92' + cleanPhone.slice(1) : cleanPhone;
       const cleanEmail = String(email).trim().toLowerCase();
       const cleanName = String(fullName).trim();
 
       const userExists = await pool.query(
-        'SELECT * FROM users WHERE phone_number = $1 OR LOWER(email) = $2',
-        [cleanPhone, cleanEmail]
+        'SELECT * FROM users WHERE phone_number = $1 OR phone_number = $2 OR LOWER(email) = $3',
+        [cleanPhone, altPhone, cleanEmail]
       );
 
       if (userExists.rows.length > 0) {
@@ -281,16 +295,19 @@ module.exports = (pool) => {
         return res.status(400).json({ error: 'Please enter your phone number or email, and password.' });
       }
 
+      const normalizedPhone = normalizePhoneNumber(loginId);
+      const altPhone = normalizedPhone.startsWith('0') ? '+92' + normalizedPhone.slice(1) : normalizedPhone;
+
       let userResult;
       if (role) {
         userResult = await pool.query(
-          'SELECT * FROM users WHERE (LOWER(email) = LOWER($1) OR phone_number = $1) AND role = $2',
-          [loginId, role]
+          'SELECT * FROM users WHERE (LOWER(email) = LOWER($1) OR phone_number = $1 OR phone_number = $2 OR phone_number = $3) AND role = $4',
+          [loginId, normalizedPhone, altPhone, role]
         );
       } else {
         userResult = await pool.query(
-          'SELECT * FROM users WHERE LOWER(email) = LOWER($1) OR phone_number = $1',
-          [loginId]
+          'SELECT * FROM users WHERE LOWER(email) = LOWER($1) OR phone_number = $1 OR phone_number = $2 OR phone_number = $3',
+          [loginId, normalizedPhone, altPhone]
         );
       }
 
@@ -421,9 +438,12 @@ module.exports = (pool) => {
         return res.status(400).json({ error: 'Please enter your registered email or phone number.' });
       }
 
+      const normalizedPhone = normalizePhoneNumber(loginId);
+      const altPhone = normalizedPhone.startsWith('0') ? '+92' + normalizedPhone.slice(1) : normalizedPhone;
+
       const userResult = await pool.query(
-        'SELECT id, full_name, email, phone_number FROM users WHERE LOWER(email) = LOWER($1) OR phone_number = $1 LIMIT 1',
-        [loginId]
+        'SELECT id, full_name, email, phone_number FROM users WHERE LOWER(email) = LOWER($1) OR phone_number = $1 OR phone_number = $2 OR phone_number = $3 LIMIT 1',
+        [loginId, normalizedPhone, altPhone]
       );
 
       if (userResult.rows.length === 0) {
