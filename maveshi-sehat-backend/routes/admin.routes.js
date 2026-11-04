@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
-const transporter = require('../config/mail');
+const mailService = require('../config/mail');
 const { broadcastNotification } = require('../services/notificationService');
 
 module.exports = (pool, io) => {
@@ -231,8 +231,7 @@ module.exports = (pool, io) => {
         if (userRes.rows.length > 0) {
           const user = userRes.rows[0];
           try {
-            await transporter.sendMail({
-              from: `"Maveshi Sehat AI" <${process.env.EMAIL_USER}>`,
+            await mailService.sendMail({
               to: user.email,
               subject: 'Additional Information Requested - Maveshi Sehat AI',
               text: `Dear Dr. ${user.full_name},\n\nThe administrator reviewed your registration application and has requested additional information:\n\n"${message}"\n\nPlease check your profile or contact support to update your information.\n\nBest regards,\nMaveshi Sehat AI Team`

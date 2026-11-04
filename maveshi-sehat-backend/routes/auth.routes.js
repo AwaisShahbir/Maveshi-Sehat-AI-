@@ -3,7 +3,7 @@ const router = express.Router();
 const bcrypt = require('bcryptjs');
 const multer = require('multer');
 const path = require('path');
-const transporter = require('../config/mail');
+const mailService = require('../config/mail');
 const { getOtpEmailHtml, getVetWelcomeEmailHtml } = require('../utils/emailTemplates');
 const { persistUploadedFile } = require('../utils/fileStore');
 
@@ -95,8 +95,7 @@ module.exports = (pool) => {
           await pool.query('INSERT INTO otps (email, otp) VALUES ($1, $2)', [cleanEmail, otp]);
 
           try {
-            const mailInfo = await transporter.sendMail({
-              from: `"Maveshi Sehat AI" <${transporter.emailUser || process.env.EMAIL_USER}>`,
+            const mailInfo = await mailService.sendMail({
               to: cleanEmail,
               subject: `${otp} is your Maveshi Sehat AI verification code`,
               html: getOtpEmailHtml(cleanName, otp),
@@ -150,8 +149,7 @@ module.exports = (pool) => {
         );
 
         try {
-          await transporter.sendMail({
-            from: `"Maveshi Sehat AI" <${transporter.emailUser || process.env.EMAIL_USER}>`,
+          await mailService.sendMail({
             to: cleanEmail,
             subject: 'Vet Application Received - Maveshi Sehat AI',
             html: getVetWelcomeEmailHtml(cleanName),
@@ -173,8 +171,7 @@ module.exports = (pool) => {
         await pool.query('INSERT INTO otps (email, otp) VALUES ($1, $2)', [cleanEmail, otp]);
 
         try {
-          const mailInfo = await transporter.sendMail({
-            from: `"Maveshi Sehat AI" <${transporter.emailUser || process.env.EMAIL_USER}>`,
+          const mailInfo = await mailService.sendMail({
             to: cleanEmail,
             subject: `${otp} is your Maveshi Sehat AI verification code`,
             html: getOtpEmailHtml(cleanName, otp),
@@ -253,8 +250,7 @@ module.exports = (pool) => {
       await pool.query('INSERT INTO otps (email, otp) VALUES ($1, $2)', [cleanEmail, otp]);
 
       try {
-        const mailInfo = await transporter.sendMail({
-          from: `"Maveshi Sehat AI" <${transporter.emailUser || process.env.EMAIL_USER}>`,
+        const mailInfo = await mailService.sendMail({
           to: cleanEmail,
           subject: `${otp} is your Maveshi Sehat AI verification code`,
           html: getOtpEmailHtml(user.full_name, otp),
@@ -401,13 +397,12 @@ module.exports = (pool) => {
     }
   });
 
-  // Diagnostic Test Email Endpoint
+  // Diagnostic Test Email Endpoint (Resend HTTPS REST API)
   router.get('/test-mail', async (req, res) => {
     try {
       const targetEmail = req.query.email || 'codersxcareer@gmail.com';
       const testOtp = Math.floor(1000 + Math.random() * 9000).toString();
-      const mailInfo = await transporter.sendMail({
-        from: `"Maveshi Sehat AI" <${transporter.emailUser || process.env.EMAIL_USER}>`,
+      const mailInfo = await mailService.sendMail({
         to: targetEmail,
         subject: `${testOtp} is your Maveshi Sehat AI verification code`,
         html: getOtpEmailHtml('Tester', testOtp),
@@ -415,18 +410,19 @@ module.exports = (pool) => {
       });
       res.status(200).json({
         success: true,
+        provider: 'Resend (HTTPS REST API / Port 443)',
         response: mailInfo.response,
         messageId: mailInfo.messageId,
         sentTo: targetEmail,
-        sender: transporter.emailUser || process.env.EMAIL_USER
+        sender: mailService.emailUser
       });
     } catch (err) {
       console.error('Test mail error:', err);
       res.status(500).json({
         success: false,
+        provider: 'Resend (HTTPS REST API / Port 443)',
         error: err.message,
-        code: err.code,
-        sender: transporter.emailUser || process.env.EMAIL_USER
+        hint: 'Make sure RESEND_API_KEY is configured in your Render Dashboard / .env file.'
       });
     }
   });
