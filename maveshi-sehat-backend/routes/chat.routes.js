@@ -23,20 +23,18 @@ module.exports = (pool, io) => {
         );
         if (farmerRes.rows.length > 0) {
           fId = farmerRes.rows[0].id;
-        } else {
-          // Fallback to any active farmer or first farmer ID if name is generic placeholder
-          const fallbackRes = await pool.query("SELECT id FROM users WHERE role = 'farmer' ORDER BY id ASC LIMIT 1");
-          if (fallbackRes.rows.length > 0) {
-            fId = fallbackRes.rows[0].id;
-          } else {
-            fId = 1;
-          }
         }
-      } else if (!fId) {
-        fId = 1;
       }
 
-      const safeVetId = vetId || 1;
+      if (!fId) {
+        return res.status(400).json({ error: 'Valid farmerId or farmerName is required' });
+      }
+
+      if (!vetId) {
+        return res.status(400).json({ error: 'Valid vetId is required' });
+      }
+
+      const safeVetId = vetId;
 
       let convRes = await pool.query(
         'SELECT * FROM conversations WHERE farmer_id = $1 AND vet_id = $2 ORDER BY id DESC LIMIT 1',

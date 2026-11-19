@@ -76,18 +76,13 @@ module.exports = (pool, io) => {
   router.post('/api/weather/trigger-alert', async (req, res) => {
     try {
       const { userId, district, customThi } = req.body;
-      const distName = district || 'Lahore';
+      const distName = district || 'Punjab';
       const thi = customThi ? parseInt(customThi) : 83;
       const stress = getStressCategory(thi);
 
-      let targetUserId = userId;
+      const targetUserId = userId;
       if (!targetUserId) {
-        const uRes = await pool.query(`SELECT id FROM users WHERE role = 'farmer' LIMIT 1`);
-        targetUserId = uRes.rows[0]?.id;
-      }
-
-      if (!targetUserId) {
-        return res.status(404).json({ error: 'No user found to receive test alert' });
+        return res.status(400).json({ error: 'userId is required to trigger alert' });
       }
 
       const alert = await sendNotification({

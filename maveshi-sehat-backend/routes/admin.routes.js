@@ -132,7 +132,7 @@ module.exports = (pool, io) => {
 
         scansCount: parseInt(scansRes.rows[0].count) || 0,
         highRiskScansCount: parseInt(highRiskScansRes.rows[0].count) || 0,
-        avgConfidence: parseFloat(avgConfidenceRes.rows[0]?.avg_conf) || 91.5,
+        avgConfidence: parseFloat(avgConfidenceRes.rows[0]?.avg_conf) || 0,
 
         totalConsultations: parseInt(totalConsultationsRes.rows[0].count) || 0,
         urgentConsultations: parseInt(urgentConsultationsRes.rows[0].count) || 0,

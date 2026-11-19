@@ -557,7 +557,13 @@ module.exports = (pool) => {
   // Diagnostic Test Email Endpoint (Brevo / Resend HTTPS REST API)
   router.get('/test-mail', async (req, res) => {
     try {
-      const targetEmail = req.query.email || 'mubshar0810@gmail.com';
+      const targetEmail = req.query.email;
+      if (!targetEmail) {
+        return res.status(400).json({
+          success: false,
+          error: 'email query parameter is required (e.g. /test-mail?email=user@example.com)'
+        });
+      }
       const testOtp = Math.floor(1000 + Math.random() * 9000).toString();
       const mailInfo = await mailService.sendMail({
         to: targetEmail,

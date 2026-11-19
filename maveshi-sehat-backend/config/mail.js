@@ -40,8 +40,8 @@ function sendMail({ to, subject, html, text }) {
   if (!apiKey) {
     console.warn('[Brevo] WARNING: BREVO_API_KEY is not configured in .env or Render Dashboard.');
     return Promise.resolve({
-      id: 'mock-no-key',
-      messageId: 'mock-no-key',
+      id: 'dev-no-key',
+      messageId: 'dev-no-key',
       response: 'WARNING: No email API key configured - email not delivered to network'
     });
   }
