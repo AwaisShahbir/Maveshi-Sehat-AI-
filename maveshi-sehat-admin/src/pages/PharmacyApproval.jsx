@@ -747,9 +747,20 @@ export default function PharmacyApproval() {
           <div 
             className="pharmacy-modal-content card"
             onClick={(e) => e.stopPropagation()}
-            style={{ maxWidth: '680px' }}
+            style={{ maxWidth: '720px', maxHeight: 'calc(100vh - 48px)', overflowY: 'auto' }}
           >
-            <div className="pharmacy-modal-header">
+            <div 
+              className="pharmacy-modal-header"
+              style={{
+                position: 'sticky',
+                top: '-24px',
+                backgroundColor: '#ffffff',
+                zIndex: 20,
+                paddingTop: '4px',
+                paddingBottom: '12px',
+                borderBottom: '1px solid #f1f5f9'
+              }}
+            >
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <h3 className="pharmacy-modal-title">{selectedPharmacy.name}</h3>

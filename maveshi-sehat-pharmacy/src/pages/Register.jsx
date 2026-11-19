@@ -416,13 +416,19 @@ export default function Register({ onViewChange }) {
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-stretch">
               {/* DRAP License Document Upload */}
-              <div className="flex flex-col">
-                <label className="form-label flex items-center justify-between">
-                  <span>Pharmacy / DRAP Drug License <span className="text-red-500">*</span></span>
-                  <span className="text-[11px] text-slate-400 font-normal">PDF, JPG, PNG (Max 10MB)</span>
-                </label>
+              <div className="flex flex-col h-full">
+                <div className="flex items-center justify-between gap-2 mb-2.5 min-h-[26px]">
+                  <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                    <Award size={15} className="text-[#3da860] shrink-0" />
+                    <span>Pharmacy / DRAP License</span>
+                    <span className="text-red-500 font-bold">*</span>
+                  </span>
+                  <span className="text-[10px] font-semibold text-slate-500 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-full shrink-0">
+                    PDF, JPG, PNG (Max 10MB)
+                  </span>
+                </div>
 
                 <input
                   type="file"
@@ -438,45 +444,53 @@ export default function Register({ onViewChange }) {
 
                 <div 
                   onClick={() => !uploadingLicense && licenseInputRef.current?.click()}
-                  className={`border-2 border-dashed rounded-xl p-4 sm:p-5 text-center cursor-pointer transition-all duration-200 flex flex-col items-center justify-center min-h-[140px] ${
+                  className={`group flex-1 flex flex-col items-center justify-center p-6 text-center cursor-pointer transition-all duration-200 rounded-2xl border-2 border-dashed min-h-[170px] ${
                     formData.licenseDocumentUrl 
-                      ? 'border-[#3da860] bg-[#eff7f2]' 
-                      : 'border-slate-300 hover:border-[#3da860] hover:bg-slate-50'
+                      ? 'border-[#3da860] bg-[#eff7f2] shadow-xs' 
+                      : 'border-slate-300 bg-slate-50/50 hover:border-[#3da860] hover:bg-[#eff7f2]/40 hover:shadow-sm'
                   }`}
                 >
                   {uploadingLicense ? (
-                    <div className="flex flex-col items-center gap-2">
-                      <div className="w-8 h-8 border-3 border-[#3da860] border-t-transparent rounded-full animate-spin"></div>
+                    <div className="flex flex-col items-center gap-2.5">
+                      <div className="w-9 h-9 border-3 border-[#3da860] border-t-transparent rounded-full animate-spin"></div>
                       <span className="text-xs font-semibold text-[#135431]">Uploading license document...</span>
                     </div>
                   ) : formData.licenseDocumentUrl ? (
                     <div className="flex flex-col items-center gap-2">
-                      <div className="w-10 h-10 rounded-full bg-[#3da860] text-white flex items-center justify-center">
-                        <Check size={20} />
+                      <div className="w-12 h-12 rounded-2xl bg-[#3da860] text-white flex items-center justify-center shadow-xs">
+                        <Check size={24} />
                       </div>
                       <span className="text-xs font-bold text-[#135431] max-w-[220px] truncate">
                         {licenseFileName || 'DRAP_License_Verified.pdf'}
                       </span>
-                      <span className="text-[11px] text-[#3da860] font-semibold">Document Attached (Click to change)</span>
+                      <span className="inline-flex items-center gap-1 text-[11px] text-[#166534] font-semibold bg-white px-2.5 py-1 rounded-full border border-[#bbf7d0] shadow-xs">
+                        ✓ Document Attached • Click to change
+                      </span>
                     </div>
                   ) : (
                     <div className="flex flex-col items-center gap-2">
-                      <div className="w-10 h-10 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center">
-                        <UploadCloud size={20} />
+                      <div className="w-12 h-12 rounded-2xl bg-white text-slate-500 border border-slate-200 shadow-xs flex items-center justify-center group-hover:scale-105 group-hover:border-[#3da860] group-hover:text-[#3da860] transition-all">
+                        <UploadCloud size={24} />
                       </div>
-                      <span className="text-xs font-bold text-slate-700">Click to upload Pharmacy License</span>
-                      <span className="text-[11px] text-slate-400">Form 9, DRAP Certificate, or Govt License</span>
+                      <span className="text-xs font-bold text-slate-800">Click to upload Pharmacy License</span>
+                      <span className="text-[11px] text-slate-500">Form 9, DRAP Certificate, or Govt Sale License</span>
                     </div>
                   )}
                 </div>
               </div>
 
               {/* Owner CNIC Document Upload */}
-              <div className="flex flex-col">
-                <label className="form-label flex items-center justify-between">
-                  <span>Proprietor CNIC Document <span className="text-red-500">*</span></span>
-                  <span className="text-[11px] text-slate-400 font-normal">PDF, JPG, PNG (Max 10MB)</span>
-                </label>
+              <div className="flex flex-col h-full">
+                <div className="flex items-center justify-between gap-2 mb-2.5 min-h-[26px]">
+                  <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                    <FileText size={15} className="text-[#007aff] shrink-0" />
+                    <span>Proprietor CNIC Document</span>
+                    <span className="text-red-500 font-bold">*</span>
+                  </span>
+                  <span className="text-[10px] font-semibold text-slate-500 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-full shrink-0">
+                    PDF, JPG, PNG (Max 10MB)
+                  </span>
+                </div>
 
                 <input
                   type="file"
@@ -492,34 +506,36 @@ export default function Register({ onViewChange }) {
 
                 <div 
                   onClick={() => !uploadingCnic && cnicInputRef.current?.click()}
-                  className={`border-2 border-dashed rounded-xl p-4 sm:p-5 text-center cursor-pointer transition-all duration-200 flex flex-col items-center justify-center min-h-[140px] ${
+                  className={`group flex-1 flex flex-col items-center justify-center p-6 text-center cursor-pointer transition-all duration-200 rounded-2xl border-2 border-dashed min-h-[170px] ${
                     formData.cnicDocumentUrl 
-                      ? 'border-[#3da860] bg-[#eff7f2]' 
-                      : 'border-slate-300 hover:border-[#3da860] hover:bg-slate-50'
+                      ? 'border-[#3da860] bg-[#eff7f2] shadow-xs' 
+                      : 'border-slate-300 bg-slate-50/50 hover:border-[#3da860] hover:bg-[#eff7f2]/40 hover:shadow-sm'
                   }`}
                 >
                   {uploadingCnic ? (
-                    <div className="flex flex-col items-center gap-2">
-                      <div className="w-8 h-8 border-3 border-[#3da860] border-t-transparent rounded-full animate-spin"></div>
+                    <div className="flex flex-col items-center gap-2.5">
+                      <div className="w-9 h-9 border-3 border-[#3da860] border-t-transparent rounded-full animate-spin"></div>
                       <span className="text-xs font-semibold text-[#135431]">Uploading CNIC document...</span>
                     </div>
                   ) : formData.cnicDocumentUrl ? (
                     <div className="flex flex-col items-center gap-2">
-                      <div className="w-10 h-10 rounded-full bg-[#3da860] text-white flex items-center justify-center">
-                        <Check size={20} />
+                      <div className="w-12 h-12 rounded-2xl bg-[#3da860] text-white flex items-center justify-center shadow-xs">
+                        <Check size={24} />
                       </div>
                       <span className="text-xs font-bold text-[#135431] max-w-[220px] truncate">
                         {cnicFileName || 'Owner_CNIC_Verified.pdf'}
                       </span>
-                      <span className="text-[11px] text-[#3da860] font-semibold">Document Attached (Click to change)</span>
+                      <span className="inline-flex items-center gap-1 text-[11px] text-[#166534] font-semibold bg-white px-2.5 py-1 rounded-full border border-[#bbf7d0] shadow-xs">
+                        ✓ Document Attached • Click to change
+                      </span>
                     </div>
                   ) : (
                     <div className="flex flex-col items-center gap-2">
-                      <div className="w-10 h-10 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center">
-                        <FileText size={20} />
+                      <div className="w-12 h-12 rounded-2xl bg-white text-slate-500 border border-slate-200 shadow-xs flex items-center justify-center group-hover:scale-105 group-hover:border-[#3da860] group-hover:text-[#3da860] transition-all">
+                        <FileText size={24} />
                       </div>
-                      <span className="text-xs font-bold text-slate-700">Click to upload Owner's CNIC</span>
-                      <span className="text-[11px] text-slate-400">Front & Back scan or combined PDF</span>
+                      <span className="text-xs font-bold text-slate-800">Click to upload Owner's CNIC</span>
+                      <span className="text-[11px] text-slate-500">Front & Back scan or combined PDF document</span>
                     </div>
                   )}
                 </div>

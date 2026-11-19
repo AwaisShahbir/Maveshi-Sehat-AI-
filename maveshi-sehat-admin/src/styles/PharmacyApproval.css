@@ -695,18 +695,42 @@
   backdrop-filter: blur(4px);
   display: flex;
   justify-content: center;
-  align-items: center;
-  z-index: 1000;
-  padding: 20px;
+  align-items: flex-start;
+  z-index: 1050;
+  padding: 24px 16px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .pharmacy-modal-content {
   width: 100%;
-  max-width: 600px;
-  padding: 28px;
+  max-width: 720px;
+  max-height: calc(100vh - 48px);
+  display: flex;
+  flex-direction: column;
+  padding: 24px 28px;
   border-radius: 16px;
   background-color: #ffffff;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  overflow-y: auto;
+  margin: auto 0;
+  box-sizing: border-box;
+}
+
+/* Custom smooth scrollbar for the modal */
+.pharmacy-modal-content::-webkit-scrollbar {
+  width: 6px;
+}
+.pharmacy-modal-content::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 8px;
+}
+.pharmacy-modal-content::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 8px;
+}
+.pharmacy-modal-content::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }
 
 .pharmacy-modal-header {
@@ -1116,13 +1140,15 @@
 
   .pharmacy-modal-backdrop {
     padding: 12px;
+    align-items: flex-start;
   }
 
+  .pharmacy-modal-content,
   .pharmacy-modal-card {
     width: 95vw;
     max-width: 95vw;
     padding: 18px 16px;
-    max-height: 90vh;
+    max-height: calc(100vh - 24px);
     overflow-y: auto;
   }
 }
