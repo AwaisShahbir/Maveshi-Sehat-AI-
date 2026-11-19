@@ -9,9 +9,30 @@ export default function Settings({ onProfileUpdate }) {
   const [loading, setLoading] = useState(false);
 
   // Profile Form States
-  const [profileName, setProfileName] = useState('Awais Shabbir');
-  const [profileEmail, setProfileEmail] = useState('maveshisehatai@gmail.com');
-  const [profilePhone, setProfilePhone] = useState('03240650810');
+  const [profileName, setProfileName] = useState(() => {
+    try {
+      const u = JSON.parse(localStorage.getItem('maveshi_sehat_admin_user') || '{}');
+      return u.fullName || u.full_name || '';
+    } catch {
+      return '';
+    }
+  });
+  const [profileEmail, setProfileEmail] = useState(() => {
+    try {
+      const u = JSON.parse(localStorage.getItem('maveshi_sehat_admin_user') || '{}');
+      return u.email || '';
+    } catch {
+      return '';
+    }
+  });
+  const [profilePhone, setProfilePhone] = useState(() => {
+    try {
+      const u = JSON.parse(localStorage.getItem('maveshi_sehat_admin_user') || '{}');
+      return u.phoneNumber || u.phone_number || '';
+    } catch {
+      return '';
+    }
+  });
   const [avatarUrl, setAvatarUrl] = useState(() => localStorage.getItem('adminAvatar') || '');
   const fileInputRef = useRef(null);
 
@@ -94,9 +115,9 @@ export default function Settings({ onProfileUpdate }) {
     fetchProfileAndSettings();
   }, []);
 
-  // Compute initials dynamically (e.g. Awais Shabbir -> AS)
+  // Compute initials dynamically (e.g. Administrator -> AD)
   const getInitials = (name) => {
-    if (!name) return 'AS';
+    if (!name) return 'AD';
     return name
       .trim()
       .split(' ')
@@ -104,7 +125,7 @@ export default function Settings({ onProfileUpdate }) {
       .slice(0, 2)
       .map(part => part[0])
       .join('')
-      .toUpperCase();
+      .toUpperCase() || 'AD';
   };
 
   const handleAvatarChange = (e) => {

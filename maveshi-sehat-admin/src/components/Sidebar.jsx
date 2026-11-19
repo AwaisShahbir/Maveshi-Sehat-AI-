@@ -23,7 +23,7 @@ export default function Sidebar({ onLogout, adminUser, isOpen, onClose }) {
   const [stats, setStats] = useState(null);
   const [avatar, setAvatar] = useState(() => localStorage.getItem('adminAvatar') || '');
 
-  const displayName = adminUser?.fullName || adminUser?.full_name || 'Awais Shabbir';
+  const displayName = adminUser?.fullName || adminUser?.full_name || 'Administrator';
   const displayRole = adminUser?.role === 'admin' ? 'Administrator' : (adminUser?.role || 'Administrator');
   const initials = displayName
     .trim()
@@ -32,7 +32,7 @@ export default function Sidebar({ onLogout, adminUser, isOpen, onClose }) {
     .slice(0, 2)
     .map(p => p[0])
     .join('')
-    .toUpperCase() || 'AS';
+    .toUpperCase() || 'AD';
 
   useEffect(() => {
     const handleAvatarUpdate = () => {

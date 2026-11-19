@@ -148,7 +148,7 @@ export default function Reports() {
             v.email,
             v.pvmc_number,
             v.specialization,
-            v.experience_years || 5,
+            v.experience_years ? `${v.experience_years} years` : 'General practice',
             cases
           ];
         });

@@ -182,7 +182,7 @@ export default function Login({ onLoginSuccess }) {
               <input
                 type="text"
                 className="form-control login-form-input"
-                placeholder="admin@maveshisehat.pk or 03001234567"
+                placeholder="admin@maveshisehat.pk or 03XXXXXXXXX"
                 value={identifier}
                 onChange={(e) => setIdentifier(e.target.value)}
                 disabled={loading}
@@ -330,7 +330,7 @@ export default function Login({ onLoginSuccess }) {
                     <input
                       type="text"
                       className="form-control"
-                      placeholder="admin@maveshisehat.pk or 03001234567"
+                      placeholder="admin@maveshisehat.pk or 03XXXXXXXXX"
                       value={forgotIdentifier}
                       onChange={(e) => setForgotIdentifier(e.target.value)}
                       style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}

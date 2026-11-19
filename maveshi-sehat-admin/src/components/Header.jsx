@@ -9,7 +9,7 @@ export default function Header({ adminUser, onToggleSidebar }) {
   const [unreadCount, setUnreadCount] = useState(0);
   const [avatar, setAvatar] = useState(() => localStorage.getItem('adminAvatar') || '');
 
-  const displayName = adminUser?.fullName || adminUser?.full_name || 'Awais Shabbir';
+  const displayName = adminUser?.fullName || adminUser?.full_name || 'Administrator';
   const initials = displayName
     .trim()
     .split(' ')
@@ -17,7 +17,7 @@ export default function Header({ adminUser, onToggleSidebar }) {
     .slice(0, 2)
     .map(p => p[0])
     .join('')
-    .toUpperCase() || 'AS';
+    .toUpperCase() || 'AD';
 
   useEffect(() => {
     const handleAvatarUpdate = () => {

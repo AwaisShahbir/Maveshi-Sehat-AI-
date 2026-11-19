@@ -70,7 +70,13 @@ export default function Analytics() {
   const scansTrend = (scansTrendVal >= 0 ? '+' : '') + scansTrendVal + '%';
 
   const consultations = records.filter(r => r.disease !== 'Healthy' && r.disease !== 'BCS Normal').length;
-  const consultationsTrend = '+12.5%';
+  const consultationsLast30 = records.filter(r => (nowTime - new Date(r.created_at).getTime()) <= ms30d && r.disease !== 'Healthy' && r.disease !== 'BCS Normal').length;
+  const consultationsPrev30 = records.filter(r => {
+    const diff = nowTime - new Date(r.created_at).getTime();
+    return diff > ms30d && diff <= (ms30d * 2) && r.disease !== 'Healthy' && r.disease !== 'BCS Normal';
+  }).length;
+  const consultTrendVal = consultationsPrev30 ? Math.round(((consultationsLast30 - consultationsPrev30) / consultationsPrev30) * 100) : (consultationsLast30 > 0 ? (consultationsLast30 * 10) : 0);
+  const consultationsTrend = (consultTrendVal >= 0 ? '+' : '') + consultTrendVal + '%';
 
   const avgConf = records.length ? Math.round(records.reduce((sum, r) => sum + (parseFloat(r.confidence) || 0), 0) / records.length) : 0;
   const avgResponse = avgConf ? avgConf + '%' : '0%';
@@ -107,14 +113,15 @@ export default function Analytics() {
     });
   }
 
-  const successRate = records.length ? Math.round((records.filter(r => (parseFloat(r.confidence) || 0) >= 75).length / records.length) * 100) : 94;
-  const responseRate = records.length ? Math.round((records.filter(r => r.vet_name).length / records.length) * 100) : 88;
+  const successRate = records.length ? Math.round((records.filter(r => (parseFloat(r.confidence) || 0) >= 75).length / records.length) * 100) : 0;
+  const responseRate = records.length ? Math.round((records.filter(r => r.vet_name).length / records.length) * 100) : 0;
+  const activeCount = users.filter(u => u.status !== 'blocked').length;
 
   const engagementMetrics = [
-    { name: 'Active User Ratio', value: users.length ? `${Math.round((users.filter(u => u.status !== 'blocked').length / users.length) * 100)}%` : '100%', trend: '+4.2%', isPositive: true },
-    { name: 'Monthly Registered Accounts', value: users.length.toString(), trend: '+12.3%', isPositive: true },
-    { name: 'Scan Success Rate (Conf >= 75%)', value: successRate + '%', trend: '+2.1%', isPositive: true },
-    { name: 'Veterinary Assignment Rate', value: responseRate + '%', trend: '+3.5%', isPositive: true }
+    { name: 'Active User Ratio', value: users.length ? `${Math.round((activeCount / users.length) * 100)}%` : '100%', trend: `${activeCount}/${users.length} Active`, isPositive: true },
+    { name: 'Monthly Registered Accounts', value: newUsersLast30.toString(), trend: newUsersTrend, isPositive: !newUsersTrend.startsWith('-') },
+    { name: 'Scan Success Rate (Conf >= 75%)', value: successRate + '%', trend: `${records.filter(r => (parseFloat(r.confidence) || 0) >= 75).length} Scans`, isPositive: true },
+    { name: 'Veterinary Assignment Rate', value: responseRate + '%', trend: `${records.filter(r => r.vet_name).length} Assigned`, isPositive: true }
   ];
 
   const vetCases = {};

@@ -193,7 +193,7 @@ export default function VetVerification() {
                       <div>
                         <strong className="vet-meta-label">City / District:</strong>
                         <span className="vet-meta-val" style={{ marginLeft: '4px' }}>
-                          {vet.district || 'Lahore'}
+                          {vet.district || 'Punjab'}
                         </span>
                       </div>
 
@@ -207,7 +207,7 @@ export default function VetVerification() {
                       <div>
                         <strong className="vet-meta-label">Joined:</strong>
                         <span className="vet-meta-val" style={{ marginLeft: '4px' }}>
-                          {vet.created_at ? new Date(vet.created_at).toLocaleDateString([], { day: 'numeric', month: 'short', year: 'numeric' }) : 'Jun 10, 2026'}
+                          {vet.created_at ? new Date(vet.created_at).toLocaleDateString([], { day: 'numeric', month: 'short', year: 'numeric' }) : 'Recent'}
                         </span>
                       </div>
 
@@ -393,7 +393,7 @@ export default function VetVerification() {
               <div className="vet-modal-box">
                 <span className="vet-modal-label">Registration Date</span>
                 <strong className="vet-modal-val">
-                  {selectedVetForProfile.created_at ? new Date(selectedVetForProfile.created_at).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' }) : 'Jun 10, 2026'}
+                  {selectedVetForProfile.created_at ? new Date(selectedVetForProfile.created_at).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' }) : 'Recent'}
                 </strong>
               </div>
             </div>

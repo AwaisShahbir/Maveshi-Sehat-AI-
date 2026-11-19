@@ -146,7 +146,7 @@ export default function Dashboard() {
             <h2 className="kpi-card-value">{stats?.scansCount ?? 0}</h2>
             <p className="kpi-card-label">Clinical AI Scans</p>
             <span className="kpi-card-trend trend-green">
-              {stats?.avgConfidence ?? 91.5}% Avg Confidence • {stats?.highRiskScansCount ?? 0} High Risk
+              {stats?.avgConfidence ?? 0}% Avg Confidence • {stats?.highRiskScansCount ?? 0} High Risk
             </span>
           </div>
         </div>
