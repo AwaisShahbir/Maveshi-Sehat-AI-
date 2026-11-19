@@ -299,6 +299,211 @@
   margin-top: 1px;
 }
 
+/* Registration Verification Documents Strip on Pharmacy Card */
+.pharm-docs-verification-strip {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 14px;
+}
+
+.pharm-docs-strip-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  gap: 8px;
+}
+
+.pharm-docs-strip-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.pharm-doc-count-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 9999px;
+}
+
+.pharm-doc-count-badge.success {
+  background-color: #dcfce7;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
+}
+
+.pharm-doc-count-badge.warning {
+  background-color: #fef3c7;
+  color: #b45309;
+  border: 1px solid #fde68a;
+}
+
+.pharm-doc-count-badge.empty {
+  background-color: #f1f5f9;
+  color: #64748b;
+  border: 1px solid #e2e8f0;
+}
+
+.pharm-docs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 10px;
+}
+
+.pharm-doc-card-tile {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.pharm-doc-card-tile.attached {
+  border-color: #bbf7d0;
+  background-color: #fafdfb;
+}
+
+.pharm-doc-card-tile.attached:hover {
+  border-color: #10b981;
+  box-shadow: 0 2px 6px rgba(16, 185, 129, 0.1);
+}
+
+.pharm-doc-card-tile.empty {
+  border-color: #e2e8f0;
+  background-color: #ffffff;
+}
+
+.pharm-doc-tile-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.pharm-doc-type-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.pharm-doc-type-icon.drap {
+  background-color: #eff7f2;
+  color: #15803d;
+}
+
+.pharm-doc-type-icon.cnic {
+  background-color: #eff6ff;
+  color: #1d4ed8;
+}
+
+.pharm-doc-text-block {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.pharm-doc-type-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748b;
+  line-height: 1.2;
+}
+
+.pharm-doc-type-val {
+  font-size: 12px;
+  font-weight: 700;
+  color: #0f172a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pharm-doc-view-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: all 0.15s;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.pharm-doc-view-btn.license-btn {
+  background-color: #eff7f2;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
+}
+
+.pharm-doc-view-btn.license-btn:hover {
+  background-color: #dcfce7;
+  border-color: #86efac;
+}
+
+.pharm-doc-view-btn.cnic-btn {
+  background-color: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+}
+
+.pharm-doc-view-btn.cnic-btn:hover {
+  background-color: #dbeafe;
+  border-color: #93c5fd;
+}
+
+.pharm-doc-missing-chip {
+  font-size: 10px;
+  font-weight: 700;
+  color: #94a3b8;
+  background-color: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  padding: 3px 8px;
+  border-radius: 6px;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+.pharm-btn-inspect-quick {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 12px;
+  border-radius: 8px;
+  background-color: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.pharm-btn-inspect-quick:hover {
+  background-color: #dbeafe;
+  border-color: #93c5fd;
+}
+
 /* Card Bottom Footer & Toolbar */
 .pharm-card-footer {
   display: flex;
