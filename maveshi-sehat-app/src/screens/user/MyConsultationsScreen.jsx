@@ -20,8 +20,14 @@ export default function MyConsultationsScreen() {
   const fetchConsultations = async () => {
     try {
       setLoading(true);
+      const farmerId = profile.userId || profile.id;
+      if (!farmerId) {
+        setConsultations([]);
+        setLoading(false);
+        return;
+      }
       const baseUrl = 'https://maveshi-sehat-api.onrender.com';
-      const response = await fetch(`${baseUrl}/api/consultations/farmer/${profile.userId || 2}`);
+      const response = await fetch(`${baseUrl}/api/consultations/farmer/${farmerId}`);
       const data = await response.json();
       if (response.ok) {
         setConsultations(data.consultations || []);
@@ -75,8 +81,8 @@ export default function MyConsultationsScreen() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          farmerId: profile.userId || 2,
-          farmerName: profile.userName || 'Farmer',
+          farmerId: profile.userId || profile.id,
+          farmerName: profile.userName || profile.fullName || 'Farmer',
           vetId: consult.vet_id
         })
       });

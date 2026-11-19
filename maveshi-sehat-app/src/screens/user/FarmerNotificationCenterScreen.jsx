@@ -33,7 +33,7 @@ export default function FarmerNotificationCenterScreen({ navigation }) {
   const styles = getStyles(colors, isDark);
   const profile = getProfile();
   const isUrdu = profile.language === 'Urdu';
-  const userId = profile.userId || 1;
+  const userId = profile.userId || profile.id || null;
 
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -42,6 +42,13 @@ export default function FarmerNotificationCenterScreen({ navigation }) {
   const [activeTab, setActiveTab] = useState('All');
 
   const loadData = useCallback(async () => {
+    if (!userId) {
+      setNotifications([]);
+      setUnreadCount(0);
+      setLoading(false);
+      setRefreshing(false);
+      return;
+    }
     try {
       const typeFilter = activeTab === 'All' ? 'all' : (
         activeTab === 'Consultations' ? 'consultation' : (
@@ -66,6 +73,7 @@ export default function FarmerNotificationCenterScreen({ navigation }) {
 
   // Real-time socket listener
   useEffect(() => {
+    if (!userId) return;
     const socket = io(SOCKET_URL);
     socket.emit('join_user', userId);
 

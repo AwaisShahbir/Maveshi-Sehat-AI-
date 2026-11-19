@@ -4,7 +4,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { t } from '../../utils/translate';
-import { subscribeProfile } from '../../utils/profileStore';
+import { subscribeProfile, getProfile } from '../../utils/profileStore';
 import { useTheme } from '../../utils/themeContext';
 import { getStyles } from '../../styles/VetHealthRecordsScreenStyles';
 
@@ -14,7 +14,8 @@ export default function VetHealthRecordsScreen() {
   const navigation = useNavigation();
   const route = useRoute();
   const params = route.params || {};
-  const userId = params.user?.id || params.userId || 1;
+  const profile = getProfile();
+  const userId = params.user?.id || params.userId || profile?.userId || null;
 
   const [, forceUpdate] = useState(0);
   useEffect(() => {
@@ -29,6 +30,11 @@ export default function VetHealthRecordsScreen() {
 
   const fetchRecords = async () => {
     try {
+      if (!userId) {
+        setRecords([]);
+        setLoading(false);
+        return;
+      }
       const baseUrl = 'https://maveshi-sehat-api.onrender.com';
       const url = `${baseUrl}/api/consultations/vet/${userId}`;
       const response = await fetch(url);

@@ -24,13 +24,18 @@ export default function VetNotificationCenterScreen() {
   const styles = React.useMemo(() => getStyles(colors, isDark), [colors, isDark]);
   const navigation = useNavigation();
   const profile = getProfile();
-  const userId = profile.userId || 1;
+  const userId = profile.userId || null;
 
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('All');
 
   const fetchLiveNotifications = useCallback(async () => {
+    if (!userId) {
+      setNotifications([]);
+      setLoading(false);
+      return;
+    }
     try {
       setLoading(true);
       const res = await fetchNotifications(userId);
@@ -49,6 +54,7 @@ export default function VetNotificationCenterScreen() {
 
   // Realtime Socket listener
   useEffect(() => {
+    if (!userId) return;
     const socket = io(SOCKET_URL);
     socket.emit('join_user', userId);
 
@@ -153,13 +159,13 @@ export default function VetNotificationCenterScreen() {
     const time = formatTime(item.created_at);
 
     return (
-      <TouchableOpacity 
+      <TouchableOpacity
         style={[styles.notificationCard, !item.is_read && styles.unreadCard]}
         onPress={() => handleToggleRead(item)}
         activeOpacity={0.8}
       >
         {!item.is_read && <View style={styles.unreadDot} />}
-        
+
         <View style={styles.cardTopRow}>
           <View style={[styles.iconAvatar, { backgroundColor: isDark ? 'rgba(16, 185, 129, 0.15)' : '#DCFCE7' }]}>
             <Feather
@@ -168,7 +174,7 @@ export default function VetNotificationCenterScreen() {
               color={colors.primary}
             />
           </View>
-          
+
           <View style={styles.cardHeader}>
             <Text style={[styles.notificationTitle, !item.is_read && styles.unreadTitle]}>
               {title}
@@ -189,12 +195,12 @@ export default function VetNotificationCenterScreen() {
         </View>
 
         <Text style={styles.notificationMessage}>{message}</Text>
-        
+
         <View style={styles.cardFooter}>
           <Text style={{ fontSize: 12, color: colors.textSecondary }}>
             {!item.is_read ? t('Tap to mark as read') : t('Read')}
           </Text>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.footerRight}
             onPress={() => handleActionPress(item)}
             activeOpacity={0.7}
@@ -211,7 +217,7 @@ export default function VetNotificationCenterScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="light-content" backgroundColor={isDark ? colors.headerBackground : colors.primary} />
-      
+
       <View style={styles.header}>
         <View style={styles.headerTopRow}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
@@ -244,8 +250,8 @@ export default function VetNotificationCenterScreen() {
       <View style={styles.tabsContainer}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabsScroll}>
           {tabs.map(tab => (
-            <TouchableOpacity 
-              key={tab} 
+            <TouchableOpacity
+              key={tab}
               style={[styles.tabBtn, activeTab === tab && styles.tabBtnActive]}
               onPress={() => setActiveTab(tab)}
               activeOpacity={0.8}

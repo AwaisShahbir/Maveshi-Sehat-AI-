@@ -15,8 +15,8 @@ export default function VetCasesScreen() {
   const route = useRoute();
   const params = route.params || {};
   const profile = getProfile();
-  const userId = params.user?.id || params.userId || profile?.userId || 1;
-  const userName = params.userName || profile?.userName || 'Dr. Rahim';
+  const userId = params.user?.id || params.userId || profile?.userId || null;
+  const userName = params.userName || profile?.userName || profile?.fullName || '';
 
   const [, forceUpdate] = useState(0);
   useEffect(() => {
@@ -32,7 +32,13 @@ export default function VetCasesScreen() {
 
   const fetchCases = async () => {
     try {
-      const activeId = params.user?.id || params.userId || getProfile()?.userId || 1;
+      const activeId = params.user?.id || params.userId || getProfile()?.userId;
+      if (!activeId) {
+        setCases([]);
+        setLoading(false);
+        setRefreshing(false);
+        return;
+      }
       const baseUrl = 'https://maveshi-sehat-api.onrender.com';
       const url = `${baseUrl}/api/consultations/vet/${activeId}`;
       const response = await fetch(url);
@@ -170,7 +176,7 @@ export default function VetCasesScreen() {
             <Feather name="chevron-left" size={28} color="#FFF" />
           </TouchableOpacity>
           <View style={styles.titleContainer}>
-            <Text style={styles.headerTitle}>Submitted Cases</Text>
+            <Text style={styles.headerTitle}>{t('Submitted Cases')}</Text>
           </View>
           <TouchableOpacity style={styles.filterBtn}>
             <Feather name="filter" size={22} color="#FFF" />
@@ -198,7 +204,7 @@ export default function VetCasesScreen() {
         <View style={styles.searchContainer}>
           <TextInput
             style={styles.searchInput}
-            placeholder="Search owner or disease..."
+            placeholder={t('Search owner or disease...')}
             placeholderTextColor="rgba(255,255,255,0.75)"
             value={searchQuery}
             onChangeText={setSearchQuery}
@@ -224,7 +230,7 @@ export default function VetCasesScreen() {
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
               <MaterialCommunityIcons name="clipboard-text-outline" size={60} color="#CCC" />
-              <Text style={styles.emptyText}>No cases found.</Text>
+              <Text style={styles.emptyText}>{t('No cases found.')}</Text>
             </View>
           }
         />

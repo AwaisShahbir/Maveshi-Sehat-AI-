@@ -26,12 +26,6 @@ import { getProfile } from '../../utils/profileStore';
 import { useTheme } from '../../utils/themeContext';
 import { getStyles } from '../../styles/ChatScreenStyles';
 
-const MOCK_SYMPTOM_IMAGES = [
-  { id: '1', title: 'Cow Close-up', url: 'https://images.unsplash.com/photo-1570042225831-d98fa7577f1e?w=600' },
-  { id: '2', title: 'Goat Symptom', url: 'https://images.unsplash.com/photo-1484557985045-edf25e08da73?w=600' },
-  { id: '3', title: 'Cow Skin/Wound', url: 'https://images.unsplash.com/photo-1546445317-29f4545e6d5a?w=600' },
-];
-
 const parseMessageData = (value) => {
   if (!value) return null;
   if (typeof value !== 'string') return value;
@@ -63,7 +57,6 @@ export default function ChatScreen() {
   const [conversationStatus, setConversationStatus] = useState('active'); 
   const [loading, setLoading] = useState(true);
   const [ourUserId, setOurUserId] = useState(null);
-  const [imageModalVisible, setImageModalVisible] = useState(false);
   const [prescriptionModalVisible, setPrescriptionModalVisible] = useState(false);
   const [selectedAttachmentUri, setSelectedAttachmentUri] = useState(null);
   const [failedImageIds, setFailedImageIds] = useState({});
@@ -289,7 +282,10 @@ export default function ChatScreen() {
               launchCamera({ mediaType: 'photo', quality: 0.8 }, (res) => {
                 if (res.assets && res.assets.length > 0) setSelectedAttachmentUri(res.assets[0].uri);
               });
-            }).catch(() => setImageModalVisible(true));
+            }).catch(err => {
+              console.error('Camera launch error:', err);
+              Alert.alert('Error', 'Unable to open camera.');
+            });
           }
         },
         {
@@ -299,7 +295,10 @@ export default function ChatScreen() {
               launchImageLibrary({ mediaType: 'photo', quality: 0.8 }, (res) => {
                 if (res.assets && res.assets.length > 0) setSelectedAttachmentUri(res.assets[0].uri);
               });
-            }).catch(() => setImageModalVisible(true));
+            }).catch(err => {
+              console.error('Gallery launch error:', err);
+              Alert.alert('Error', 'Unable to open photo gallery.');
+            });
           }
         },
         {
@@ -325,12 +324,6 @@ export default function ChatScreen() {
     );
   };
 
-  const handleSendMockImage = (imageUrl) => {
-    setImageModalVisible(false);
-    setSelectedAttachmentUri(imageUrl);
-  };
-
-  
   const handleAddMedicineRow = () => {
     setPrescriptionMedicines([...prescriptionMedicines, { name: '', dosage: '', duration: '' }]);
   };
@@ -940,40 +933,6 @@ export default function ChatScreen() {
         </KeyboardAvoidingView>
       )}
 
-      
-      <Modal
-        visible={imageModalVisible}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setImageModalVisible(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Attach Symptom Photo</Text>
-              <TouchableOpacity onPress={() => setImageModalVisible(false)}>
-                <Feather name="x" size={24} color="#333" />
-              </TouchableOpacity>
-            </View>
-            <Text style={styles.modalSubtitle}>Select a diagnostic symptom photo to send:</Text>
-
-            <View style={styles.imageSelectorGrid}>
-              {MOCK_SYMPTOM_IMAGES.map((img) => (
-                <TouchableOpacity 
-                  key={img.id} 
-                  style={styles.imageOptionCard}
-                  onPress={() => handleSendMockImage(img.url)}
-                >
-                  <Image source={{ uri: img.url }} style={styles.imageOptionThumbnail} />
-                  <Text style={styles.imageOptionLabel}>{img.title}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
-        </View>
-      </Modal>
-
-      
       <Modal
         visible={prescriptionModalVisible}
         transparent

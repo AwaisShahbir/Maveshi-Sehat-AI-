@@ -19,13 +19,13 @@ export default function VetDashboardScreen() {
   const params = route.params || {};
 
   const [profile, setProfile] = useState(getProfile());
-  const [userName, setUserName] = useState(profile.userName || params.userName || 'Vet');
-  const userId = profile.userId || params.userId || 1;
+  const [userName, setUserName] = useState(profile.userName || profile.fullName || params.userName || 'Doctor');
+  const userId = profile.userId || params.userId || null;
 
   useEffect(() => {
     const unsubscribe = subscribeProfile((updatedProfile) => {
       setProfile(updatedProfile);
-      setUserName(updatedProfile.userName || params.userName || 'Vet');
+      setUserName(updatedProfile.userName || updatedProfile.fullName || params.userName || 'Doctor');
     });
     return () => unsubscribe();
   }, []);
@@ -39,11 +39,16 @@ export default function VetDashboardScreen() {
     cases: 0,
     pending: 0,
     resolved: 0,
-    rating: 4.9
+    rating: profile.rating || '5.0'
   });
 
   const fetchCases = async () => {
     try {
+      if (!userId) {
+        setCases([]);
+        setLoading(false);
+        return;
+      }
       const baseUrl = 'https://maveshi-sehat-api.onrender.com';
       const url = `${baseUrl}/api/consultations/vet/${userId}`;
       const response = await fetch(url);

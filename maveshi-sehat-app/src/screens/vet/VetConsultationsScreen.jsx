@@ -4,7 +4,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { t } from '../../utils/translate';
-import { subscribeProfile } from '../../utils/profileStore';
+import { subscribeProfile, getProfile } from '../../utils/profileStore';
 import { useTheme } from '../../utils/themeContext';
 import { getStyles } from '../../styles/VetConsultationsScreenStyles';
 
@@ -14,8 +14,9 @@ export default function VetConsultationsScreen() {
   const navigation = useNavigation();
   const route = useRoute();
   const params = route.params || {};
-  const userId = params.user?.id || params.userId || 1;
-  const userName = params.userName || 'Dr. Rahim';
+  const profile = getProfile();
+  const userId = params.user?.id || params.userId || profile?.userId || null;
+  const userName = profile?.userName || profile?.fullName || params.userName || '';
 
   const [consultations, setConsultations] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -32,6 +33,12 @@ export default function VetConsultationsScreen() {
 
   const fetchConsultations = async () => {
     try {
+      if (!userId) {
+        setConsultations([]);
+        setLoading(false);
+        setRefreshing(false);
+        return;
+      }
       const baseUrl = 'https://maveshi-sehat-api.onrender.com';
       const url = `${baseUrl}/api/consultations/vet/${userId}`;
       const response = await fetch(url);

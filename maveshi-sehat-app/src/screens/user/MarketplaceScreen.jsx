@@ -29,8 +29,8 @@ export default function MarketplaceScreen() {
   const params = route.params || {};
 
   const profile = getProfile();
-  const userName = profile.userName || params.userName || 'Muhammad Ahmed';
-  const userId = params.userId || null;
+  const userName = profile.userName || profile.fullName || params.userName || '';
+  const userId = params.userId || profile.userId || null;
 
   const [medicines, setMedicines] = useState([]);
   const [loading, setLoading] = useState(true);

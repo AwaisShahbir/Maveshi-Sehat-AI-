@@ -35,11 +35,11 @@ export default function CartScreen() {
   const [paymentMethod, setPaymentMethod] = useState('COD'); // 'COD' or 'Online'
   const [loading, setLoading] = useState(false);
 
-  // Delivery Address State (clean, without hardcoded mock dummy data)
-  const [buyerName, setBuyerName] = useState(profile.userName || profile.fullName || 'Awais Shabbir');
-  const [phone, setPhone] = useState(profile.phone || '03240650819');
+  // Delivery Address State (clean, dynamic user profile)
+  const [buyerName, setBuyerName] = useState(profile.userName || profile.fullName || '');
+  const [phone, setPhone] = useState(profile.phone || '');
   const [streetAddress, setStreetAddress] = useState(profile.deliveryAddress || '');
-  const [district, setDistrict] = useState(profile.location || profile.district || 'Lahore');
+  const [district, setDistrict] = useState(profile.location || profile.district || '');
 
   // Address Edit Modal State
   const [isAddressModalVisible, setIsAddressModalVisible] = useState(false);
@@ -51,7 +51,7 @@ export default function CartScreen() {
   // Online Payment (JazzCash / EasyPaisa) Sheet & Receipt State
   const [isPaymentModalVisible, setIsPaymentModalVisible] = useState(false);
   const [selectedWallet, setSelectedWallet] = useState('JazzCash'); // 'JazzCash' or 'EasyPaisa'
-  const [walletPhone, setWalletPhone] = useState(profile.phone || '03240650819');
+  const [walletPhone, setWalletPhone] = useState(profile.phone || '');
   const [walletMpin, setWalletMpin] = useState('');
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
 
@@ -155,7 +155,7 @@ export default function CartScreen() {
 
     if (paymentMethod === 'Online') {
       // Open Pakistani Mobile Wallet payment sheet
-      setWalletPhone(phone || '03240650819');
+      setWalletPhone(phone || '');
       setWalletMpin('');
       setIsPaymentModalVisible(true);
     } else {
@@ -171,7 +171,7 @@ export default function CartScreen() {
   // Process Online Mobile Wallet Authorization (JazzCash / EasyPaisa)
   const handleAuthorizeOnlinePayment = async () => {
     if (!walletPhone.trim() || walletPhone.length < 10) {
-      Alert.alert(t('Invalid Phone'), t('Please enter a valid Pakistani mobile wallet phone number (e.g. 03240650819)'));
+      Alert.alert(t('Invalid Phone'), t('Please enter a valid Pakistani mobile wallet phone number (e.g. 03001234567)'));
       return;
     }
     if (!walletMpin || walletMpin.length < 4) {
@@ -596,7 +596,7 @@ export default function CartScreen() {
               style={styles.modalInput}
               value={editName}
               onChangeText={setEditName}
-              placeholder="e.g. Awais Shabbir"
+              placeholder={t('Enter full name')}
               placeholderTextColor={colors.textMuted}
             />
 
@@ -605,7 +605,7 @@ export default function CartScreen() {
               style={styles.modalInput}
               value={editPhone}
               onChangeText={setEditPhone}
-              placeholder="e.g. 03240650819"
+              placeholder="03XXXXXXXXX"
               keyboardType="phone-pad"
               placeholderTextColor={colors.textMuted}
             />

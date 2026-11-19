@@ -71,10 +71,9 @@ export default function HeatAlertScreen() {
   const navigation = useNavigation();
   const route = useRoute();
   const params = route.params || {};
-  const userId = params.userId || 'user_123';
-  const userName = params.userName || 'Muhammad Ahmed';
-
   const [profile, setProfile] = useState(getProfile());
+  const userId = params.userId || profile.userId || null;
+  const userName = profile.userName || profile.fullName || params.userName || '';
   const [, setLangTick] = useState(0);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);

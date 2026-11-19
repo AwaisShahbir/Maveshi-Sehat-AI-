@@ -20,8 +20,8 @@ export default function VeterinariansListScreen() {
   const params = route.params || {};
 
   const [profile, setProfile] = useState(getProfile());
-  const userName = profile.userName || params.userName || 'Awais shabbir ';
-  const userId = profile.userId || params.userId || 2;
+  const userName = profile.userName || profile.fullName || params.userName || '';
+  const userId = profile.userId || profile.id || params.userId || null;
 
   const [vets, setVets] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
