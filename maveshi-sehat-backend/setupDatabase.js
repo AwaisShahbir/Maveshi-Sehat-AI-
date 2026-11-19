@@ -76,6 +76,8 @@ CREATE TABLE IF NOT EXISTS pharmacies (
   city VARCHAR(100),
   business_hours VARCHAR(100),
   description TEXT,
+  license_document_url VARCHAR(500),
+  cnic_document_url VARCHAR(500),
   status VARCHAR(20) DEFAULT 'pending', -- 'pending', 'approved', 'rejected'
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

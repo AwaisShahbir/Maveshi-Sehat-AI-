@@ -48,6 +48,8 @@ pool.connect((err, client, release) => {
       ALTER TABLE pharmacies ADD COLUMN IF NOT EXISTS city VARCHAR(100);
       ALTER TABLE pharmacies ADD COLUMN IF NOT EXISTS business_hours VARCHAR(100);
       ALTER TABLE pharmacies ADD COLUMN IF NOT EXISTS description TEXT;
+      ALTER TABLE pharmacies ADD COLUMN IF NOT EXISTS license_document_url VARCHAR(500);
+      ALTER TABLE pharmacies ADD COLUMN IF NOT EXISTS cnic_document_url VARCHAR(500);
 
       ALTER TABLE medicines ADD COLUMN IF NOT EXISTS name_urdu VARCHAR(255);
       ALTER TABLE medicines ADD COLUMN IF NOT EXISTS manufacturer VARCHAR(255);

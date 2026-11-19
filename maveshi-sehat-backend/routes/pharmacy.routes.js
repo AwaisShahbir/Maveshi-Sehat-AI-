@@ -9,7 +9,8 @@ module.exports = (pool) => {
       const {
         name, nameUrdu, licenseNumber, licenseExpiry, ownerName,
         cnic, phone, whatsapp, email, password, address,
-        province, city, businessHours, description
+        province, city, businessHours, description,
+        licenseDocumentUrl, cnicDocumentUrl
       } = req.body;
 
       const exists = await pool.query(
@@ -27,23 +28,28 @@ module.exports = (pool) => {
         `INSERT INTO pharmacies (
           name, name_urdu, license_number, license_expiry, owner_name,
           cnic, phone, whatsapp, email, password, address,
-          province, city, business_hours, description, status
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, 'pending') RETURNING id, name, email`,
+          province, city, business_hours, description,
+          license_document_url, cnic_document_url, status
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, 'pending') RETURNING id, name, email`,
         [
           name, nameUrdu || null, licenseNumber, licenseExpiry || null, ownerName,
           cnic || null, phone, whatsapp || null, email, hashedPassword, address || null,
-          province || null, city || null, businessHours || null, description || null
+          province || null, city || null, businessHours || null, description || null,
+          licenseDocumentUrl || null, cnicDocumentUrl || null
         ]
       );
 
       await pool.query(
         `INSERT INTO admin_notifications (type, message_en, message_ur) 
          VALUES ('pharmacy_approval', $1, $2)`,
-        [`New pharmacy application submitted - ${name}`, `${name} نے رجسٹریشن کی درخواست جمع کرائی — ${city || ''}`]
+        [
+          `New pharmacy application awaiting CNIC & License verification - ${name} (${ownerName})`,
+          `${name} نے فارمیسی رجسٹریشن کے لیے لائسنس اور شناختی کارڈ جمع کرایا ہے — جانچ درکار ہے`
+        ]
       );
 
       res.status(201).json({
-        message: 'Registration successful! Pending admin approval.',
+        message: 'Registration successful! Your application and verification documents are pending admin review.',
         pharmacy: result.rows[0]
       });
     } catch (err) {
@@ -69,7 +75,9 @@ module.exports = (pool) => {
       const pharmacy = result.rows[0];
 
       if (pharmacy.status === 'pending') {
-        return res.status(403).json({ error: 'Your pharmacy portal account is pending admin approval.' });
+        return res.status(403).json({
+          error: 'Your pharmacy portal account is pending admin approval. The administrator is currently reviewing your DRAP License and CNIC documents.'
+        });
       }
       if (pharmacy.status === 'rejected') {
         return res.status(403).json({ error: 'Your pharmacy registration request was rejected by admin.' });

@@ -1,9 +1,10 @@
-import { API_BASE_URL } from '../config';
+import { API_BASE_URL, resolveImageUrl } from '../config';
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { 
   Store, Check, X, ExternalLink, ShieldAlert, ShieldCheck, Clock, 
-  Pill, TrendingUp, AlertCircle, Search, Filter, User, Phone, Mail, MapPin, Calendar, Award 
+  Pill, TrendingUp, AlertCircle, Search, Filter, User, Phone, Mail, MapPin, Calendar, Award,
+  FileText, Download, CheckCircle2, UserCheck
 } from 'lucide-react';
 import '../styles/PharmacyApproval.css';
 
@@ -731,6 +732,139 @@ export default function PharmacyApproval() {
                   {selectedPharmacy.created_at ? new Date(selectedPharmacy.created_at).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' }) : 'Recent'}
                 </span>
                 <span style={{ fontSize: '11px', color: '#64748b', fontWeight: '600' }}>Registered On</span>
+              </div>
+            </div>
+
+            {/* Official Verification Documents & CNIC Cross-Check */}
+            <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '16px', marginBottom: '20px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px', borderBottom: '1px solid #e2e8f0', paddingBottom: '10px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <ShieldCheck size={18} color="#135431" />
+                  <strong style={{ fontSize: '14px', color: '#0f172a' }}>Official Regulatory Documents & CNIC Cross-Check</strong>
+                </div>
+                <span style={{ fontSize: '11px', background: '#e0f2fe', color: '#0284c7', fontWeight: '700', padding: '2px 8px', borderRadius: '6px' }}>
+                  Regulatory Review
+                </span>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '14px' }}>
+                {/* Document 1: Official DRAP Pharmacy License */}
+                <div style={{ background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: '10px', padding: '12px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
+                      <Award size={16} color="#135431" />
+                      <strong style={{ fontSize: '13px', color: '#135431' }}>DRAP / Drug Sale License</strong>
+                    </div>
+                    <p style={{ margin: '0 0 6px 0', fontSize: '11px', color: '#64748b' }}>
+                      License No: <strong style={{ color: '#0f172a' }} className="font-mono">{selectedPharmacy.license_number}</strong>
+                    </p>
+                    <p style={{ margin: 0, fontSize: '11px', color: '#64748b' }}>
+                      Expiry: <strong>{selectedPharmacy.license_expiry || 'Not specified'}</strong>
+                    </p>
+                  </div>
+
+                  <div style={{ marginTop: '12px' }}>
+                    {selectedPharmacy.license_document_url ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const url = resolveImageUrl(selectedPharmacy.license_document_url);
+                          window.open(url, '_blank');
+                        }}
+                        style={{
+                          width: '100%',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '6px',
+                          background: '#eff7f2',
+                          color: '#135431',
+                          border: '1px solid #bbf7d0',
+                          padding: '7px 10px',
+                          borderRadius: '8px',
+                          fontSize: '12px',
+                          fontWeight: '700',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        <Download size={13} />
+                        <span>View / Download License ↗</span>
+                      </button>
+                    ) : (
+                      <span style={{ fontSize: '11px', color: '#94a3b8', fontStyle: 'italic', display: 'block', textAlign: 'center', padding: '6px' }}>
+                        No license document uploaded
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Document 2: Proprietor Owner CNIC Document */}
+                <div style={{ background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: '10px', padding: '12px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
+                      <UserCheck size={16} color="#007aff" />
+                      <strong style={{ fontSize: '13px', color: '#007aff' }}>Owner National CNIC</strong>
+                    </div>
+                    <p style={{ margin: '0 0 6px 0', fontSize: '11px', color: '#64748b' }}>
+                      Proprietor: <strong style={{ color: '#0f172a' }}>{selectedPharmacy.owner_name}</strong>
+                    </p>
+                    <p style={{ margin: 0, fontSize: '11px', color: '#64748b' }}>
+                      CNIC No: <strong style={{ color: '#0f172a' }} className="font-mono">{selectedPharmacy.cnic || 'N/A'}</strong>
+                    </p>
+                  </div>
+
+                  <div style={{ marginTop: '12px' }}>
+                    {selectedPharmacy.cnic_document_url ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const url = resolveImageUrl(selectedPharmacy.cnic_document_url);
+                          window.open(url, '_blank');
+                        }}
+                        style={{
+                          width: '100%',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '6px',
+                          background: '#eff6ff',
+                          color: '#1d4ed8',
+                          border: '1px solid #bfdbfe',
+                          padding: '7px 10px',
+                          borderRadius: '8px',
+                          fontSize: '12px',
+                          fontWeight: '700',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        <Download size={13} />
+                        <span>View / Download CNIC ↗</span>
+                      </button>
+                    ) : (
+                      <span style={{ fontSize: '11px', color: '#94a3b8', fontStyle: 'italic', display: 'block', textAlign: 'center', padding: '6px' }}>
+                        No CNIC document uploaded
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Match Verification Helper */}
+              <div style={{ background: '#ffffff', border: '1px dashed #cbd5e1', borderRadius: '8px', padding: '10px 14px' }}>
+                <span style={{ display: 'block', fontSize: '11px', fontWeight: '700', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px' }}>
+                  Verification Cross-Check Checklist:
+                </span>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', fontSize: '11px' }}>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#f1f5f9', color: '#334155', padding: '3px 8px', borderRadius: '4px' }}>
+                    <CheckCircle2 size={12} color="#16a34a" /> Owner: <strong>{selectedPharmacy.owner_name}</strong>
+                  </span>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#f1f5f9', color: '#334155', padding: '3px 8px', borderRadius: '4px' }}>
+                    <CheckCircle2 size={12} color="#16a34a" /> CNIC: <strong>{selectedPharmacy.cnic || 'N/A'}</strong>
+                  </span>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#f1f5f9', color: '#334155', padding: '3px 8px', borderRadius: '4px' }}>
+                    <CheckCircle2 size={12} color="#16a34a" /> License: <strong>{selectedPharmacy.license_number}</strong>
+                  </span>
+                </div>
               </div>
             </div>
 

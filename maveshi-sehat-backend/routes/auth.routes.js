@@ -44,23 +44,24 @@ function normalizePhoneNumber(phone) {
 }
 
 module.exports = (pool) => {
-  // Upload license or document
-  router.post('/upload', upload.single('license'), async (req, res) => {
+  // Upload license, cnic, or document
+  router.post('/upload', upload.any(), async (req, res) => {
     try {
-      if (!req.file) {
+      const file = (req.files && req.files.length > 0) ? req.files[0] : req.file;
+      if (!file) {
         return res.status(400).json({ error: 'Please select a file to upload.' });
       }
       const host = req.get('host');
       const protocol = (host && host.includes('onrender.com')) || req.protocol === 'https' || req.headers['x-forwarded-proto'] === 'https' ? 'https' : 'http';
       const baseUrl = `${protocol}://${host}`;
-      const fileUrl = `${baseUrl}/uploads/${req.file.filename}`;
+      const fileUrl = `${baseUrl}/uploads/${file.filename}`;
 
-      await persistUploadedFile(pool, req.file.filename, req.file.path, req.file.mimetype);
+      await persistUploadedFile(pool, file.filename, file.path, file.mimetype);
 
       res.status(200).json({
         message: 'File uploaded successfully!',
         fileUrl: fileUrl,
-        filename: req.file.filename
+        filename: file.filename
       });
     } catch (err) {
       res.status(500).json({ error: err.message || 'File upload failed.' });

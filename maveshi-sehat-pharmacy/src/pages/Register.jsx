@@ -1,6 +1,21 @@
 import { API_BASE_URL } from '../config';
-import React, { useState } from 'react';
-import { ShieldCheck, Info, MapPin, Award, Store, ArrowLeft, Send } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { 
+  ShieldCheck, 
+  Info, 
+  MapPin, 
+  Award, 
+  Store, 
+  ArrowLeft, 
+  Send,
+  FileText,
+  UploadCloud,
+  CheckCircle2,
+  Trash2,
+  AlertCircle,
+  FileCheck,
+  Check
+} from 'lucide-react';
 import '../styles/Register.css';
 
 export default function Register({ onViewChange }) {
@@ -22,7 +37,17 @@ export default function Register({ onViewChange }) {
     licenseExpiry: '',
     businessHours: '',
     description: '',
+    licenseDocumentUrl: '',
+    cnicDocumentUrl: ''
   });
+
+  const [uploadingLicense, setUploadingLicense] = useState(false);
+  const [uploadingCnic, setUploadingCnic] = useState(false);
+  const [licenseFileName, setLicenseFileName] = useState('');
+  const [cnicFileName, setCnicFileName] = useState('');
+
+  const licenseInputRef = useRef(null);
+  const cnicInputRef = useRef(null);
 
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -32,6 +57,51 @@ export default function Register({ onViewChange }) {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const handleFileUpload = async (file, type) => {
+    if (!file) return;
+
+    if (file.size > 10 * 1024 * 1024) {
+      setError('File size exceeds 10MB limit. Please upload a smaller document.');
+      return;
+    }
+
+    const uploadData = new FormData();
+    uploadData.append(type, file);
+
+    if (type === 'license') {
+      setUploadingLicense(true);
+      setLicenseFileName(file.name);
+    } else {
+      setUploadingCnic(true);
+      setCnicFileName(file.name);
+    }
+    setError('');
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/upload`, {
+        method: 'POST',
+        body: uploadData
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to upload document.');
+      }
+
+      if (type === 'license') {
+        setFormData(prev => ({ ...prev, licenseDocumentUrl: data.fileUrl }));
+      } else {
+        setFormData(prev => ({ ...prev, cnicDocumentUrl: data.fileUrl }));
+      }
+    } catch (err) {
+      setError(`Failed to upload ${type === 'license' ? 'License' : 'CNIC'} document: ${err.message}`);
+      if (type === 'license') setLicenseFileName('');
+      else setCnicFileName('');
+    } finally {
+      if (type === 'license') setUploadingLicense(false);
+      else setUploadingCnic(false);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -39,6 +109,16 @@ export default function Register({ onViewChange }) {
     
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match!');
+      return;
+    }
+
+    if (!formData.licenseDocumentUrl) {
+      setError('Please upload your official DRAP / Pharmacy Drug License document before submitting.');
+      return;
+    }
+
+    if (!formData.cnicDocumentUrl) {
+      setError('Please upload your Proprietor CNIC document (Front / Back) so the administrator can verify your identity.');
       return;
     }
 
@@ -315,6 +395,134 @@ export default function Register({ onViewChange }) {
                   onChange={handleChange}
                   className="form-control bg-white border border-slate-200 text-slate-900 rounded-xl focus:border-[#3da860] focus:ring-2 focus:ring-[#3da860]/20 w-full"
                 />
+              </div>
+            </div>
+          </section>
+
+          {/* Official Document Verification Section */}
+          <section className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-6 md:p-8 shadow-sm">
+            <div className="flex items-center gap-3 mb-3 border-b border-slate-100 pb-3">
+              <FileCheck size={20} className="text-[#3da860]" />
+              <div className="flex-1">
+                <h2 className="text-sm font-bold text-slate-900">Official Verification Documents</h2>
+                <p className="text-xs text-slate-500 m-0">Uploaded documents are cross-checked by the administrator before granting portal access.</p>
+              </div>
+            </div>
+
+            <div className="bg-[#eff7f2] border border-[#bbf7d0] rounded-xl p-3.5 mb-6 flex items-start gap-3">
+              <AlertCircle size={18} className="text-[#135431] shrink-0 mt-0.5" />
+              <p className="text-xs text-[#135431] leading-relaxed m-0 font-medium">
+                <strong>DRAP & Health Department Regulatory Policy:</strong> The administrator will inspect your official <strong>Drug Sale License</strong> against your <strong>CNIC</strong>. Please ensure the Proprietor Name and CNIC on both documents match your entered details.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              {/* DRAP License Document Upload */}
+              <div className="flex flex-col">
+                <label className="form-label flex items-center justify-between">
+                  <span>Pharmacy / DRAP Drug License <span className="text-red-500">*</span></span>
+                  <span className="text-[11px] text-slate-400 font-normal">PDF, JPG, PNG (Max 10MB)</span>
+                </label>
+
+                <input
+                  type="file"
+                  ref={licenseInputRef}
+                  accept=".pdf,image/jpeg,image/png,image/jpg"
+                  style={{ display: 'none' }}
+                  onChange={(e) => {
+                    if (e.target.files && e.target.files[0]) {
+                      handleFileUpload(e.target.files[0], 'license');
+                    }
+                  }}
+                />
+
+                <div 
+                  onClick={() => !uploadingLicense && licenseInputRef.current?.click()}
+                  className={`border-2 border-dashed rounded-xl p-4 sm:p-5 text-center cursor-pointer transition-all duration-200 flex flex-col items-center justify-center min-h-[140px] ${
+                    formData.licenseDocumentUrl 
+                      ? 'border-[#3da860] bg-[#eff7f2]' 
+                      : 'border-slate-300 hover:border-[#3da860] hover:bg-slate-50'
+                  }`}
+                >
+                  {uploadingLicense ? (
+                    <div className="flex flex-col items-center gap-2">
+                      <div className="w-8 h-8 border-3 border-[#3da860] border-t-transparent rounded-full animate-spin"></div>
+                      <span className="text-xs font-semibold text-[#135431]">Uploading license document...</span>
+                    </div>
+                  ) : formData.licenseDocumentUrl ? (
+                    <div className="flex flex-col items-center gap-2">
+                      <div className="w-10 h-10 rounded-full bg-[#3da860] text-white flex items-center justify-center">
+                        <Check size={20} />
+                      </div>
+                      <span className="text-xs font-bold text-[#135431] max-w-[220px] truncate">
+                        {licenseFileName || 'DRAP_License_Verified.pdf'}
+                      </span>
+                      <span className="text-[11px] text-[#3da860] font-semibold">Document Attached (Click to change)</span>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center gap-2">
+                      <div className="w-10 h-10 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center">
+                        <UploadCloud size={20} />
+                      </div>
+                      <span className="text-xs font-bold text-slate-700">Click to upload Pharmacy License</span>
+                      <span className="text-[11px] text-slate-400">Form 9, DRAP Certificate, or Govt License</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Owner CNIC Document Upload */}
+              <div className="flex flex-col">
+                <label className="form-label flex items-center justify-between">
+                  <span>Proprietor CNIC Document <span className="text-red-500">*</span></span>
+                  <span className="text-[11px] text-slate-400 font-normal">PDF, JPG, PNG (Max 10MB)</span>
+                </label>
+
+                <input
+                  type="file"
+                  ref={cnicInputRef}
+                  accept=".pdf,image/jpeg,image/png,image/jpg"
+                  style={{ display: 'none' }}
+                  onChange={(e) => {
+                    if (e.target.files && e.target.files[0]) {
+                      handleFileUpload(e.target.files[0], 'cnic');
+                    }
+                  }}
+                />
+
+                <div 
+                  onClick={() => !uploadingCnic && cnicInputRef.current?.click()}
+                  className={`border-2 border-dashed rounded-xl p-4 sm:p-5 text-center cursor-pointer transition-all duration-200 flex flex-col items-center justify-center min-h-[140px] ${
+                    formData.cnicDocumentUrl 
+                      ? 'border-[#3da860] bg-[#eff7f2]' 
+                      : 'border-slate-300 hover:border-[#3da860] hover:bg-slate-50'
+                  }`}
+                >
+                  {uploadingCnic ? (
+                    <div className="flex flex-col items-center gap-2">
+                      <div className="w-8 h-8 border-3 border-[#3da860] border-t-transparent rounded-full animate-spin"></div>
+                      <span className="text-xs font-semibold text-[#135431]">Uploading CNIC document...</span>
+                    </div>
+                  ) : formData.cnicDocumentUrl ? (
+                    <div className="flex flex-col items-center gap-2">
+                      <div className="w-10 h-10 rounded-full bg-[#3da860] text-white flex items-center justify-center">
+                        <Check size={20} />
+                      </div>
+                      <span className="text-xs font-bold text-[#135431] max-w-[220px] truncate">
+                        {cnicFileName || 'Owner_CNIC_Verified.pdf'}
+                      </span>
+                      <span className="text-[11px] text-[#3da860] font-semibold">Document Attached (Click to change)</span>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center gap-2">
+                      <div className="w-10 h-10 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center">
+                        <FileText size={20} />
+                      </div>
+                      <span className="text-xs font-bold text-slate-700">Click to upload Owner's CNIC</span>
+                      <span className="text-[11px] text-slate-400">Front & Back scan or combined PDF</span>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </section>
