@@ -73,7 +73,8 @@ module.exports = (pool) => {
     try {
       const {
         fullName, phoneNumber, email, district, role, password,
-        pvmcNumber, specialization, experienceYears, licenseDocumentUrl
+        pvmcNumber, specialization, experienceYears, licenseDocumentUrl,
+        cnic, cnicDocumentUrl
       } = req.body;
 
       if (!fullName || !phoneNumber || !email || !password) {
@@ -147,11 +148,13 @@ module.exports = (pool) => {
       const newUser = await pool.query(
         `INSERT INTO users (
           full_name, phone_number, email, district, role, password, status, 
-          pvmc_number, specialization, experience_years, license_document_url
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING id, full_name, email, role`,
+          pvmc_number, specialization, experience_years, license_document_url,
+          cnic, cnic_document_url
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) RETURNING id, full_name, email, role`,
         [
           cleanName, cleanPhone, cleanEmail, district || 'Islamabad', role, hashedPassword, status,
-          pvmcNumber || null, specialization || null, experienceYears ? parseInt(experienceYears) : null, licenseDocumentUrl || null
+          pvmcNumber || null, specialization || null, experienceYears ? parseInt(experienceYears) : null,
+          licenseDocumentUrl || null, cnic || null, cnicDocumentUrl || null
         ]
       );
 
@@ -159,7 +162,7 @@ module.exports = (pool) => {
         await pool.query(
           `INSERT INTO admin_notifications (type, message_en, message_ur) 
            VALUES ('vet_application', $1, $2)`,
-          [`New vet application submitted - ${cleanName}`, `${cleanName} نے تصدیق جمع کرائی — ${district || 'Islamabad'}`]
+          [`New vet application submitted - Dr. ${cleanName} (PVMC & CNIC pending verification)`, `ڈاکٹر ${cleanName} نے ویٹرنری لائسنس اور شناختی کارڈ جمع کرایا — جانچ درکار ہے`]
         );
 
         try {
@@ -329,7 +332,9 @@ module.exports = (pool) => {
         });
       }
       if (user.status === 'pending') {
-        return res.status(403).json({ error: 'Your vet account is pending admin approval.' });
+        return res.status(403).json({ 
+          error: 'Your veterinarian account is pending admin approval. The administrator is currently reviewing your PVMC License and CNIC documents.' 
+        });
       }
       if (user.status === 'rejected') {
         return res.status(403).json({ error: 'Your vet registration request was rejected by admin.' });

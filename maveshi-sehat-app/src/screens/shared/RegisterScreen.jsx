@@ -49,22 +49,27 @@ export default function RegisterScreen() {
   const [errorMsg, setErrorMsg] = useState('');
 
   
+  // Vet specific fields
   const [pvmcNumber, setPvmcNumber] = useState('');
+  const [vetCnic, setVetCnic] = useState('');
   const [specialization, setSpecialization] = useState('');
   const [experienceYears, setExperienceYears] = useState('');
   const [licenseDocumentUrl, setLicenseDocumentUrl] = useState('');
   const [licenseFileName, setLicenseFileName] = useState('');
-  const [uploading, setUploading] = useState(false);
+  const [cnicDocumentUrl, setCnicDocumentUrl] = useState('');
+  const [cnicFileName, setCnicFileName] = useState('');
+  const [uploadingTarget, setUploadingTarget] = useState(null); // 'license' | 'cnic' | null
+  const [activeUploadTarget, setActiveUploadTarget] = useState('license');
   const [isUploadModalVisible, setUploadModalVisible] = useState(false);
 
-  const handleFileUploadWeb = async (e) => {
+  const handleFileUploadWeb = async (e, target = 'license') => {
     const file = e.target.files[0];
     if (!file) return;
-    setUploading(true);
+    setUploadingTarget(target);
     setErrorMsg('');
     try {
       const formData = new FormData();
-      formData.append('license', file);
+      formData.append(target, file);
       
       const response = await fetch(`${baseUrl}/upload`, {
         method: 'POST',
@@ -73,12 +78,17 @@ export default function RegisterScreen() {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || 'Upload failed');
       
-      setLicenseDocumentUrl(data.fileUrl);
-      setLicenseFileName(file.name);
+      if (target === 'cnic') {
+        setCnicDocumentUrl(data.fileUrl);
+        setCnicFileName(file.name);
+      } else {
+        setLicenseDocumentUrl(data.fileUrl);
+        setLicenseFileName(file.name);
+      }
     } catch (err) {
       setErrorMsg('File upload error: ' + err.message);
     } finally {
-      setUploading(false);
+      setUploadingTarget(null);
     }
   };
 
@@ -87,6 +97,7 @@ export default function RegisterScreen() {
   const handleUploadMobile = (choice) => {
     setUploadModalVisible(false);
     setErrorMsg('');
+    const target = activeUploadTarget || 'license';
 
     const pickerFn = choice === 'camera' ? launchCamera : launchImageLibrary;
     const options = {
@@ -102,12 +113,12 @@ export default function RegisterScreen() {
       }
       if (response.assets && response.assets.length > 0) {
         const asset = response.assets[0];
-        setUploading(true);
+        setUploadingTarget(target);
         try {
           const formData = new FormData();
-          formData.append('license', {
+          formData.append(target, {
             uri: asset.uri,
-            name: asset.fileName || 'license_document.jpg',
+            name: asset.fileName || `${target}_document.jpg`,
             type: asset.type || 'image/jpeg'
           });
 
@@ -121,12 +132,17 @@ export default function RegisterScreen() {
           const data = await uploadRes.json();
           if (!uploadRes.ok) throw new Error(data.error || 'Upload failed');
 
-          setLicenseDocumentUrl(data.fileUrl);
-          setLicenseFileName(asset.fileName || 'license_document.jpg');
+          if (target === 'cnic') {
+            setCnicDocumentUrl(data.fileUrl);
+            setCnicFileName(asset.fileName || 'cnic_document.jpg');
+          } else {
+            setLicenseDocumentUrl(data.fileUrl);
+            setLicenseFileName(asset.fileName || 'license_document.jpg');
+          }
         } catch (err) {
           setErrorMsg('File upload error: ' + err.message);
         } finally {
-          setUploading(false);
+          setUploadingTarget(null);
         }
       }
     });
@@ -162,6 +178,13 @@ export default function RegisterScreen() {
       if (!pvmcRegex.test(pvmcNumber)) {
         return setErrorMsg('License number must start with PVMC- followed by at least 4 digits (e.g. PVMC-1234)');
       }
+      if (!vetCnic.trim()) {
+        return setErrorMsg('Please enter your 13-digit National CNIC Number');
+      }
+      const cleanCnic = vetCnic.replace(/\D/g, '');
+      if (cleanCnic.length < 13) {
+        return setErrorMsg('CNIC must be at least 13 digits (e.g. 35201-1234567-1)');
+      }
       if (!specialization.trim()) {
         return setErrorMsg('Please enter your Specialization');
       }
@@ -169,7 +192,10 @@ export default function RegisterScreen() {
         return setErrorMsg('Please enter a valid number of years of experience');
       }
       if (!licenseDocumentUrl.trim()) {
-        return setErrorMsg('Please upload your License Document');
+        return setErrorMsg('Please upload your official PVMC License Document');
+      }
+      if (!cnicDocumentUrl.trim()) {
+        return setErrorMsg('Please upload your National CNIC Document');
       }
     }
 
@@ -186,9 +212,11 @@ export default function RegisterScreen() {
           role, 
           password,
           pvmcNumber: role === 'vet' ? pvmcNumber : null,
+          cnic: role === 'vet' ? vetCnic : null,
           specialization: role === 'vet' ? specialization : null,
           experienceYears: role === 'vet' ? parseInt(experienceYears) : null,
-          licenseDocumentUrl: role === 'vet' ? licenseDocumentUrl : null
+          licenseDocumentUrl: role === 'vet' ? licenseDocumentUrl : null,
+          cnicDocumentUrl: role === 'vet' ? cnicDocumentUrl : null
         })
       });
       
@@ -345,10 +373,25 @@ export default function RegisterScreen() {
                   <Feather name="file-text" size={20} color="#06B6D4" style={styles.inputIcon} />
                   <TextInput 
                     style={styles.input}
-                    placeholder="Enter PVMC License Number"
+                    placeholder="e.g. PVMC-1234"
                     placeholderTextColor={colors.inputPlaceholder}
                     value={pvmcNumber}
                     onChangeText={setPvmcNumber}
+                  />
+                </View>
+
+                {/* Doctor CNIC Number */}
+                <Text style={[styles.label, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Doctor National CNIC')}</Text>
+                <View style={styles.inputContainer}>
+                  <Feather name="credit-card" size={20} color="#10B981" style={styles.inputIcon} />
+                  <TextInput 
+                    style={styles.input}
+                    placeholder="e.g. 35201-1234567-1 (13 digits)"
+                    placeholderTextColor={colors.inputPlaceholder}
+                    keyboardType="numeric"
+                    maxLength={15}
+                    value={vetCnic}
+                    onChangeText={setVetCnic}
                   />
                 </View>
 
@@ -379,23 +422,46 @@ export default function RegisterScreen() {
                   />
                 </View>
 
-                {/* Document Upload */}
-                <Text style={[styles.label, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Verification Document')}</Text>
+                {/* Verification Notice */}
+                <View style={{ backgroundColor: isDark ? 'rgba(59, 130, 246, 0.12)' : '#EFF6FF', borderWidth: 1, borderColor: '#BFDBFE', borderRadius: 12, padding: 12, marginBottom: 16 }}>
+                  <Text style={{ fontSize: 12, color: '#1E40AF', lineHeight: 18, fontWeight: '500' }}>
+                    <Text style={{ fontWeight: 'bold' }}>Official Verification Notice: </Text>
+                    The administrator will inspect your official PVMC License against your CNIC to ensure details match before granting full platform consultation access.
+                  </Text>
+                </View>
+
+                {/* Document 1: PVMC License Upload */}
+                <Text style={[styles.label, isUrdu && { fontFamily: fonts.urduRegular }]}>
+                  {t('PVMC License Document')} * (PDF, JPG, PNG)
+                </Text>
                 <TouchableOpacity 
-                  style={[styles.inputContainer, { justifyContent: 'center', backgroundColor: isDark ? 'rgba(16, 185, 129, 0.12)' : '#ECFDF5', borderColor: '#10B981', borderStyle: 'dashed' }]}
+                  style={[styles.inputContainer, { 
+                    justifyContent: 'center', 
+                    backgroundColor: licenseDocumentUrl ? (isDark ? 'rgba(16, 185, 129, 0.18)' : '#ECFDF5') : (isDark ? 'rgba(16, 185, 129, 0.08)' : '#F0FDF4'), 
+                    borderColor: licenseDocumentUrl ? '#10B981' : '#86EFAC', 
+                    borderStyle: 'dashed' 
+                  }]}
                   activeOpacity={0.8}
                   onPress={() => {
+                    setActiveUploadTarget('license');
                     if (Platform.OS === 'web') {
                       document.getElementById('web-license-file-input').click();
                     } else {
                       setUploadModalVisible(true);
                     }
                   }}
-                  disabled={uploading}
+                  disabled={uploadingTarget === 'license'}
                 >
-                  <Feather name={uploading ? "loader" : "upload-cloud"} size={22} color="#10B981" style={{ marginRight: 8 }} />
-                  <Text style={{ color: '#10B981', fontWeight: 'bold', fontSize: 14 }}>
-                    {uploading ? t('Uploading...') : (licenseFileName ? `Selected: ${licenseFileName}` : t('Upload Document'))}
+                  <Feather 
+                    name={uploadingTarget === 'license' ? "loader" : (licenseDocumentUrl ? "check-circle" : "upload-cloud")} 
+                    size={22} 
+                    color={licenseDocumentUrl ? "#059669" : "#10B981"} 
+                    style={{ marginRight: 8 }} 
+                  />
+                  <Text style={{ color: licenseDocumentUrl ? '#059669' : '#10B981', fontWeight: 'bold', fontSize: 13 }}>
+                    {uploadingTarget === 'license' 
+                      ? t('Uploading License...') 
+                      : (licenseFileName ? `✓ Attached: ${licenseFileName}` : t('Upload PVMC License Document'))}
                   </Text>
                   {Platform.OS === 'web' && (
                     <input 
@@ -403,7 +469,51 @@ export default function RegisterScreen() {
                       type="file"
                       accept="image/*,application/pdf"
                       style={{ display: 'none' }}
-                      onChange={handleFileUploadWeb}
+                      onChange={(e) => handleFileUploadWeb(e, 'license')}
+                    />
+                  )}
+                </TouchableOpacity>
+
+                {/* Document 2: Doctor CNIC Upload */}
+                <Text style={[styles.label, isUrdu && { fontFamily: fonts.urduRegular }]}>
+                  {t('Doctor National CNIC Document')} * (PDF, JPG, PNG)
+                </Text>
+                <TouchableOpacity 
+                  style={[styles.inputContainer, { 
+                    justifyContent: 'center', 
+                    backgroundColor: cnicDocumentUrl ? (isDark ? 'rgba(59, 130, 246, 0.18)' : '#EFF6FF') : (isDark ? 'rgba(59, 130, 246, 0.08)' : '#F0F9FF'), 
+                    borderColor: cnicDocumentUrl ? '#3B82F6' : '#93C5FD', 
+                    borderStyle: 'dashed' 
+                  }]}
+                  activeOpacity={0.8}
+                  onPress={() => {
+                    setActiveUploadTarget('cnic');
+                    if (Platform.OS === 'web') {
+                      document.getElementById('web-cnic-file-input').click();
+                    } else {
+                      setUploadModalVisible(true);
+                    }
+                  }}
+                  disabled={uploadingTarget === 'cnic'}
+                >
+                  <Feather 
+                    name={uploadingTarget === 'cnic' ? "loader" : (cnicDocumentUrl ? "check-circle" : "file-text")} 
+                    size={22} 
+                    color={cnicDocumentUrl ? "#1D4ED8" : "#3B82F6"} 
+                    style={{ marginRight: 8 }} 
+                  />
+                  <Text style={{ color: cnicDocumentUrl ? '#1D4ED8' : '#3B82F6', fontWeight: 'bold', fontSize: 13 }}>
+                    {uploadingTarget === 'cnic' 
+                      ? t('Uploading CNIC...') 
+                      : (cnicFileName ? `✓ Attached: ${cnicFileName}` : t('Upload Doctor CNIC (Front/Back)'))}
+                  </Text>
+                  {Platform.OS === 'web' && (
+                    <input 
+                      id="web-cnic-file-input"
+                      type="file"
+                      accept="image/*,application/pdf"
+                      style={{ display: 'none' }}
+                      onChange={(e) => handleFileUploadWeb(e, 'cnic')}
                     />
                   )}
                 </TouchableOpacity>
@@ -505,7 +615,9 @@ export default function RegisterScreen() {
       <Modal visible={isUploadModalVisible} transparent={true} animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={[styles.modalTitle, isUrdu && { fontFamily: fonts.urduBold }]}>{t('Upload Document')}</Text>
+            <Text style={[styles.modalTitle, isUrdu && { fontFamily: fonts.urduBold }]}>
+              {activeUploadTarget === 'cnic' ? t('Upload Doctor CNIC Document') : t('Upload PVMC License Document')}
+            </Text>
             
             <TouchableOpacity 
               style={styles.modalUploadItem}

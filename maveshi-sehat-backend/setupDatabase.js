@@ -35,7 +35,9 @@ CREATE TABLE IF NOT EXISTS users (
   pvmc_number VARCHAR(50),
   specialization VARCHAR(100),
   experience_years INT,
-  license_document_url VARCHAR(255),
+  cnic VARCHAR(50),
+  license_document_url VARCHAR(500),
+  cnic_document_url VARCHAR(500),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

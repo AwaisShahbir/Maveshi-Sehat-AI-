@@ -85,6 +85,9 @@ pool.connect((err, client, release) => {
       
       ALTER TABLE users ADD COLUMN IF NOT EXISTS availability_schedule TEXT DEFAULT NULL;
       ALTER TABLE users ADD COLUMN IF NOT EXISTS consultation_mode TEXT DEFAULT 'Chat + Video';
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS cnic VARCHAR(50);
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS cnic_document_url VARCHAR(500);
+      ALTER TABLE users ALTER COLUMN license_document_url TYPE VARCHAR(500);
 
       CREATE TABLE IF NOT EXISTS user_notifications (
         id SERIAL PRIMARY KEY,

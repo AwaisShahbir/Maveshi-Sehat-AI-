@@ -1,4 +1,4 @@
-import { API_BASE_URL } from '../config';
+import { API_BASE_URL, resolveImageUrl } from '../config';
 import { useState, useEffect } from 'react';
 import { 
   Check, 
@@ -14,9 +14,18 @@ import {
   Calendar, 
   Activity, 
   UserCheck, 
-  FileText 
+  FileText,
+  ShieldCheck,
+  AlertCircle,
+  CheckCircle2
 } from 'lucide-react';
 import '../styles/VetVerification.css';
+
+const isImageFile = (url) => {
+  if (!url) return false;
+  const clean = url.split('?')[0].toLowerCase();
+  return clean.endsWith('.jpg') || clean.endsWith('.jpeg') || clean.endsWith('.png') || clean.endsWith('.webp') || url.startsWith('data:image/');
+};
 
 export default function VetVerification() {
   const [vets, setVets] = useState([]);
@@ -219,24 +228,90 @@ export default function VetVerification() {
                       </div>
                     </div>
 
-                    {/* License Document Preview Link */}
-                    {vet.license_document_url && (
-                      <div className="vet-doc-row">
-                        <Download size={13} color="#3da860" />
-                        <a 
-                          href="#license" 
-                          className="vet-doc-link"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            const url = vet.license_document_url.replace('10.0.2.2', 'localhost');
-                            window.open(url, '_blank');
-                          }}
-                        >
-                          View Official PVMC License Document
-                        </a>
+                    {/* Registration Verification Documents Strip (PVMC & CNIC) */}
+                    <div className="vet-docs-verification-strip">
+                      <div className="vet-docs-strip-header">
+                        <div className="vet-docs-strip-title">
+                          <FileText size={14} color="#135431" />
+                          <span>Verification Documents (PVMC & CNIC)</span>
+                        </div>
+                        {vet.license_document_url && vet.cnic_document_url ? (
+                          <span className="vet-doc-count-badge success">
+                            <CheckCircle2 size={12} />
+                            <span>Both Documents Attached</span>
+                          </span>
+                        ) : vet.license_document_url || vet.cnic_document_url ? (
+                          <span className="vet-doc-count-badge warning">
+                            <AlertCircle size={12} />
+                            <span>1 of 2 Documents Attached</span>
+                          </span>
+                        ) : (
+                          <span className="vet-doc-count-badge empty">
+                            <AlertCircle size={12} />
+                            <span>No Documents Uploaded</span>
+                          </span>
+                        )}
                       </div>
-                    )}
-                                    </div>
+
+                      <div className="vet-docs-grid">
+                        {/* Document 1: PVMC License Document */}
+                        <div className={`vet-doc-card-tile ${vet.license_document_url ? 'attached' : 'empty'}`}>
+                          <div className="vet-doc-tile-left">
+                            <div className="vet-doc-type-icon pvmc">
+                              <Award size={15} />
+                            </div>
+                            <div className="vet-doc-text-block">
+                              <span className="vet-doc-type-title">PVMC License</span>
+                              <span className="vet-doc-type-val font-mono">{vet.pvmc_number || 'N/A'}</span>
+                            </div>
+                          </div>
+                          {vet.license_document_url ? (
+                            <a
+                              href={resolveImageUrl(vet.license_document_url)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="vet-doc-view-btn license-btn"
+                              onClick={(e) => e.stopPropagation()}
+                              title="Open official PVMC License document in new window"
+                            >
+                              <Download size={13} />
+                              <span>View License ↗</span>
+                            </a>
+                          ) : (
+                            <span className="vet-doc-missing-chip">Not Attached</span>
+                          )}
+                        </div>
+
+                        {/* Document 2: Doctor CNIC Document */}
+                        <div className={`vet-doc-card-tile ${vet.cnic_document_url ? 'attached' : 'empty'}`}>
+                          <div className="vet-doc-tile-left">
+                            <div className="vet-doc-type-icon cnic">
+                              <UserCheck size={15} />
+                            </div>
+                            <div className="vet-doc-text-block">
+                              <span className="vet-doc-type-title">Doctor National CNIC</span>
+                              <span className="vet-doc-type-val font-mono">{vet.cnic || 'CNIC Pending'}</span>
+                            </div>
+                          </div>
+                          {vet.cnic_document_url ? (
+                            <a
+                              href={resolveImageUrl(vet.cnic_document_url)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="vet-doc-view-btn cnic-btn"
+                              onClick={(e) => e.stopPropagation()}
+                              title="Open Doctor CNIC document in new window"
+                            >
+                              <Download size={13} />
+                              <span>View CNIC ↗</span>
+                            </a>
+                          ) : (
+                            <span className="vet-doc-missing-chip">Not Attached</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
               </div>
 
               {/* Card Footer: Status on one end, View Full Profile on opposite end */}
@@ -261,6 +336,14 @@ export default function VetVerification() {
                   {activeTab === 'pending' && (
                     <div className="vet-action-btns">
                       <button 
+                        className="vet-btn-inspect-quick" 
+                        onClick={() => setSelectedVetForProfile(vet)}
+                        title="Compare PVMC license against Doctor CNIC before deciding"
+                      >
+                        <ShieldCheck size={13} />
+                        <span>Compare Docs</span>
+                      </button>
+                      <button 
                         className="vet-approve-btn" 
                         onClick={() => handleAction(vet.id, 'approve')}
                         title="Approve and verify doctor"
@@ -282,9 +365,10 @@ export default function VetVerification() {
                   <button 
                     className="vet-view-profile-btn" 
                     onClick={() => setSelectedVetForProfile(vet)}
+                    title="Inspect licensing credentials and owner CNIC side-by-side"
                   >
-                    <span>View Full Profile</span>
-                    <ExternalLink size={12} />
+                    <ShieldCheck size={13} />
+                    <span>Inspect & Verify Docs</span>
                   </button>
                 </div>
               </div>
@@ -309,9 +393,20 @@ export default function VetVerification() {
           <div 
             className="vet-modal-content card" 
             onClick={(e) => e.stopPropagation()}
-            style={{ maxWidth: '640px' }}
+            style={{ maxWidth: '720px', maxHeight: 'calc(100vh - 48px)', overflowY: 'auto' }}
           >
-            <div className="vet-profile-modal-header">
+            <div 
+              className="vet-profile-modal-header"
+              style={{
+                position: 'sticky',
+                top: '-28px',
+                backgroundColor: '#ffffff',
+                zIndex: 20,
+                paddingTop: '4px',
+                paddingBottom: '12px',
+                borderBottom: '1px solid #f1f5f9'
+              }}
+            >
               <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
                 <div className="vet-modal-avatar-box">
                   {getInitials(selectedVetForProfile.full_name)}
@@ -364,6 +459,11 @@ export default function VetVerification() {
               </div>
 
               <div className="vet-modal-box">
+                <span className="vet-modal-label">Doctor National CNIC</span>
+                <strong className="vet-modal-val font-mono">{selectedVetForProfile.cnic || 'N/A'}</strong>
+              </div>
+
+              <div className="vet-modal-box">
                 <span className="vet-modal-label">PVMC Registration Number</span>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <strong className="vet-modal-val font-mono">{selectedVetForProfile.pvmc_number || 'N/A'}</strong>
@@ -390,7 +490,7 @@ export default function VetVerification() {
                 <strong className="vet-modal-val">{selectedVetForProfile.district || 'Punjab, Pakistan'}</strong>
               </div>
 
-              <div className="vet-modal-box">
+              <div className="vet-modal-box" style={{ gridColumn: 'span 2' }}>
                 <span className="vet-modal-label">Registration Date</span>
                 <strong className="vet-modal-val">
                   {selectedVetForProfile.created_at ? new Date(selectedVetForProfile.created_at).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' }) : 'Recent'}
@@ -398,32 +498,253 @@ export default function VetVerification() {
               </div>
             </div>
 
-            {/* PVMC License Certificate Download Box */}
-            <div className="vet-modal-cert-box">
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <FileText size={18} color="#135431" />
-                <div>
-                  <strong style={{ fontSize: '13px', color: '#135431' }}>PVMC Official License Certificate</strong>
-                  <p style={{ margin: 0, fontSize: '11px', color: '#64748b' }}>
-                    {selectedVetForProfile.license_document_url ? 'Official verification document submitted by doctor' : 'No document file uploaded yet'}
-                  </p>
+            {/* Official Regulatory Documents & CNIC Cross-Check */}
+            <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '16px', margin: '16px 0 20px 0' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px', borderBottom: '1px solid #e2e8f0', paddingBottom: '10px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <ShieldCheck size={18} color="#135431" />
+                  <strong style={{ fontSize: '14px', color: '#0f172a' }}>Official Regulatory Documents & CNIC Cross-Check</strong>
+                </div>
+                <span style={{ fontSize: '11px', background: '#e0f2fe', color: '#0284c7', fontWeight: '700', padding: '2px 8px', borderRadius: '6px' }}>
+                  Regulatory Review
+                </span>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '14px' }}>
+                {/* Document 1: Official PVMC License */}
+                <div style={{ background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: '10px', padding: '12px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <Award size={16} color="#135431" />
+                        <strong style={{ fontSize: '13px', color: '#135431' }}>PVMC Official License</strong>
+                      </div>
+                      {selectedVetForProfile.license_document_url && (
+                        <span style={{ fontSize: '10px', background: '#dcfce7', color: '#15803d', fontWeight: '700', padding: '2px 6px', borderRadius: '4px' }}>
+                          Uploaded
+                        </span>
+                      )}
+                    </div>
+                    <p style={{ margin: '0 0 4px 0', fontSize: '11px', color: '#64748b' }}>
+                      License No: <strong style={{ color: '#0f172a' }} className="font-mono">{selectedVetForProfile.pvmc_number || 'N/A'}</strong>
+                    </p>
+                    <p style={{ margin: 0, fontSize: '11px', color: '#64748b' }}>
+                      Specialty: <strong>{selectedVetForProfile.specialization || 'General Vet'}</strong>
+                    </p>
+
+                    {/* License Image Preview */}
+                    {selectedVetForProfile.license_document_url && isImageFile(selectedVetForProfile.license_document_url) && (
+                      <div 
+                        onClick={() => window.open(resolveImageUrl(selectedVetForProfile.license_document_url), '_blank')}
+                        style={{
+                          margin: '10px 0 6px 0',
+                          height: '140px',
+                          background: '#f8fafc',
+                          border: '1px solid #e2e8f0',
+                          borderRadius: '8px',
+                          overflow: 'hidden',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          cursor: 'pointer'
+                        }}
+                        title="Click to view full license image"
+                      >
+                        <img 
+                          src={resolveImageUrl(selectedVetForProfile.license_document_url)} 
+                          alt="PVMC License"
+                          style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }}
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  <div style={{ marginTop: '10px' }}>
+                    {selectedVetForProfile.license_document_url ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const url = resolveImageUrl(selectedVetForProfile.license_document_url);
+                          window.open(url, '_blank');
+                        }}
+                        style={{
+                          width: '100%',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '6px',
+                          background: '#eff7f2',
+                          color: '#135431',
+                          border: '1px solid #bbf7d0',
+                          padding: '7px 10px',
+                          borderRadius: '8px',
+                          fontSize: '12px',
+                          fontWeight: '700',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        <Download size={13} />
+                        <span>View / Download License ↗</span>
+                      </button>
+                    ) : (
+                      <span style={{ fontSize: '11px', color: '#94a3b8', fontStyle: 'italic', display: 'block', textAlign: 'center', padding: '6px', background: '#f8fafc', borderRadius: '6px' }}>
+                        No license document uploaded
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Document 2: Doctor National CNIC */}
+                <div style={{ background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: '10px', padding: '12px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <UserCheck size={16} color="#007aff" />
+                        <strong style={{ fontSize: '13px', color: '#007aff' }}>Doctor National CNIC</strong>
+                      </div>
+                      {selectedVetForProfile.cnic_document_url && (
+                        <span style={{ fontSize: '10px', background: '#dbeafe', color: '#1d4ed8', fontWeight: '700', padding: '2px 6px', borderRadius: '4px' }}>
+                          Uploaded
+                        </span>
+                      )}
+                    </div>
+                    <p style={{ margin: '0 0 4px 0', fontSize: '11px', color: '#64748b' }}>
+                      Doctor: <strong style={{ color: '#0f172a' }}>{selectedVetForProfile.full_name}</strong>
+                    </p>
+                    <p style={{ margin: 0, fontSize: '11px', color: '#64748b' }}>
+                      CNIC No: <strong style={{ color: '#0f172a' }} className="font-mono">{selectedVetForProfile.cnic || 'N/A'}</strong>
+                    </p>
+
+                    {/* CNIC Image Preview */}
+                    {selectedVetForProfile.cnic_document_url && isImageFile(selectedVetForProfile.cnic_document_url) && (
+                      <div 
+                        onClick={() => window.open(resolveImageUrl(selectedVetForProfile.cnic_document_url), '_blank')}
+                        style={{
+                          margin: '10px 0 6px 0',
+                          height: '140px',
+                          background: '#f8fafc',
+                          border: '1px solid #e2e8f0',
+                          borderRadius: '8px',
+                          overflow: 'hidden',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          cursor: 'pointer'
+                        }}
+                        title="Click to view full CNIC image"
+                      >
+                        <img 
+                          src={resolveImageUrl(selectedVetForProfile.cnic_document_url)} 
+                          alt="Doctor CNIC"
+                          style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }}
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  <div style={{ marginTop: '10px' }}>
+                    {selectedVetForProfile.cnic_document_url ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const url = resolveImageUrl(selectedVetForProfile.cnic_document_url);
+                          window.open(url, '_blank');
+                        }}
+                        style={{
+                          width: '100%',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '6px',
+                          background: '#eff6ff',
+                          color: '#1d4ed8',
+                          border: '1px solid #bfdbfe',
+                          padding: '7px 10px',
+                          borderRadius: '8px',
+                          fontSize: '12px',
+                          fontWeight: '700',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        <Download size={13} />
+                        <span>View / Download CNIC ↗</span>
+                      </button>
+                    ) : (
+                      <span style={{ fontSize: '11px', color: '#94a3b8', fontStyle: 'italic', display: 'block', textAlign: 'center', padding: '6px', background: '#f8fafc', borderRadius: '6px' }}>
+                        No CNIC document uploaded
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
 
-              {selectedVetForProfile.license_document_url ? (
-                <button 
-                  className="vet-cert-view-btn"
-                  onClick={() => {
-                    const url = selectedVetForProfile.license_document_url.replace('10.0.2.2', 'localhost');
-                    window.open(url, '_blank');
-                  }}
-                >
-                  <Download size={13} />
-                  <span>Download / View</span>
-                </button>
-              ) : (
-                <span style={{ fontSize: '11px', color: '#94a3b8' }}>Unavailable</span>
-              )}
+              {/* Match Verification Helper Checklist */}
+              <div style={{ background: '#ffffff', border: '1px dashed #cbd5e1', borderRadius: '8px', padding: '12px 14px' }}>
+                <span style={{ display: 'block', fontSize: '11px', fontWeight: '700', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px' }}>
+                  Verification Cross-Check Checklist:
+                </span>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', fontSize: '11px' }}>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#f1f5f9', color: '#334155', padding: '4px 10px', borderRadius: '6px' }}>
+                    <CheckCircle2 size={13} color="#16a34a" /> Doctor: <strong>{selectedVetForProfile.full_name}</strong>
+                  </span>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#f1f5f9', color: '#334155', padding: '4px 10px', borderRadius: '6px' }}>
+                    <CheckCircle2 size={13} color="#16a34a" /> CNIC: <strong>{selectedVetForProfile.cnic || 'N/A'}</strong>
+                  </span>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#f1f5f9', color: '#334155', padding: '4px 10px', borderRadius: '6px' }}>
+                    <CheckCircle2 size={13} color="#16a34a" /> PVMC License: <strong>{selectedVetForProfile.pvmc_number || 'N/A'}</strong>
+                  </span>
+                </div>
+
+                {/* Direct Verification Action inside Modal if Pending */}
+                {(selectedVetForProfile.status === 'pending' || selectedVetForProfile.status === 'info_requested') && (
+                  <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px solid #e2e8f0', display: 'flex', gap: '10px' }}>
+                    <button
+                      type="button"
+                      onClick={() => handleAction(selectedVetForProfile.id, 'approve')}
+                      style={{
+                        flex: 1,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '6px',
+                        background: '#10b981',
+                        color: '#ffffff',
+                        border: 'none',
+                        padding: '10px 16px',
+                        borderRadius: '8px',
+                        fontWeight: '700',
+                        fontSize: '13px',
+                        cursor: 'pointer',
+                        boxShadow: '0 2px 4px rgba(16, 185, 129, 0.2)'
+                      }}
+                    >
+                      <Check size={16} />
+                      <span>Verify Doctor & Grant Platform Access</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleAction(selectedVetForProfile.id, 'reject')}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '6px',
+                        background: '#ffffff',
+                        color: '#ef4444',
+                        border: '1px solid #fca5a5',
+                        padding: '10px 16px',
+                        borderRadius: '8px',
+                        fontWeight: '700',
+                        fontSize: '13px',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      <X size={16} />
+                      <span>Reject Application</span>
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Platform Activity Stats */}

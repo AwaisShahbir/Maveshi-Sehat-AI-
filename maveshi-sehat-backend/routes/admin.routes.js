@@ -171,7 +171,8 @@ module.exports = (pool, io) => {
     try {
       const result = await pool.query(`
         SELECT u.id, u.full_name, u.email, u.phone_number, u.district, u.role, u.status, 
-               u.pvmc_number, u.specialization, u.experience_years, u.license_document_url, u.created_at,
+               u.pvmc_number, u.specialization, u.experience_years, u.license_document_url,
+               u.cnic, u.cnic_document_url, u.created_at,
                (SELECT COUNT(*)::int FROM consultations WHERE farmer_id = u.id) AS farmer_consultations_count,
                (SELECT COUNT(*)::int FROM consultations WHERE vet_id = u.id) AS vet_consultations_count,
                (SELECT COUNT(*)::int FROM consultations WHERE vet_id = u.id AND status = 'completed') AS vet_completed_consultations,
