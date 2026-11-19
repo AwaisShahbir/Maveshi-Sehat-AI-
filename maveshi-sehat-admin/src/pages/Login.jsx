@@ -88,6 +88,9 @@ export default function Login({ onLoginSuccess }) {
       }
 
       setTargetEmail(data.email);
+      setResetOtp('');
+      setNewPassword('');
+      setConfirmPassword('');
       setForgotStep(2);
     } catch (err) {
       setForgotError(err.message);
@@ -228,6 +231,9 @@ export default function Login({ onLoginSuccess }) {
               onClick={(e) => {
                 e.preventDefault();
                 setForgotIdentifier(identifier);
+                setResetOtp('');
+                setNewPassword('');
+                setConfirmPassword('');
                 setForgotError('');
                 setForgotStep(1);
                 setShowForgotModal(true);
@@ -359,11 +365,14 @@ export default function Login({ onLoginSuccess }) {
                     </label>
                     <input
                       type="text"
+                      name="resetOtp"
+                      autoComplete="one-time-code"
+                      inputMode="numeric"
                       className="form-control"
                       placeholder="• • • •"
                       maxLength={4}
                       value={resetOtp}
-                      onChange={(e) => setResetOtp(e.target.value)}
+                      onChange={(e) => setResetOtp(e.target.value.replace(/\D/g, '').slice(0, 4))}
                       style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', letterSpacing: '6px', fontSize: '18px', textAlign: 'center', fontWeight: 'bold' }}
                     />
                   </div>
@@ -373,6 +382,8 @@ export default function Login({ onLoginSuccess }) {
                     </label>
                     <input
                       type="password"
+                      name="newPassword"
+                      autoComplete="new-password"
                       className="form-control"
                       placeholder="At least 6 characters"
                       value={newPassword}
@@ -386,6 +397,8 @@ export default function Login({ onLoginSuccess }) {
                     </label>
                     <input
                       type="password"
+                      name="confirmPassword"
+                      autoComplete="new-password"
                       className="form-control"
                       placeholder="Re-enter new password"
                       value={confirmPassword}
