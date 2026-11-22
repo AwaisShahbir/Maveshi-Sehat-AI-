@@ -234,3 +234,129 @@
     height: 52px;
   }
 }
+
+/* Admin Reset Password Modal */
+.admin-reset-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 16px;
+}
+
+.admin-reset-modal-card {
+  background-color: #ffffff;
+  border-radius: 16px;
+  max-width: 460px;
+  width: 100%;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+}
+
+.admin-reset-modal-header {
+  background: linear-gradient(135deg, #135431 0%, #0d3820 100%);
+  padding: 20px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #ffffff;
+}
+
+.admin-reset-modal-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.admin-reset-close-btn {
+  background: none;
+  border: none;
+  color: #ffffff;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.admin-reset-modal-body {
+  padding: 24px;
+}
+
+.admin-reset-alert {
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-reset-desc {
+  font-size: 13px;
+  color: #64748b;
+  margin-top: 0;
+  margin-bottom: 16px;
+  line-height: 1.5;
+}
+
+.admin-reset-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #334155;
+  margin-bottom: 6px;
+}
+
+.admin-reset-input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+}
+
+.admin-reset-otp-input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  letter-spacing: 6px;
+  font-size: 18px;
+  text-align: center;
+  font-weight: bold;
+}
+
+.admin-reset-submit-btn {
+  width: 100%;
+  padding: 12px;
+  background-color: #10b981;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.admin-reset-submit-btn:hover {
+  background-color: #059669;
+}
+
+.admin-reset-submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.admin-reset-success-box {
+  text-align: center;
+  padding: 16px 0;
+}

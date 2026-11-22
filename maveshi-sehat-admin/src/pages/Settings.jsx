@@ -415,7 +415,7 @@ export default function Settings({ onProfileUpdate }) {
                   <input 
                     type="file" 
                     ref={fileInputRef} 
-                    style={{ display: 'none' }} 
+                    className="settings-file-input-hidden" 
                     accept="image/*" 
                     onChange={handleAvatarChange} 
                   />
@@ -624,7 +624,7 @@ export default function Settings({ onProfileUpdate }) {
                     <span className="settings-enforce-title">
                       Enforce Admin Language on Mobile App
                     </span>
-                    <span className="settings-slider-hint" style={{ marginTop: '3px', display: 'block' }}>
+                    <span className="settings-slider-hint mt-1 block">
                       {enforceAdminLanguage 
                         ? 'Active: App language is strictly controlled by Admin. Mobile users cannot change it.' 
                         : 'Disabled: Mobile app users and Veterinarians can choose their own preferred language in profile.'}
@@ -657,7 +657,7 @@ export default function Settings({ onProfileUpdate }) {
                     <option value="English">English</option>
                     <option value="Urdu">Urdu</option>
                   </select>
-                  <span className="settings-slider-hint" style={{ marginTop: '4px', display: 'block' }}>
+                  <span className="settings-slider-hint mt-1 block">
                     {enforceAdminLanguage 
                       ? 'Controls the global language across the mobile app.' 
                       : 'Disabled while admin enforcement is OFF. Turn ON toggle above to lock language.'}
@@ -699,54 +699,26 @@ export default function Settings({ onProfileUpdate }) {
               </div>
 
               {/* Service Status Hero / Kill-Switch Card */}
-              <div style={{
-                marginBottom: '24px',
-                padding: '20px',
-                background: aiEnabled ? '#F0FDF4' : '#FEF2F2',
-                borderRadius: '14px',
-                border: `1.5px solid ${aiEnabled ? '#86EFAC' : '#FCA5A5'}`,
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
-              }}>
-                <div style={{ flex: 1, paddingRight: '20px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-                    <span style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                      padding: '4px 12px',
-                      borderRadius: '20px',
-                      fontSize: '12px',
-                      fontWeight: 700,
-                      letterSpacing: '0.5px',
-                      background: aiEnabled ? '#DCFCE7' : '#FEE2E2',
-                      color: aiEnabled ? '#15803D' : '#B91C1C',
-                      border: `1px solid ${aiEnabled ? '#86EFAC' : '#FCA5A5'}`
-                    }}>
-                      <span style={{
-                        width: '8px',
-                        height: '8px',
-                        borderRadius: '50%',
-                        background: aiEnabled ? '#16A34A' : '#DC2626',
-                        boxShadow: aiEnabled ? '0 0 6px #16A34A' : '0 0 6px #DC2626'
-                      }} />
+              <div className={`settings-ai-hero-card ${aiEnabled ? 'active' : 'inactive'}`}>
+                <div className="flex-1 pr-5">
+                  <div className="flex items-center gap-2.5 mb-2">
+                    <span className={`settings-ai-status-pill ${aiEnabled ? 'active' : 'inactive'}`}>
+                      <span className={`settings-ai-dot ${aiEnabled ? 'active' : 'inactive'}`} />
                       {aiEnabled ? 'SERVICE ACTIVE & OPERATIONAL' : 'SERVICE PAUSED (MAINTENANCE MODE)'}
                     </span>
                   </div>
-                  <h3 style={{ fontSize: '17px', fontWeight: 700, color: '#1E293B', margin: '0 0 6px 0' }}>
+                  <h3 className="text-[17px] font-bold text-slate-800 m-0 mb-1.5">
                     {aiEnabled ? 'AI Assistant is Currently Live' : 'AI Assistant is Temporarily Paused'}
                   </h3>
-                  <p style={{ fontSize: '13px', color: '#475569', margin: 0, lineHeight: '1.5' }}>
+                  <p className="text-xs text-slate-600 m-0 leading-normal">
                     {aiEnabled
                       ? 'Farmers and veterinarians can freely interact with the AI assistant, use voice notes, and receive instant health insights.'
                       : 'All user queries and voice inputs are blocked on the mobile app. Users are shown the maintenance notification below.'}
                   </p>
                 </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
-                  <label className="settings-toggle" style={{ transform: 'scale(1.2)' }}>
+                <div className="flex flex-col items-center gap-2">
+                  <label className="settings-toggle" >
                     <input
                       type="checkbox"
                       checked={aiEnabled}
@@ -757,72 +729,64 @@ export default function Settings({ onProfileUpdate }) {
                       <span className={`settings-toggle-knob ${aiEnabled ? 'active' : ''}`} />
                     </span>
                   </label>
-                  <span style={{ fontSize: '11px', fontWeight: 600, color: aiEnabled ? '#16A34A' : '#DC2626' }}>
+                  <span className={`text-[11px] font-semibold ${aiEnabled ? 'text-green-600' : 'text-red-600'}`}>
                     {aiEnabled ? 'Live' : 'Paused'}
                   </span>
                 </div>
               </div>
 
               {/* Maintenance Notice Messages */}
-              <div style={{ marginBottom: '24px', padding: '20px', background: '#F8FAF9', borderRadius: '14px', border: '1px solid #E2E8F0' }}>
-                <h4 style={{ fontSize: '15px', fontWeight: 600, color: '#1E293B', marginBottom: '6px' }}>
+              <div className="settings-subbox">
+                <h4 className="text-[15px] font-semibold text-slate-800 mb-1.5">
                   Maintenance Mode Custom Notices
                 </h4>
-                <p style={{ fontSize: '13px', color: '#64748B', marginBottom: '16px' }}>
+                <p className="text-xs text-slate-500 mb-4">
                   These messages are displayed on the mobile app banner when service is paused.
                 </p>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div className="flex flex-col gap-4">
                   <div>
-                    <label className="form-label" style={{ fontWeight: 600, fontSize: '13px' }}>
+                    <label className="form-label font-semibold text-xs">
                       Urdu Maintenance Notice (اردو پیغام)
                     </label>
                     <textarea
                       rows={2}
-                      className="form-control settings-input"
                       value={aiMessageUrdu}
                       onChange={(e) => setAiMessageUrdu(e.target.value)}
-                      style={{ direction: 'rtl', fontFamily: 'inherit', resize: 'vertical' }}
+                      className="form-control settings-input resize-y font-urdu" dir="rtl"
                     />
                   </div>
 
                   <div>
-                    <label className="form-label" style={{ fontWeight: 600, fontSize: '13px' }}>
+                    <label className="form-label font-semibold text-xs">
                       English Maintenance Notice
                     </label>
                     <textarea
                       rows={2}
-                      className="form-control settings-input"
                       value={aiMessageEn}
                       onChange={(e) => setAiMessageEn(e.target.value)}
-                      style={{ resize: 'vertical' }}
+                      className="form-control settings-input resize-y"
                     />
                   </div>
                 </div>
               </div>
 
               {/* Guardrails and Behavior Control */}
-              <div style={{ marginBottom: '24px', padding: '20px', background: '#F8FAF9', borderRadius: '14px', border: '1px solid #E2E8F0' }}>
-                <h4 style={{ fontSize: '15px', fontWeight: 600, color: '#1E293B', marginBottom: '6px' }}>
+              <div className="settings-subbox">
+                <h4 className="text-[15px] font-semibold text-slate-800 mb-1.5">
                   Domain Boundary & Intelligence Guardrails
                 </h4>
-                <p style={{ fontSize: '13px', color: '#64748B', marginBottom: '16px' }}>
+                <p className="text-xs text-slate-500 mb-4">
                   Configure domain perimeter enforcement and persona specialization.
                 </p>
 
                 {/* Guardrail 1: Strict Domain Boundary */}
-                <div style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  padding: '14px 0',
-                  borderBottom: '1px solid #E2E8F0'
-                }}>
-                  <div style={{ flex: 1, paddingRight: '20px' }}>
-                    <span style={{ fontWeight: 600, fontSize: '14px', color: '#1E293B', display: 'block' }}>
+                <div className="settings-row-border">
+                  <div className="flex-1 pr-5">
+                    <span className="font-semibold text-sm text-slate-800 block">
                       Strict Livestock Domain Perimeter (Bovine Only)
                     </span>
-                    <span style={{ fontSize: '12px', color: '#64748B', display: 'block', marginTop: '3px' }}>
+                    <span className="text-xs text-slate-500 block mt-1">
                       Deterministically confines the AI to dairy cattle and buffaloes. Off-topic topics (human medicine, politics, coding, pets, general knowledge) are immediately rejected with a polite reminder.
                     </span>
                   </div>
@@ -840,17 +804,12 @@ export default function Settings({ onProfileUpdate }) {
                 </div>
 
                 {/* Guardrail 2: Vet CDSS Persona */}
-                <div style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  padding: '14px 0 0 0'
-                }}>
-                  <div style={{ flex: 1, paddingRight: '20px' }}>
-                    <span style={{ fontWeight: 600, fontSize: '14px', color: '#1E293B', display: 'block' }}>
+                <div className="settings-row-noborder">
+                  <div className="flex-1 pr-5">
+                    <span className="font-semibold text-sm text-slate-800 block">
                       Clinical Decision Support System (CDSS) for Veterinarians
                     </span>
-                    <span style={{ fontSize: '12px', color: '#64748B', display: 'block', marginTop: '3px' }}>
+                    <span className="text-xs text-slate-500 block mt-1">
                       Provides peer-level veterinary consultation, exact pharmacology dosages in mg/kg, and differential diagnoses. Suppresses generic "consult a vet" phrases for registered doctors.
                     </span>
                   </div>

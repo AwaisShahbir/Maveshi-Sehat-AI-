@@ -270,9 +270,8 @@ export default function UserManagement() {
                             {user.status === 'blocked' ? <ShieldCheck size={16} /> : <ShieldAlert size={16} />}
                           </button>
                           <button 
-                            className="btn-icon-only btn-action-delete"
+                            className="btn-icon-only btn-action-delete um-action-btn-danger"
                             title="Delete user"
-                            style={{ color: '#ef4444' }}
                             onClick={() => handleDeleteUser(user.id, user.full_name)}
                           >
                             <Trash2 size={16} />
@@ -338,12 +337,12 @@ export default function UserManagement() {
                   <h4 className="um-user-fullname">
                     {selectedUser.full_name}
                   </h4>
-                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginTop: '4px' }}>
+                  <div className="um-user-meta-row">
                     <span className={`um-role-badge ${selectedUser.role === 'vet' ? 'vet' : 'owner'}`}>
                       {selectedUser.role === 'farmer' ? '🐮 Livestock Owner' : '🩺 Veterinary Doctor'}
                     </span>
                     {selectedUser.specialization && (
-                      <span className="badge badge-green" style={{ fontSize: '11px', padding: '2px 8px' }}>
+                      <span className="badge badge-green um-specialization-badge">
                         {selectedUser.specialization}
                       </span>
                     )}
@@ -416,13 +415,13 @@ export default function UserManagement() {
                     </div>
                     <div>
                       <span className="um-cred-label">Status:</span>
-                      <strong style={{ color: selectedUser.status === 'verified' ? '#166534' : '#d97706' }}>
+                      <strong className={selectedUser.status === 'verified' ? 'um-status-verified' : 'um-status-pending'}>
                         {selectedUser.status === 'verified' ? 'Verified Doctor' : selectedUser.status}
                       </strong>
                     </div>
                   </div>
                   {selectedUser.license_document_url && (
-                    <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px dashed #cbd5e1' }}>
+                    <div className="um-license-doc-box">
                       <a 
                         href="#license" 
                         onClick={(e) => {
@@ -430,7 +429,7 @@ export default function UserManagement() {
                           const url = selectedUser.license_document_url.replace('10.0.2.2', 'localhost');
                           window.open(url, '_blank');
                         }}
-                        style={{ color: '#3da860', fontWeight: '600', fontSize: '12px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                        className="um-doc-link"
                       >
                         📄 View Uploaded PVMC License Document ↗
                       </a>
@@ -493,8 +492,7 @@ export default function UserManagement() {
 
               <button
                 onClick={() => handleDeleteUser(selectedUser.id, selectedUser.full_name)}
-                className="um-block-btn"
-                style={{ backgroundColor: '#fee2e2', color: '#dc2626', borderColor: '#fca5a5' }}
+                className="um-block-btn um-block-btn-danger"
               >
                 <Trash2 size={15} />
                 <span>Delete User</span>

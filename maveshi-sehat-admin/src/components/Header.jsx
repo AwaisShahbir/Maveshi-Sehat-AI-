@@ -111,7 +111,7 @@ export default function Header({ adminUser, onToggleSidebar }) {
         <Link to="/settings" className="header-avatar-btn" title="Account settings">
           <div className="header-avatar-circle">
             {avatar ? (
-              <img src={avatar} alt={displayName} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+              <img src={avatar} alt={displayName} className="header-avatar-img" />
             ) : (
               initials
             )}

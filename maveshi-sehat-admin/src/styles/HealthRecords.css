@@ -587,3 +587,11 @@
     justify-content: center;
   }
 }
+
+
+/* --- Health Records Danger Button --- */
+.hr-btn-danger-soft {
+  color: #EF4444;
+  border-color: #FEE2E2;
+  background-color: #FEF2F2;
+}

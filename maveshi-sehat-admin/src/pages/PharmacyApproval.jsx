@@ -271,8 +271,8 @@ export default function PharmacyApproval() {
         <div className="card pharmacy-meds-card">
           <div className="pharmacy-meds-filter-bar">
             <div className="pharmacy-filter-controls-group">
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Filter size={15} style={{ color: '#64748b' }} />
+              <div className="flex items-center gap-2">
+                <Filter size={15} className="text-slate-500" />
                 <select 
                   className="pharmacy-select-filter"
                   value={filterPharmacyId}
@@ -299,7 +299,7 @@ export default function PharmacyApproval() {
               </select>
             </div>
 
-            <div style={{ position: 'relative' }}>
+            <div className="relative">
               <input 
                 type="text"
                 placeholder="Search medicine, formula, brand..."
@@ -311,11 +311,11 @@ export default function PharmacyApproval() {
           </div>
 
           {medsLoading ? (
-            <div style={{ textAlign: 'center', padding: '40px', color: '#64748b' }}>
+            <div className="text-center py-10 text-slate-500">
               Loading platform medicine catalog...
             </div>
           ) : filteredMedicines.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '40px', color: '#64748b' }}>
+            <div className="text-center py-10 text-slate-500">
               No medicines found matching the selected pharmacy and stock filter.
             </div>
           ) : (
@@ -338,14 +338,14 @@ export default function PharmacyApproval() {
                     return (
                       <tr key={med.id}>
                         <td>
-                          <div style={{ display: 'flex', flexDirection: 'column' }}>
-                            <span style={{ fontWeight: '700', color: '#0f172a' }}>{med.name}</span>
-                            <div style={{ display: 'flex', gap: '6px', alignItems: 'center', marginTop: '2px' }}>
+                          <div className="flex flex-col">
+                            <span className="font-bold text-slate-900">{med.name}</span>
+                            <div className="flex items-center gap-1.5 mt-0.5">
                               {med.dosage_form && (
                                 <span className="top-med-badge">{med.dosage_form.trim()}</span>
                               )}
                               {med.strength && (
-                                <span style={{ fontSize: '11px', color: '#64748b' }}>{med.strength}</span>
+                                <span className="text-[11px] text-slate-500">{med.strength}</span>
                               )}
                             </div>
                           </div>
@@ -357,15 +357,15 @@ export default function PharmacyApproval() {
                           </span>
                         </td>
                         <td>
-                          <span style={{ fontSize: '12px', color: '#475569' }}>
+                          <span className="text-xs text-slate-600">
                             {med.category || 'General'}
                           </span>
                         </td>
                         <td>
-                          <strong style={{ color: med.stock === 0 ? '#ef4444' : '#0f172a' }}>
+                          <strong className={med.stock === 0 ? 'text-red-500 font-bold' : 'text-slate-900 font-bold'}>
                             {med.stock} units
                           </strong>
-                          <span style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>
+                          <span className="text-[10px] text-slate-400 block">
                             Alert under: {med.min_stock || 10}
                           </span>
                         </td>
@@ -375,12 +375,12 @@ export default function PharmacyApproval() {
                             {statusObj.label}
                           </span>
                         </td>
-                        <td style={{ fontWeight: '700', color: '#135431' }}>
+                        <td className="font-bold text-[#135431]">
                           PKR {Number(med.price).toLocaleString()}
                         </td>
                         <td>
                           {med.prescription_required ? (
-                            <span className="badge badge-purple" style={{ backgroundColor: '#f5f3ff', color: '#7c3aed', border: '1px solid #ddd6fe' }}>
+                            <span className="badge badge-purple bg-purple-50 text-purple-600 border border-purple-200">
                               Rx Required
                             </span>
                           ) : (
@@ -572,7 +572,7 @@ export default function PharmacyApproval() {
                         📍 {pharm.address}
                       </span>
                     ) : (
-                      <span className="pharm-address-line" style={{ color: '#94a3b8' }}>
+                      <span className="pharm-address-line text-slate-400">
                         Registered Vendor
                       </span>
                     )}
@@ -683,33 +683,33 @@ export default function PharmacyApproval() {
                         <td>{p.owner_name}</td>
                         <td className="font-mono">{p.cnic || 'N/A'}</td>
                         <td>
-                          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                          <div className="flex items-center gap-2">
                             {p.license_document_url ? (
                               <a
                                 href={resolveImageUrl(p.license_document_url)}
                                 target="_blank"
                                 rel="noreferrer"
-                                style={{ fontSize: '11px', color: '#15803d', fontWeight: '700', textDecoration: 'none' }}
+                                className="text-[11px] text-emerald-700 font-bold hover:underline"
                                 title="Open DRAP License"
                               >
                                 License ↗
                               </a>
                             ) : (
-                              <span style={{ fontSize: '11px', color: '#94a3b8' }}>No Lic</span>
+                              <span className="text-[11px] text-slate-400">No Lic</span>
                             )}
-                            <span style={{ color: '#cbd5e1' }}>•</span>
+                            <span className="text-slate-300">•</span>
                             {p.cnic_document_url ? (
                               <a
                                 href={resolveImageUrl(p.cnic_document_url)}
                                 target="_blank"
                                 rel="noreferrer"
-                                style={{ fontSize: '11px', color: '#1d4ed8', fontWeight: '700', textDecoration: 'none' }}
+                                className="text-[11px] text-blue-700 font-bold hover:underline"
                                 title="Open Owner CNIC"
                               >
                                 CNIC ↗
                               </a>
                             ) : (
-                              <span style={{ fontSize: '11px', color: '#94a3b8' }}>No CNIC</span>
+                              <span className="text-[11px] text-slate-400">No CNIC</span>
                             )}
                           </div>
                         </td>
@@ -747,40 +747,32 @@ export default function PharmacyApproval() {
           <div 
             className="pharmacy-modal-content card"
             onClick={(e) => e.stopPropagation()}
-            style={{ maxWidth: '720px', maxHeight: 'calc(100vh - 48px)', overflowY: 'auto' }}
+            
           >
             <div 
               className="pharmacy-modal-header"
-              style={{
-                position: 'sticky',
-                top: '-24px',
-                backgroundColor: '#ffffff',
-                zIndex: 20,
-                paddingTop: '4px',
-                paddingBottom: '12px',
-                borderBottom: '1px solid #f1f5f9'
-              }}
+              
             >
               <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div className="flex items-center gap-2">
                   <h3 className="pharmacy-modal-title">{selectedPharmacy.name}</h3>
                   {selectedPharmacy.name_urdu && (
-                    <span style={{ fontSize: '15px', color: '#135431', fontWeight: 'bold' }}>
+                    <span className="text-[15px] text-[#135431] font-bold">
                       ({selectedPharmacy.name_urdu})
                     </span>
                   )}
                 </div>
-                <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginTop: '4px' }}>
+                <div className="flex items-center gap-3 mt-1">
                   <span className="font-mono pharmacy-modal-lic">DRAP License: {selectedPharmacy.license_number}</span>
                   {selectedPharmacy.license_expiry && (
-                    <span style={{ fontSize: '11px', color: '#64748b' }}>
+                    <span className="text-[11px] text-slate-500">
                       Expires: {selectedPharmacy.license_expiry}
                     </span>
                   )}
                 </div>
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div className="flex items-center gap-2">
                 <span className={`badge ${
                   selectedPharmacy.status === 'approved' 
                     ? 'badge-green' 
@@ -802,7 +794,7 @@ export default function PharmacyApproval() {
               </div>
             </div>
 
-            <div className="pharmacy-modal-grid" style={{ gridTemplateColumns: 'repeat(2, 1fr)' }}>
+            <div className="pharmacy-modal-grid grid grid-cols-2">
               <div className="pharmacy-modal-box">
                 <span className="pharmacy-modal-label">Proprietor / Owner</span>
                 <strong className="pharmacy-modal-val">{selectedPharmacy.owner_name}</strong>
@@ -833,7 +825,7 @@ export default function PharmacyApproval() {
                 <strong className="pharmacy-modal-val">{selectedPharmacy.business_hours || 'Not specified'}</strong>
               </div>
 
-              <div className="pharmacy-modal-box" style={{ gridColumn: 'span 2' }}>
+              <div className="pharmacy-modal-box col-span-2">
                 <span className="pharmacy-modal-label">Full Location & Address</span>
                 <strong className="pharmacy-modal-val">
                   {selectedPharmacy.address && selectedPharmacy.address !== 'no address'
@@ -843,9 +835,9 @@ export default function PharmacyApproval() {
               </div>
 
               {selectedPharmacy.description && (
-                <div className="pharmacy-modal-box" style={{ gridColumn: 'span 2' }}>
+                <div className="pharmacy-modal-box col-span-2">
                   <span className="pharmacy-modal-label">Store Bio & Description</span>
-                  <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: '#334155', lineHeight: '1.4' }}>
+                  <p className="mt-1 text-xs text-slate-700 leading-normal">
                     {selectedPharmacy.description}
                   </p>
                 </div>
@@ -853,119 +845,83 @@ export default function PharmacyApproval() {
             </div>
 
             {/* Catalogue & Performance Summary */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px', marginBottom: '20px' }}>
-              <div style={{ background: '#eff7f2', border: '1px solid #bbf7d0', borderRadius: '10px', padding: '10px', textAlign: 'center' }}>
-                <span style={{ display: 'block', fontSize: '18px', fontWeight: '800', color: '#135431' }}>
+            <div className="verification-stats-summary-grid">
+              <div className="verification-stat-box green">
+                <span className="verification-stat-number">
                   {selectedPharmacy.medicines_count || 0}
                 </span>
-                <span style={{ fontSize: '11px', color: '#166534', fontWeight: '600' }}>Listed Medicines</span>
+                <span className="verification-stat-label">Listed Medicines</span>
               </div>
 
-              <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '10px', padding: '10px', textAlign: 'center' }}>
-                <span style={{ display: 'block', fontSize: '18px', fontWeight: '800', color: '#1d4ed8' }}>
+              <div className="verification-stat-box blue">
+                <span className="verification-stat-number">
                   {selectedPharmacy.orders_count || 0}
                 </span>
-                <span style={{ fontSize: '11px', color: '#1e40af', fontWeight: '600' }}>Orders Handled</span>
+                <span className="verification-stat-label">Orders Handled</span>
               </div>
 
-              <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '10px', textAlign: 'center' }}>
-                <span style={{ display: 'block', fontSize: '14px', fontWeight: '700', color: '#475569', marginTop: '2px' }}>
+              <div className="verification-stat-box gray">
+                <span className="verification-stat-number">
                   {selectedPharmacy.created_at ? new Date(selectedPharmacy.created_at).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' }) : 'Recent'}
                 </span>
-                <span style={{ fontSize: '11px', color: '#64748b', fontWeight: '600' }}>Registered On</span>
+                <span className="verification-stat-label">Registered On</span>
               </div>
             </div>
 
             {/* Official Verification Documents & CNIC Cross-Check */}
-            <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '16px', marginBottom: '20px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px', borderBottom: '1px solid #e2e8f0', paddingBottom: '10px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div className="verification-docs-container">
+              <div className="flex items-center justify-between mb-3 pb-2.5 border-b border-slate-200">
+                <div className="flex items-center gap-2">
                   <ShieldCheck size={18} color="#135431" />
-                  <strong style={{ fontSize: '14px', color: '#0f172a' }}>Official Regulatory Documents & CNIC Cross-Check</strong>
+                  <strong className="text-sm text-slate-900 font-bold">Official Regulatory Documents & CNIC Cross-Check</strong>
                 </div>
-                <span style={{ fontSize: '11px', background: '#e0f2fe', color: '#0284c7', fontWeight: '700', padding: '2px 8px', borderRadius: '6px' }}>
+                <span className="text-[11px] bg-sky-100 text-sky-700 font-bold px-2 py-0.5 rounded-md">
                   Regulatory Review
                 </span>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '14px' }}>
+              <div className="verification-docs-grid">
                 {/* Document 1: Official DRAP Pharmacy License */}
-                <div style={{ background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: '10px', padding: '12px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                <div className="verification-doc-card">
                   <div>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <div className="verification-doc-title-row">
+                      <div className="flex items-center gap-1.5">
                         <Award size={16} color="#135431" />
-                        <strong style={{ fontSize: '13px', color: '#135431' }}>DRAP / Drug Sale License</strong>
+                        <strong className="text-[13px] text-[#135431]">DRAP / Drug Sale License</strong>
                       </div>
                       {selectedPharmacy.license_document_url && (
-                        <span style={{ fontSize: '10px', background: '#dcfce7', color: '#15803d', fontWeight: '700', padding: '2px 6px', borderRadius: '4px' }}>
+                        <span className="verification-doc-badge-green">
                           Uploaded
                         </span>
                       )}
                     </div>
-                    <p style={{ margin: '0 0 4px 0', fontSize: '11px', color: '#64748b' }}>
-                      License No: <strong style={{ color: '#0f172a' }} className="font-mono">{selectedPharmacy.license_number}</strong>
+                    <p className="mb-1 text-[11px] text-slate-500">
+                      License No: <strong className="text-slate-900 font-mono">{selectedPharmacy.license_number}</strong>
                     </p>
-                    <p style={{ margin: 0, fontSize: '11px', color: '#64748b' }}>
+                    <p className="m-0 text-[11px] text-slate-500">
                       Expiry: <strong>{selectedPharmacy.license_expiry || 'Not specified'}</strong>
                     </p>
 
                     {/* License Image Preview */}
                     {selectedPharmacy.license_document_url && isImageFile(selectedPharmacy.license_document_url) && (
-                      <div 
-                        onClick={() => window.open(resolveImageUrl(selectedPharmacy.license_document_url), '_blank')}
-                        style={{
-                          margin: '10px 0 6px 0',
-                          height: '140px',
-                          background: '#f8fafc',
-                          border: '1px solid #e2e8f0',
-                          borderRadius: '8px',
-                          overflow: 'hidden',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          cursor: 'pointer'
-                        }}
-                        title="Click to view full license image"
-                      >
+                      <div onClick={() => window.open(resolveImageUrl(selectedPharmacy.license_document_url), '_blank')} className="verification-doc-preview-box" title="Click to view full license image">
                         <img 
                           src={resolveImageUrl(selectedPharmacy.license_document_url)} 
                           alt="DRAP License"
-                          style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }}
+                          className="verification-doc-img"
                         />
                       </div>
                     )}
                   </div>
 
-                  <div style={{ marginTop: '10px' }}>
+                  <div className="mt-2.5">
                     {selectedPharmacy.license_document_url ? (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const url = resolveImageUrl(selectedPharmacy.license_document_url);
-                          window.open(url, '_blank');
-                        }}
-                        style={{
-                          width: '100%',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          gap: '6px',
-                          background: '#eff7f2',
-                          color: '#135431',
-                          border: '1px solid #bbf7d0',
-                          padding: '7px 10px',
-                          borderRadius: '8px',
-                          fontSize: '12px',
-                          fontWeight: '700',
-                          cursor: 'pointer'
-                        }}
-                      >
+                      <button type="button" onClick={() => { const url = resolveImageUrl(selectedPharmacy.license_document_url); window.open(url, '_blank'); }} className="verification-doc-btn-green">
                         <Download size={13} />
                         <span>View / Download Full License ↗</span>
                       </button>
                     ) : (
-                      <span style={{ fontSize: '11px', color: '#94a3b8', fontStyle: 'italic', display: 'block', textAlign: 'center', padding: '6px', background: '#f8fafc', borderRadius: '6px' }}>
+                      <span className="verification-doc-empty-hint">
                         No license document uploaded
                       </span>
                     )}
@@ -973,82 +929,46 @@ export default function PharmacyApproval() {
                 </div>
 
                 {/* Document 2: Proprietor Owner CNIC Document */}
-                <div style={{ background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: '10px', padding: '12px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                <div className="verification-doc-card">
                   <div>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <div className="verification-doc-title-row">
+                      <div className="flex items-center gap-1.5">
                         <UserCheck size={16} color="#007aff" />
-                        <strong style={{ fontSize: '13px', color: '#007aff' }}>Owner National CNIC</strong>
+                        <strong className="text-[13px] text-[#007aff]">Owner National CNIC</strong>
                       </div>
                       {selectedPharmacy.cnic_document_url && (
-                        <span style={{ fontSize: '10px', background: '#dbeafe', color: '#1d4ed8', fontWeight: '700', padding: '2px 6px', borderRadius: '4px' }}>
+                        <span className="verification-doc-badge-blue">
                           Uploaded
                         </span>
                       )}
                     </div>
-                    <p style={{ margin: '0 0 4px 0', fontSize: '11px', color: '#64748b' }}>
-                      Proprietor: <strong style={{ color: '#0f172a' }}>{selectedPharmacy.owner_name}</strong>
+                    <p className="mb-1 text-[11px] text-slate-500">
+                      Proprietor: <strong className="text-slate-900">{selectedPharmacy.owner_name}</strong>
                     </p>
-                    <p style={{ margin: 0, fontSize: '11px', color: '#64748b' }}>
-                      CNIC No: <strong style={{ color: '#0f172a' }} className="font-mono">{selectedPharmacy.cnic || 'N/A'}</strong>
+                    <p className="m-0 text-[11px] text-slate-500">
+                      CNIC No: <strong className="text-slate-900 font-mono">{selectedPharmacy.cnic || 'N/A'}</strong>
                     </p>
 
                     {/* CNIC Image Preview */}
                     {selectedPharmacy.cnic_document_url && isImageFile(selectedPharmacy.cnic_document_url) && (
-                      <div 
-                        onClick={() => window.open(resolveImageUrl(selectedPharmacy.cnic_document_url), '_blank')}
-                        style={{
-                          margin: '10px 0 6px 0',
-                          height: '140px',
-                          background: '#f8fafc',
-                          border: '1px solid #e2e8f0',
-                          borderRadius: '8px',
-                          overflow: 'hidden',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          cursor: 'pointer'
-                        }}
-                        title="Click to view full CNIC image"
-                      >
+                      <div onClick={() => window.open(resolveImageUrl(selectedPharmacy.cnic_document_url), '_blank')} className="verification-doc-preview-box" title="Click to view full CNIC image">
                         <img 
                           src={resolveImageUrl(selectedPharmacy.cnic_document_url)} 
                           alt="Owner CNIC"
-                          style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }}
+                          className="verification-doc-img"
                         />
                       </div>
                     )}
                   </div>
 
-                  <div style={{ marginTop: '10px' }}>
+                  <div className="mt-2.5">
                     {selectedPharmacy.cnic_document_url ? (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const url = resolveImageUrl(selectedPharmacy.cnic_document_url);
-                          window.open(url, '_blank');
-                        }}
-                        style={{
-                          width: '100%',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          gap: '6px',
-                          background: '#eff6ff',
-                          color: '#1d4ed8',
-                          border: '1px solid #bfdbfe',
-                          padding: '7px 10px',
-                          borderRadius: '8px',
-                          fontSize: '12px',
-                          fontWeight: '700',
-                          cursor: 'pointer'
-                        }}
-                      >
+                      <button type="button" onClick={() => { const url = resolveImageUrl(selectedPharmacy.cnic_document_url); window.open(url, '_blank'); }} className="verification-doc-btn-blue">
                         <Download size={13} />
                         <span>View / Download Full CNIC ↗</span>
                       </button>
                     ) : (
-                      <span style={{ fontSize: '11px', color: '#94a3b8', fontStyle: 'italic', display: 'block', textAlign: 'center', padding: '6px', background: '#f8fafc', borderRadius: '6px' }}>
+                      <span className="verification-doc-empty-hint">
                         No CNIC document uploaded
                       </span>
                     )}
@@ -1057,44 +977,29 @@ export default function PharmacyApproval() {
               </div>
 
               {/* Match Verification Helper */}
-              <div style={{ background: '#ffffff', border: '1px dashed #cbd5e1', borderRadius: '8px', padding: '12px 14px' }}>
-                <span style={{ display: 'block', fontSize: '11px', fontWeight: '700', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px' }}>
+              <div className="verification-checklist-box">
+                <span className="verification-checklist-title">
                   Verification Cross-Check Checklist:
                 </span>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', fontSize: '11px' }}>
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#f1f5f9', color: '#334155', padding: '4px 10px', borderRadius: '6px' }}>
+                <div className="verification-checklist-chips">
+                  <span className="verification-checklist-chip">
                     <CheckCircle2 size={13} color="#16a34a" /> Owner: <strong>{selectedPharmacy.owner_name}</strong>
                   </span>
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#f1f5f9', color: '#334155', padding: '4px 10px', borderRadius: '6px' }}>
+                  <span className="verification-checklist-chip">
                     <CheckCircle2 size={13} color="#16a34a" /> CNIC: <strong>{selectedPharmacy.cnic || 'N/A'}</strong>
                   </span>
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#f1f5f9', color: '#334155', padding: '4px 10px', borderRadius: '6px' }}>
+                  <span className="verification-checklist-chip">
                     <CheckCircle2 size={13} color="#16a34a" /> License: <strong>{selectedPharmacy.license_number}</strong>
                   </span>
                 </div>
 
                 {/* Direct Verification Action inside Modal if Pending */}
                 {selectedPharmacy.status === 'pending' && (
-                  <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px solid #e2e8f0', display: 'flex', gap: '10px' }}>
+                  <div className="verification-quick-actions-row">
                     <button
                       type="button"
                       onClick={() => handleAction(selectedPharmacy.id, 'approve')}
-                      style={{
-                        flex: 1,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '6px',
-                        background: '#10b981',
-                        color: '#ffffff',
-                        border: 'none',
-                        padding: '10px 16px',
-                        borderRadius: '8px',
-                        fontWeight: '700',
-                        fontSize: '13px',
-                        cursor: 'pointer',
-                        boxShadow: '0 2px 4px rgba(16, 185, 129, 0.2)'
-                      }}
+                      className="verification-btn-approve-quick"
                     >
                       <Check size={16} />
                       <span>Verify & Approve Store Access</span>
@@ -1102,20 +1007,7 @@ export default function PharmacyApproval() {
                     <button
                       type="button"
                       onClick={() => handleAction(selectedPharmacy.id, 'reject')}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '6px',
-                        background: '#ffffff',
-                        color: '#ef4444',
-                        border: '1px solid #fca5a5',
-                        padding: '10px 16px',
-                        borderRadius: '8px',
-                        fontWeight: '700',
-                        fontSize: '13px',
-                        cursor: 'pointer'
-                      }}
+                      className="verification-btn-reject-quick"
                     >
                       <X size={16} />
                       <span>Reject Application</span>
@@ -1126,7 +1018,7 @@ export default function PharmacyApproval() {
             </div>
 
             {/* View Listed Medicines Direct Button */}
-            <div style={{ marginBottom: '18px' }}>
+            <div className="mb-4">
               <button 
                 onClick={() => {
                   setSelectedPharmacyForMeds(selectedPharmacy);
@@ -1134,20 +1026,20 @@ export default function PharmacyApproval() {
                   fetchMedicines(selectedPharmacy.id);
                 }}
                 className="pharmacy-view-meds-btn"
-                style={{ width: '100%', justifyContent: 'center', padding: '10px', fontSize: '13px' }}
+                
               >
                 <Pill size={15} />
                 <span>View {selectedPharmacy.name}'s Listed Medicines & Stock Status ({selectedPharmacy.medicines_count || 0})</span>
               </button>
             </div>
 
-            <div className="pharmacy-modal-actions" style={{ justifyContent: 'space-between', borderTop: '1px solid #f1f5f9', paddingTop: '16px' }}>
+            <div className="pharmacy-modal-actions justify-between border-t border-slate-100 pt-4">
               <div>
                 {selectedPharmacy.status === 'approved' && (
                   <button 
                     onClick={() => handleAction(selectedPharmacy.id, 'block')}
                     className="pharmacy-block-btn"
-                    style={{ padding: '8px 16px', fontSize: '12px' }}
+                    
                   >
                     <ShieldAlert size={14} />
                     <span>Block Pharmacy</span>
@@ -1158,7 +1050,7 @@ export default function PharmacyApproval() {
                   <button 
                     onClick={() => handleAction(selectedPharmacy.id, 'unblock')}
                     className="pharmacy-unblock-btn"
-                    style={{ padding: '8px 16px', fontSize: '12px' }}
+                    
                   >
                     <ShieldCheck size={14} />
                     <span>Unblock Pharmacy</span>
@@ -1166,7 +1058,7 @@ export default function PharmacyApproval() {
                 )}
 
                 {selectedPharmacy.status === 'pending' && (
-                  <div style={{ display: 'flex', gap: '8px' }}>
+                  <div className="flex gap-2">
                     <button 
                       onClick={() => handleAction(selectedPharmacy.id, 'approve')}
                       className="pharmacy-modal-approve-btn"
@@ -1186,15 +1078,6 @@ export default function PharmacyApproval() {
               <button 
                 onClick={() => setSelectedPharmacy(null)}
                 className="pharmacy-modal-close-btn-main"
-                style={{
-                  backgroundColor: '#3da860',
-                  color: '#ffffff',
-                  border: 'none',
-                  padding: '8px 22px',
-                  borderRadius: '8px',
-                  fontWeight: '600',
-                  cursor: 'pointer'
-                }}
               >
                 Close
               </button>
@@ -1210,19 +1093,18 @@ export default function PharmacyApproval() {
           onClick={() => setShowMedsModal(false)}
         >
           <div 
-            className="pharmacy-modal-content card"
+            className="pharmacy-modal-content card verification-meds-modal-card"
             onClick={(e) => e.stopPropagation()}
-            style={{ maxWidth: '850px', maxHeight: '85vh', display: 'flex', flexDirection: 'column' }}
           >
-            <div className="pharmacy-modal-header" style={{ borderBottom: '1px solid #f1f5f9', paddingBottom: '16px' }}>
+            <div className="pharmacy-modal-header border-b border-slate-100 pb-4">
               <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div className="flex items-center gap-2">
                   <Store size={20} className="text-[#3da860]" />
-                  <h3 className="pharmacy-modal-title" style={{ margin: 0 }}>
+                  <h3 className="pharmacy-modal-title m-0">
                     {selectedPharmacyForMeds ? selectedPharmacyForMeds.name : 'All Pharmacies'} — Medicine Inventory & Stock Status
                   </h3>
                 </div>
-                <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: '#64748b' }}>
+                <p className="mt-1 text-xs text-slate-500">
                   Live inventory and stock availability for drugs cataloged under this pharmacy
                 </p>
               </div>
@@ -1236,11 +1118,11 @@ export default function PharmacyApproval() {
               </button>
             </div>
 
-            <div style={{ flex: 1, overflowY: 'auto', padding: '16px 0' }}>
+            <div className="verification-meds-modal-body">
               {medsLoading ? (
-                <div style={{ textAlign: 'center', padding: '32px', color: '#64748b' }}>Loading medicines...</div>
+                <div className="text-center py-8 text-slate-500">Loading medicines...</div>
               ) : medicines.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '32px', color: '#64748b' }}>No medicines found for this pharmacy.</div>
+                <div className="text-center py-8 text-slate-500">No medicines found for this pharmacy.</div>
               ) : (
                 <div className="table-responsive">
                   <table className="custom-table">
@@ -1260,15 +1142,15 @@ export default function PharmacyApproval() {
                         return (
                           <tr key={med.id}>
                             <td>
-                              <span style={{ fontWeight: '700', color: '#0f172a', display: 'block' }}>{med.name}</span>
-                              {med.strength && <span style={{ fontSize: '11px', color: '#64748b' }}>{med.strength}</span>}
+                              <span className="font-bold text-slate-900 block">{med.name}</span>
+                              {med.strength && <span className="text-[11px] text-slate-500">{med.strength}</span>}
                             </td>
                             <td>
                               <span className="top-med-badge">{med.dosage_form || med.category || 'General'}</span>
                             </td>
                             <td>
-                              <strong style={{ color: med.stock === 0 ? '#ef4444' : '#0f172a' }}>{med.stock}</strong> units
-                              <span style={{ fontSize: '10px', color: '#94a3b8', display: 'block' }}>Min alert: {med.min_stock || 10}</span>
+                              <strong className={med.stock === 0 ? 'text-red-500 font-bold' : 'text-slate-900 font-bold'}>{med.stock}</strong> units
+                              <span className="text-[10px] text-slate-400 block">Min alert: {med.min_stock || 10}</span>
                             </td>
                             <td>
                               <span className={`badge ${statusObj.badgeClass}`}>
@@ -1276,12 +1158,12 @@ export default function PharmacyApproval() {
                                 {statusObj.label}
                               </span>
                             </td>
-                            <td style={{ fontWeight: '700', color: '#135431' }}>
+                            <td className="font-bold text-[#135431]">
                               PKR {Number(med.price).toLocaleString()}
                             </td>
                             <td>
                               {med.prescription_required ? (
-                                <span className="badge badge-purple" style={{ backgroundColor: '#f5f3ff', color: '#7c3aed', border: '1px solid #ddd6fe' }}>Rx Required</span>
+                                <span className="badge badge-purple bg-purple-50 text-purple-600 border border-purple-200">Rx Required</span>
                               ) : (
                                 <span className="badge badge-green">OTC</span>
                               )}
@@ -1295,11 +1177,10 @@ export default function PharmacyApproval() {
               )}
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: '14px', borderTop: '1px solid #f1f5f9' }}>
+            <div className="flex justify-end pt-3.5 border-t border-slate-100">
               <button 
                 onClick={() => setShowMedsModal(false)}
                 className="pharmacy-modal-close-btn-main"
-                style={{ backgroundColor: '#3da860', color: '#fff', border: 'none', padding: '8px 20px', borderRadius: '8px', cursor: 'pointer', fontWeight: '600' }}
               >
                 Close
               </button>

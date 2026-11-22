@@ -98,14 +98,15 @@ export default function AddMedicine({ pharmacy, onSaveSuccess, onCancel }) {
     <div className="flex flex-col gap-6">
       
       {/* Header Section */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white p-4 rounded-2xl border border-slate-100 shadow-sm gap-4">
+      <div className="add-medicine-header-bar">
         <div className="flex flex-col">
           <h2 className="text-lg font-bold text-slate-900 font-heading">Add Medicine</h2>
           <span className="text-xs text-slate-500 font-medium mt-0.5">Create a new medicine listing</span>
         </div>
         <div className="flex gap-2">
           <button 
-            className="inline-flex items-center gap-2 px-4 py-2 bg-slate-50 border border-slate-200 text-slate-600 rounded-xl font-semibold text-xs hover:bg-slate-100 transition-colors disabled:opacity-50 cursor-pointer" 
+            type="button"
+            className="add-medicine-cancel-btn" 
             onClick={onCancel} 
             disabled={loading}
           >
@@ -113,7 +114,8 @@ export default function AddMedicine({ pharmacy, onSaveSuccess, onCancel }) {
             <span>Cancel</span>
           </button>
           <button 
-            className="inline-flex items-center gap-2 px-5 py-2 bg-[#3da860] text-white rounded-xl font-bold text-xs hover:bg-[#2e8c4e] transition-colors disabled:opacity-50 shadow-md shadow-[#3da860]/10 cursor-pointer" 
+            type="button"
+            className="add-medicine-save-btn" 
             onClick={handleSubmit} 
             disabled={loading}
           >
@@ -130,8 +132,8 @@ export default function AddMedicine({ pharmacy, onSaveSuccess, onCancel }) {
           <form onSubmit={handleSubmit} className="flex flex-col gap-6">
             
             {/* Basic Info Card */}
-            <div className="card p-6 bg-white border border-slate-100 rounded-2xl shadow-sm">
-              <h3 className="text-sm font-bold text-[#135431] border-b border-slate-50 pb-3 mb-5 font-heading flex items-center justify-between">
+            <div className="add-medicine-card">
+              <h3 className="add-medicine-card-title flex items-center justify-between">
                 <span>Basic Information</span>
                 <span className="text-[10px] text-red-500 font-normal">* Fields are required</span>
               </h3>
@@ -207,8 +209,8 @@ export default function AddMedicine({ pharmacy, onSaveSuccess, onCancel }) {
             </div>
 
             {/* Pricing & Stock Card */}
-            <div className="card p-6 bg-white border border-slate-100 rounded-2xl shadow-sm">
-              <h3 className="text-sm font-bold text-[#135431] border-b border-slate-50 pb-3 mb-5 font-heading">
+            <div className="add-medicine-card">
+              <h3 className="add-medicine-card-title">
                 Pricing & Stock
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -255,8 +257,8 @@ export default function AddMedicine({ pharmacy, onSaveSuccess, onCancel }) {
             </div>
 
             {/* Product Details Card */}
-            <div className="card p-6 bg-white border border-slate-100 rounded-2xl shadow-sm">
-              <h3 className="text-sm font-bold text-[#135431] border-b border-slate-50 pb-3 mb-5 font-heading">
+            <div className="add-medicine-card">
+              <h3 className="add-medicine-card-title">
                 Product Details
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -324,8 +326,8 @@ export default function AddMedicine({ pharmacy, onSaveSuccess, onCancel }) {
             </div>
 
             {/* Product Image Card */}
-            <div className="card p-6 bg-white border border-slate-100 rounded-2xl shadow-sm">
-              <h3 className="text-sm font-bold text-[#135431] border-b border-slate-50 pb-3 mb-5 font-heading">
+            <div className="add-medicine-card">
+              <h3 className="add-medicine-card-title">
                 Product Image
               </h3>
               <div className="border-2 border-dashed border-slate-200 rounded-xl bg-slate-50/50 p-8 text-center cursor-pointer hover:border-[#3da860] hover:bg-[#3da860]/5 transition-all">
@@ -351,7 +353,7 @@ export default function AddMedicine({ pharmacy, onSaveSuccess, onCancel }) {
         <div className="lg:col-span-1 flex flex-col gap-6 sticky top-[104px]">
           
           {/* Live Preview Card */}
-          <div className="bg-white rounded-2xl border border-slate-100 p-5 flex flex-col shadow-sm">
+          <div className="add-medicine-preview-card">
             <div className="flex items-center gap-2 text-xs font-extrabold text-[#3da860] uppercase tracking-wider mb-4 border-b border-slate-50 pb-2">
               <Pill size={16} />
               <span>Live Preview</span>
@@ -393,7 +395,7 @@ export default function AddMedicine({ pharmacy, onSaveSuccess, onCancel }) {
           </div>
 
           {/* Guide Card */}
-          <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
+          <div className="add-medicine-guidelines-card">
             <div className="flex items-center mb-3">
               <HelpCircle size={16} className="text-[#3da860] mr-2" />
               <span className="text-xs font-bold text-slate-800">Guidelines</span>

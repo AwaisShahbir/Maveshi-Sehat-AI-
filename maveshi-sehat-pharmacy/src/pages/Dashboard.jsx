@@ -511,7 +511,6 @@ export default function Dashboard({ pharmacy, onLogout }) {
                 <div 
                   className="pipeline-card" 
                   onClick={() => { setOrderFilter('Pending'); setCurrentView('orders'); }} 
-                  style={{ cursor: 'pointer' }}
                   title="Click to view pending orders"
                 >
                   <div className="pipeline-icon-circle pending">
@@ -526,7 +525,6 @@ export default function Dashboard({ pharmacy, onLogout }) {
                 <div 
                   className="pipeline-card" 
                   onClick={() => { setOrderFilter('Processing'); setCurrentView('orders'); }} 
-                  style={{ cursor: 'pointer' }}
                   title="Click to view processing orders"
                 >
                   <div className="pipeline-icon-circle confirmed">
@@ -541,7 +539,6 @@ export default function Dashboard({ pharmacy, onLogout }) {
                 <div 
                   className="pipeline-card" 
                   onClick={() => { setOrderFilter('Dispatched'); setCurrentView('orders'); }} 
-                  style={{ cursor: 'pointer' }}
                   title="Click to view dispatched orders"
                 >
                   <div className="pipeline-icon-circle shipped">
@@ -556,7 +553,6 @@ export default function Dashboard({ pharmacy, onLogout }) {
                 <div 
                   className="pipeline-card" 
                   onClick={() => { setOrderFilter('Completed'); setCurrentView('orders'); }} 
-                  style={{ cursor: 'pointer' }}
                   title="Click to view completed orders"
                 >
                   <div className="pipeline-icon-circle delivered">
@@ -571,7 +567,6 @@ export default function Dashboard({ pharmacy, onLogout }) {
                 <div 
                   className="pipeline-card" 
                   onClick={() => { setOrderFilter('Cancelled'); setCurrentView('orders'); }} 
-                  style={{ cursor: 'pointer' }}
                   title="Click to view cancelled orders"
                 >
                   <div className="pipeline-icon-circle cancelled">
@@ -709,11 +704,12 @@ export default function Dashboard({ pharmacy, onLogout }) {
                   </div>
 
                   
-                  <div className="card bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+                  <div className="dashboard-quick-action-card">
                     <h3 className="card-title text-[#135431] font-bold mb-4">Quick Actions</h3>
                     <div className="flex flex-col gap-3">
                       <button 
-                        className="btn btn-primary w-full h-11 text-xs font-bold bg-[#3da860] hover:bg-[#2e8c4e] shadow-md shadow-[#3da860]/10 flex justify-start items-center pl-4 gap-2.5 rounded-xl"
+                        type="button"
+                        className="dashboard-quick-action-btn-primary"
                         onClick={() => { setCurrentView('add-medicine'); setSidebarOpen(false); }}
                       >
                         <PlusCircle size={16} />
@@ -721,7 +717,8 @@ export default function Dashboard({ pharmacy, onLogout }) {
                       </button>
 
                       <button 
-                        className="btn btn-secondary w-full h-11 text-xs font-semibold bg-[#eff7f2] hover:bg-[#c5dbd0]/30 border border-[#3da860]/20 text-slate-800 flex justify-start items-center pl-4 gap-2.5 rounded-xl"
+                        type="button"
+                        className="dashboard-quick-action-btn-secondary"
                         onClick={() => { setCurrentView('orders'); setSidebarOpen(false); }}
                       >
                         <ShoppingBag size={16} className="text-[#3da860]" />
@@ -729,7 +726,8 @@ export default function Dashboard({ pharmacy, onLogout }) {
                       </button>
 
                       <button 
-                        className="btn btn-secondary w-full h-11 text-xs font-semibold bg-[#eff7f2] hover:bg-[#c5dbd0]/30 border border-[#3da860]/20 text-slate-800 flex justify-start items-center pl-4 gap-2.5 rounded-xl"
+                        type="button"
+                        className="dashboard-quick-action-btn-secondary"
                         onClick={() => { setCurrentView('stock-alerts'); setSidebarOpen(false); }}
                       >
                         <Pill size={16} className="text-[#3da860]" />

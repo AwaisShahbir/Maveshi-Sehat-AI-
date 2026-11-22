@@ -1,6 +1,6 @@
 import { API_BASE_URL } from '../config';
 import React, { useState, useEffect } from 'react';
-import { Store, ShieldCheck, Mail, Phone, Clock, FileText, Check } from 'lucide-react';
+import { Store, ShieldCheck, Mail, Phone, Check } from 'lucide-react';
 import '../styles/Profile.css';
 
 export default function Profile({ pharmacy, onProfileUpdate }) {
@@ -10,7 +10,6 @@ export default function Profile({ pharmacy, onProfileUpdate }) {
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
 
-  
   const [form, setForm] = useState({
     name: '',
     nameUrdu: '',
@@ -106,24 +105,24 @@ export default function Profile({ pharmacy, onProfileUpdate }) {
         
         {/* Left Side: Store Card */}
         <div className="lg:col-span-1">
-          <div className="card flex flex-col items-center text-center p-8 bg-white border border-slate-100 rounded-2xl shadow-sm">
-            <div className="w-[72px] h-[72px] rounded-full bg-[#3da860]/10 text-[#3da860] flex items-center justify-center border-2 border-[#3da860] mb-4">
+          <div className="profile-store-side-card">
+            <div className="profile-store-icon-circle">
               <Store size={36} />
             </div>
-            <h3 className="text-lg font-extrabold text-slate-800">{profile.name}</h3>
-            <div className="mt-4 mb-6">
-              <span className="badge badge-green bg-[#3da860]/10 text-[#3da860] border border-[#3da860]/25">
+            <h3 className="profile-store-title">{profile.name}</h3>
+            <div className="profile-store-badge-wrap">
+              <span className="profile-store-badge">
                 <ShieldCheck size={14} /> Approved Portal
               </span>
             </div>
             
-            <div className="flex flex-col gap-3 w-full border-t border-slate-50 pt-5">
-              <div className="flex items-center gap-3 text-slate-600 text-xs">
-                <Mail size={16} className="text-slate-400 shrink-0" />
+            <div className="profile-contact-list">
+              <div className="profile-contact-item">
+                <Mail size={16} className="profile-contact-icon" />
                 <span className="truncate font-semibold">{profile.email}</span>
               </div>
-              <div className="flex items-center gap-3 text-slate-600 text-xs">
-                <Phone size={16} className="text-slate-400 shrink-0" />
+              <div className="profile-contact-item">
+                <Phone size={16} className="profile-contact-icon" />
                 <span className="font-semibold">{profile.phone || 'N/A'}</span>
               </div>
             </div>
@@ -132,7 +131,7 @@ export default function Profile({ pharmacy, onProfileUpdate }) {
 
         {/* Right Side: Details View / Form */}
         <div className="lg:col-span-2">
-          <div className="card bg-white border border-slate-100 rounded-2xl p-7 shadow-sm">
+          <div className="profile-main-card">
             <div className="card-header-flex border-b border-slate-50 pb-4 mb-6">
               <div>
                 <h3 className="card-title text-slate-900 font-bold">Pharmacy Details</h3>
@@ -140,6 +139,7 @@ export default function Profile({ pharmacy, onProfileUpdate }) {
               </div>
               {!isEditing ? (
                 <button 
+                  type="button"
                   className="btn btn-secondary btn-sm bg-slate-50 border border-slate-200 text-slate-700 hover:bg-slate-100 rounded-xl transition-all cursor-pointer font-bold" 
                   onClick={() => setIsEditing(true)}
                 >
@@ -147,6 +147,7 @@ export default function Profile({ pharmacy, onProfileUpdate }) {
                 </button>
               ) : (
                 <button 
+                  type="button"
                   className="btn btn-danger btn-sm rounded-xl hover:bg-red-600 transition-all cursor-pointer font-bold" 
                   onClick={() => setIsEditing(false)}
                 >
@@ -156,65 +157,64 @@ export default function Profile({ pharmacy, onProfileUpdate }) {
             </div>
 
             {!isEditing ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-6">
-                
-                <div className="flex flex-col md:col-span-2">
-                  <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold mb-1">Pharmacy Name</span>
-                  <span className="text-sm font-bold text-slate-900">{profile.name}</span>
+              <div className="profile-details-grid">
+                <div className="profile-field-item full-width">
+                  <span className="profile-field-label">Pharmacy Name</span>
+                  <span className="profile-field-value">{profile.name}</span>
                 </div>
-                <div className="flex flex-col border-t border-slate-50 pt-3">
-                  <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold mb-1">Owner Name</span>
-                  <span className="text-sm font-bold text-slate-900">{profile.owner_name}</span>
+                <div className="profile-field-item">
+                  <span className="profile-field-label">Owner Name</span>
+                  <span className="profile-field-value">{profile.owner_name}</span>
                 </div>
-                <div className="flex flex-col border-t border-slate-50 pt-3">
-                  <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold mb-1">CNIC</span>
-                  <span className="text-sm font-bold text-slate-900 font-mono">{profile.cnic || 'N/A'}</span>
-                </div>
-
-                <div className="flex flex-col border-t border-slate-50 pt-3">
-                  <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold mb-1">Phone Number</span>
-                  <span className="text-sm font-bold text-slate-900">{profile.phone || 'N/A'}</span>
-                </div>
-                <div className="flex flex-col border-t border-slate-50 pt-3">
-                  <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold mb-1">WhatsApp Number</span>
-                  <span className="text-sm font-bold text-slate-900">{profile.whatsapp || 'N/A'}</span>
-                </div>
-                <div className="flex flex-col border-t border-slate-50 pt-3">
-                  <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold mb-1">Email Address</span>
-                  <span className="text-sm font-bold text-slate-900">{profile.email}</span>
-                </div>
-                <div className="flex flex-col border-t border-slate-50 pt-3">
-                  <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold mb-1">Business Hours</span>
-                  <span className="text-sm font-bold text-slate-900">{profile.business_hours || 'N/A'}</span>
+                <div className="profile-field-item">
+                  <span className="profile-field-label">CNIC</span>
+                  <span className="profile-field-value mono">{profile.cnic || 'N/A'}</span>
                 </div>
 
-                <div className="flex flex-col border-t border-slate-50 pt-3">
-                  <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold mb-1">Province</span>
-                  <span className="text-sm font-bold text-slate-900">{profile.province || 'N/A'}</span>
+                <div className="profile-field-item">
+                  <span className="profile-field-label">Phone Number</span>
+                  <span className="profile-field-value">{profile.phone || 'N/A'}</span>
                 </div>
-                <div className="flex flex-col border-t border-slate-50 pt-3">
-                  <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold mb-1">City</span>
-                  <span className="text-sm font-bold text-slate-900">{profile.city || 'N/A'}</span>
+                <div className="profile-field-item">
+                  <span className="profile-field-label">WhatsApp Number</span>
+                  <span className="profile-field-value">{profile.whatsapp || 'N/A'}</span>
                 </div>
-                <div className="flex flex-col md:col-span-2 border-t border-slate-50 pt-3">
-                  <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold mb-1">Full Address</span>
-                  <span className="text-sm font-bold text-slate-900">{profile.address || 'N/A'}</span>
+                <div className="profile-field-item">
+                  <span className="profile-field-label">Email Address</span>
+                  <span className="profile-field-value">{profile.email}</span>
+                </div>
+                <div className="profile-field-item">
+                  <span className="profile-field-label">Business Hours</span>
+                  <span className="profile-field-value">{profile.business_hours || 'N/A'}</span>
                 </div>
 
-                <div className="flex flex-col border-t border-slate-50 pt-3">
-                  <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold mb-1">DRAP License Number</span>
-                  <span className="text-sm font-extrabold text-[#3da860] font-mono">
+                <div className="profile-field-item">
+                  <span className="profile-field-label">Province</span>
+                  <span className="profile-field-value">{profile.province || 'N/A'}</span>
+                </div>
+                <div className="profile-field-item">
+                  <span className="profile-field-label">City</span>
+                  <span className="profile-field-value">{profile.city || 'N/A'}</span>
+                </div>
+                <div className="profile-field-item full-width">
+                  <span className="profile-field-label">Full Address</span>
+                  <span className="profile-field-value">{profile.address || 'N/A'}</span>
+                </div>
+
+                <div className="profile-field-item">
+                  <span className="profile-field-label">DRAP License Number</span>
+                  <span className="profile-field-value highlight">
                     {profile.license_number}
                   </span>
                 </div>
-                <div className="flex flex-col border-t border-slate-50 pt-3">
-                  <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold mb-1">License Expiry Date</span>
-                  <span className="text-sm font-bold text-slate-900 font-mono">{profile.license_expiry || 'N/A'}</span>
+                <div className="profile-field-item">
+                  <span className="profile-field-label">License Expiry Date</span>
+                  <span className="profile-field-value mono">{profile.license_expiry || 'N/A'}</span>
                 </div>
 
-                <div className="flex flex-col md:col-span-2 border-t border-slate-50 pt-3">
-                  <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold mb-1">Description</span>
-                  <span className="text-sm font-semibold text-slate-700 leading-relaxed">{profile.description || 'N/A'}</span>
+                <div className="profile-field-item full-width">
+                  <span className="profile-field-label">Description</span>
+                  <span className="profile-field-value description">{profile.description || 'N/A'}</span>
                 </div>
               </div>
             ) : (
@@ -226,7 +226,7 @@ export default function Profile({ pharmacy, onProfileUpdate }) {
                       type="text" 
                       name="name" 
                       required
-                      className="form-control focus:border-[#3da860] focus:ring-2 focus:ring-[#3da860]/20 placeholder:text-slate-400" 
+                      className="form-control profile-input" 
                       value={form.name} 
                       onChange={handleChange}
                     />
@@ -237,7 +237,7 @@ export default function Profile({ pharmacy, onProfileUpdate }) {
                       type="text" 
                       name="ownerName" 
                       required
-                      className="form-control focus:border-[#3da860] focus:ring-2 focus:ring-[#3da860]/20 placeholder:text-slate-400" 
+                      className="form-control profile-input" 
                       value={form.ownerName} 
                       onChange={handleChange}
                     />
@@ -248,7 +248,7 @@ export default function Profile({ pharmacy, onProfileUpdate }) {
                       type="text" 
                       name="businessHours" 
                       required
-                      className="form-control focus:border-[#3da860] focus:ring-2 focus:ring-[#3da860]/20 placeholder:text-slate-400" 
+                      className="form-control profile-input" 
                       value={form.businessHours} 
                       onChange={handleChange}
                     />
@@ -259,7 +259,7 @@ export default function Profile({ pharmacy, onProfileUpdate }) {
                       type="text" 
                       name="phone" 
                       required
-                      className="form-control focus:border-[#3da860] focus:ring-2 focus:ring-[#3da860]/20 placeholder:text-slate-400 font-mono" 
+                      className="form-control profile-input font-mono" 
                       value={form.phone} 
                       onChange={handleChange}
                     />
@@ -269,7 +269,7 @@ export default function Profile({ pharmacy, onProfileUpdate }) {
                     <input 
                       type="text" 
                       name="whatsapp" 
-                      className="form-control focus:border-[#3da860] focus:ring-2 focus:ring-[#3da860]/20 placeholder:text-slate-400 font-mono" 
+                      className="form-control profile-input font-mono" 
                       value={form.whatsapp} 
                       onChange={handleChange}
                     />
@@ -279,7 +279,7 @@ export default function Profile({ pharmacy, onProfileUpdate }) {
                     <select 
                       name="province" 
                       required
-                      className="form-control focus:border-[#3da860] focus:ring-2 focus:ring-[#3da860]/20 bg-white cursor-pointer" 
+                      className="form-control profile-input bg-white cursor-pointer" 
                       value={form.province} 
                       onChange={handleChange}
                     >
@@ -299,7 +299,7 @@ export default function Profile({ pharmacy, onProfileUpdate }) {
                       type="text" 
                       name="city" 
                       required
-                      className="form-control focus:border-[#3da860] focus:ring-2 focus:ring-[#3da860]/20 placeholder:text-slate-400" 
+                      className="form-control profile-input" 
                       value={form.city} 
                       onChange={handleChange}
                     />
@@ -311,7 +311,7 @@ export default function Profile({ pharmacy, onProfileUpdate }) {
                   <textarea 
                     name="address" 
                     required
-                    className="form-control focus:border-[#3da860] focus:ring-2 focus:ring-[#3da860]/20 placeholder:text-slate-400 min-h-[70px]" 
+                    className="form-control profile-input min-h-[70px]" 
                     value={form.address} 
                     onChange={handleChange}
                   />
@@ -321,7 +321,7 @@ export default function Profile({ pharmacy, onProfileUpdate }) {
                   <label className="form-label">Description</label>
                   <textarea 
                     name="description" 
-                    className="form-control focus:border-[#3da860] focus:ring-2 focus:ring-[#3da860]/20 placeholder:text-slate-400 min-h-[70px]" 
+                    className="form-control profile-input min-h-[70px]" 
                     value={form.description} 
                     onChange={handleChange}
                   />
@@ -329,7 +329,7 @@ export default function Profile({ pharmacy, onProfileUpdate }) {
 
                 <button 
                   type="submit" 
-                  className="btn btn-primary bg-[#3da860] hover:bg-[#2e8c4e] shadow-md shadow-[#3da860]/10 mt-3 flex items-center gap-2 justify-center w-fit rounded-xl cursor-pointer font-bold"
+                  className="profile-save-btn"
                 >
                   <Check size={16} />
                   <span>Save Changes</span>
@@ -342,4 +342,3 @@ export default function Profile({ pharmacy, onProfileUpdate }) {
     </div>
   );
 }
-

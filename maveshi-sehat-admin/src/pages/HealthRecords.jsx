@@ -436,8 +436,7 @@ Document generated from Maveshi Sehat AI Administrative Console.
                           <Download size={16} />
                         </button>
                         <button 
-                          className="btn-icon-only" 
-                          style={{ color: '#EF4444', borderColor: '#FEE2E2', backgroundColor: '#FEF2F2' }}
+                          className="btn-icon-only hr-btn-danger-soft" 
                           title="Delete health record"
                           onClick={() => handleDeleteRecord(rec)}
                         >
@@ -721,8 +720,7 @@ Document generated from Maveshi Sehat AI Administrative Console.
 
                 <button
                   onClick={() => handleDeleteRecord(selectedRecord)}
-                  className="hr-secondary-btn"
-                  style={{ color: '#EF4444', borderColor: '#FEE2E2', backgroundColor: '#FEF2F2' }}
+                  className="hr-secondary-btn hr-btn-danger-soft"
                   title="Delete health record"
                 >
                   <Trash2 size={15} />

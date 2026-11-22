@@ -189,21 +189,12 @@ export default function Analytics({ pharmacy, formatPrice }) {
             {topMedicines.map((med, idx) => {
               const maxSales = Math.max(...topMedicines.map(m => m.sales), 1);
               const percent = Math.round((med.sales / maxSales) * 100);
-              
-              
-              const badgeColors = [
-                { bg: '#3da860', text: '#ffffff' },
-                { bg: 'rgba(61, 168, 96, 0.1)', text: '#3da860' },
-                { bg: '#f1f5f9', text: '#64748b' },
-                { bg: '#f1f5f9', text: '#64748b' },
-                { bg: '#f1f5f9', text: '#64748b' }
-              ];
-              const badgeStyle = badgeColors[idx] || badgeColors[4];
+              const rankClass = idx === 0 ? 'analytics-badge-rank-1' : idx === 1 ? 'analytics-badge-rank-2' : 'analytics-badge-rank-default';
 
               return (
                 <div key={idx} className="flex flex-col gap-1.5">
                   <div className="flex items-center gap-3">
-                    <div className="w-6 h-6 rounded flex items-center justify-center text-xs font-bold" style={{ backgroundColor: badgeStyle.bg, color: badgeStyle.text }}>
+                    <div className={`analytics-badge-rank ${rankClass}`}>
                       {idx + 1}
                     </div>
                     <div className="flex-1 flex flex-col">

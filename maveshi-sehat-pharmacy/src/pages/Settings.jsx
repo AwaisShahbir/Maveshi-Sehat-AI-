@@ -338,7 +338,7 @@ export default function Settings({ pharmacy }) {
                   <input 
                     type="file" 
                     ref={fileInputRef} 
-                    style={{ display: 'none' }} 
+                    className="settings-file-input-hidden"
                     accept="image/*" 
                     onChange={handleAvatarChange} 
                   />

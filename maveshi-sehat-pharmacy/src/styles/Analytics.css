@@ -43,6 +43,21 @@
   font-weight: 700;
 }
 
+.analytics-badge-rank-1 {
+  background-color: #3da860;
+  color: #ffffff;
+}
+
+.analytics-badge-rank-2 {
+  background-color: rgba(61, 168, 96, 0.1);
+  color: #3da860;
+}
+
+.analytics-badge-rank-default {
+  background-color: #f1f5f9;
+  color: #64748b;
+}
+
 
 @media (max-width: 768px) {
   .analytics-chart-box {

@@ -55,3 +55,110 @@
   width: 0;
   height: 0;
 }
+
+/* Header Bar */
+.add-medicine-header-bar {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-start;
+  background-color: #ffffff;
+  padding: 16px;
+  border-radius: 16px;
+  border: 1px solid #f1f5f9;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  gap: 16px;
+}
+
+@media (min-width: 640px) {
+  .add-medicine-header-bar {
+    flex-direction: row;
+    align-items: center;
+  }
+}
+
+.add-medicine-cancel-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  color: #475569;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.add-medicine-cancel-btn:hover {
+  background-color: #f1f5f9;
+}
+
+.add-medicine-save-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 20px;
+  background-color: #3da860;
+  color: #ffffff;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 0.75rem;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 6px -1px rgba(61, 168, 96, 0.15);
+  transition: background-color 0.2s ease;
+}
+
+.add-medicine-save-btn:hover {
+  background-color: #2e8c4e;
+}
+
+.add-medicine-card {
+  background-color: #ffffff;
+  border: 1px solid #f1f5f9;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.add-medicine-card-title {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #135431;
+  border-bottom: 1px solid #f8fafc;
+  padding-bottom: 12px;
+  margin-bottom: 20px;
+  font-family: var(--font-heading, 'Outfit', sans-serif);
+}
+
+.add-medicine-input {
+  width: 100%;
+  border-radius: 12px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.add-medicine-input:focus {
+  border-color: #3da860;
+  box-shadow: 0 0 0 3px rgba(61, 168, 96, 0.15);
+}
+
+.add-medicine-preview-card {
+  background-color: #ffffff;
+  border-radius: 16px;
+  border: 1px solid #f1f5f9;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.add-medicine-guidelines-card {
+  background-color: #ffffff;
+  border: 1px solid #f1f5f9;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}

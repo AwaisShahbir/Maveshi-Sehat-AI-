@@ -1,5 +1,9 @@
 /* Settings.css - Pharmacy Portal Settings matching Admin Design */
 
+.settings-file-input-hidden {
+  display: none !important;
+}
+
 .settings-view {
   display: flex;
   flex-direction: column;

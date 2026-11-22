@@ -321,7 +321,7 @@ export default function Notifications() {
                         </div>
 
                         <span className="notifications-timestamp" title={new Date(n.created_at).toISOString()}>
-                          <Calendar size={12} style={{ display: 'inline', marginRight: '4px', verticalAlign: '-1px' }} />
+                          <Calendar size={12} className="notifications-calendar-icon" />
                           {new Date(n.created_at).toLocaleString('en-US', { 
                             day: '2-digit', 
                             month: 'short', 

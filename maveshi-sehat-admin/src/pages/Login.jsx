@@ -266,58 +266,26 @@ export default function Login({ onLoginSuccess }) {
 
       {/* Forgot Password Modal */}
       {showForgotModal && (
-        <div className="admin-modal-backdrop" style={{
-          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-          background: 'rgba(15, 23, 42, 0.75)',
-          backdropFilter: 'blur(4px)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          zIndex: 9999, padding: '16px'
-        }}>
-          <div style={{
-            background: '#ffffff',
-            borderRadius: '16px',
-            maxWidth: '460px',
-            width: '100%',
-            boxShadow: '0 20px 40px rgba(0,0,0,0.2)',
-            border: '1px solid #e2e8f0',
-            overflow: 'hidden'
-          }}>
+        <div className="admin-reset-modal-backdrop">
+          <div className="admin-reset-modal-card">
             {/* Modal Header */}
-            <div style={{
-              background: 'linear-gradient(135deg, #135431 0%, #0d3820 100%)',
-              padding: '20px 24px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              color: '#ffffff'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div className="admin-reset-modal-header">
+              <div className="flex items-center gap-2.5">
                 <KeyRound size={22} color="#86efac" />
-                <h4 style={{ margin: 0, fontSize: '18px', fontWeight: 700 }}>Reset Admin Password</h4>
+                <h4 className="admin-reset-modal-title">Reset Admin Password</h4>
               </div>
               <button
                 onClick={() => setShowForgotModal(false)}
-                style={{ background: 'none', border: 'none', color: '#ffffff', cursor: 'pointer', padding: 4 }}
+                className="admin-reset-close-btn"
               >
                 <X size={20} />
               </button>
             </div>
 
             {/* Modal Body */}
-            <div style={{ padding: '24px' }}>
+            <div className="admin-reset-modal-body">
               {forgotError && (
-                <div style={{
-                  background: '#fef2f2',
-                  border: '1px solid #fecaca',
-                  color: '#b91c1c',
-                  padding: '10px 14px',
-                  borderRadius: '8px',
-                  fontSize: '13px',
-                  marginBottom: '16px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px'
-                }}>
+                <div className="admin-reset-alert">
                   <AlertCircle size={16} />
                   <span>{forgotError}</span>
                 </div>
@@ -326,27 +294,25 @@ export default function Login({ onLoginSuccess }) {
               {/* Step 1: Identifier */}
               {forgotStep === 1 && (
                 <form onSubmit={handleSendResetCode}>
-                  <p style={{ fontSize: '13px', color: '#64748b', marginTop: 0, marginBottom: '16px' }}>
+                  <p className="admin-reset-desc">
                     Enter your registered email address or phone number. We will send a 4-digit verification code to reset your password.
                   </p>
-                  <div style={{ marginBottom: '16px' }}>
-                    <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
+                  <div className="mb-4">
+                    <label className="admin-reset-label">
                       Email or Phone Number
                     </label>
                     <input
                       type="text"
-                      className="form-control"
                       placeholder="admin@maveshisehat.pk or 03XXXXXXXXX"
                       value={forgotIdentifier}
                       onChange={(e) => setForgotIdentifier(e.target.value)}
-                      style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+                      className="form-control admin-reset-input"
                     />
                   </div>
                   <button
                     type="submit"
-                    className="btn btn-primary"
+                    className="admin-reset-submit-btn"
                     disabled={forgotLoading}
-                    style={{ width: '100%', padding: '12px', background: '#10b981', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: 600, cursor: 'pointer' }}
                   >
                     {forgotLoading ? 'Sending Verification Code...' : 'Send Verification Code'}
                   </button>
@@ -356,11 +322,11 @@ export default function Login({ onLoginSuccess }) {
               {/* Step 2: OTP + New Password */}
               {forgotStep === 2 && (
                 <form onSubmit={handleResetPassword}>
-                  <p style={{ fontSize: '13px', color: '#64748b', marginTop: 0, marginBottom: '16px' }}>
-                    A 4-digit code was sent to <strong style={{ color: '#10b981' }}>{targetEmail}</strong>. Please enter the code and your new password.
+                  <p className="admin-reset-desc">
+                    A 4-digit code was sent to <strong className="text-emerald-500">{targetEmail}</strong>. Please enter the code and your new password.
                   </p>
-                  <div style={{ marginBottom: '14px' }}>
-                    <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
+                  <div className="mb-3.5">
+                    <label className="admin-reset-label">
                       4-Digit Code
                     </label>
                     <input
@@ -368,49 +334,45 @@ export default function Login({ onLoginSuccess }) {
                       name="resetOtp"
                       autoComplete="one-time-code"
                       inputMode="numeric"
-                      className="form-control"
                       placeholder="• • • •"
                       maxLength={4}
                       value={resetOtp}
                       onChange={(e) => setResetOtp(e.target.value.replace(/\D/g, '').slice(0, 4))}
-                      style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', letterSpacing: '6px', fontSize: '18px', textAlign: 'center', fontWeight: 'bold' }}
+                      className="form-control admin-reset-otp-input"
                     />
                   </div>
-                  <div style={{ marginBottom: '14px' }}>
-                    <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
+                  <div className="mb-3.5">
+                    <label className="admin-reset-label">
                       New Password
                     </label>
                     <input
                       type="password"
                       name="newPassword"
                       autoComplete="new-password"
-                      className="form-control"
                       placeholder="At least 6 characters"
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
-                      style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+                      className="form-control admin-reset-input"
                     />
                   </div>
-                  <div style={{ marginBottom: '18px' }}>
-                    <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
+                  <div className="mb-4.5">
+                    <label className="admin-reset-label">
                       Confirm New Password
                     </label>
                     <input
                       type="password"
                       name="confirmPassword"
                       autoComplete="new-password"
-                      className="form-control"
                       placeholder="Re-enter new password"
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
-                      style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+                      className="form-control admin-reset-input"
                     />
                   </div>
                   <button
                     type="submit"
-                    className="btn btn-primary"
+                    className="admin-reset-submit-btn"
                     disabled={forgotLoading}
-                    style={{ width: '100%', padding: '12px', background: '#10b981', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: 600, cursor: 'pointer' }}
                   >
                     {forgotLoading ? 'Updating Password...' : 'Save New Password'}
                   </button>
@@ -419,10 +381,10 @@ export default function Login({ onLoginSuccess }) {
 
               {/* Step 3: Success */}
               {forgotStep === 3 && (
-                <div style={{ textAlign: 'center', padding: '16px 0' }}>
-                  <CheckCircle size={48} color="#10b981" style={{ margin: '0 auto 12px' }} />
-                  <h4 style={{ margin: '0 0 8px', color: '#0f172a' }}>Password Reset Complete!</h4>
-                  <p style={{ fontSize: '13px', color: '#64748b', marginBottom: '20px' }}>
+                <div className="admin-reset-success-box">
+                  <CheckCircle size={48} color="#10b981" className="mx-auto mb-3" />
+                  <h4 className="m-0 mb-2 text-slate-900 font-bold">Password Reset Complete!</h4>
+                  <p className="text-xs text-slate-500 mb-5">
                     {forgotSuccess}
                   </p>
                   <button
@@ -430,7 +392,7 @@ export default function Login({ onLoginSuccess }) {
                       setShowForgotModal(false);
                       setForgotStep(1);
                     }}
-                    style={{ width: '100%', padding: '10px', background: '#10b981', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: 600, cursor: 'pointer' }}
+                    className="admin-reset-submit-btn"
                   >
                     Return to Login
                   </button>

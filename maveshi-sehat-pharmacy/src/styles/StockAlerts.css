@@ -43,3 +43,23 @@
   cursor: pointer;
   transition: all 0.15s ease;
 }
+
+.stock-edit-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  background-color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #64748b;
+  transition: all 0.15s ease;
+}
+
+.stock-edit-btn:hover {
+  border-color: #3da860;
+  background-color: rgba(61, 168, 96, 0.08);
+  color: #3da860;
+}

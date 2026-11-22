@@ -229,18 +229,7 @@ export default function CommunityForum() {
 
       {/* Toast Feedback */}
       {feedback && (
-        <div style={{
-          padding: '12px 18px',
-          borderRadius: '10px',
-          backgroundColor: feedback.type === 'error' ? '#fef2f2' : '#ecfdf5',
-          border: `1px solid ${feedback.type === 'error' ? '#fecaca' : '#a7f3d0'}`,
-          color: feedback.type === 'error' ? '#991b1b' : '#065f46',
-          fontSize: '13px',
-          fontWeight: 600,
-          display: 'flex',
-          alignItems: 'center',
-          gap: '10px'
-        }}>
+        <div className={`forum-feedback-toast ${feedback.type === 'error' ? 'error' : 'success'}`}>
           <CheckCircle2 size={16} />
           <span>{feedback.message}</span>
         </div>
@@ -296,7 +285,7 @@ export default function CommunityForum() {
       {/* Filter and Search Bar */}
       <div className="forum-filter-bar">
         <div className="forum-filter-group">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#64748b', fontSize: '12.5px', fontWeight: 700 }}>
+          <div className="forum-filter-label">
             <Filter size={15} />
             <span>Filters:</span>
           </div>
@@ -340,23 +329,17 @@ export default function CommunityForum() {
 
       {/* Content Area: Loading / Empty / Cards / Table */}
       {loading ? (
-        <div style={{ padding: '60px 0', textAlign: 'center', color: '#64748b' }}>
-          <RefreshCw size={26} className="animate-spin" style={{ margin: '0 auto 10px auto' }} />
-          <p style={{ fontSize: '13.5px', fontWeight: 600 }}>Loading community discussions...</p>
+        <div className="forum-loading-container">
+          <RefreshCw size={26} className="animate-spin forum-loading-icon" />
+          <p className="forum-loading-text">Loading community discussions...</p>
         </div>
       ) : filteredPosts.length === 0 ? (
-        <div style={{
-          backgroundColor: '#ffffff',
-          borderRadius: '14px',
-          padding: '50px 20px',
-          textAlign: 'center',
-          border: '1px solid var(--border-light)'
-        }}>
-          <MessageSquare size={42} style={{ color: '#cbd5e1', margin: '0 auto 12px auto' }} />
-          <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-main)', margin: '0 0 4px 0' }}>
+        <div className="forum-empty-container">
+          <MessageSquare size={42} className="forum-empty-icon" />
+          <h3 className="forum-empty-title">
             No discussions found
           </h3>
-          <p style={{ fontSize: '12.5px', color: '#64748b', maxWidth: '380px', margin: '0 auto' }}>
+          <p className="forum-empty-desc">
             No forum posts match your current search or category filter. Try clearing the filters.
           </p>
         </div>
@@ -372,7 +355,7 @@ export default function CommunityForum() {
                 <th>Media</th>
                 <th>Engagement</th>
                 <th>Posted</th>
-                <th style={{ textAlign: 'right' }}>Actions</th>
+                <th className="forum-th-actions">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -392,12 +375,12 @@ export default function CommunityForum() {
                 return (
                   <tr key={post.id}>
                     <td>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <div className="forum-author-wrapper">
                         <div className={`forum-avatar ${roleBadgeClass}`}>
                           {authorInitials}
                         </div>
                         <div>
-                          <div style={{ fontWeight: 700, color: '#0f172a' }}>{post.author_name || 'Anonymous'}</div>
+                          <div className="forum-author-name">{post.author_name || 'Anonymous'}</div>
                           <span className={`forum-role-pill ${roleBadgeClass}`}>
                             {authorRole === 'vet' && 'Dr. '}{authorRole}
                           </span>
@@ -405,11 +388,11 @@ export default function CommunityForum() {
                       </div>
                     </td>
 
-                    <td style={{ maxWidth: '340px' }}>
-                      <div style={{ fontWeight: 700, color: '#0f172a', marginBottom: '2px', lineHeight: 1.3 }}>
+                    <td className="forum-td-title">
+                      <div className="forum-post-cell-title">
                         {post.title}
                       </div>
-                      <div style={{ fontSize: '12px', color: '#64748b', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      <div className="forum-post-cell-desc">
                         {post.description}
                       </div>
                     </td>
@@ -430,27 +413,27 @@ export default function CommunityForum() {
                           title="Click to zoom image"
                         />
                       ) : (
-                        <span style={{ fontSize: '11px', color: '#94a3b8' }}>None</span>
+                        <span className="forum-no-image-text">None</span>
                       )}
                     </td>
 
                     <td>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '12px', color: '#64748b', fontWeight: 600 }}>
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
-                          <Heart size={13} style={{ color: '#ef4444' }} /> {post.likes_count || 0}
+                      <div className="forum-stats-row">
+                        <span className="forum-stat-item">
+                          <Heart size={13} className="forum-heart-icon" /> {post.likes_count || 0}
                         </span>
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
-                          <MessageCircle size={13} style={{ color: '#3b82f6' }} /> {post.comments_count || 0}
+                        <span className="forum-stat-item">
+                          <MessageCircle size={13} className="forum-comment-icon-blue" /> {post.comments_count || 0}
                         </span>
                       </div>
                     </td>
 
-                    <td style={{ fontSize: '12px', color: '#64748b', whiteSpace: 'nowrap' }}>
+                    <td className="forum-td-date">
                       {formatRelativeTime(post.created_at)}
                     </td>
 
-                    <td style={{ textAlign: 'right' }}>
-                      <div style={{ display: 'inline-flex', gap: '6px' }}>
+                    <td className="forum-td-actions-wrap">
+                      <div className="forum-td-actions-inner">
                         <button 
                           className="forum-view-thread-btn"
                           onClick={() => handleOpenThread(post)}
@@ -523,7 +506,7 @@ export default function CommunityForum() {
                   </div>
 
                   {/* Post Title & Description */}
-                  <div className="forum-post-body" style={{ marginTop: '10px' }}>
+                  <div className="forum-post-body forum-post-body-spaced">
                     <h3 className="forum-post-title">{post.title}</h3>
                     <p className="forum-post-desc">{post.description}</p>
                   </div>
@@ -555,11 +538,11 @@ export default function CommunityForum() {
                 <div className="forum-card-footer">
                   <div className="forum-metrics-group">
                     <span className="forum-metric-item">
-                      <Heart size={13} style={{ color: '#ef4444' }} />
+                      <Heart size={13} className="forum-heart-icon" />
                       <span>{post.likes_count || 0}</span>
                     </span>
                     <span className="forum-metric-item">
-                      <MessageCircle size={13} style={{ color: '#3b82f6' }} />
+                      <MessageCircle size={13} className="forum-comment-icon-blue" />
                       <span>{post.comments_count || 0} replies</span>
                     </span>
                   </div>
@@ -597,13 +580,13 @@ export default function CommunityForum() {
             <div className="forum-modal-header">
               <div>
                 <h3 className="forum-modal-title">Thread Moderation</h3>
-                <p style={{ margin: '3px 0 0 0', fontSize: '12px', color: '#64748b' }}>
+                <p className="forum-modal-subheading">
                   Review full conversation thread and remove spam or offensive replies
                 </p>
               </div>
               <button 
                 onClick={() => setSelectedThread(null)}
-                style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer' }}
+                className="forum-modal-close-btn"
               >
                 <X size={20} />
               </button>
@@ -611,42 +594,34 @@ export default function CommunityForum() {
 
             <div className="forum-modal-body">
               {/* Original Post Preview */}
-              <div style={{
-                backgroundColor: '#f8fafc',
-                border: '1px solid #e2e8f0',
-                borderRadius: '12px',
-                padding: '16px 18px',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '8px'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span style={{ fontWeight: 700, fontSize: '13px', color: 'var(--text-main)' }}>
+              <div className="forum-preview-box">
+                <div className="forum-preview-meta">
+                  <div className="forum-preview-author-group">
+                    <span className="forum-preview-author-name">
                       {selectedThread.author_name}
                     </span>
                     <span className={`forum-role-pill ${selectedThread.author_role}`}>
                       {selectedThread.author_role}
                     </span>
                   </div>
-                  <span style={{ fontSize: '11px', color: '#94a3b8' }}>
+                  <span className="forum-preview-timestamp">
                     {formatRelativeTime(selectedThread.created_at)}
                   </span>
                 </div>
 
-                <h4 style={{ margin: 0, fontSize: '14.5px', fontWeight: 800, color: 'var(--text-main)' }}>
+                <h4 className="forum-preview-title">
                   {selectedThread.title}
                 </h4>
-                <p style={{ margin: 0, fontSize: '13px', color: '#475569', lineHeight: 1.5 }}>
+                <p className="forum-preview-desc">
                   {selectedThread.description}
                 </p>
 
                 {selectedThread.image_url && (
-                  <div style={{ marginTop: '6px' }}>
+                  <div className="forum-preview-img-container">
                     <img 
                       src={resolveImageUrl(selectedThread.image_url)} 
                       alt="Attached" 
-                      style={{ maxHeight: '180px', borderRadius: '8px', cursor: 'pointer' }}
+                      className="forum-preview-attached-img"
                       onClick={() => setZoomedImage(resolveImageUrl(selectedThread.image_url))}
                       onError={(e) => {
                         e.target.style.display = 'none';
@@ -658,31 +633,31 @@ export default function CommunityForum() {
 
               {/* Comments Section */}
               <div className="forum-comments-section">
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <h4 style={{ margin: 0, fontSize: '13.5px', fontWeight: 700, color: 'var(--text-main)' }}>
+                <div className="forum-comments-header-row">
+                  <h4 className="forum-comments-heading">
                     Replies & Comments ({threadComments.length})
                   </h4>
                 </div>
 
                 {threadLoading ? (
-                  <div style={{ padding: '30px 0', textAlign: 'center', color: '#64748b' }}>
-                    <RefreshCw size={20} className="animate-spin" style={{ margin: '0 auto 8px auto' }} />
-                    <span style={{ fontSize: '12.5px' }}>Loading replies...</span>
+                  <div className="forum-replies-loading">
+                    <RefreshCw size={20} className="animate-spin forum-replies-loading-icon" />
+                    <span className="forum-replies-loading-text">Loading replies...</span>
                   </div>
                 ) : threadComments.length === 0 ? (
-                  <div style={{ padding: '24px 0', textAlign: 'center', color: '#94a3b8', fontSize: '12.5px' }}>
+                  <div className="forum-replies-empty">
                     No comments posted yet under this discussion.
                   </div>
                 ) : (
                   threadComments.map(comment => (
                     <div className="forum-comment-card" key={comment.id}>
                       <div className="forum-comment-top">
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <div className="forum-comment-author-row">
                           <span className="forum-comment-author">{comment.author_name}</span>
                           <span className={`forum-role-pill ${comment.author_role}`}>
                             {comment.author_role}
                           </span>
-                          <span style={{ fontSize: '11px', color: '#94a3b8' }}>
+                          <span className="forum-comment-time">
                             {formatRelativeTime(comment.created_at)}
                           </span>
                         </div>
@@ -700,11 +675,11 @@ export default function CommunityForum() {
                       <p className="forum-comment-text">{comment.comment}</p>
 
                       {comment.image_url && (
-                        <div style={{ marginTop: '4px' }}>
+                        <div className="forum-comment-img-container">
                           <img 
                             src={resolveImageUrl(comment.image_url)} 
                             alt="Comment attachment" 
-                            style={{ maxHeight: '120px', borderRadius: '6px', cursor: 'pointer' }}
+                            className="forum-comment-attached-img"
                             onClick={() => setZoomedImage(resolveImageUrl(comment.image_url))}
                           />
                         </div>

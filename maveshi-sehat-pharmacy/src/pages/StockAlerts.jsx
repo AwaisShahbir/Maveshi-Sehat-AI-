@@ -211,7 +211,8 @@ export default function StockAlerts({ pharmacy, onEditMedicine, onAddMedicine })
                       <td>
                         <div className="flex justify-end">
                           <button 
-                            className="w-8 h-8 rounded-lg border border-slate-200 bg-white flex items-center justify-center cursor-pointer hover:border-[#3da860] hover:bg-[#3da860]/5 text-slate-500 hover:text-[#3da860] transition-all" 
+                            type="button"
+                            className="stock-edit-btn" 
                             onClick={() => onEditMedicine(med)}
                             title="Edit Medicine"
                           >

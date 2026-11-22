@@ -171,9 +171,8 @@ export default function Dashboard() {
       {/* Secondary Operational Stats Ribbon */}
       <div className="secondary-stats-grid">
         <div 
-          className="secondary-stat-card" 
+          className="secondary-stat-card cursor-pointer-card" 
           onClick={() => navigate('/pharmacy-approval?tab=approved')} 
-          style={{ cursor: 'pointer' }}
           title="Click to view all registered pharmacies"
         >
           <div className="sec-stat-icon-wrap purple">
@@ -189,9 +188,8 @@ export default function Dashboard() {
         </div>
 
         <div 
-          className="secondary-stat-card" 
+          className="secondary-stat-card cursor-pointer-card" 
           onClick={() => navigate('/pharmacy-approval?tab=medicines')} 
-          style={{ cursor: 'pointer' }}
           title="Click to view all cataloged medicines and stock status across pharmacies"
         >
           <div className="sec-stat-icon-wrap cyan">
@@ -218,9 +216,8 @@ export default function Dashboard() {
         </div>
 
         <div 
-          className="secondary-stat-card"
+          className="secondary-stat-card cursor-pointer-card"
           onClick={() => navigate('/community-forum')}
-          style={{ cursor: 'pointer' }}
           title="Click to inspect and moderate Community Forum discussions & replies"
         >
           <div className="sec-stat-icon-wrap indigo">
@@ -323,15 +320,15 @@ export default function Dashboard() {
                   ) : (
                     (stats?.topMedicines || []).map((med, idx) => (
                       <tr key={idx}>
-                        <td style={{ fontWeight: '700', color: '#135431' }}>{med.name}</td>
+                        <td className="dashboard-med-name-primary">{med.name}</td>
                         <td>{med.manufacturer || 'General'}</td>
                         <td>
-                          <span className="badge-risk low" style={{ background: '#e0f2fe', color: '#0284c7' }}>
+                          <span className="badge-risk blue">
                             {med.dosage_form || 'Injectable'}
                           </span>
                         </td>
                         <td>{med.order_count || 1} orders</td>
-                        <td style={{ fontWeight: '700' }}>{med.units_sold || 1} units</td>
+                        <td className="dashboard-units-bold">{med.units_sold || 1} units</td>
                       </tr>
                     ))
                   )}
@@ -494,11 +491,11 @@ export default function Dashboard() {
       </div>
 
       {/* Top Demanded Livestock Medicines & Pharmacy Ownership */}
-      <div className="card top-demanded-pharmacy-card" style={{ marginTop: '24px' }}>
+      <div className="card top-demanded-pharmacy-card dashboard-top-demanded-card">
         <div className="card-title-container top-demanded-header">
           <div>
-            <h3 className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Pill size={18} style={{ color: '#3da860' }} />
+            <h3 className="card-title dashboard-card-title-flex">
+              <Pill size={18} className="dashboard-pill-icon" />
               Top Demanded Livestock Medicines by Pharmacy
             </h3>
             <p className="card-subtitle">
@@ -506,9 +503,8 @@ export default function Dashboard() {
             </p>
           </div>
           <button 
-            className="pharmacy-view-meds-btn"
+            className="pharmacy-view-meds-btn cursor-pointer-card"
             onClick={() => navigate('/pharmacy-approval?tab=medicines')}
-            style={{ cursor: 'pointer' }}
           >
             <span>View All Catalog & Stock</span>
             <ExternalLink size={13} />
@@ -537,10 +533,10 @@ export default function Dashboard() {
               ) : (
                 stats.topMedicines.map((med, idx) => (
                   <tr key={idx}>
-                    <td style={{ fontWeight: '700', color: '#94a3b8' }}>{idx + 1}</td>
+                    <td className="dashboard-rank-cell">{idx + 1}</td>
                     <td>
-                      <span style={{ fontWeight: '700', color: '#0f172a' }}>{med.name}</span>
-                      {med.manufacturer && <span style={{ fontSize: '11px', color: '#64748b', display: 'block' }}>{med.manufacturer}</span>}
+                      <span className="dashboard-med-title">{med.name}</span>
+                      {med.manufacturer && <span className="dashboard-med-mfg">{med.manufacturer}</span>}
                     </td>
                     <td>
                       <span className="top-med-badge">{med.dosage_form || 'Standard'}</span>
@@ -551,7 +547,7 @@ export default function Dashboard() {
                         <span>{med.pharmacy_name || 'AI-shefa'}</span>
                       </span>
                     </td>
-                    <td style={{ fontWeight: '700', color: '#0f172a' }}>
+                    <td className="dashboard-bold-cell">
                       {med.units_sold || med.order_count || 1} units
                     </td>
                     <td>

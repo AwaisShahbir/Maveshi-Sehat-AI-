@@ -480,3 +480,10 @@
     white-space: nowrap;
   }
 }
+
+
+.notifications-calendar-icon {
+  display: inline;
+  margin-right: 4px;
+  vertical-align: -1px;
+}

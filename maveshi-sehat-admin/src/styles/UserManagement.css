@@ -528,3 +528,50 @@
     justify-content: center;
   }
 }
+
+
+/* --- User Management Modernized Classes --- */
+.um-action-btn-danger {
+  color: #ef4444;
+}
+
+.um-user-meta-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 4px;
+}
+
+.um-specialization-badge {
+  font-size: 11px;
+  padding: 2px 8px;
+}
+
+.um-status-verified {
+  color: #166534;
+}
+
+.um-status-pending {
+  color: #d97706;
+}
+
+.um-license-doc-box {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed #cbd5e1;
+}
+
+.um-doc-link {
+  color: #3da860;
+  font-weight: 600;
+  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.um-block-btn-danger {
+  background-color: #fee2e2;
+  color: #dc2626;
+  border-color: #fca5a5;
+}

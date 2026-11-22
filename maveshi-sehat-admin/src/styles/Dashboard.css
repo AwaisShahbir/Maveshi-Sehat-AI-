@@ -632,3 +632,58 @@
     justify-content: center;
   }
 }
+
+
+/* --- Dashboard Modernized Classes --- */
+.cursor-pointer-card {
+  cursor: pointer;
+}
+
+.dashboard-med-name-primary {
+  font-weight: 700;
+  color: #135431;
+}
+
+.badge-risk.blue {
+  background: #e0f2fe;
+  color: #0284c7;
+}
+
+.dashboard-units-bold {
+  font-weight: 700;
+}
+
+.dashboard-top-demanded-card {
+  margin-top: 24px;
+}
+
+.dashboard-card-title-flex {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dashboard-pill-icon {
+  color: #3da860;
+}
+
+.dashboard-rank-cell {
+  font-weight: 700;
+  color: #94a3b8;
+}
+
+.dashboard-med-title {
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.dashboard-med-mfg {
+  font-size: 11px;
+  color: #64748b;
+  display: block;
+}
+
+.dashboard-bold-cell {
+  font-weight: 700;
+  color: #0f172a;
+}

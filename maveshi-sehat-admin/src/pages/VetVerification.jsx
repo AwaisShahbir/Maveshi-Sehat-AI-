@@ -178,7 +178,7 @@ export default function VetVerification() {
                     <div className="vet-meta-grid">
                       <div>
                         <strong className="vet-meta-label">License No:</strong>
-                        <span className="font-mono vet-meta-val" style={{ marginLeft: '4px' }}>
+                        <span className="font-mono vet-meta-val ml-1">
                           {vet.pvmc_number || 'N/A'}
                         </span>
                         {vet.pvmc_number && (
@@ -194,35 +194,35 @@ export default function VetVerification() {
 
                       <div>
                         <strong className="vet-meta-label">Phone:</strong>
-                        <span className="vet-meta-val" style={{ marginLeft: '4px' }}>
+                        <span className="vet-meta-val ml-1">
                           {vet.phone_number || 'N/A'}
                         </span>
                       </div>
 
                       <div>
                         <strong className="vet-meta-label">City / District:</strong>
-                        <span className="vet-meta-val" style={{ marginLeft: '4px' }}>
+                        <span className="vet-meta-val ml-1">
                           {vet.district || 'N/A'}
                         </span>
                       </div>
 
                       <div>
                         <strong className="vet-meta-label">Experience:</strong>
-                        <span className="vet-meta-val" style={{ marginLeft: '4px' }}>
+                        <span className="vet-meta-val ml-1">
                           {vet.experience_years ? `${vet.experience_years} years` : 'Clinical practice'}
                         </span>
                       </div>
 
                       <div>
                         <strong className="vet-meta-label">Joined:</strong>
-                        <span className="vet-meta-val" style={{ marginLeft: '4px' }}>
+                        <span className="vet-meta-val ml-1">
                           {vet.created_at ? new Date(vet.created_at).toLocaleDateString([], { day: 'numeric', month: 'short', year: 'numeric' }) : 'Recent'}
                         </span>
                       </div>
 
                       <div>
                         <strong className="vet-meta-label">Consultations:</strong>
-                        <span className="vet-meta-val" style={{ marginLeft: '4px', color: '#135431' }}>
+                        <span className="vet-meta-val ml-1 text-[#135431]">
                           {vet.vet_consultations_count || 0} cases handled
                         </span>
                       </div>
@@ -391,40 +391,28 @@ export default function VetVerification() {
           onClick={() => setSelectedVetForProfile(null)}
         >
           <div 
-            className="vet-modal-content card" 
+            className="vet-modal-content card verification-modal-card" 
             onClick={(e) => e.stopPropagation()}
-            style={{ maxWidth: '720px', maxHeight: 'calc(100vh - 48px)', overflowY: 'auto' }}
           >
-            <div 
-              className="vet-profile-modal-header"
-              style={{
-                position: 'sticky',
-                top: '-28px',
-                backgroundColor: '#ffffff',
-                zIndex: 20,
-                paddingTop: '4px',
-                paddingBottom: '12px',
-                borderBottom: '1px solid #f1f5f9'
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+            <div className="vet-profile-modal-header verification-modal-sticky-header">
+              <div className="flex items-center gap-3.5">
                 <div className="vet-modal-avatar-box">
                   {getInitials(selectedVetForProfile.full_name)}
                 </div>
                 <div>
                   <h3 className="vet-modal-title">{selectedVetForProfile.full_name}</h3>
-                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginTop: '4px' }}>
-                    <span className="vet-spec-pill" style={{ margin: 0 }}>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="vet-spec-pill m-0">
                       {selectedVetForProfile.specialization || 'Veterinary Doctor'}
                     </span>
-                    <span className="font-mono" style={{ fontSize: '11px', color: '#64748b' }}>
+                    <span className="font-mono text-[11px] text-slate-500">
                       PVMC #{selectedVetForProfile.pvmc_number || 'N/A'}
                     </span>
                   </div>
                 </div>
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div className="flex items-center gap-2">
                 <span className={`badge ${
                   selectedVetForProfile.status === 'verified' || selectedVetForProfile.status === 'approved' 
                     ? 'badge-green' 
@@ -465,7 +453,7 @@ export default function VetVerification() {
 
               <div className="vet-modal-box">
                 <span className="vet-modal-label">PVMC Registration Number</span>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <div className="flex items-center gap-1.5">
                   <strong className="vet-modal-val font-mono">{selectedVetForProfile.pvmc_number || 'N/A'}</strong>
                   {selectedVetForProfile.pvmc_number && (
                     <button 
@@ -490,7 +478,7 @@ export default function VetVerification() {
                 <strong className="vet-modal-val">{selectedVetForProfile.district || 'N/A'}</strong>
               </div>
 
-              <div className="vet-modal-box" style={{ gridColumn: 'span 2' }}>
+              <div className="vet-modal-box col-span-2">
                 <span className="vet-modal-label">Registration Date</span>
                 <strong className="vet-modal-val">
                   {selectedVetForProfile.created_at ? new Date(selectedVetForProfile.created_at).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' }) : 'Recent'}
@@ -499,95 +487,59 @@ export default function VetVerification() {
             </div>
 
             {/* Official Regulatory Documents & CNIC Cross-Check */}
-            <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '16px', margin: '16px 0 20px 0' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px', borderBottom: '1px solid #e2e8f0', paddingBottom: '10px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div className="verification-docs-container">
+              <div className="flex items-center justify-between mb-3 pb-2.5 border-b border-slate-200">
+                <div className="flex items-center gap-2">
                   <ShieldCheck size={18} color="#135431" />
-                  <strong style={{ fontSize: '14px', color: '#0f172a' }}>Official Regulatory Documents & CNIC Cross-Check</strong>
+                  <strong className="text-sm text-slate-900 font-bold">Official Regulatory Documents & CNIC Cross-Check</strong>
                 </div>
-                <span style={{ fontSize: '11px', background: '#e0f2fe', color: '#0284c7', fontWeight: '700', padding: '2px 8px', borderRadius: '6px' }}>
+                <span className="text-[11px] bg-sky-100 text-sky-700 font-bold px-2 py-0.5 rounded-md">
                   Regulatory Review
                 </span>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '14px' }}>
+              <div className="verification-docs-grid">
                 {/* Document 1: Official PVMC License */}
-                <div style={{ background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: '10px', padding: '12px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                <div className="verification-doc-card">
                   <div>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <div className="verification-doc-title-row">
+                      <div className="flex items-center gap-1.5">
                         <Award size={16} color="#135431" />
-                        <strong style={{ fontSize: '13px', color: '#135431' }}>PVMC Official License</strong>
+                        <strong className="text-[13px] text-[#135431]">PVMC Official License</strong>
                       </div>
                       {selectedVetForProfile.license_document_url && (
-                        <span style={{ fontSize: '10px', background: '#dcfce7', color: '#15803d', fontWeight: '700', padding: '2px 6px', borderRadius: '4px' }}>
+                        <span className="verification-doc-badge-green">
                           Uploaded
                         </span>
                       )}
                     </div>
-                    <p style={{ margin: '0 0 4px 0', fontSize: '11px', color: '#64748b' }}>
-                      License No: <strong style={{ color: '#0f172a' }} className="font-mono">{selectedVetForProfile.pvmc_number || 'N/A'}</strong>
+                    <p className="mb-1 text-[11px] text-slate-500">
+                      License No: <strong className="text-slate-900 font-mono">{selectedVetForProfile.pvmc_number || 'N/A'}</strong>
                     </p>
-                    <p style={{ margin: 0, fontSize: '11px', color: '#64748b' }}>
+                    <p className="m-0 text-[11px] text-slate-500">
                       Specialty: <strong>{selectedVetForProfile.specialization || 'N/A'}</strong>
                     </p>
 
                     {/* License Image Preview */}
                     {selectedVetForProfile.license_document_url && isImageFile(selectedVetForProfile.license_document_url) && (
-                      <div 
-                        onClick={() => window.open(resolveImageUrl(selectedVetForProfile.license_document_url), '_blank')}
-                        style={{
-                          margin: '10px 0 6px 0',
-                          height: '140px',
-                          background: '#f8fafc',
-                          border: '1px solid #e2e8f0',
-                          borderRadius: '8px',
-                          overflow: 'hidden',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          cursor: 'pointer'
-                        }}
-                        title="Click to view full license image"
-                      >
+                      <div onClick={() => window.open(resolveImageUrl(selectedVetForProfile.license_document_url), '_blank')} className="verification-doc-preview-box" title="Click to view full license image">
                         <img 
                           src={resolveImageUrl(selectedVetForProfile.license_document_url)} 
                           alt="PVMC License"
-                          style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }}
+                          className="verification-doc-img"
                         />
                       </div>
                     )}
                   </div>
 
-                  <div style={{ marginTop: '10px' }}>
+                  <div className="mt-2.5">
                     {selectedVetForProfile.license_document_url ? (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const url = resolveImageUrl(selectedVetForProfile.license_document_url);
-                          window.open(url, '_blank');
-                        }}
-                        style={{
-                          width: '100%',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          gap: '6px',
-                          background: '#eff7f2',
-                          color: '#135431',
-                          border: '1px solid #bbf7d0',
-                          padding: '7px 10px',
-                          borderRadius: '8px',
-                          fontSize: '12px',
-                          fontWeight: '700',
-                          cursor: 'pointer'
-                        }}
-                      >
+                      <button type="button" onClick={() => { const url = resolveImageUrl(selectedVetForProfile.license_document_url); window.open(url, '_blank'); }} className="verification-doc-btn-green">
                         <Download size={13} />
                         <span>View / Download License ↗</span>
                       </button>
                     ) : (
-                      <span style={{ fontSize: '11px', color: '#94a3b8', fontStyle: 'italic', display: 'block', textAlign: 'center', padding: '6px', background: '#f8fafc', borderRadius: '6px' }}>
+                      <span className="verification-doc-empty-hint">
                         No license document uploaded
                       </span>
                     )}
@@ -595,82 +547,46 @@ export default function VetVerification() {
                 </div>
 
                 {/* Document 2: Doctor National CNIC */}
-                <div style={{ background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: '10px', padding: '12px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                <div className="verification-doc-card">
                   <div>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <div className="verification-doc-title-row">
+                      <div className="flex items-center gap-1.5">
                         <UserCheck size={16} color="#007aff" />
-                        <strong style={{ fontSize: '13px', color: '#007aff' }}>Doctor National CNIC</strong>
+                        <strong className="text-[13px] text-[#007aff]">Doctor National CNIC</strong>
                       </div>
                       {selectedVetForProfile.cnic_document_url && (
-                        <span style={{ fontSize: '10px', background: '#dbeafe', color: '#1d4ed8', fontWeight: '700', padding: '2px 6px', borderRadius: '4px' }}>
+                        <span className="verification-doc-badge-blue">
                           Uploaded
                         </span>
                       )}
                     </div>
-                    <p style={{ margin: '0 0 4px 0', fontSize: '11px', color: '#64748b' }}>
-                      Doctor: <strong style={{ color: '#0f172a' }}>{selectedVetForProfile.full_name}</strong>
+                    <p className="mb-1 text-[11px] text-slate-500">
+                      Doctor: <strong className="text-slate-900">{selectedVetForProfile.full_name}</strong>
                     </p>
-                    <p style={{ margin: 0, fontSize: '11px', color: '#64748b' }}>
-                      CNIC No: <strong style={{ color: '#0f172a' }} className="font-mono">{selectedVetForProfile.cnic || 'N/A'}</strong>
+                    <p className="m-0 text-[11px] text-slate-500">
+                      CNIC No: <strong className="text-slate-900 font-mono">{selectedVetForProfile.cnic || 'N/A'}</strong>
                     </p>
 
                     {/* CNIC Image Preview */}
                     {selectedVetForProfile.cnic_document_url && isImageFile(selectedVetForProfile.cnic_document_url) && (
-                      <div 
-                        onClick={() => window.open(resolveImageUrl(selectedVetForProfile.cnic_document_url), '_blank')}
-                        style={{
-                          margin: '10px 0 6px 0',
-                          height: '140px',
-                          background: '#f8fafc',
-                          border: '1px solid #e2e8f0',
-                          borderRadius: '8px',
-                          overflow: 'hidden',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          cursor: 'pointer'
-                        }}
-                        title="Click to view full CNIC image"
-                      >
+                      <div onClick={() => window.open(resolveImageUrl(selectedVetForProfile.cnic_document_url), '_blank')} className="verification-doc-preview-box" title="Click to view full CNIC image">
                         <img 
                           src={resolveImageUrl(selectedVetForProfile.cnic_document_url)} 
                           alt="Doctor CNIC"
-                          style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }}
+                          className="verification-doc-img"
                         />
                       </div>
                     )}
                   </div>
 
-                  <div style={{ marginTop: '10px' }}>
+                  <div className="mt-2.5">
                     {selectedVetForProfile.cnic_document_url ? (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const url = resolveImageUrl(selectedVetForProfile.cnic_document_url);
-                          window.open(url, '_blank');
-                        }}
-                        style={{
-                          width: '100%',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          gap: '6px',
-                          background: '#eff6ff',
-                          color: '#1d4ed8',
-                          border: '1px solid #bfdbfe',
-                          padding: '7px 10px',
-                          borderRadius: '8px',
-                          fontSize: '12px',
-                          fontWeight: '700',
-                          cursor: 'pointer'
-                        }}
-                      >
+                      <button type="button" onClick={() => { const url = resolveImageUrl(selectedVetForProfile.cnic_document_url); window.open(url, '_blank'); }} className="verification-doc-btn-blue">
                         <Download size={13} />
                         <span>View / Download CNIC ↗</span>
                       </button>
                     ) : (
-                      <span style={{ fontSize: '11px', color: '#94a3b8', fontStyle: 'italic', display: 'block', textAlign: 'center', padding: '6px', background: '#f8fafc', borderRadius: '6px' }}>
+                      <span className="verification-doc-empty-hint">
                         No CNIC document uploaded
                       </span>
                     )}
@@ -679,44 +595,29 @@ export default function VetVerification() {
               </div>
 
               {/* Match Verification Helper Checklist */}
-              <div style={{ background: '#ffffff', border: '1px dashed #cbd5e1', borderRadius: '8px', padding: '12px 14px' }}>
-                <span style={{ display: 'block', fontSize: '11px', fontWeight: '700', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px' }}>
+              <div className="verification-checklist-box">
+                <span className="verification-checklist-title">
                   Verification Cross-Check Checklist:
                 </span>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', fontSize: '11px' }}>
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#f1f5f9', color: '#334155', padding: '4px 10px', borderRadius: '6px' }}>
+                <div className="verification-checklist-chips">
+                  <span className="verification-checklist-chip">
                     <CheckCircle2 size={13} color="#16a34a" /> Doctor: <strong>{selectedVetForProfile.full_name}</strong>
                   </span>
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#f1f5f9', color: '#334155', padding: '4px 10px', borderRadius: '6px' }}>
+                  <span className="verification-checklist-chip">
                     <CheckCircle2 size={13} color="#16a34a" /> CNIC: <strong>{selectedVetForProfile.cnic || 'N/A'}</strong>
                   </span>
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#f1f5f9', color: '#334155', padding: '4px 10px', borderRadius: '6px' }}>
+                  <span className="verification-checklist-chip">
                     <CheckCircle2 size={13} color="#16a34a" /> PVMC License: <strong>{selectedVetForProfile.pvmc_number || 'N/A'}</strong>
                   </span>
                 </div>
 
                 {/* Direct Verification Action inside Modal if Pending */}
                 {(selectedVetForProfile.status === 'pending' || selectedVetForProfile.status === 'info_requested') && (
-                  <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px solid #e2e8f0', display: 'flex', gap: '10px' }}>
+                  <div className="verification-quick-actions-row">
                     <button
                       type="button"
                       onClick={() => handleAction(selectedVetForProfile.id, 'approve')}
-                      style={{
-                        flex: 1,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '6px',
-                        background: '#10b981',
-                        color: '#ffffff',
-                        border: 'none',
-                        padding: '10px 16px',
-                        borderRadius: '8px',
-                        fontWeight: '700',
-                        fontSize: '13px',
-                        cursor: 'pointer',
-                        boxShadow: '0 2px 4px rgba(16, 185, 129, 0.2)'
-                      }}
+                      className="verification-btn-approve-quick"
                     >
                       <Check size={16} />
                       <span>Verify Doctor & Grant Platform Access</span>
@@ -724,20 +625,7 @@ export default function VetVerification() {
                     <button
                       type="button"
                       onClick={() => handleAction(selectedVetForProfile.id, 'reject')}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '6px',
-                        background: '#ffffff',
-                        color: '#ef4444',
-                        border: '1px solid #fca5a5',
-                        padding: '10px 16px',
-                        borderRadius: '8px',
-                        fontWeight: '700',
-                        fontSize: '13px',
-                        cursor: 'pointer'
-                      }}
+                      className="verification-btn-reject-quick"
                     >
                       <X size={16} />
                       <span>Reject Application</span>
@@ -748,34 +636,34 @@ export default function VetVerification() {
             </div>
 
             {/* Platform Activity Stats */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px', margin: '16px 0 20px 0' }}>
-              <div style={{ background: '#eff7f2', border: '1px solid #bbf7d0', borderRadius: '10px', padding: '10px', textAlign: 'center' }}>
-                <span style={{ display: 'block', fontSize: '18px', fontWeight: '800', color: '#135431' }}>
+            <div className="verification-stats-summary-grid">
+              <div className="verification-stat-box green">
+                <span className="verification-stat-number">
                   {selectedVetForProfile.vet_consultations_count || 0}
                 </span>
-                <span style={{ fontSize: '11px', color: '#166534', fontWeight: '600' }}>Cases Handled</span>
+                <span className="verification-stat-label">Cases Handled</span>
               </div>
 
-              <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '10px', padding: '10px', textAlign: 'center' }}>
-                <span style={{ display: 'block', fontSize: '18px', fontWeight: '800', color: '#1d4ed8' }}>
+              <div className="verification-stat-box blue">
+                <span className="verification-stat-number">
                   {selectedVetForProfile.vet_completed_consultations || 0}
                 </span>
-                <span style={{ fontSize: '11px', color: '#1e40af', fontWeight: '600' }}>Completed Cases</span>
+                <span className="verification-stat-label">Completed Cases</span>
               </div>
 
-              <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '10px', textAlign: 'center' }}>
-                <span style={{ display: 'block', fontSize: '18px', fontWeight: '800', color: '#475569' }}>
+              <div className="verification-stat-box gray">
+                <span className="verification-stat-number">
                   {selectedVetForProfile.vet_reviewed_cases || 0}
                 </span>
-                <span style={{ fontSize: '11px', color: '#64748b', fontWeight: '600' }}>Reviewed Scans</span>
+                <span className="verification-stat-label">Reviewed Scans</span>
               </div>
             </div>
 
             {/* Modal Actions */}
-            <div className="vet-modal-actions" style={{ justifyContent: 'space-between', borderTop: '1px solid #f1f5f9', paddingTop: '16px' }}>
+            <div className="vet-modal-actions justify-between border-t border-slate-100 pt-4">
               <div>
                 {(selectedVetForProfile.status === 'pending' || selectedVetForProfile.status === 'info_requested') && (
-                  <div style={{ display: 'flex', gap: '8px' }}>
+                  <div className="flex gap-2">
                     <button 
                       onClick={() => handleAction(selectedVetForProfile.id, 'approve')}
                       className="vet-modal-approve-btn"

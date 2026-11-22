@@ -65,6 +65,7 @@
   display: flex;
   align-items: center;
   gap: 14px;
+  cursor: pointer;
   transition: all 0.2s ease;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
 }
@@ -190,4 +191,57 @@
   .pharmacy-stat-card {
     padding: 14px 12px;
   }
+}
+
+.dashboard-quick-action-card {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.dashboard-quick-action-btn-primary {
+  width: 100%;
+  height: 44px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  background-color: #3da860;
+  color: #ffffff;
+  border-radius: 12px;
+  border: none;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  padding-left: 16px;
+  gap: 10px;
+  cursor: pointer;
+  box-shadow: 0 4px 6px -1px rgba(61, 168, 96, 0.15);
+  transition: background-color 0.2s ease;
+}
+
+.dashboard-quick-action-btn-primary:hover {
+  background-color: #2e8c4e;
+}
+
+.dashboard-quick-action-btn-secondary {
+  width: 100%;
+  height: 44px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background-color: #eff7f2;
+  border: 1px solid rgba(61, 168, 96, 0.2);
+  color: #1e293b;
+  border-radius: 12px;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  padding-left: 16px;
+  gap: 10px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.dashboard-quick-action-btn-secondary:hover {
+  background-color: rgba(197, 219, 208, 0.3);
 }
