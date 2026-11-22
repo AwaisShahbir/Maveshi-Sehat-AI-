@@ -417,7 +417,7 @@ export default function Settings({ pharmacy }) {
                     <input
                       type="text"
                       className="form-control settings-input-disabled font-mono"
-                      value={licenseNumber || 'DRAP-VERIFIED'}
+                      value={licenseNumber || 'N/A'}
                       disabled
                     />
                   </div>
@@ -449,14 +449,21 @@ export default function Settings({ pharmacy }) {
 
                 <div className="form-group">
                   <label className="settings-label">Province</label>
-                  <input
-                    type="text"
-                    className="form-control settings-input"
+                  <select
+                    className="form-control settings-input bg-white cursor-pointer"
                     value={province}
                     onChange={(e) => setProvince(e.target.value)}
-                    placeholder="e.g. Punjab"
                     required
-                  />
+                  >
+                    <option value="" disabled>Select Province</option>
+                    <option value="Punjab">Punjab</option>
+                    <option value="Sindh">Sindh</option>
+                    <option value="Khyber Pakhtunkhwa">Khyber Pakhtunkhwa (KPK)</option>
+                    <option value="Balochistan">Balochistan</option>
+                    <option value="Islamabad Capital Territory">Islamabad Capital Territory</option>
+                    <option value="Gilgit-Baltistan">Gilgit-Baltistan</option>
+                    <option value="Azad Jammu & Kashmir">Azad Jammu & Kashmir (AJK)</option>
+                  </select>
                 </div>
 
                 <div className="form-group settings-form-grid-full">

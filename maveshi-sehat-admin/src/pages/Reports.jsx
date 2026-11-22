@@ -174,7 +174,7 @@ export default function Reports() {
         const data = await res.json();
         const provMap = {};
         data.forEach(r => {
-          const p = r.province || 'Punjab';
+          const p = r.province || 'Unspecified';
           if (!provMap[p]) provMap[p] = { total: 0, lsd: 0, fmd: 0, tick: 0, other: 0 };
           provMap[p].total++;
           if (r.disease === 'LSD') provMap[p].lsd++;

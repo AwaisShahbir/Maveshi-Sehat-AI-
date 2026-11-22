@@ -31,7 +31,7 @@ export default function Register({ onViewChange }) {
     password: '',
     confirmPassword: '',
     address: '',
-    province: 'Punjab',
+    province: '',
     city: '',
     licenseNumber: '',
     licenseExpiry: '',
@@ -109,6 +109,11 @@ export default function Register({ onViewChange }) {
     
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match!');
+      return;
+    }
+
+    if (!formData.province) {
+      setError('Please select your Province.');
       return;
     }
 
@@ -316,20 +321,23 @@ export default function Register({ onViewChange }) {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div className="form-group mb-0">
                 <label className="form-label">
-                  Province
+                  Province <span className="text-red-500 font-bold">*</span>
                 </label>
                 <select
                   name="province"
+                  required
                   value={formData.province}
                   onChange={handleChange}
                   className="form-control bg-white border border-slate-200 text-slate-900 rounded-xl focus:border-[#3da860] focus:ring-2 focus:ring-[#3da860]/20 w-full cursor-pointer"
                 >
+                  <option value="" disabled>Select Province</option>
                   <option value="Punjab">Punjab</option>
                   <option value="Sindh">Sindh</option>
-                  <option value="KPK">KPK</option>
+                  <option value="Khyber Pakhtunkhwa">Khyber Pakhtunkhwa (KPK)</option>
                   <option value="Balochistan">Balochistan</option>
-                  <option value="Gilgit Baltistan">Gilgit Baltistan</option>
-                  <option value="AJK">AJK</option>
+                  <option value="Islamabad Capital Territory">Islamabad Capital Territory</option>
+                  <option value="Gilgit-Baltistan">Gilgit-Baltistan</option>
+                  <option value="Azad Jammu & Kashmir">Azad Jammu & Kashmir (AJK)</option>
                 </select>
               </div>
               <div className="form-group mb-0">
@@ -461,7 +469,7 @@ export default function Register({ onViewChange }) {
                         <Check size={24} />
                       </div>
                       <span className="text-xs font-bold text-[#135431] max-w-[220px] truncate">
-                        {licenseFileName || 'DRAP_License_Verified.pdf'}
+                        {licenseFileName || 'License Document Attached'}
                       </span>
                       <span className="inline-flex items-center gap-1 text-[11px] text-[#166534] font-semibold bg-white px-2.5 py-1 rounded-full border border-[#bbf7d0] shadow-xs">
                         ✓ Document Attached • Click to change
@@ -523,7 +531,7 @@ export default function Register({ onViewChange }) {
                         <Check size={24} />
                       </div>
                       <span className="text-xs font-bold text-[#135431] max-w-[220px] truncate">
-                        {cnicFileName || 'Owner_CNIC_Verified.pdf'}
+                        {cnicFileName || 'CNIC Document Attached'}
                       </span>
                       <span className="inline-flex items-center gap-1 text-[11px] text-[#166534] font-semibold bg-white px-2.5 py-1 rounded-full border border-[#bbf7d0] shadow-xs">
                         ✓ Document Attached • Click to change

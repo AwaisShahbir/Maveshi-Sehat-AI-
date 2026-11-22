@@ -202,7 +202,7 @@ export default function VetVerification() {
                       <div>
                         <strong className="vet-meta-label">City / District:</strong>
                         <span className="vet-meta-val" style={{ marginLeft: '4px' }}>
-                          {vet.district || 'Punjab'}
+                          {vet.district || 'N/A'}
                         </span>
                       </div>
 
@@ -487,7 +487,7 @@ export default function VetVerification() {
 
               <div className="vet-modal-box">
                 <span className="vet-modal-label">Clinic / District Location</span>
-                <strong className="vet-modal-val">{selectedVetForProfile.district || 'Punjab, Pakistan'}</strong>
+                <strong className="vet-modal-val">{selectedVetForProfile.district || 'N/A'}</strong>
               </div>
 
               <div className="vet-modal-box" style={{ gridColumn: 'span 2' }}>
@@ -529,7 +529,7 @@ export default function VetVerification() {
                       License No: <strong style={{ color: '#0f172a' }} className="font-mono">{selectedVetForProfile.pvmc_number || 'N/A'}</strong>
                     </p>
                     <p style={{ margin: 0, fontSize: '11px', color: '#64748b' }}>
-                      Specialty: <strong>{selectedVetForProfile.specialization || 'General Vet'}</strong>
+                      Specialty: <strong>{selectedVetForProfile.specialization || 'N/A'}</strong>
                     </p>
 
                     {/* License Image Preview */}

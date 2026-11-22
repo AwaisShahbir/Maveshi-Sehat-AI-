@@ -90,7 +90,7 @@ export const addRecord = async (record, ownerName) => {
         imageUrl: uploadedImageUrl,
         description: record.description,
         firstAid: record.firstAid,
-        province: 'Punjab'
+        province: record.province || record.district || ''
       })
     });
     

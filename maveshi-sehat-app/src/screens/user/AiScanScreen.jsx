@@ -39,6 +39,7 @@ export default function AiScanScreen() {
   const profile = getProfile();
   const userName = profile.userName || profile.fullName || params.userName || '';
   const userId = params.userId || profile.userId || null;
+  const userRegion = profile.district || profile.location || profile.province || '';
 
   const [animalType, setAnimalType] = useState('');
   const [showDropdown, setShowDropdown] = useState(false);
@@ -225,7 +226,7 @@ export default function AiScanScreen() {
       });
       formData.append('ownerName', userName || 'Farmer');
       formData.append('animalId', effectiveAnimalId);
-      formData.append('province', 'Punjab');
+      formData.append('province', userRegion);
 
       response = await fetch(`${BASE_URL}/api/ai/scan-disease`, {
         method: 'POST',
@@ -241,7 +242,7 @@ export default function AiScanScreen() {
           imageBase64: selectedImage.base64,
           ownerName: userName || 'Farmer',
           animalId: effectiveAnimalId,
-          province: 'Punjab'
+          province: userRegion
         }),
       });
     } else {
@@ -254,7 +255,7 @@ export default function AiScanScreen() {
           imageUrl: selectedImage.uri,
           ownerName: userName || 'Farmer',
           animalId: effectiveAnimalId,
-          province: 'Punjab'
+          province: userRegion
         }),
       });
     }

@@ -18,7 +18,7 @@ export default function Profile({ pharmacy, onProfileUpdate }) {
     phone: '',
     whatsapp: '',
     address: '',
-    province: 'Punjab',
+    province: '',
     city: '',
     businessHours: '',
     description: ''
@@ -38,7 +38,7 @@ export default function Profile({ pharmacy, onProfileUpdate }) {
           phone: data.phone || '',
           whatsapp: data.whatsapp || '',
           address: data.address || '',
-          province: data.province || 'Punjab',
+          province: data.province || '',
           city: data.city || '',
           businessHours: data.business_hours || '',
           description: data.description || ''
@@ -276,14 +276,22 @@ export default function Profile({ pharmacy, onProfileUpdate }) {
                   </div>
                   <div className="form-group mb-0">
                     <label className="form-label">Province</label>
-                    <input 
-                      type="text" 
+                    <select 
                       name="province" 
                       required
-                      className="form-control focus:border-[#3da860] focus:ring-2 focus:ring-[#3da860]/20 placeholder:text-slate-400" 
+                      className="form-control focus:border-[#3da860] focus:ring-2 focus:ring-[#3da860]/20 bg-white cursor-pointer" 
                       value={form.province} 
                       onChange={handleChange}
-                    />
+                    >
+                      <option value="" disabled>Select Province</option>
+                      <option value="Punjab">Punjab</option>
+                      <option value="Sindh">Sindh</option>
+                      <option value="Khyber Pakhtunkhwa">Khyber Pakhtunkhwa (KPK)</option>
+                      <option value="Balochistan">Balochistan</option>
+                      <option value="Islamabad Capital Territory">Islamabad Capital Territory</option>
+                      <option value="Gilgit-Baltistan">Gilgit-Baltistan</option>
+                      <option value="Azad Jammu & Kashmir">Azad Jammu & Kashmir (AJK)</option>
+                    </select>
                   </div>
                   <div className="form-group mb-0">
                     <label className="form-label">City</label>

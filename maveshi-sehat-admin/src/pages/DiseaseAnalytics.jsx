@@ -83,7 +83,7 @@ export default function DiseaseAnalytics() {
 
   const provinceCounts = {};
   records.forEach(r => {
-    const p = r.province || 'Punjab';
+    const p = r.province || 'Unspecified';
     provinceCounts[p] = (provinceCounts[p] || 0) + 1;
   });
   const maxCases = Math.max(...Object.values(provinceCounts), 1);

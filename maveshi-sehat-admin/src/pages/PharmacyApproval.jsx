@@ -830,7 +830,7 @@ export default function PharmacyApproval() {
 
               <div className="pharmacy-modal-box">
                 <span className="pharmacy-modal-label">Operating Hours</span>
-                <strong className="pharmacy-modal-val">{selectedPharmacy.business_hours || 'Mon-Sat: 9:00 AM - 9:00 PM'}</strong>
+                <strong className="pharmacy-modal-val">{selectedPharmacy.business_hours || 'Not specified'}</strong>
               </div>
 
               <div className="pharmacy-modal-box" style={{ gridColumn: 'span 2' }}>

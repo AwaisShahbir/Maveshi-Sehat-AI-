@@ -184,14 +184,14 @@ export default function VeterinariansListScreen() {
               </View>
               <View style={styles.locationContainer}>
                 <Feather name="map-pin" size={12} color="#888" style={{ marginRight: 4 }} />
-                <Text style={styles.locationText}>{item.district || 'Lahore, Punjab'}</Text>
+                <Text style={styles.locationText}>{item.district || t('Location Pending')}</Text>
               </View>
             </View>
           </View>
         </View>
 
         <View style={styles.experienceRow}>
-          <Text style={styles.experienceLabel}>Experience: <Text style={styles.experienceValue}>{item.experience_years || 5} years</Text></Text>
+          <Text style={styles.experienceLabel}>Experience: <Text style={styles.experienceValue}>{item.experience_years ? (item.experience_years + ' years') : 'Clinical'}</Text></Text>
           <View style={[styles.availabilityBadge, { backgroundColor: isBusy ? '#FFEBEB' : '#E8F8EA' }]}>
             <Text style={[styles.availabilityText, { color: isBusy ? '#FF3B30' : '#58D66D' }]}>
               {isBusy ? 'Busy' : 'Available Now'}

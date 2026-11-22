@@ -103,7 +103,7 @@ module.exports = (pool) => {
             `UPDATE users 
              SET full_name = $1, phone_number = $2, password = $3, district = $4
              WHERE id = $5`,
-            [cleanName, cleanPhone, hashedPassword, district || 'Islamabad', existing.id]
+            [cleanName, cleanPhone, hashedPassword, district || null, existing.id]
           );
 
           const otp = Math.floor(1000 + Math.random() * 9000).toString();
@@ -152,7 +152,7 @@ module.exports = (pool) => {
           cnic, cnic_document_url
         ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) RETURNING id, full_name, email, role`,
         [
-          cleanName, cleanPhone, cleanEmail, district || 'Islamabad', role, hashedPassword, status,
+          cleanName, cleanPhone, cleanEmail, district || null, role, hashedPassword, status,
           pvmcNumber || null, specialization || null, experienceYears ? parseInt(experienceYears) : null,
           licenseDocumentUrl || null, cnic || null, cnicDocumentUrl || null
         ]

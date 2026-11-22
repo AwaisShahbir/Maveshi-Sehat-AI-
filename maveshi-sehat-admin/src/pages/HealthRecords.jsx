@@ -161,7 +161,7 @@ LIVESTOCK & FARMER DETAILS
 ----------------------------------------------------------------------
 Animal Specie      : ${rec.animal_type}
 Owner / Farmer     : ${rec.owner_name}
-Province / Region  : ${rec.province || 'Punjab'}
+Province / Region  : ${rec.province || 'Not recorded'}
 Attending Vet      : ${rec.vet_name || 'Pending Review'}
 
 DIAGNOSTIC ANALYSIS
@@ -241,7 +241,7 @@ Document generated from Maveshi Sehat AI Administrative Console.
             <div class="card">
               <div class="label">Animal & Owner</div>
               <div class="value">${rec.animal_type} - ${rec.owner_name}</div>
-              <div style="font-size: 13px; color: #64748b; margin-top: 4px;">Region: ${rec.province || 'Punjab'}</div>
+              <div style="font-size: 13px; color: #64748b; margin-top: 4px;">Region: ${rec.province || 'Not recorded'}</div>
             </div>
             <div class="card">
               <div class="label">Diagnosis & Confidence</div>
@@ -520,7 +520,7 @@ Document generated from Maveshi Sehat AI Administrative Console.
                     {selectedRecord.animal_type || 'N/A'}
                   </div>
                   <div className="hr-highlight-sub">
-                    {selectedRecord.province || 'Punjab, Pakistan'}
+                    {selectedRecord.province || 'Region not recorded'}
                   </div>
                 </div>
 

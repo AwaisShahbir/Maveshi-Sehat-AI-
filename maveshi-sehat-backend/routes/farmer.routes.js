@@ -220,7 +220,7 @@ module.exports = (pool, io) => {
           description || null,
           firstAid || [],
           diseaseUrdu || null,
-          province || 'Punjab',
+          province || null,
           disease === 'Healthy' ? 'Healthy' : 'Active'
         ]
       );
@@ -235,7 +235,7 @@ module.exports = (pool, io) => {
   // AI Disease Detection Scanner via Roboflow
   router.post('/api/ai/scan-disease', scanUpload.single('image'), async (req, res) => {
     try {
-      const { animalType = 'Cow', ownerName = 'Farmer', province = 'Punjab', animalId } = req.body;
+      const { animalType = 'Cow', ownerName = 'Farmer', province, animalId } = req.body;
       let imageFilePath = null;
       let publicImageUrl = null;
 

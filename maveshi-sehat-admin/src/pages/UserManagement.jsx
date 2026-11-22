@@ -91,7 +91,7 @@ export default function UserManagement() {
       `"${u.role || ''}"`,
       `"${u.email || ''}"`,
       `"${u.phone_number || ''}"`,
-      `"${u.district || 'Punjab'}"`,
+      `"${u.district || 'N/A'}"`,
       `"${u.status || ''}"`,
       `"${new Date(u.created_at).toISOString().split('T')[0]}"`
     ]);
@@ -254,7 +254,7 @@ export default function UserManagement() {
                         {user.role === 'farmer' ? 'Livestock Owner' : 'Veterinary Doctor'}
                       </td>
                       <td>{user.phone_number}</td>
-                      <td>{user.district || 'Punjab'}</td>
+                      <td>{user.district || 'N/A'}</td>
                       <td>{getStatusBadge(user.status)}</td>
                       <td>{new Date(user.created_at).toLocaleDateString([], { month: 'short', year: 'numeric' })}</td>
                       <td>
@@ -379,7 +379,7 @@ export default function UserManagement() {
                     <span>District / Region</span>
                   </div>
                   <div className="um-info-box-value">
-                    {selectedUser.district || 'Punjab, Pakistan'}
+                    {selectedUser.district || 'N/A'}
                   </div>
                 </div>
 
@@ -404,11 +404,11 @@ export default function UserManagement() {
                   <div className="um-credentials-grid">
                     <div>
                       <span className="um-cred-label">PVMC License:</span>
-                      <strong className="font-mono">{selectedUser.pvmc_number || 'PVMC-VERIFIED'}</strong>
+                      <strong className="font-mono">{selectedUser.pvmc_number || 'N/A'}</strong>
                     </div>
                     <div>
                       <span className="um-cred-label">Specialization:</span>
-                      <strong>{selectedUser.specialization || 'Livestock & Ruminants'}</strong>
+                      <strong>{selectedUser.specialization || 'General Vet'}</strong>
                     </div>
                     <div>
                       <span className="um-cred-label">Experience:</span>
