@@ -210,24 +210,35 @@ module.exports = (pool, io) => {
   // Resolve a Conversation / Consultation Case
   router.put('/api/chat/conversation/resolve', async (req, res) => {
     try {
-      const { conversationId, consultationId } = req.body;
+      const { conversationId, consultationId, outcome, dischargeNotes, followUpDays } = req.body;
       if (!conversationId) {
         return res.status(400).json({ error: 'conversationId is required' });
       }
+
+      // Calculate optional follow-up timestamp
+      const followUpTimestamp = followUpDays ? new Date(Date.now() + Number(followUpDays) * 24 * 60 * 60 * 1000) : null;
 
       // 1. If a specific consultationId is passed, mark ONLY that specific consultation completed
       if (consultationId) {
         await pool.query(
           `UPDATE consultations
-           SET status = 'completed', updated_at = CURRENT_TIMESTAMP
+           SET status = 'completed',
+               outcome = COALESCE($2, outcome, 'fully_recovered'),
+               discharge_notes = COALESCE($3, discharge_notes),
+               follow_up_date = COALESCE($4, follow_up_date),
+               updated_at = CURRENT_TIMESTAMP
            WHERE id = $1`,
-          [consultationId]
+          [consultationId, outcome || null, dischargeNotes || null, followUpTimestamp]
         );
       } else {
         // Fallback: resolve only the single most recent active consultation between these two users
         await pool.query(
           `UPDATE consultations
-           SET status = 'completed', updated_at = CURRENT_TIMESTAMP
+           SET status = 'completed',
+               outcome = COALESCE($2, outcome, 'fully_recovered'),
+               discharge_notes = COALESCE($3, discharge_notes),
+               follow_up_date = COALESCE($4, follow_up_date),
+               updated_at = CURRENT_TIMESTAMP
            WHERE id = (
              SELECT id FROM consultations
              WHERE farmer_id = (SELECT farmer_id FROM conversations WHERE id = $1)
@@ -236,7 +247,7 @@ module.exports = (pool, io) => {
              ORDER BY created_at DESC
              LIMIT 1
            )`,
-          [conversationId]
+          [conversationId, outcome || null, dischargeNotes || null, followUpTimestamp]
         );
       }
 
@@ -266,6 +277,7 @@ module.exports = (pool, io) => {
         io.to(conversationId.toString()).emit('consultation_resolved', {
           conversationId: Number(conversationId),
           consultationId: consultationId ? Number(consultationId) : null,
+          outcome: outcome || 'fully_recovered',
           allResolved
         });
       }
@@ -273,11 +285,67 @@ module.exports = (pool, io) => {
       res.status(200).json({
         message: 'Consultation marked as resolved',
         consultationId,
+        outcome: outcome || 'fully_recovered',
         allResolved
       });
     } catch (err) {
       console.error('Error resolving conversation:', err.message);
       res.status(500).json({ error: 'Server error resolving conversation' });
+    }
+  });
+
+  // Submit Farmer Rating & Review for a Consultation
+  router.post('/api/consultations/:id/rating', async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { rating, review } = req.body;
+
+      const numRating = Number(rating);
+      if (!numRating || numRating < 1 || numRating > 5) {
+        return res.status(400).json({ error: 'Rating must be an integer between 1 and 5' });
+      }
+
+      // Update consultation record
+      const consultRes = await pool.query(
+        `UPDATE consultations
+         SET rating = $1, review = $2, rating_date = CURRENT_TIMESTAMP
+         WHERE id = $3
+         RETURNING vet_id`,
+        [numRating, (review || '').trim(), id]
+      );
+
+      if (consultRes.rows.length === 0) {
+        return res.status(404).json({ error: 'Consultation not found' });
+      }
+
+      const vetId = consultRes.rows[0].vet_id;
+      if (vetId) {
+        // Recalculate average rating and total reviews for the vet
+        const stats = await pool.query(
+          `SELECT AVG(rating)::numeric(3,2) as avg_rating, COUNT(rating) as total_reviews
+           FROM consultations
+           WHERE vet_id = $1 AND rating IS NOT NULL`,
+          [vetId]
+        );
+
+        const newAvg = stats.rows[0]?.avg_rating || 5.0;
+        const total = stats.rows[0]?.total_reviews || 1;
+
+        await pool.query(
+          `UPDATE users
+           SET avg_rating = $1, total_reviews = $2
+           WHERE id = $3`,
+          [newAvg, total, vetId]
+        );
+      }
+
+      res.status(200).json({
+        success: true,
+        message: 'Rating and review submitted successfully'
+      });
+    } catch (err) {
+      console.error('Error submitting consultation rating:', err.message);
+      res.status(500).json({ error: 'Server error saving rating' });
     }
   });
 

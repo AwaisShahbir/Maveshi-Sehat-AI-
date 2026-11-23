@@ -112,8 +112,8 @@ module.exports = (io, pool) => {
         });
 
         // Also broadcast to the recipient's personal user room if available
-        if (recipientId) {
-          io.to(`user_${recipientId}`).emit('incoming_call', {
+        if (recipientId && Number(recipientId) !== Number(callerId)) {
+          socket.to(`user_${recipientId}`).emit('incoming_call', {
             conversationId,
             callerId,
             callerName,

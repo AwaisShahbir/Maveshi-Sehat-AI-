@@ -56,6 +56,8 @@ export default function ChatScreen() {
   const insets = useSafeAreaInsets();
 
   const { conversationId, partnerName, partnerRole, userName, userRole, vetId } = params;
+  const isUrdu = getProfile()?.language === 'Urdu';
+  const [pickerModalOpen, setPickerModalOpen] = useState(false);
   const consultationHistory = Array.isArray(params.consultations) ? params.consultations : [];
   const getConsultationName = (consultationId = selectedConsultationId) => {
     const consultation = consultationHistory.find(item => String(item.id) === String(consultationId));
@@ -97,6 +99,16 @@ export default function ChatScreen() {
   );
   const [videoCallVisible, setVideoCallVisible] = useState(false);
   const [callStatus, setCallStatus] = useState('calling'); // 'calling' | 'connected'
+  const videoCallVisibleRef = useRef(false);
+  const callStatusRef = useRef('calling');
+
+  useEffect(() => {
+    videoCallVisibleRef.current = videoCallVisible;
+  }, [videoCallVisible]);
+
+  useEffect(() => {
+    callStatusRef.current = callStatus;
+  }, [callStatus]);
   const [callDuration, setCallDuration] = useState(0);
   const [isMuted, setIsMuted] = useState(false);
   const [isVideoDisabled, setIsVideoDisabled] = useState(false);
@@ -122,6 +134,18 @@ export default function ChatScreen() {
   const [vaccineDate, setVaccineDate] = useState('');
   const [nextDueDate, setNextDueDate] = useState('');
   const [vaccineNotes, setVaccineNotes] = useState('');
+
+  // Clinical Case Resolution & Discharge States
+  const [resolutionModalVisible, setResolutionModalVisible] = useState(false);
+  const [selectedOutcome, setSelectedOutcome] = useState('fully_recovered'); // 'fully_recovered' | 'improving' | 'referred'
+  const [dischargeNotes, setDischargeNotes] = useState('');
+  const [followUpDays, setFollowUpDays] = useState('3'); // 'none' | '3' | '7' | '14'
+  
+  // Post-Consultation Rating States (Farmer Side)
+  const [ratingModalVisible, setRatingModalVisible] = useState(false);
+  const [starRating, setStarRating] = useState(5);
+  const [farmerReview, setFarmerReview] = useState('');
+  const [ratingSubmitting, setRatingSubmitting] = useState(false);
 
   const socketRef = useRef(null);
   const flatListRef = useRef(null);
@@ -210,6 +234,11 @@ export default function ChatScreen() {
 
     socketRef.current.on('incoming_call', (data) => {
       console.log('📞 Received incoming_call socket event:', data);
+      // Suppress incoming call modal if we are already in an active video consultation
+      if (videoCallVisibleRef.current || callStatusRef.current === 'connected') {
+        console.log('Suppressed incoming call popup because call session is already active');
+        return;
+      }
       const storedProfile = getProfile();
       const currentSenderId = ourUserId || storedProfile?.userId || (userRole === 'vet' ? (vetId || 1) : 1);
       if (data && Number(data.callerId) !== Number(currentSenderId)) {
@@ -351,6 +380,16 @@ export default function ChatScreen() {
       const hasPermission = await requestCameraAndAudioPermissions();
       console.log('Camera and Audio permission status:', hasPermission);
 
+      // Clean up previous instance before creating a new one
+      if (agoraEngineRef.current) {
+        try {
+          agoraEngineRef.current.stopPreview();
+          agoraEngineRef.current.leaveChannel();
+          agoraEngineRef.current.release();
+        } catch (_) {}
+        agoraEngineRef.current = null;
+      }
+
       const engine = createAgoraRtcEngine();
       agoraEngineRef.current = engine;
       
@@ -361,11 +400,11 @@ export default function ChatScreen() {
 
       engine.registerEventHandler({
         onJoinChannelSuccess: (connection, elapsed) => {
-          console.log('✅ Joined Agora Channel:', connection.channelId, 'uid:', connection.localUid);
+          console.log('✅ Joined Agora Channel:', connection.channelId, 'dynamic assigned uid:', connection.localUid);
           setIsAgoraJoined(true);
         },
         onUserJoined: (connection, rUid, elapsed) => {
-          console.log('👤 Peer joined Agora video call:', rUid);
+          console.log('👤 Peer joined Agora video call with remote uid:', rUid);
           setRemoteUid(rUid);
           setCallStatus('connected');
         },
@@ -374,8 +413,8 @@ export default function ChatScreen() {
           setRemoteUid(null);
         },
         onRemoteVideoStateChanged: (connection, rUid, state, reason, elapsed) => {
-          console.log('📹 Remote video state changed for uid:', rUid, 'state:', state);
-          if (rUid) {
+          console.log('📹 Remote video state changed for uid:', rUid, 'state:', state, 'reason:', reason);
+          if (rUid && (state === 1 || state === 2)) {
             setRemoteUid(rUid);
           }
         },
@@ -384,18 +423,23 @@ export default function ChatScreen() {
         }
       });
 
-      // Activate video and start local camera preview immediately
+      // Activate audio & video engines
+      engine.enableAudio();
       engine.enableVideo();
       engine.startPreview();
+      try {
+        engine.setDefaultAudioRouteToSpeakerphone(true);
+        engine.muteLocalAudioStream(false);
+        engine.muteLocalVideoStream(false);
+      } catch (audioErr) {
+        console.warn('Speakerphone setup notice:', audioErr);
+      }
       setIsAgoraReady(true);
 
-      const channelName = 'maveshi_' + String(conversationId || 'room').replace(/[^a-zA-Z0-9_]/g, '');
-      const profile = getProfile();
-      const resolvedRole = userRole || profile?.role || (params?.vetId ? 'vet' : 'farmer');
-      const uidNum = Number(ourUserId || profile?.userId || (resolvedRole === 'vet' ? 16 : 2));
+      const channelName = 'maveshi_conv_' + String(conversationId || 'room').replace(/[^a-zA-Z0-9_]/g, '');
 
-      console.log('Joining Agora channel:', channelName, 'with uid:', uidNum, 'role:', resolvedRole);
-      engine.joinChannel('', channelName, uidNum, {
+      console.log('Joining Agora channel:', channelName, 'with dynamic unique uid: 0');
+      const ret = engine.joinChannel('', channelName, 0, {
         clientRoleType: ClientRoleType.ClientRoleBroadcaster,
         channelProfile: ChannelProfileType.ChannelProfileCommunication,
         publishMicrophoneTrack: true,
@@ -403,6 +447,7 @@ export default function ChatScreen() {
         autoSubscribeAudio: true,
         autoSubscribeVideo: true,
       });
+      console.log('Agora joinChannel status code:', ret);
     } catch (err) {
       console.warn('⚠️ Agora RTC init error:', err);
     }
@@ -757,7 +802,11 @@ export default function ChatScreen() {
     setPrescriptionModalVisible(false);
   };
 
-  const handleResolveConversation = async () => {
+  const handleOpenResolutionModal = () => {
+    setResolutionModalVisible(true);
+  };
+
+  const handleConfirmResolution = async () => {
     try {
       setLoading(true);
       const activeConsultId = selectedConsultationId || params.consultationId || params.consultation?.id;
@@ -766,7 +815,10 @@ export default function ChatScreen() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           conversationId,
-          consultationId: activeConsultId
+          consultationId: activeConsultId,
+          outcome: selectedOutcome,
+          dischargeNotes: dischargeNotes.trim(),
+          followUpDays: followUpDays === 'none' ? null : Number(followUpDays)
         })
       });
 
@@ -775,17 +827,79 @@ export default function ChatScreen() {
         if (data.allResolved !== false) {
           setConversationStatus('resolved');
         }
-        
-        handleSendMessage(t('📢 This consultation case has been marked as RESOLVED.'));
+
+        setResolutionModalVisible(false);
+
+        // Format professional clinical discharge note in chat
+        const outcomeLabel = selectedOutcome === 'fully_recovered'
+          ? (isUrdu ? 'صحت یاب / مکمل علاج' : 'Fully Recovered / Treated')
+          : selectedOutcome === 'improving'
+          ? (isUrdu ? 'بہتری کی طرف (گھریلو دیکھ بھال)' : 'Improving (Home Care Continued)')
+          : (isUrdu ? 'ریفر شدہ برائے فیلڈ ہسپتال' : 'Referred to Field Veterinary Hospital');
+
+        const followUpLabel = followUpDays === 'none'
+          ? (isUrdu ? 'کسی فالو اپ کی ضرورت نہیں' : 'No follow-up needed')
+          : `${isUrdu ? 'فالو اپ بعد از' : 'Follow-up in'} ${followUpDays} ${isUrdu ? 'دن' : 'Days'}`;
+
+        const summaryMessage = `📋 **${isUrdu ? 'کیس مکمل اختتام و ڈسچارج سمری' : 'CLINICAL CASE DISCHARGE SUMMARY'}**\n` +
+          `• **${isUrdu ? 'کیس نمبر' : 'Case ID'}**: #${activeConsultId || 'General'}\n` +
+          `• **${isUrdu ? 'نتیجہ' : 'Clinical Outcome'}**: ${outcomeLabel}\n` +
+          (dischargeNotes.trim() ? `• **${isUrdu ? 'ڈاکٹر کی ہدایات' : 'Discharge Notes'}**: ${dischargeNotes.trim()}\n` : '') +
+          `• **${isUrdu ? 'تجویز کردہ فالو اپ' : 'Follow-up Check'}**: ${followUpLabel}`;
+
+        handleSendMessage(summaryMessage);
+
+        // If user is a farmer, open rating modal
+        if (userRole === 'farmer') {
+          setTimeout(() => {
+            setRatingModalVisible(true);
+          }, 600);
+        }
       } else {
         const data = await response.json();
-        alert(data.error || 'Failed to resolve consultation');
+        Alert.alert(t('Error'), data.error || 'Failed to resolve consultation');
       }
     } catch (error) {
       console.error('Error resolving conversation:', error);
-      alert('Network error. Could not resolve consultation.');
+      Alert.alert(t('Error'), 'Network error. Could not resolve consultation.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleRatingSubmit = async () => {
+    try {
+      setRatingSubmitting(true);
+      const activeConsultId = selectedConsultationId || params.consultationId || params.consultation?.id;
+      if (!activeConsultId) {
+        setRatingModalVisible(false);
+        return;
+      }
+      const response = await fetch(`${baseUrl}/api/consultations/${activeConsultId}/rating`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          rating: starRating,
+          review: farmerReview.trim()
+        })
+      });
+
+      if (response.ok) {
+        setRatingModalVisible(false);
+        Alert.alert(
+          t('Thank You!'),
+          isUrdu 
+            ? 'آپ کا ریویو اور فیڈ بیک کامیابی سے درج ہو چکا ہے۔ ڈاکٹر کے پروفائل پر شامل کر دیا گیا ہے۔'
+            : "Your rating and feedback have been submitted successfully to the doctor's profile."
+        );
+      } else {
+        setRatingModalVisible(false);
+      }
+    } catch (err) {
+      console.error('Rating submit error:', err);
+      setRatingModalVisible(false);
+    } finally {
+      setRatingSubmitting(false);
     }
   };
 
@@ -898,7 +1012,7 @@ export default function ChatScreen() {
             {conversationStatus === 'active' && userRole === 'farmer' && (
               <TouchableOpacity 
                 style={styles.resolveButton} 
-                onPress={handleResolveConversation}
+                onPress={handleOpenResolutionModal}
                 activeOpacity={0.8}
               >
                 <Feather name="check-circle" size={16} color="#FFF" style={{ marginRight: 6 }} />
@@ -1027,14 +1141,23 @@ export default function ChatScreen() {
 
   const renderConsultationPicker = () => (
     <Modal
-      visible={consultationHistory.length > 0 && !selectedConsultationId}
-      animationType="fade"
+      visible={(consultationHistory.length > 0 && !selectedConsultationId) || pickerModalOpen}
+      animationType="slide"
       transparent={false}
-      onRequestClose={() => navigation.goBack()}
+      onRequestClose={() => {
+        if (selectedConsultationId) setPickerModalOpen(false);
+        else navigation.goBack();
+      }}
     >
       <SafeAreaView style={styles.consultationPickerScreen}>
         <View style={styles.consultationPickerHeader}>
-          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+          <TouchableOpacity 
+            style={styles.backButton} 
+            onPress={() => {
+              if (selectedConsultationId) setPickerModalOpen(false);
+              else navigation.goBack();
+            }}
+          >
             <Feather name="chevron-left" size={24} color="#FFF" />
           </TouchableOpacity>
           <View style={styles.consultationPickerHeaderText}>
@@ -1058,7 +1181,12 @@ export default function ChatScreen() {
               <TouchableOpacity
                 key={consultation.id || index}
                 style={[styles.consultationPickerRow, !selectable && styles.consultationPickerRowDisabled]}
-                onPress={() => selectable && setSelectedConsultationId(consultation.id)}
+                onPress={() => {
+                  if (selectable) {
+                    setSelectedConsultationId(consultation.id);
+                    setPickerModalOpen(false);
+                  }
+                }}
                 disabled={!selectable}
                 activeOpacity={0.8}
               >
@@ -1141,6 +1269,89 @@ export default function ChatScreen() {
       </View>
 
       {renderConsultationPicker()}
+
+      {/* Clinical Case Context Bar */}
+      <View style={{
+        marginHorizontal: 14,
+        marginTop: 6,
+        marginBottom: 4,
+        paddingHorizontal: 12,
+        paddingVertical: 9,
+        backgroundColor: isDark ? 'rgba(30, 41, 59, 0.7)' : '#F1F5F9',
+        borderRadius: 14,
+        borderWidth: 1,
+        borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : '#E2E8F0',
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between'
+      }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, paddingRight: 8 }}>
+          <View style={{
+            width: 8,
+            height: 8,
+            borderRadius: 4,
+            backgroundColor: conversationStatus === 'resolved' ? '#64748B' : '#10B981',
+            marginRight: 8
+          }} />
+          <View style={{ flex: 1 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Text style={{ fontSize: 11, fontWeight: '800', color: colors.primary, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                {isUrdu ? 'طبی کیس' : 'Clinical Case'} #{selectedConsultationId || params.consultationId || (Array.isArray(params.consultations) && params.consultations[0]?.id) || '1'}
+              </Text>
+              <Text style={{ fontSize: 11, color: colors.textSecondary, marginLeft: 6 }}>
+                · {conversationStatus === 'resolved' ? (isUrdu ? 'مکمل کیس' : 'Resolved') : (isUrdu ? 'جاری کیس' : 'In Progress')}
+              </Text>
+            </View>
+            <Text style={{ fontSize: 12, fontWeight: '600', color: colors.textPrimary, marginTop: 1 }} numberOfLines={1}>
+              {getConsultationName()}
+            </Text>
+          </View>
+        </View>
+
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+          {consultationHistory.length > 1 && (
+            <TouchableOpacity
+              style={{
+                backgroundColor: isDark ? 'rgba(56, 189, 248, 0.15)' : '#E0F2FE',
+                paddingHorizontal: 8,
+                paddingVertical: 5,
+                borderRadius: 8,
+                borderWidth: 1,
+                borderColor: isDark ? 'rgba(56, 189, 248, 0.3)' : '#BAE6FD',
+                flexDirection: 'row',
+                alignItems: 'center'
+              }}
+              onPress={() => setPickerModalOpen(true)}
+            >
+              <MaterialCommunityIcons name="swap-horizontal" size={14} color="#0284C7" style={{ marginRight: 3 }} />
+              <Text style={{ fontSize: 10, fontWeight: '700', color: '#0284C7' }}>
+                {isUrdu ? 'کیس بدلیں' : 'Switch'}
+              </Text>
+            </TouchableOpacity>
+          )}
+
+          {conversationStatus === 'active' && (
+            <TouchableOpacity
+              style={{
+                backgroundColor: isDark ? 'rgba(16, 185, 129, 0.18)' : '#D1FAE5',
+                paddingHorizontal: 9,
+                paddingVertical: 5,
+                borderRadius: 8,
+                borderWidth: 1,
+                borderColor: isDark ? 'rgba(16, 185, 129, 0.35)' : '#A7F3D0',
+                flexDirection: 'row',
+                alignItems: 'center'
+              }}
+              onPress={handleOpenResolutionModal}
+            >
+              <Feather name="check-circle" size={12} color="#059669" style={{ marginRight: 4 }} />
+              <Text style={{ fontSize: 11, fontWeight: '800', color: '#059669' }}>
+                {isUrdu ? 'مکمل کریں' : 'Resolve'}
+              </Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      </View>
 
       {/* Attached AI Medical Report Banner */}
       {attachedAiRecord && (
@@ -1289,7 +1500,7 @@ export default function ChatScreen() {
 
                   <TouchableOpacity 
                     style={styles.vetActionBtnSolid} 
-                    onPress={handleResolveConversation}
+                    onPress={handleOpenResolutionModal}
                   >
                     <Text style={styles.vetActionBtnSolidText}>✓ Mark Resolved</Text>
                   </TouchableOpacity>
@@ -1645,7 +1856,7 @@ export default function ChatScreen() {
             ) : remoteUid && !isVideoDisabled ? (
               <RtcSurfaceView
                 style={{ width: '100%', height: '100%' }}
-                canvas={{ uid: remoteUid, renderMode: RenderModeType.RenderModeHidden }}
+                canvas={{ uid: remoteUid, sourceType: VideoSourceType.VideoSourceRemote, renderMode: RenderModeType.RenderModeHidden }}
               />
             ) : callStatus === 'connected' && !isVideoDisabled ? (
               <View style={{ width: '100%', height: '100%', justifyContent: 'center', alignItems: 'center', backgroundColor: '#1E293B' }}>
@@ -1813,7 +2024,7 @@ export default function ChatScreen() {
                   <RtcSurfaceView
                     style={{ width: '100%', height: '100%' }}
                     zOrderMediaOverlay={true}
-                    canvas={{ uid: remoteUid, renderMode: RenderModeType.RenderModeHidden }}
+                    canvas={{ uid: remoteUid, sourceType: VideoSourceType.VideoSourceRemote, renderMode: RenderModeType.RenderModeHidden }}
                   />
                 ) : (
                   <View style={{ width: '100%', height: '100%', backgroundColor: '#0284C7', justifyContent: 'center', alignItems: 'center' }}>
@@ -2122,6 +2333,329 @@ export default function ChatScreen() {
                 <Text style={{ color: '#FFF', fontWeight: '700', fontSize: 14 }}>
                   {t('Accept Call')}
                 </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Clinical Case Resolution & Discharge Modal */}
+      <Modal
+        visible={resolutionModalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setResolutionModalVisible(false)}
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          style={{
+            flex: 1,
+            backgroundColor: 'rgba(0, 0, 0, 0.65)',
+            justifyContent: 'flex-end'
+          }}
+        >
+          <View style={{
+            backgroundColor: isDark ? '#1E293B' : '#FFFFFF',
+            borderTopLeftRadius: 28,
+            borderTopRightRadius: 28,
+            padding: 24,
+            maxHeight: '90%',
+            borderWidth: 1,
+            borderColor: isDark ? 'rgba(255, 255, 255, 0.1)' : '#E2E8F0'
+          }}>
+            {/* Modal Header */}
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <View style={{
+                  width: 38,
+                  height: 38,
+                  borderRadius: 12,
+                  backgroundColor: isDark ? 'rgba(16, 185, 129, 0.2)' : '#D1FAE5',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  marginRight: 12
+                }}>
+                  <Feather name="check-circle" size={20} color="#059669" />
+                </View>
+                <View>
+                  <Text style={{ fontSize: 17, fontWeight: '800', color: colors.textPrimary }}>
+                    {isUrdu ? 'کیس مکمل اختتام و ڈسچارج' : 'Case Resolution & Sign-Off'}
+                  </Text>
+                  <Text style={{ fontSize: 12, color: colors.textSecondary }}>
+                    {isUrdu ? 'کیس نمبر' : 'Clinical Case'} #{selectedConsultationId || params.consultationId || '1'} · {getConsultationName()}
+                  </Text>
+                </View>
+              </View>
+              <TouchableOpacity onPress={() => setResolutionModalVisible(false)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                <Feather name="x" size={22} color={colors.textSecondary} />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView showsVerticalScrollIndicator={false}>
+              {/* Outcome Selector */}
+              <Text style={{ fontSize: 13, fontWeight: '700', color: colors.textPrimary, marginBottom: 8 }}>
+                {isUrdu ? 'طبی نتیجہ منتخب کریں' : 'Select Clinical Outcome'}
+              </Text>
+              <View style={{ gap: 8, marginBottom: 16 }}>
+                {[
+                  { key: 'fully_recovered', label: isUrdu ? 'صحت یاب / مکمل علاج' : 'Fully Recovered / Treated', icon: 'check-circle', color: '#10B981' },
+                  { key: 'improving', label: isUrdu ? 'بہتری کی طرف (گھریلو دیکھ بھال)' : 'Improving (Home Care Continued)', icon: 'activity', color: '#3B82F6' },
+                  { key: 'referred', label: isUrdu ? 'ریفر شدہ برائے فیلڈ ہسپتال' : 'Referred to Field Veterinary Hospital', icon: 'arrow-up-right', color: '#F59E0B' },
+                ].map((item) => {
+                  const isSelected = selectedOutcome === item.key;
+                  return (
+                    <TouchableOpacity
+                      key={item.key}
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        padding: 12,
+                        borderRadius: 12,
+                        borderWidth: 1.5,
+                        borderColor: isSelected ? item.color : (isDark ? 'rgba(255, 255, 255, 0.1)' : '#E2E8F0'),
+                        backgroundColor: isSelected ? (isDark ? 'rgba(255, 255, 255, 0.06)' : '#F8FAFC') : 'transparent'
+                      }}
+                      onPress={() => setSelectedOutcome(item.key)}
+                    >
+                      <Feather name={item.icon} size={18} color={item.color} style={{ marginRight: 10 }} />
+                      <Text style={{ flex: 1, fontSize: 13, fontWeight: isSelected ? '700' : '500', color: colors.textPrimary }}>
+                        {item.label}
+                      </Text>
+                      <View style={{
+                        width: 18,
+                        height: 18,
+                        borderRadius: 9,
+                        borderWidth: 2,
+                        borderColor: isSelected ? item.color : colors.textSecondary,
+                        justifyContent: 'center',
+                        alignItems: 'center'
+                      }}>
+                        {isSelected && <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: item.color }} />}
+                      </View>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+
+              {/* Follow-up Timeline */}
+              <Text style={{ fontSize: 13, fontWeight: '700', color: colors.textPrimary, marginBottom: 8 }}>
+                {isUrdu ? 'تجویز کردہ فالو اپ' : 'Recommended Follow-Up'}
+              </Text>
+              <View style={{ flexDirection: 'row', gap: 8, marginBottom: 16 }}>
+                {[
+                  { days: 'none', label: isUrdu ? 'کوئی نہیں' : 'None' },
+                  { days: '3', label: isUrdu ? '3 دن' : '3 Days' },
+                  { days: '7', label: isUrdu ? '7 دن' : '7 Days' },
+                  { days: '14', label: isUrdu ? '14 دن' : '14 Days' },
+                ].map((item) => {
+                  const isSelected = followUpDays === item.days;
+                  return (
+                    <TouchableOpacity
+                      key={item.days}
+                      style={{
+                        flex: 1,
+                        paddingVertical: 9,
+                        borderRadius: 10,
+                        borderWidth: 1,
+                        borderColor: isSelected ? colors.primary : (isDark ? 'rgba(255, 255, 255, 0.1)' : '#E2E8F0'),
+                        backgroundColor: isSelected ? (isDark ? 'rgba(16, 185, 129, 0.15)' : '#ECFDF5') : 'transparent',
+                        alignItems: 'center'
+                      }}
+                      onPress={() => setFollowUpDays(item.days)}
+                    >
+                      <Text style={{ fontSize: 12, fontWeight: isSelected ? '700' : '500', color: isSelected ? colors.primary : colors.textSecondary }}>
+                        {item.label}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+
+              {/* Clinical Discharge Notes */}
+              <Text style={{ fontSize: 13, fontWeight: '700', color: colors.textPrimary, marginBottom: 6 }}>
+                {isUrdu ? 'اختتامی ریمارکس اور ہدایات' : 'Clinical Discharge Notes (Optional)'}
+              </Text>
+              <TextInput
+                style={{
+                  backgroundColor: isDark ? 'rgba(255, 255, 255, 0.05)' : '#F8FAFC',
+                  borderRadius: 12,
+                  padding: 12,
+                  fontSize: 13,
+                  color: colors.textPrimary,
+                  borderWidth: 1,
+                  borderColor: isDark ? 'rgba(255, 255, 255, 0.1)' : '#E2E8F0',
+                  minHeight: 70,
+                  textAlignVertical: 'top',
+                  marginBottom: 18
+                }}
+                placeholder={isUrdu ? 'مثال: ادویات کا کورس مکمل ہو چکا ہے، بخار معمول پر آ گیا ہے۔' : 'e.g. Temperature normalized, quarantine precautions lifted.'}
+                placeholderTextColor={colors.textSecondary}
+                multiline
+                value={dischargeNotes}
+                onChangeText={setDischargeNotes}
+              />
+
+              {/* Action Buttons */}
+              <View style={{ flexDirection: 'row', gap: 12 }}>
+                <TouchableOpacity
+                  style={{
+                    flex: 1,
+                    paddingVertical: 13,
+                    borderRadius: 14,
+                    backgroundColor: isDark ? 'rgba(255, 255, 255, 0.08)' : '#F1F5F9',
+                    alignItems: 'center'
+                  }}
+                  onPress={() => setResolutionModalVisible(false)}
+                >
+                  <Text style={{ fontSize: 14, fontWeight: '700', color: colors.textSecondary }}>
+                    {isUrdu ? 'منسوخ کریں' : 'Cancel'}
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={{
+                    flex: 1.5,
+                    paddingVertical: 13,
+                    borderRadius: 14,
+                    backgroundColor: '#059669',
+                    alignItems: 'center',
+                    flexDirection: 'row',
+                    justifyContent: 'center'
+                  }}
+                  onPress={handleConfirmResolution}
+                >
+                  <Feather name="check-circle" size={16} color="#FFF" style={{ marginRight: 6 }} />
+                  <Text style={{ fontSize: 14, fontWeight: '800', color: '#FFF' }}>
+                    {isUrdu ? 'کیس مکمل کریں' : 'Sign Off & Close'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </ScrollView>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
+
+      {/* Farmer Star Rating & Review Modal */}
+      <Modal
+        visible={ratingModalVisible}
+        animationType="fade"
+        transparent={true}
+        onRequestClose={() => setRatingModalVisible(false)}
+      >
+        <View style={{
+          flex: 1,
+          backgroundColor: 'rgba(0, 0, 0, 0.7)',
+          justifyContent: 'center',
+          alignItems: 'center',
+          padding: 20
+        }}>
+          <View style={{
+            width: '100%',
+            maxWidth: 400,
+            backgroundColor: isDark ? '#1E293B' : '#FFFFFF',
+            borderRadius: 24,
+            padding: 24,
+            alignItems: 'center',
+            borderWidth: 1,
+            borderColor: isDark ? 'rgba(255, 255, 255, 0.1)' : '#E2E8F0'
+          }}>
+            {/* Star Icon Badge */}
+            <View style={{
+              width: 56,
+              height: 56,
+              borderRadius: 28,
+              backgroundColor: '#FEF3C7',
+              justifyContent: 'center',
+              alignItems: 'center',
+              marginBottom: 12,
+              borderWidth: 2,
+              borderColor: '#FDE68A'
+            }}>
+              <MaterialCommunityIcons name="star" size={32} color="#D97706" />
+            </View>
+
+            <Text style={{ fontSize: 17, fontWeight: '800', color: colors.textPrimary, textAlign: 'center', marginBottom: 4 }}>
+              {isUrdu ? 'ڈاکٹر کو ریویو اور ریٹنگ دیں' : 'Rate Your Consultation'}
+            </Text>
+            <Text style={{ fontSize: 12, color: colors.textSecondary, textAlign: 'center', marginBottom: 16 }}>
+              {isUrdu ? `ڈاکٹر ${partnerName} کے ساتھ آپ کا تجربہ کیسا رہا؟` : `How was your medical consultation with ${partnerName}?`}
+            </Text>
+
+            {/* Interactive Stars */}
+            <View style={{ flexDirection: 'row', gap: 10, marginBottom: 16 }}>
+              {[1, 2, 3, 4, 5].map((star) => (
+                <TouchableOpacity
+                  key={star}
+                  onPress={() => setStarRating(star)}
+                  hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
+                >
+                  <MaterialCommunityIcons
+                    name={star <= starRating ? 'star' : 'star-outline'}
+                    size={36}
+                    color={star <= starRating ? '#F59E0B' : (isDark ? '#475569' : '#CBD5E1')}
+                  />
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            {/* Feedback Input */}
+            <TextInput
+              style={{
+                width: '100%',
+                backgroundColor: isDark ? 'rgba(255, 255, 255, 0.05)' : '#F8FAFC',
+                borderRadius: 12,
+                padding: 12,
+                fontSize: 13,
+                color: colors.textPrimary,
+                borderWidth: 1,
+                borderColor: isDark ? 'rgba(255, 255, 255, 0.1)' : '#E2E8F0',
+                minHeight: 65,
+                textAlignVertical: 'top',
+                marginBottom: 16
+              }}
+              placeholder={isUrdu ? 'اپنا فیڈ بیک اور رائے لکھیں...' : 'Share feedback about response time and diagnosis quality...'}
+              placeholderTextColor={colors.textSecondary}
+              multiline
+              value={farmerReview}
+              onChangeText={setFarmerReview}
+            />
+
+            {/* Submit & Dismiss Row */}
+            <View style={{ flexDirection: 'row', width: '100%', gap: 10 }}>
+              <TouchableOpacity
+                style={{
+                  flex: 1,
+                  paddingVertical: 12,
+                  borderRadius: 12,
+                  backgroundColor: isDark ? 'rgba(255, 255, 255, 0.08)' : '#F1F5F9',
+                  alignItems: 'center'
+                }}
+                onPress={() => setRatingModalVisible(false)}
+              >
+                <Text style={{ fontSize: 13, fontWeight: '700', color: colors.textSecondary }}>
+                  {isUrdu ? 'بعد میں' : 'Later'}
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={{
+                  flex: 1.5,
+                  paddingVertical: 12,
+                  borderRadius: 12,
+                  backgroundColor: '#059669',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+                onPress={handleRatingSubmit}
+                disabled={ratingSubmitting}
+              >
+                {ratingSubmitting ? (
+                  <ActivityIndicator size="small" color="#FFF" />
+                ) : (
+                  <Text style={{ fontSize: 13, fontWeight: '800', color: '#FFF' }}>
+                    {isUrdu ? 'ریٹنگ جمع کروائیں' : 'Submit Review'}
+                  </Text>
+                )}
               </TouchableOpacity>
             </View>
           </View>

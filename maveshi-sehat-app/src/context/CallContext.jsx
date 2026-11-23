@@ -27,6 +27,7 @@ export const useCall = () => useContext(CallContext);
 
 export const CallProvider = ({ children, navigationRef }) => {
   const [incomingCall, setIncomingCall] = useState(null);
+  const incomingCallRef = useRef(null);
   const socketRef = useRef(null);
   const ringTimeoutRef = useRef(null);
   const pulseAnim = useRef(new Animated.Value(1)).current;
@@ -91,11 +92,16 @@ export const CallProvider = ({ children, navigationRef }) => {
     // App-wide incoming call listener
     socket.on('incoming_call', (data) => {
       console.log('🔔 Global incoming call received:', data);
+      if (incomingCallRef.current) {
+        console.log('Ignoring incoming call because an incoming call modal is already active');
+        return;
+      }
       const p = getProfile();
       const myId = p?.userId;
 
       // Ensure caller is not ourselves
       if (data && Number(data.callerId) !== Number(myId)) {
+        incomingCallRef.current = data;
         setIncomingCall(data);
 
         // Vibrate in ring pattern (500ms on, 1000ms off)
@@ -130,6 +136,7 @@ export const CallProvider = ({ children, navigationRef }) => {
   }, []);
 
   const stopRinging = () => {
+    incomingCallRef.current = null;
     try {
       Vibration.cancel();
     } catch (e) {}
