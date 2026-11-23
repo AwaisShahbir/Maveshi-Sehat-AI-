@@ -57,6 +57,8 @@ export default function VetProfileScreen() {
   const [formLicense, setFormLicense] = useState(profile.license || profile.pvmcNumber || '');
   const [formSpec, setFormSpec] = useState(profile.specialization || '');
   const [formAvail, setFormAvail] = useState(profile.availability || profile.availabilitySchedule || '');
+  const [consultationMode, setConsultationMode] = useState(profile.consultationMode || 'Chat + Video');
+  const [consultModeModalVisible, setConsultModeModalVisible] = useState(false);
 
   const baseUrl = 'https://maveshi-sehat-api.onrender.com';
   const vetId = profile.userId || params.userId;
@@ -73,6 +75,9 @@ export default function VetProfileScreen() {
             setFormLicense(data.pvmcNumber || '');
             setFormSpec(data.specialization || '');
             setFormAvail(data.availabilitySchedule || '');
+            if (data.consultationMode) {
+              setConsultationMode(data.consultationMode);
+            }
             setStats({
               cases: data.stats?.cases || 0,
               prescriptions: data.stats?.prescriptions || 0,
@@ -84,7 +89,8 @@ export default function VetProfileScreen() {
               license: data.pvmcNumber,
               pvmcNumber: data.pvmcNumber,
               specialization: data.specialization,
-              availabilitySchedule: data.availabilitySchedule
+              availabilitySchedule: data.availabilitySchedule,
+              consultationMode: data.consultationMode || profile.consultationMode || 'Chat + Video'
             });
           }
         }
@@ -108,7 +114,8 @@ export default function VetProfileScreen() {
             fullName: formName,
             pvmcNumber: formLicense,
             specialization: formSpec,
-            availabilitySchedule: formAvail
+            availabilitySchedule: formAvail,
+            consultationMode: consultationMode
           })
         });
       }
@@ -119,7 +126,8 @@ export default function VetProfileScreen() {
         pvmcNumber: formLicense,
         specialization: formSpec,
         availability: formAvail,
-        availabilitySchedule: formAvail
+        availabilitySchedule: formAvail,
+        consultationMode: consultationMode
       });
       setProfile(getProfile());
       setActiveModal(null);
@@ -127,6 +135,31 @@ export default function VetProfileScreen() {
     } catch (err) {
       console.error('Error saving vet profile:', err);
       Alert.alert(t('Error') || 'Error', t('Failed to update profile.') || 'Failed to update profile.');
+    }
+  };
+
+  const handleSelectConsultMode = async (mode) => {
+    setConsultationMode(mode);
+    updateProfile({ consultationMode: mode });
+    setConsultModeModalVisible(false);
+    try {
+      if (vetId) {
+        await fetch(`${baseUrl}/api/vet/profile`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            vetId,
+            fullName: formName,
+            pvmcNumber: formLicense,
+            specialization: formSpec,
+            availabilitySchedule: formAvail,
+            consultationMode: mode
+          })
+        });
+      }
+      Alert.alert(t('Success') || 'Success', `${t('Consultation mode updated to')} ${t(mode)}`);
+    } catch (err) {
+      console.error('Error updating consultation mode:', err);
     }
   };
 
@@ -199,11 +232,8 @@ export default function VetProfileScreen() {
     
     if (lang === 'Urdu') {
       leftText = subtitle || title;
-    } else if (lang === 'English') {
+    } else {
       leftText = title;
-    } else if (lang === 'Both') {
-      leftText = title;
-      rightText = subtitle;
     }
 
     return (
@@ -293,26 +323,19 @@ export default function VetProfileScreen() {
             {renderMenuItem('calendar', 'Availability Schedule', null, null, () => setActiveModal('availability'))}
           </View>
 
-          <Text style={styles.sectionHeading}>{t('Community & Practice')}</Text>
-          <View style={styles.menuCard}>
-            {renderMenuItem('users', 'Community Forum', null, null, () => navigation.navigate('CommunityForum', { userName: profile.userName || userName, userId: vetId }))}
-            <View style={styles.menuDivider} />
-            {renderMenuItem('activity', 'Animal Health Records', null, null, () => navigation.navigate('VetHealthRecords'))}
-          </View>
-
           <Text style={styles.sectionHeading}>{t('Preferences')}</Text>
           <View style={styles.menuCard}>
             {renderMenuItem('globe', 'Language', null, 
               profile.enforceAdminLanguage ? (
                 <View style={{ alignItems: 'flex-end' }}>
                   <Text style={styles.menuSubtitleActive}>
-                    {profile.language === 'English' ? 'English' : (profile.language === 'Urdu' ? 'Urdu' : 'Both (English and Urdu)')}
+                    {profile.language === 'Urdu' ? 'Urdu' : 'English'}
                   </Text>
                   <Text style={{ fontSize: 10, color: '#999' }}>Set by Admin</Text>
                 </View>
               ) : (
                 <Text style={styles.menuSubtitleActive}>
-                  {profile.language === 'English' ? 'English' : (profile.language === 'Urdu' ? 'Urdu' : 'Both (English and Urdu)')}
+                  {profile.language === 'Urdu' ? 'Urdu' : 'English'}
                 </Text>
               ), 
               profile.enforceAdminLanguage 
@@ -341,7 +364,8 @@ export default function VetProfileScreen() {
             )}
             <View style={styles.menuDivider} />
             {renderMenuItem('message-circle', 'Consultation Mode', null, 
-              <Text style={styles.menuSubtitleActive}>Chat + Video</Text>
+              <Text style={styles.menuSubtitleActive}>{t(consultationMode)}</Text>,
+              () => setConsultModeModalVisible(true)
             )}
           </View>
 
@@ -352,78 +376,6 @@ export default function VetProfileScreen() {
             {renderMenuItem('headphones', 'Contact Admin', null, null, () => setContactAdminModalVisible(true))}
             <View style={styles.menuDivider} />
             {renderMenuItem('shield', 'Privacy Policy', null, null, () => setPrivacyModalVisible(true))}
-          </View>
-
-          {/* Quick Support Details Card */}
-          <View style={styles.supportSummaryCard}>
-            <View style={styles.supportSummaryHeader}>
-              <View style={styles.supportBadge}>
-                <MaterialCommunityIcons name="shield-check" size={14} color="#059669" />
-                <Text style={styles.supportBadgeText}>{t('24/7 Priority Vet Support')}</Text>
-              </View>
-              <Text style={styles.supportSlaText}>{t('Response within 2 hours')}</Text>
-            </View>
-
-            <TouchableOpacity style={styles.supportQuickRow} onPress={openSupportEmail} activeOpacity={0.7}>
-              <View style={[styles.supportQuickIconBox, { backgroundColor: isDark ? 'rgba(5, 150, 105, 0.2)' : '#ECFDF5' }]}>
-                <Feather name="mail" size={16} color="#059669" />
-              </View>
-              <View style={styles.supportQuickInfo}>
-                <Text style={styles.supportQuickLabel}>{t('Official Support Email')}</Text>
-                <Text style={styles.supportQuickValue}>support@maveshisehat.ai</Text>
-              </View>
-              <Feather name="arrow-up-right" size={16} color={colors.textSecondary} />
-            </TouchableOpacity>
-
-            <View style={styles.supportRowDivider} />
-
-            <TouchableOpacity style={styles.supportQuickRow} onPress={openSupportPhone} activeOpacity={0.7}>
-              <View style={[styles.supportQuickIconBox, { backgroundColor: isDark ? 'rgba(14, 165, 233, 0.2)' : '#F0F9FF' }]}>
-                <Feather name="phone" size={16} color="#0284C7" />
-              </View>
-              <View style={styles.supportQuickInfo}>
-                <Text style={styles.supportQuickLabel}>{t('Helpline Phone')}</Text>
-                <Text style={styles.supportQuickValue}>+92 305 4758667</Text>
-              </View>
-              <Feather name="arrow-up-right" size={16} color={colors.textSecondary} />
-            </TouchableOpacity>
-
-            <View style={styles.supportRowDivider} />
-
-            <TouchableOpacity style={styles.supportQuickRow} onPress={openSupportWhatsApp} activeOpacity={0.7}>
-              <View style={[styles.supportQuickIconBox, { backgroundColor: isDark ? 'rgba(37, 211, 102, 0.2)' : '#F0FDF4' }]}>
-                <MaterialCommunityIcons name="whatsapp" size={18} color="#25D366" />
-              </View>
-              <View style={styles.supportQuickInfo}>
-                <Text style={styles.supportQuickLabel}>{t('WhatsApp Helpdesk')}</Text>
-                <Text style={styles.supportQuickValue}>+92 305 4758667 ({t('Instant Chat')})</Text>
-              </View>
-              <Feather name="arrow-up-right" size={16} color={colors.textSecondary} />
-            </TouchableOpacity>
-
-            <View style={styles.supportRowDivider} />
-
-            <View style={styles.supportQuickRowStatic}>
-              <View style={[styles.supportQuickIconBox, { backgroundColor: isDark ? 'rgba(245, 158, 11, 0.2)' : '#FFFBEB' }]}>
-                <Feather name="clock" size={16} color="#D97706" />
-              </View>
-              <View style={styles.supportQuickInfo}>
-                <Text style={styles.supportQuickLabel}>{t('Operating Hours')}</Text>
-                <Text style={styles.supportQuickValue}>Mon - Sat: 9:00 AM - 6:00 PM (PKT)</Text>
-              </View>
-            </View>
-
-            <View style={styles.supportRowDivider} />
-
-            <View style={styles.supportQuickRowStatic}>
-              <View style={[styles.supportQuickIconBox, { backgroundColor: isDark ? 'rgba(99, 102, 241, 0.2)' : '#EEF2FF' }]}>
-                <Feather name="map-pin" size={16} color="#6366F1" />
-              </View>
-              <View style={styles.supportQuickInfo}>
-                <Text style={styles.supportQuickLabel}>{t('National Operations Office')}</Text>
-                <Text style={styles.supportQuickValue}>Maveshi Sehat AI National Livestock Center, Lahore, Pakistan</Text>
-              </View>
-            </View>
           </View>
 
           <TouchableOpacity style={styles.logoutBtn} onPress={() => navigation.reset({ index: 0, routes: [{ name: 'Welcome' }] })}>
@@ -503,8 +455,7 @@ export default function VetProfileScreen() {
 
             {[
               { id: 'English', label: 'English' },
-              { id: 'Urdu', label: 'Urdu' },
-              { id: 'Both', label: 'Both (English and Urdu)' }
+              { id: 'Urdu', label: 'Urdu' }
             ].map((item) => (
               <TouchableOpacity
                 key={item.id}
@@ -525,6 +476,76 @@ export default function VetProfileScreen() {
                 )}
               </TouchableOpacity>
             ))}
+          </View>
+        </View>
+      </Modal>
+
+      {/* Consultation Mode Selection Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={consultModeModalVisible}
+        onRequestClose={() => setConsultModeModalVisible(false)}
+      >
+        <View style={styles.modalBg}>
+          <View style={styles.modalContainer}>
+            <View style={styles.modalHeader}>
+              <View style={styles.infoModalTitleRow}>
+                <View style={[styles.infoModalIcon, { backgroundColor: isDark ? 'rgba(5, 150, 105, 0.2)' : '#ECFDF5' }]}>
+                  <Feather name="message-circle" size={18} color="#059669" />
+                </View>
+                <Text style={styles.modalTitle}>{t('Consultation Mode')}</Text>
+              </View>
+              <TouchableOpacity onPress={() => setConsultModeModalVisible(false)}>
+                <Feather name="x" size={24} color={colors.textSecondary} />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.infoModalContent}>
+              <Text style={styles.infoModalIntro}>
+                {t('Select how you wish to conduct patient consultations with livestock farmers.')}
+              </Text>
+
+              {[
+                {
+                  id: 'Chat + Video',
+                  title: 'Chat + Video',
+                  desc: 'Enable both text messaging and live video consultation calls with farmers.'
+                },
+                {
+                  id: 'Chat Only',
+                  title: 'Chat Only',
+                  desc: 'Accept only secure text chats and electronic prescription requests.'
+                },
+                {
+                  id: 'Video Only',
+                  title: 'Video Only',
+                  desc: 'Conduct scheduled live video diagnostics and clinical inspection calls only.'
+                }
+              ].map((item) => (
+                <TouchableOpacity
+                  key={item.id}
+                  style={[
+                    styles.langOption,
+                    consultationMode === item.id && styles.langOptionSelected
+                  ]}
+                  onPress={() => handleSelectConsultMode(item.id)}
+                  activeOpacity={0.7}
+                >
+                  <View style={{ flex: 1, paddingRight: 8 }}>
+                    <Text style={[styles.langOptionText, consultationMode === item.id && styles.langOptionTextSelected]}>
+                      {t(item.title)}
+                    </Text>
+                    <Text style={{ fontSize: 11, color: colors.textSecondary, marginTop: 2 }}>
+                      {t(item.desc)}
+                    </Text>
+                  </View>
+                  {consultationMode === item.id && (
+                    <Feather name="check" size={20} color={colors.primary} />
+                  )}
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
           </View>
         </View>
       </Modal>

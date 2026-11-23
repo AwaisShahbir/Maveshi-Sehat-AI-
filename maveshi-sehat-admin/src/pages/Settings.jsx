@@ -50,7 +50,7 @@ export default function Settings({ onProfileUpdate }) {
 
   // System Settings States
   const [threshold, setThreshold] = useState(85);
-  const [language, setLanguage] = useState('Both');
+  const [language, setLanguage] = useState('English');
   const [timezone, setTimezone] = useState('utc-5');
   const [enforceAdminLanguage, setEnforceAdminLanguage] = useState(true);
   const [supportEmail, setSupportEmail] = useState('support@maveshisehat.ai');

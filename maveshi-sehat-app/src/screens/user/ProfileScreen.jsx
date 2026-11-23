@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  View, 
-  Text, 
-  SafeAreaView, 
-  TouchableOpacity, 
-  ScrollView, 
-  StatusBar, 
-  Platform, 
+import {
+  View,
+  Text,
+  SafeAreaView,
+  TouchableOpacity,
+  ScrollView,
+  StatusBar,
+  Platform,
   TextInput,
   Switch,
   Modal,
@@ -174,13 +174,13 @@ export default function ProfileScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="light-content" backgroundColor={isDark ? '#0B1120' : '#059669'} />
-      
-      <ScrollView 
+
+      <ScrollView
         style={{ flex: 1, backgroundColor: colors.background }}
-        contentContainerStyle={styles.scrollContent} 
+        contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        
+
         <View style={styles.header}>
           <Text style={[styles.headerTitle, isUrdu && { fontFamily: fonts.urduBold }]}>
             {t('Profile & Settings')}
@@ -262,7 +262,7 @@ export default function ProfileScreen() {
 
         <Text style={[styles.groupTitle, isUrdu && { fontFamily: fonts.urduBold }]}>{t('Preferences')}</Text>
         <View style={styles.settingsGroup}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.settingsItem}
             activeOpacity={profile.enforceAdminLanguage ? 1 : 0.7}
             onPress={() => {
