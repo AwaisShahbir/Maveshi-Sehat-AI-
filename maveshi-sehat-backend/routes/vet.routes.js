@@ -7,7 +7,7 @@ module.exports = (pool, io) => {
   router.get('/api/vets', async (req, res) => {
     try {
       const { district, ownerName } = req.query;
-      let query = "SELECT id, full_name, district, specialization, experience_years, status FROM users WHERE role = 'vet' AND status = 'verified'";
+      let query = "SELECT id, full_name, district, specialization, experience_years, status, consultation_mode FROM users WHERE role = 'vet' AND status = 'verified'";
       const params = [];
 
       if (district) {

@@ -11,7 +11,30 @@ module.exports = (pool, io) => {
       if (conversationId) {
         const convRes = await pool.query('SELECT * FROM conversations WHERE id = $1', [conversationId]);
         if (convRes.rows.length > 0) {
-          return res.status(200).json(convRes.rows[0]);
+          const conv = { ...convRes.rows[0] };
+          try {
+            if (conv.vet_id) {
+              const vetRes = await pool.query('SELECT full_name, phone_number, consultation_mode FROM users WHERE id = $1', [conv.vet_id]);
+              if (vetRes.rows.length > 0) {
+                conv.vet_consultation_mode = vetRes.rows[0].consultation_mode || 'Chat + Video';
+                conv.vet_phone = vetRes.rows[0].phone_number;
+              }
+            }
+            if (conv.farmer_id) {
+              const farmerRes = await pool.query('SELECT full_name, phone_number FROM users WHERE id = $1', [conv.farmer_id]);
+              if (farmerRes.rows.length > 0) {
+                conv.farmer_phone = farmerRes.rows[0].phone_number;
+              }
+            }
+            const consultRes = await pool.query(
+              'SELECT id, type, status, ai_record_data, reason, created_at FROM consultations WHERE farmer_id = $1 AND vet_id = $2 ORDER BY id DESC LIMIT 1',
+              [conv.farmer_id, conv.vet_id]
+            );
+            conv.latest_consultation = consultRes.rows[0] || null;
+          } catch (cErr) {
+            console.warn('Could not query extra conversation details:', cErr.message);
+          }
+          return res.status(200).json(conv);
         }
       }
 
@@ -50,8 +73,17 @@ module.exports = (pool, io) => {
 
       const conv = { ...convRes.rows[0] };
       try {
+        const vetRes = await pool.query('SELECT full_name, phone_number, consultation_mode FROM users WHERE id = $1', [safeVetId]);
+        if (vetRes.rows.length > 0) {
+          conv.vet_consultation_mode = vetRes.rows[0].consultation_mode || 'Chat + Video';
+          conv.vet_phone = vetRes.rows[0].phone_number;
+        }
+        const farmerRes = await pool.query('SELECT full_name, phone_number FROM users WHERE id = $1', [fId]);
+        if (farmerRes.rows.length > 0) {
+          conv.farmer_phone = farmerRes.rows[0].phone_number;
+        }
         const consultRes = await pool.query(
-          'SELECT id, status, ai_record_data, reason, created_at FROM consultations WHERE farmer_id = $1 AND vet_id = $2 ORDER BY id DESC LIMIT 1',
+          'SELECT id, type, status, ai_record_data, reason, created_at FROM consultations WHERE farmer_id = $1 AND vet_id = $2 ORDER BY id DESC LIMIT 1',
           [fId, safeVetId]
         );
         conv.latest_consultation = consultRes.rows[0] || null;

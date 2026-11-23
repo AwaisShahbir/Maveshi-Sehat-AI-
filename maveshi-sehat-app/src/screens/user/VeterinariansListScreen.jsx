@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  View, Text, SafeAreaView, FlatList, TextInput, 
+import {
+  View, Text, SafeAreaView, FlatList, TextInput,
   TouchableOpacity, StatusBar, ActivityIndicator, Platform, Alert, Image, Modal
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -70,12 +70,15 @@ export default function VeterinariansListScreen() {
 
   const openConsultModal = (vet, type) => {
     setSelectedVet(vet);
-    setConsultType(type);
+    const resolvedType = (type === 'online_chat' && vet?.consultation_mode === 'Video Only')
+      ? 'video_consult'
+      : type;
+    setConsultType(resolvedType);
     if (params.initialRecord) {
       const rec = params.initialRecord;
       const tag = rec.animalId || rec.id || '';
       const diseaseName = rec.disease || rec.name || rec.status || 'Livestock Condition';
-      const defaultReason = tag 
+      const defaultReason = tag
         ? `AI Scan: ${diseaseName} (Livestock #${tag}). Requesting veterinary consultation and treatment.`
         : `AI Scan: ${diseaseName}. Requesting veterinary consultation and treatment.`;
       setReason(defaultReason);
@@ -118,18 +121,18 @@ export default function VeterinariansListScreen() {
       setReason('');
       setAppointmentDate('');
       setAppointmentTime('');
-      
+
       Alert.alert(
         t('Request Sent'),
         `Your consultation request with attached AI report has been sent to ${selectedVet?.full_name || 'the vet'}. Status is currently Pending until the doctor approves.`,
         [
-          { 
-            text: 'View Consultations', 
-            onPress: () => navigation.navigate('MyConsultations') 
+          {
+            text: 'View Consultations',
+            onPress: () => navigation.navigate('MyConsultations')
           }
         ]
       );
-      
+
     } catch (error) {
       console.error('Error submitting consultation:', error);
       Alert.alert('Error', 'Could not send request. Please try again later.');
@@ -138,7 +141,7 @@ export default function VeterinariansListScreen() {
     }
   };
 
-  const filteredVets = vets.filter(vet => 
+  const filteredVets = vets.filter(vet =>
     vet.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     (vet.specialization && vet.specialization.toLowerCase().includes(searchQuery.toLowerCase()))
   );
@@ -167,16 +170,16 @@ export default function VeterinariansListScreen() {
             </View>
             <View style={[styles.statusDot, { backgroundColor: isBusy ? '#FF3B30' : '#58D66D' }]} />
           </View>
-          
+
           <View style={styles.vetInfo}>
             <View style={styles.nameRow}>
               <Text style={styles.vetName}>{item.full_name}</Text>
               <MaterialCommunityIcons name="check-decagram" size={16} color="#58D66D" style={{ marginLeft: 4 }} />
             </View>
-                        <Text style={styles.vetSpecialization}>
+            <Text style={styles.vetSpecialization}>
               {item.specialization || 'Generalist'}
             </Text>
-            
+
             <View style={styles.metaRow}>
               <View style={styles.ratingContainer}>
                 <Feather name="star" size={12} color="#F5B041" style={{ marginRight: 4 }} />
@@ -199,11 +202,47 @@ export default function VeterinariansListScreen() {
           </View>
         </View>
 
+        {/* Consultation Mode Badge */}
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8, marginBottom: 4 }}>
+          {item.consultation_mode === 'Video Only' ? (
+            <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: isDark ? 'rgba(2, 132, 199, 0.2)' : '#E0F2FE', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 }}>
+              <Feather name="video" size={13} color="#0284C7" style={{ marginRight: 5 }} />
+              <Text style={{ fontSize: 11, fontWeight: '700', color: '#0284C7' }}>{t('Video Consult Only')}</Text>
+            </View>
+          ) : item.consultation_mode === 'Chat Only' ? (
+            <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: isDark ? 'rgba(217, 119, 6, 0.2)' : '#FEF3C7', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 }}>
+              <Feather name="message-square" size={13} color="#D97706" style={{ marginRight: 5 }} />
+              <Text style={{ fontSize: 11, fontWeight: '700', color: '#D97706' }}>{t('Chat Consult Only')}</Text>
+            </View>
+          ) : (
+            <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: isDark ? 'rgba(5, 150, 105, 0.2)' : '#ECFDF5', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 }}>
+              <Feather name="message-square" size={13} color="#059669" style={{ marginRight: 4 }} />
+              <Feather name="video" size={13} color="#059669" style={{ marginRight: 5 }} />
+              <Text style={{ fontSize: 11, fontWeight: '700', color: '#059669' }}>{t('Chat & Video Available')}</Text>
+            </View>
+          )}
+        </View>
+
         <View style={styles.actionButtonsRow}>
-          <TouchableOpacity style={styles.chatBtn} onPress={() => openConsultModal(item, 'online_chat')}>
-            <Feather name="message-square" size={16} color="#FFF" style={{ marginRight: 8 }} />
-            <Text style={styles.chatBtnText}>Req. Online Consult</Text>
-          </TouchableOpacity>
+          {item.consultation_mode === 'Video Only' ? (
+            <TouchableOpacity style={[styles.chatBtn, { backgroundColor: '#0284C7' }]} onPress={() => openConsultModal(item, 'video_consult')}>
+              <Feather name="video" size={16} color="#FFF" style={{ marginRight: 8 }} />
+              <Text style={styles.chatBtnText}>{t('Req. Video Consult')}</Text>
+            </TouchableOpacity>
+          ) : item.consultation_mode === 'Chat Only' ? (
+            <TouchableOpacity style={styles.chatBtn} onPress={() => openConsultModal(item, 'online_chat')}>
+              <Feather name="message-square" size={16} color="#FFF" style={{ marginRight: 8 }} />
+              <Text style={styles.chatBtnText}>{t('Req. Online Chat')}</Text>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity style={styles.chatBtn} onPress={() => openConsultModal(item, 'online_chat')}>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Feather name="message-square" size={14} color="#FFF" style={{ marginRight: 4 }} />
+                <Feather name="video" size={14} color="#FFF" style={{ marginRight: 7 }} />
+              </View>
+              <Text style={styles.chatBtnText}>{t('Req. Online Consult')}</Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         <TouchableOpacity style={styles.bookBtn} onPress={() => openConsultModal(item, 'physical_appointment')}>
@@ -217,7 +256,7 @@ export default function VeterinariansListScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="light-content" backgroundColor={isDark ? colors.headerBackground : colors.primary} />
-      
+
       <View style={styles.headerArea}>
         <View style={styles.headerTop}>
           <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
@@ -295,9 +334,58 @@ export default function VeterinariansListScreen() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>
-              {consultType === 'online_chat' ? 'Request Online Consult' : 'Book Physical Appointment'}
+              {consultType === 'video_consult'
+                ? t('Request Video Consultation')
+                : consultType === 'online_chat'
+                  ? t('Request Online Consultation')
+                  : t('Book Physical Appointment')}
             </Text>
             <Text style={styles.modalSubtitle}>with Dr. {selectedVet?.full_name?.replace('Dr. ', '')}</Text>
+
+            {/* Mode Selector if Dr supports both */}
+            {(selectedVet?.consultation_mode === 'Chat + Video' || !selectedVet?.consultation_mode) && consultType !== 'physical_appointment' && (
+              <View style={{ flexDirection: 'row', gap: 8, marginTop: 8, marginBottom: 12 }}>
+                <TouchableOpacity
+                  style={{
+                    flex: 1,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    paddingVertical: 10,
+                    borderRadius: 12,
+                    backgroundColor: consultType === 'online_chat' ? colors.primary : (isDark ? '#1E293B' : '#F1F5F9'),
+                    borderWidth: 1,
+                    borderColor: consultType === 'online_chat' ? colors.primary : colors.border
+                  }}
+                  onPress={() => setConsultType('online_chat')}
+                >
+                  <Feather name="message-square" size={14} color={consultType === 'online_chat' ? '#FFF' : colors.textSecondary} style={{ marginRight: 6 }} />
+                  <Text style={{ fontSize: 12, fontWeight: '700', color: consultType === 'online_chat' ? '#FFF' : colors.textPrimary }}>
+                    {t('Chat Consult')}
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={{
+                    flex: 1,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    paddingVertical: 10,
+                    borderRadius: 12,
+                    backgroundColor: consultType === 'video_consult' ? '#0284C7' : (isDark ? '#1E293B' : '#F1F5F9'),
+                    borderWidth: 1,
+                    borderColor: consultType === 'video_consult' ? '#0284C7' : colors.border
+                  }}
+                  onPress={() => setConsultType('video_consult')}
+                >
+                  <Feather name="video" size={14} color={consultType === 'video_consult' ? '#FFF' : colors.textSecondary} style={{ marginRight: 6 }} />
+                  <Text style={{ fontSize: 12, fontWeight: '700', color: consultType === 'video_consult' ? '#FFF' : colors.textPrimary }}>
+                    {t('Video Consult')}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            )}
 
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>Reason for Consultation:</Text>

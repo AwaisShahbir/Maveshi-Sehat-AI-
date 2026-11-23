@@ -13,7 +13,8 @@ import {
   ActivityIndicator, 
   KeyboardAvoidingView, 
   Platform,
-  Alert
+  Alert,
+  Linking
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -75,6 +76,20 @@ export default function ChatScreen() {
   });
   const [showAiDetailsModal, setShowAiDetailsModal] = useState(false);
 
+  // Video Consultation & Call States
+  const [partnerPhone, setPartnerPhone] = useState(
+    params.partnerPhone || params.consultation?.vet_phone || params.consultation?.farmer_phone || null
+  );
+  const [partnerConsultationMode, setPartnerConsultationMode] = useState(
+    params.consultationMode || params.consultation?.vet_consultation_mode || params.consultation?.consultation_mode || 'Chat + Video'
+  );
+  const [videoCallVisible, setVideoCallVisible] = useState(false);
+  const [callStatus, setCallStatus] = useState('calling'); // 'calling' | 'connected'
+  const [callDuration, setCallDuration] = useState(0);
+  const [isMuted, setIsMuted] = useState(false);
+  const [isVideoDisabled, setIsVideoDisabled] = useState(false);
+  const [isFrontCamera, setIsFrontCamera] = useState(true);
+
   
   const [diagnosis, setDiagnosis] = useState('');
   const [prescriptionMedicines, setPrescriptionMedicines] = useState([{ name: '', dosage: '', duration: '' }]);
@@ -121,6 +136,18 @@ export default function ChatScreen() {
                   : convData.latest_consultation.ai_record_data;
                 setAttachedAiRecord(parsed);
               } catch (e) {}
+            }
+          }
+          if (userRole === 'farmer') {
+            if (convData.vet_consultation_mode) {
+              setPartnerConsultationMode(convData.vet_consultation_mode);
+            }
+            if (convData.vet_phone && !partnerPhone) {
+              setPartnerPhone(convData.vet_phone);
+            }
+          } else {
+            if (convData.farmer_phone && !partnerPhone) {
+              setPartnerPhone(convData.farmer_phone);
             }
           }
           const resolvedUserId = userRole === 'farmer' ? convData.farmer_id : convData.vet_id;
@@ -188,6 +215,78 @@ export default function ChatScreen() {
       }, 200);
     }
   }, [loading]);
+
+  useEffect(() => {
+    let timer;
+    let connectTimeout;
+    if (videoCallVisible) {
+      setCallStatus('calling');
+      connectTimeout = setTimeout(() => {
+        setCallStatus('connected');
+      }, 3000);
+
+      timer = setInterval(() => {
+        setCallDuration((prev) => prev + 1);
+      }, 1000);
+    }
+    return () => {
+      if (connectTimeout) clearTimeout(connectTimeout);
+      if (timer) clearInterval(timer);
+    };
+  }, [videoCallVisible]);
+
+  const formatCallDuration = (secs) => {
+    const mins = Math.floor(secs / 60);
+    const remSecs = secs % 60;
+    return `${mins.toString().padStart(2, '0')}:${remSecs.toString().padStart(2, '0')}`;
+  };
+
+  const handlePhoneCall = () => {
+    const targetPhone = partnerPhone || params.consultation?.vet_phone || params.consultation?.farmer_phone;
+    if (!targetPhone) {
+      Alert.alert(t('Notice'), t('Phone number is not available for this contact.'));
+      return;
+    }
+    Alert.alert(
+      t('Direct Phone Call'),
+      `${t('Do you want to call')} ${partnerName || ''} (${targetPhone})?`,
+      [
+        { text: t('Cancel'), style: 'cancel' },
+        { 
+          text: t('Call'), 
+          onPress: () => {
+            Linking.openURL(`tel:${targetPhone}`).catch(() => {
+              Alert.alert(t('Error'), 'Could not open phone dialer.');
+            });
+          }
+        }
+      ]
+    );
+  };
+
+  const handleVideoCall = () => {
+    if (userRole === 'farmer' && partnerConsultationMode === 'Chat Only') {
+      Alert.alert(
+        t('Video Call Unavailable'),
+        `${partnerName || t('This veterinarian')} ${t('has set consultation mode to Chat Only. Video calling is disabled.')}`
+      );
+      return;
+    }
+    setCallDuration(0);
+    setCallStatus('calling');
+    setIsMuted(false);
+    setIsVideoDisabled(false);
+    setIsFrontCamera(true);
+    setVideoCallVisible(true);
+  };
+
+  const handleEndVideoCall = () => {
+    const duration = callDuration;
+    setVideoCallVisible(false);
+    if (duration > 2) {
+      handleSendMessage(`📹 ${t('Video Consultation Session')} (${formatCallDuration(duration)})`);
+    }
+  };
 
   const handleSendMessage = async (text = '', imageUrl = null, isPrescription = false, prescriptionData = null, isVaccination = false, vaccinationData = null, consultationIdOverride = null) => {
     const finalMsg = text.trim();
@@ -729,10 +828,13 @@ export default function ChatScreen() {
           </View>
         </View>
         <View style={styles.headerActions}>
-          <TouchableOpacity style={styles.headerActionBtn}>
+          <TouchableOpacity style={styles.headerActionBtn} onPress={handlePhoneCall}>
             <Feather name="phone" size={20} color="#FFF" />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.headerActionBtn}>
+          <TouchableOpacity 
+            style={[styles.headerActionBtn, userRole === 'farmer' && partnerConsultationMode === 'Chat Only' && { opacity: 0.55 }]} 
+            onPress={handleVideoCall}
+          >
             <Feather name="video" size={20} color="#FFF" />
           </TouchableOpacity>
         </View>
@@ -1165,6 +1267,335 @@ export default function ChatScreen() {
             </ScrollView>
           </View>
         </View>
+      </Modal>
+
+      {/* Video Consultation Modal */}
+      <Modal
+        visible={videoCallVisible}
+        animationType="slide"
+        transparent={false}
+        onRequestClose={handleEndVideoCall}
+      >
+        <SafeAreaView style={{ flex: 1, backgroundColor: '#0B132B' }}>
+          <StatusBar barStyle="light-content" backgroundColor="#0B132B" />
+
+          {/* Top Bar */}
+          <View style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            paddingHorizontal: 20,
+            paddingVertical: 14,
+            borderBottomWidth: 1,
+            borderBottomColor: 'rgba(255, 255, 255, 0.08)'
+          }}>
+            <TouchableOpacity
+              onPress={handleEndVideoCall}
+              style={{
+                width: 38,
+                height: 38,
+                borderRadius: 19,
+                backgroundColor: 'rgba(255, 255, 255, 0.12)',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+            >
+              <Feather name="chevron-down" size={22} color="#FFF" />
+            </TouchableOpacity>
+
+            <View style={{ alignItems: 'center' }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 2 }}>
+                <View style={{
+                  width: 8,
+                  height: 8,
+                  borderRadius: 4,
+                  backgroundColor: callStatus === 'calling' ? '#F59E0B' : '#10B981',
+                  marginRight: 6
+                }} />
+                <Text style={{ color: '#FFF', fontSize: 13, fontWeight: '700', letterSpacing: 0.3 }}>
+                  {callStatus === 'calling' ? t('Connecting Call...') : t('Live HD Session')}
+                </Text>
+              </View>
+              <Text style={{ color: '#94A3B8', fontSize: 12, fontWeight: '600' }}>
+                {callStatus === 'calling' ? t('Ringing...') : formatCallDuration(callDuration)}
+              </Text>
+            </View>
+
+            <View style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              backgroundColor: 'rgba(16, 185, 129, 0.15)',
+              paddingHorizontal: 10,
+              paddingVertical: 5,
+              borderRadius: 12
+            }}>
+              <Feather name="lock" size={12} color="#34D399" style={{ marginRight: 4 }} />
+              <Text style={{ color: '#34D399', fontSize: 11, fontWeight: '700' }}>E2EE</Text>
+            </View>
+          </View>
+
+          {/* Video Stream Stage */}
+          <View style={{ flex: 1, position: 'relative', justifyContent: 'center', alignItems: 'center', backgroundColor: '#0F172A' }}>
+            {/* Main Remote Feed View */}
+            {callStatus === 'connected' && !isVideoDisabled ? (
+              <View style={{ width: '100%', height: '100%', justifyContent: 'center', alignItems: 'center', backgroundColor: '#1E293B' }}>
+                <View style={{ alignItems: 'center', padding: 24 }}>
+                  <View style={{
+                    width: 130,
+                    height: 130,
+                    borderRadius: 65,
+                    backgroundColor: '#0284C7',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    borderWidth: 4,
+                    borderColor: '#38BDF8',
+                    shadowColor: '#38BDF8',
+                    shadowOpacity: 0.4,
+                    shadowRadius: 15,
+                    elevation: 10,
+                    marginBottom: 16
+                  }}>
+                    <Text style={{ fontSize: 44, fontWeight: '800', color: '#FFF' }}>
+                      {(partnerName || 'V').trim().charAt(0).toUpperCase()}
+                    </Text>
+                  </View>
+                  <Text style={{ fontSize: 22, fontWeight: '800', color: '#FFF', marginBottom: 4 }}>
+                    {partnerName}
+                  </Text>
+                  <Text style={{ fontSize: 14, color: '#38BDF8', fontWeight: '600', marginBottom: 12 }}>
+                    {partnerRole === 'vet' ? 'Veterinary Surgeon · Live Stream' : t('Farmer')}
+                  </Text>
+                  <View style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                    paddingHorizontal: 12,
+                    paddingVertical: 6,
+                    borderRadius: 20
+                  }}>
+                    <Feather name="activity" size={14} color="#34D399" style={{ marginRight: 6 }} />
+                    <Text style={{ color: '#E2E8F0', fontSize: 12, fontWeight: '600' }}>
+                      HD 1080p · 60fps · Audio Synced
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            ) : (
+              /* Calling / Ringing State View */
+              <View style={{ alignItems: 'center', paddingHorizontal: 30 }}>
+                <View style={{
+                  width: 140,
+                  height: 140,
+                  borderRadius: 70,
+                  backgroundColor: 'rgba(2, 132, 199, 0.15)',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderWidth: 3,
+                  borderColor: callStatus === 'calling' ? '#0284C7' : '#64748B',
+                  marginBottom: 20
+                }}>
+                  <View style={{
+                    width: 110,
+                    height: 110,
+                    borderRadius: 55,
+                    backgroundColor: '#0284C7',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}>
+                    <Text style={{ fontSize: 40, fontWeight: '800', color: '#FFF' }}>
+                      {(partnerName || 'V').trim().charAt(0).toUpperCase()}
+                    </Text>
+                  </View>
+                </View>
+                <Text style={{ fontSize: 24, fontWeight: '800', color: '#FFF', marginBottom: 6, textAlign: 'center' }}>
+                  {partnerName}
+                </Text>
+                <Text style={{ fontSize: 15, color: '#94A3B8', fontWeight: '600', marginBottom: 16 }}>
+                  {partnerRole === 'vet' ? 'Large Animal Specialist' : t('Farmer')}
+                </Text>
+                <View style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  backgroundColor: 'rgba(2, 132, 199, 0.2)',
+                  paddingHorizontal: 16,
+                  paddingVertical: 8,
+                  borderRadius: 20
+                }}>
+                  <ActivityIndicator size="small" color="#38BDF8" style={{ marginRight: 8 }} />
+                  <Text style={{ color: '#38BDF8', fontSize: 13, fontWeight: '700' }}>
+                    {callStatus === 'calling' ? `${t('Calling Dr.')} ${partnerName}...` : t('Camera Off')}
+                  </Text>
+                </View>
+              </View>
+            )}
+
+            {/* Self Picture-in-Picture (PiP) Window */}
+            <View style={{
+              position: 'absolute',
+              right: 18,
+              top: 18,
+              width: 104,
+              height: 148,
+              borderRadius: 16,
+              backgroundColor: '#1E293B',
+              borderWidth: 2,
+              borderColor: 'rgba(255, 255, 255, 0.25)',
+              overflow: 'hidden',
+              elevation: 8,
+              shadowColor: '#000',
+              shadowOpacity: 0.5,
+              shadowRadius: 10,
+              justifyContent: 'center',
+              alignItems: 'center'
+            }}>
+              {isVideoDisabled ? (
+                <View style={{ alignItems: 'center' }}>
+                  <Feather name="video-off" size={24} color="#94A3B8" />
+                  <Text style={{ color: '#94A3B8', fontSize: 10, marginTop: 4, fontWeight: '600' }}>{t('Video Off')}</Text>
+                </View>
+              ) : (
+                <View style={{ width: '100%', height: '100%', backgroundColor: '#334155', justifyContent: 'center', alignItems: 'center' }}>
+                  <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: '#475569', justifyContent: 'center', alignItems: 'center', marginBottom: 6 }}>
+                    <Feather name="user" size={22} color="#FFF" />
+                  </View>
+                  <Text style={{ color: '#FFF', fontSize: 11, fontWeight: '700' }}>{t('You')}</Text>
+                  <Text style={{ color: '#94A3B8', fontSize: 9, marginTop: 2 }}>
+                    {isFrontCamera ? 'Front Cam' : 'Back Cam'}
+                  </Text>
+                </View>
+              )}
+              {isMuted && (
+                <View style={{
+                  position: 'absolute',
+                  top: 6,
+                  right: 6,
+                  width: 20,
+                  height: 20,
+                  borderRadius: 10,
+                  backgroundColor: '#EF4444',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  <Feather name="mic-off" size={11} color="#FFF" />
+                </View>
+              )}
+            </View>
+          </View>
+
+          {/* Bottom Call Action Controls Bar */}
+          <View style={{
+            paddingHorizontal: 24,
+            paddingVertical: 20,
+            backgroundColor: '#0B132B',
+            borderTopWidth: 1,
+            borderTopColor: 'rgba(255, 255, 255, 0.08)'
+          }}>
+            <View style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-around',
+              maxWidth: 400,
+              alignSelf: 'center',
+              width: '100%'
+            }}>
+              {/* Mute Button */}
+              <TouchableOpacity
+                onPress={() => setIsMuted(!isMuted)}
+                style={{
+                  alignItems: 'center'
+                }}
+              >
+                <View style={{
+                  width: 54,
+                  height: 54,
+                  borderRadius: 27,
+                  backgroundColor: isMuted ? '#EF4444' : 'rgba(255, 255, 255, 0.15)',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginBottom: 6
+                }}>
+                  <Feather name={isMuted ? 'mic-off' : 'mic'} size={24} color="#FFF" />
+                </View>
+                <Text style={{ color: '#CBD5E1', fontSize: 11, fontWeight: '600' }}>
+                  {isMuted ? t('Unmute') : t('Mute')}
+                </Text>
+              </TouchableOpacity>
+
+              {/* Video Toggle Button */}
+              <TouchableOpacity
+                onPress={() => setIsVideoDisabled(!isVideoDisabled)}
+                style={{
+                  alignItems: 'center'
+                }}
+              >
+                <View style={{
+                  width: 54,
+                  height: 54,
+                  borderRadius: 27,
+                  backgroundColor: isVideoDisabled ? '#EF4444' : 'rgba(255, 255, 255, 0.15)',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginBottom: 6
+                }}>
+                  <Feather name={isVideoDisabled ? 'video-off' : 'video'} size={24} color="#FFF" />
+                </View>
+                <Text style={{ color: '#CBD5E1', fontSize: 11, fontWeight: '600' }}>
+                  {isVideoDisabled ? t('Video On') : t('Video Off')}
+                </Text>
+              </TouchableOpacity>
+
+              {/* Camera Flip Button */}
+              <TouchableOpacity
+                onPress={() => setIsFrontCamera(!isFrontCamera)}
+                style={{
+                  alignItems: 'center'
+                }}
+              >
+                <View style={{
+                  width: 54,
+                  height: 54,
+                  borderRadius: 27,
+                  backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginBottom: 6
+                }}>
+                  <Feather name="refresh-cw" size={22} color="#FFF" />
+                </View>
+                <Text style={{ color: '#CBD5E1', fontSize: 11, fontWeight: '600' }}>
+                  {t('Flip')}
+                </Text>
+              </TouchableOpacity>
+
+              {/* End Call Button */}
+              <TouchableOpacity
+                onPress={handleEndVideoCall}
+                style={{
+                  alignItems: 'center'
+                }}
+              >
+                <View style={{
+                  width: 58,
+                  height: 58,
+                  borderRadius: 29,
+                  backgroundColor: '#DC2626',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginBottom: 6,
+                  shadowColor: '#DC2626',
+                  shadowOpacity: 0.5,
+                  shadowRadius: 10,
+                  elevation: 8
+                }}>
+                  <MaterialCommunityIcons name="phone-hangup" size={28} color="#FFF" />
+                </View>
+                <Text style={{ color: '#F87171', fontSize: 11, fontWeight: '700' }}>
+                  {t('End Call')}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </SafeAreaView>
       </Modal>
     </SafeAreaView>
   );

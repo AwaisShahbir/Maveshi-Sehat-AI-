@@ -145,7 +145,8 @@ export default function VetConsultationsScreen() {
         consultationId: item.id,
         consultation: item,
         initialRecord,
-        consultations: [item]
+        consultations: [item],
+        partnerPhone: item.farmer_phone
       });
     } catch (error) {
       console.error('Error opening chat', error);

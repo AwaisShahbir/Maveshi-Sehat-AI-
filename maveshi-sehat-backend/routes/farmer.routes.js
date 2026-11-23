@@ -443,7 +443,8 @@ module.exports = (pool, io) => {
                 u.full_name as vet_name,
                 u.specialization as vet_specialization,
                 u.district as vet_district,
-                u.phone_number as vet_phone
+                u.phone_number as vet_phone,
+                u.consultation_mode as vet_consultation_mode
          FROM consultations c 
          JOIN users u ON c.vet_id = u.id 
          WHERE c.farmer_id = $1 ORDER BY c.created_at DESC`,

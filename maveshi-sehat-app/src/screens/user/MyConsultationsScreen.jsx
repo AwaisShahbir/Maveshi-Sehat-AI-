@@ -113,7 +113,9 @@ export default function MyConsultationsScreen() {
         consultationId: consult.id,
         consultation: consult,
         initialRecord,
-        consultations: [consult]
+        consultations: [consult],
+        consultationMode: consult.vet_consultation_mode,
+        partnerPhone: consult.vet_phone
       });
     } catch (error) {
       Alert.alert(t('Error'), 'Could not start chat.');
@@ -173,7 +175,11 @@ export default function MyConsultationsScreen() {
             <Text style={styles.vetName}>Dr. {item.vet_name?.replace(/^Dr\.\s*/i, '')}</Text>
             <Text style={styles.typeText}>
               {item.vet_specialization ? `${item.vet_specialization} · ` : ''}
-              {item.type === 'online_chat' ? 'Online Consultation' : 'Physical Appointment'}
+              {item.type === 'video_consult' 
+                ? '📹 Video Consultation' 
+                : item.type === 'online_chat' 
+                  ? '💬 Online Consultation' 
+                  : '🏥 Physical Appointment'}
             </Text>
           </View>
           <View style={[styles.statusBadge, { backgroundColor: statusBadgeBg }]}>
