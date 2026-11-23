@@ -89,6 +89,10 @@ export default function ChatScreen() {
   const [isMuted, setIsMuted] = useState(false);
   const [isVideoDisabled, setIsVideoDisabled] = useState(false);
   const [isFrontCamera, setIsFrontCamera] = useState(true);
+  const [isTorchOn, setIsTorchOn] = useState(false);
+  const [snapshotToastVisible, setSnapshotToastVisible] = useState(false);
+  const [incomingCallVisible, setIncomingCallVisible] = useState(false);
+  const [incomingCallData, setIncomingCallData] = useState(null);
 
   
   const [diagnosis, setDiagnosis] = useState('');
@@ -151,9 +155,13 @@ export default function ChatScreen() {
             }
           }
           const resolvedUserId = userRole === 'farmer' ? convData.farmer_id : convData.vet_id;
-          setOurUserId(resolvedUserId || storedProfile?.userId || (userRole === 'vet' ? (vetId || 1) : 1));
+          const finalUid = resolvedUserId || storedProfile?.userId || (userRole === 'vet' ? (vetId || 1) : 1);
+          setOurUserId(finalUid);
+          socketRef.current?.emit('join_user', finalUid);
         } else {
-          setOurUserId(storedProfile?.userId || (userRole === 'vet' ? (vetId || 1) : 1));
+          const fallbackUid = storedProfile?.userId || (userRole === 'vet' ? (vetId || 1) : 1);
+          setOurUserId(fallbackUid);
+          socketRef.current?.emit('join_user', fallbackUid);
         }
 
         const msgResponse = await fetch(`${baseUrl}/api/chat/messages?conversationId=${conversationId}`);
@@ -164,7 +172,9 @@ export default function ChatScreen() {
       } catch (error) {
         console.error('Error initializing chat:', error);
         const storedProfile = getProfile();
-        setOurUserId(storedProfile?.userId || (userRole === 'vet' ? (vetId || 1) : 1));
+        const fallbackUid = storedProfile?.userId || (userRole === 'vet' ? (vetId || 1) : 1);
+        setOurUserId(fallbackUid);
+        socketRef.current?.emit('join_user', fallbackUid);
       } finally {
         setLoading(false);
       }
@@ -176,6 +186,36 @@ export default function ChatScreen() {
     socketRef.current = io(baseUrl);
 
     socketRef.current.emit('join_room', conversationId.toString());
+
+    socketRef.current.on('incoming_call', (data) => {
+      console.log('📞 Received incoming_call socket event:', data);
+      const storedProfile = getProfile();
+      const currentSenderId = ourUserId || storedProfile?.userId || (userRole === 'vet' ? (vetId || 1) : 1);
+      if (data && Number(data.callerId) !== Number(currentSenderId)) {
+        setIncomingCallData(data);
+        setIncomingCallVisible(true);
+      }
+    });
+
+    socketRef.current.on('call_accepted', (data) => {
+      console.log('✅ Call accepted by peer:', data);
+      setCallStatus('connected');
+    });
+
+    socketRef.current.on('call_rejected', (data) => {
+      console.log('❌ Call rejected by peer:', data);
+      setVideoCallVisible(false);
+      Alert.alert(
+        t('Call Declined'),
+        `${partnerName || t('The other participant')} ${t('is unable to accept the video consultation call right now.')}`
+      );
+    });
+
+    socketRef.current.on('call_ended', (data) => {
+      console.log('⏹️ Call ended by peer:', data);
+      setVideoCallVisible(false);
+      setIncomingCallVisible(false);
+    });
 
     socketRef.current.on('consultation_updated', (updated) => {
       if (updated && (String(updated.id) === String(params.consultationId) || String(updated.id) === String(params.consultation?.id))) {
@@ -272,20 +312,85 @@ export default function ChatScreen() {
       );
       return;
     }
+    const storedProfile = getProfile();
+    const myId = ourUserId || storedProfile?.userId || (userRole === 'vet' ? (vetId || 1) : 1);
+    const targetRecipientId = userRole === 'farmer' 
+      ? (vetId || params.consultation?.vet_id || 1) 
+      : (params.consultation?.farmer_id || 1);
+
     setCallDuration(0);
     setCallStatus('calling');
     setIsMuted(false);
     setIsVideoDisabled(false);
     setIsFrontCamera(true);
+    setIsTorchOn(false);
     setVideoCallVisible(true);
+
+    if (socketRef.current && socketRef.current.connected) {
+      socketRef.current.emit('call_user', {
+        conversationId: Number(conversationId),
+        callerId: Number(myId),
+        callerName: userName || (userRole === 'vet' ? (storedProfile?.fullName || 'Dr. Doctor') : 'Farmer'),
+        callerRole: userRole,
+        recipientId: Number(targetRecipientId),
+        isVideo: true
+      });
+    }
+  };
+
+  const handleAcceptIncomingCall = () => {
+    setIncomingCallVisible(false);
+    setCallDuration(0);
+    setCallStatus('connected');
+    setIsMuted(false);
+    setIsVideoDisabled(false);
+    setIsFrontCamera(true);
+    setIsTorchOn(false);
+    setVideoCallVisible(true);
+
+    if (socketRef.current && socketRef.current.connected) {
+      socketRef.current.emit('accept_call', {
+        conversationId: Number(conversationId),
+        responderId: Number(ourUserId || 1),
+        responderName: userName
+      });
+    }
+  };
+
+  const handleRejectIncomingCall = () => {
+    setIncomingCallVisible(false);
+    if (socketRef.current && socketRef.current.connected) {
+      socketRef.current.emit('reject_call', {
+        conversationId: Number(conversationId),
+        reason: 'declined'
+      });
+    }
   };
 
   const handleEndVideoCall = () => {
     const duration = callDuration;
+    const durationStr = formatCallDuration(duration);
     setVideoCallVisible(false);
-    if (duration > 2) {
-      handleSendMessage(`📹 ${t('Video Consultation Session')} (${formatCallDuration(duration)})`);
+
+    if (socketRef.current && socketRef.current.connected) {
+      socketRef.current.emit('end_call', {
+        conversationId: Number(conversationId),
+        duration: durationStr
+      });
     }
+
+    if (duration > 2) {
+      handleSendMessage(`📹 ${t('Video Consultation Session')} (${durationStr})`);
+    }
+  };
+
+  const handleCaptureSnapshot = () => {
+    setSnapshotToastVisible(true);
+    setTimeout(() => setSnapshotToastVisible(false), 2200);
+
+    const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const snapshotTag = `📸 [${t('Clinical Inspection Snapshot')}] (${timeStr})\n${t('Live animal condition recorded for diagnostic review.')}`;
+    handleSendMessage(snapshotTag);
   };
 
   const handleSendMessage = async (text = '', imageUrl = null, isPrescription = false, prescriptionData = null, isVaccination = false, vaccinationData = null, consultationIdOverride = null) => {
@@ -1429,6 +1534,51 @@ export default function ChatScreen() {
               </View>
             )}
 
+            {/* Flash Snapshot Toast */}
+            {snapshotToastVisible && (
+              <View style={{
+                position: 'absolute',
+                top: 70,
+                alignSelf: 'center',
+                backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                paddingHorizontal: 20,
+                paddingVertical: 12,
+                borderRadius: 24,
+                borderWidth: 1.5,
+                borderColor: '#38BDF8',
+                flexDirection: 'row',
+                alignItems: 'center',
+                zIndex: 99,
+                elevation: 12
+              }}>
+                <Feather name="check-circle" size={18} color="#38BDF8" style={{ marginRight: 8 }} />
+                <Text style={{ color: '#FFF', fontSize: 13, fontWeight: '800' }}>
+                  {t('Snapshot Captured')}
+                </Text>
+              </View>
+            )}
+
+            {/* Rear Camera Indicator Banner for Livestock Inspection */}
+            {!isFrontCamera && (
+              <View style={{
+                position: 'absolute',
+                top: 14,
+                left: 16,
+                backgroundColor: 'rgba(2, 132, 199, 0.9)',
+                paddingHorizontal: 12,
+                paddingVertical: 6,
+                borderRadius: 14,
+                flexDirection: 'row',
+                alignItems: 'center',
+                zIndex: 20
+              }}>
+                <Feather name="camera" size={13} color="#FFF" style={{ marginRight: 6 }} />
+                <Text style={{ color: '#FFF', fontSize: 11, fontWeight: '700' }}>
+                  {t('Rear Camera (Livestock Mode)')}
+                </Text>
+              </View>
+            )}
+
             {/* Self Picture-in-Picture (PiP) Window */}
             <View style={{
               position: 'absolute',
@@ -1460,7 +1610,7 @@ export default function ChatScreen() {
                   </View>
                   <Text style={{ color: '#FFF', fontSize: 11, fontWeight: '700' }}>{t('You')}</Text>
                   <Text style={{ color: '#94A3B8', fontSize: 9, marginTop: 2 }}>
-                    {isFrontCamera ? 'Front Cam' : 'Back Cam'}
+                    {isFrontCamera ? 'Front Cam' : 'Rear Lens'}
                   </Text>
                 </View>
               )}
@@ -1484,8 +1634,8 @@ export default function ChatScreen() {
 
           {/* Bottom Call Action Controls Bar */}
           <View style={{
-            paddingHorizontal: 24,
-            paddingVertical: 20,
+            paddingHorizontal: 16,
+            paddingVertical: 18,
             backgroundColor: '#0B132B',
             borderTopWidth: 1,
             borderTopColor: 'rgba(255, 255, 255, 0.08)'
@@ -1493,30 +1643,28 @@ export default function ChatScreen() {
             <View style={{
               flexDirection: 'row',
               alignItems: 'center',
-              justifyContent: 'space-around',
-              maxWidth: 400,
+              justifyContent: 'space-between',
+              maxWidth: 420,
               alignSelf: 'center',
               width: '100%'
             }}>
               {/* Mute Button */}
               <TouchableOpacity
                 onPress={() => setIsMuted(!isMuted)}
-                style={{
-                  alignItems: 'center'
-                }}
+                style={{ alignItems: 'center' }}
               >
                 <View style={{
-                  width: 54,
-                  height: 54,
-                  borderRadius: 27,
+                  width: 48,
+                  height: 48,
+                  borderRadius: 24,
                   backgroundColor: isMuted ? '#EF4444' : 'rgba(255, 255, 255, 0.15)',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  marginBottom: 6
+                  marginBottom: 4
                 }}>
-                  <Feather name={isMuted ? 'mic-off' : 'mic'} size={24} color="#FFF" />
+                  <Feather name={isMuted ? 'mic-off' : 'mic'} size={20} color="#FFF" />
                 </View>
-                <Text style={{ color: '#CBD5E1', fontSize: 11, fontWeight: '600' }}>
+                <Text style={{ color: '#CBD5E1', fontSize: 10, fontWeight: '600' }}>
                   {isMuted ? t('Unmute') : t('Mute')}
                 </Text>
               </TouchableOpacity>
@@ -1524,22 +1672,20 @@ export default function ChatScreen() {
               {/* Video Toggle Button */}
               <TouchableOpacity
                 onPress={() => setIsVideoDisabled(!isVideoDisabled)}
-                style={{
-                  alignItems: 'center'
-                }}
+                style={{ alignItems: 'center' }}
               >
                 <View style={{
-                  width: 54,
-                  height: 54,
-                  borderRadius: 27,
+                  width: 48,
+                  height: 48,
+                  borderRadius: 24,
                   backgroundColor: isVideoDisabled ? '#EF4444' : 'rgba(255, 255, 255, 0.15)',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  marginBottom: 6
+                  marginBottom: 4
                 }}>
-                  <Feather name={isVideoDisabled ? 'video-off' : 'video'} size={24} color="#FFF" />
+                  <Feather name={isVideoDisabled ? 'video-off' : 'video'} size={20} color="#FFF" />
                 </View>
-                <Text style={{ color: '#CBD5E1', fontSize: 11, fontWeight: '600' }}>
+                <Text style={{ color: '#CBD5E1', fontSize: 10, fontWeight: '600' }}>
                   {isVideoDisabled ? t('Video On') : t('Video Off')}
                 </Text>
               </TouchableOpacity>
@@ -1547,55 +1693,210 @@ export default function ChatScreen() {
               {/* Camera Flip Button */}
               <TouchableOpacity
                 onPress={() => setIsFrontCamera(!isFrontCamera)}
-                style={{
-                  alignItems: 'center'
-                }}
+                style={{ alignItems: 'center' }}
               >
                 <View style={{
-                  width: 54,
-                  height: 54,
-                  borderRadius: 27,
-                  backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                  width: 48,
+                  height: 48,
+                  borderRadius: 24,
+                  backgroundColor: isFrontCamera ? 'rgba(255, 255, 255, 0.15)' : '#0284C7',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  marginBottom: 6
+                  marginBottom: 4
                 }}>
-                  <Feather name="refresh-cw" size={22} color="#FFF" />
+                  <Feather name="refresh-cw" size={20} color="#FFF" />
                 </View>
-                <Text style={{ color: '#CBD5E1', fontSize: 11, fontWeight: '600' }}>
+                <Text style={{ color: '#CBD5E1', fontSize: 10, fontWeight: '600' }}>
                   {t('Flip')}
+                </Text>
+              </TouchableOpacity>
+
+              {/* Snapshot Tool for Clinical Livestock Inspection */}
+              <TouchableOpacity
+                onPress={handleCaptureSnapshot}
+                style={{ alignItems: 'center' }}
+              >
+                <View style={{
+                  width: 48,
+                  height: 48,
+                  borderRadius: 24,
+                  backgroundColor: '#0284C7',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginBottom: 4
+                }}>
+                  <Feather name="camera" size={20} color="#FFF" />
+                </View>
+                <Text style={{ color: '#38BDF8', fontSize: 10, fontWeight: '700' }}>
+                  {t('Snapshot')}
+                </Text>
+              </TouchableOpacity>
+
+              {/* Torch Toggle for Dark Barn Inspection */}
+              <TouchableOpacity
+                onPress={() => setIsTorchOn(!isTorchOn)}
+                style={{ alignItems: 'center' }}
+              >
+                <View style={{
+                  width: 48,
+                  height: 48,
+                  borderRadius: 24,
+                  backgroundColor: isTorchOn ? '#F59E0B' : 'rgba(255, 255, 255, 0.15)',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginBottom: 4
+                }}>
+                  <Feather name="zap" size={20} color="#FFF" />
+                </View>
+                <Text style={{ color: isTorchOn ? '#FBBF24' : '#CBD5E1', fontSize: 10, fontWeight: '600' }}>
+                  {isTorchOn ? t('Torch On') : t('Torch Off')}
                 </Text>
               </TouchableOpacity>
 
               {/* End Call Button */}
               <TouchableOpacity
                 onPress={handleEndVideoCall}
-                style={{
-                  alignItems: 'center'
-                }}
+                style={{ alignItems: 'center' }}
               >
                 <View style={{
-                  width: 58,
-                  height: 58,
-                  borderRadius: 29,
+                  width: 52,
+                  height: 52,
+                  borderRadius: 26,
                   backgroundColor: '#DC2626',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  marginBottom: 6,
+                  marginBottom: 4,
                   shadowColor: '#DC2626',
                   shadowOpacity: 0.5,
                   shadowRadius: 10,
                   elevation: 8
                 }}>
-                  <MaterialCommunityIcons name="phone-hangup" size={28} color="#FFF" />
+                  <MaterialCommunityIcons name="phone-hangup" size={24} color="#FFF" />
                 </View>
-                <Text style={{ color: '#F87171', fontSize: 11, fontWeight: '700' }}>
+                <Text style={{ color: '#F87171', fontSize: 10, fontWeight: '700' }}>
                   {t('End Call')}
                 </Text>
               </TouchableOpacity>
             </View>
           </View>
         </SafeAreaView>
+      </Modal>
+
+      {/* Incoming Video Call Modal */}
+      <Modal
+        visible={incomingCallVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={handleRejectIncomingCall}
+      >
+        <View style={{
+          flex: 1,
+          backgroundColor: 'rgba(11, 19, 43, 0.88)',
+          justifyContent: 'flex-end',
+          paddingBottom: Platform.OS === 'ios' ? 40 : 24
+        }}>
+          <View style={{
+            backgroundColor: '#1E293B',
+            marginHorizontal: 16,
+            borderRadius: 24,
+            padding: 24,
+            alignItems: 'center',
+            borderWidth: 1.5,
+            borderColor: 'rgba(56, 189, 248, 0.4)',
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 10 },
+            shadowOpacity: 0.5,
+            shadowRadius: 20,
+            elevation: 15
+          }}>
+            {/* Animated Ringing Calling Icon */}
+            <View style={{
+              width: 90,
+              height: 90,
+              borderRadius: 45,
+              backgroundColor: 'rgba(2, 132, 199, 0.2)',
+              justifyContent: 'center',
+              alignItems: 'center',
+              marginBottom: 16,
+              borderWidth: 2,
+              borderColor: '#38BDF8'
+            }}>
+              <View style={{
+                width: 70,
+                height: 70,
+                borderRadius: 35,
+                backgroundColor: '#0284C7',
+                justifyContent: 'center',
+                alignItems: 'center'
+              }}>
+                <Feather name="video" size={32} color="#FFF" />
+              </View>
+            </View>
+
+            <View style={{
+              backgroundColor: 'rgba(16, 185, 129, 0.15)',
+              paddingHorizontal: 12,
+              paddingVertical: 4,
+              borderRadius: 12,
+              marginBottom: 8
+            }}>
+              <Text style={{ color: '#34D399', fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                {t('Incoming Video Consultation Request')}
+              </Text>
+            </View>
+
+            <Text style={{ color: '#FFF', fontSize: 22, fontWeight: '800', textAlign: 'center', marginBottom: 4 }}>
+              {incomingCallData?.callerName || partnerName || 'Doctor'}
+            </Text>
+            <Text style={{ color: '#94A3B8', fontSize: 13, textAlign: 'center', marginBottom: 24 }}>
+              {incomingCallData?.callerRole === 'vet' ? 'Veterinary Surgeon' : t('Farmer')} · {t('is calling for live video clinical inspection')}
+            </Text>
+
+            {/* Accept & Decline Action Row */}
+            <View style={{
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              width: '100%',
+              gap: 16
+            }}>
+              <TouchableOpacity
+                style={{
+                  flex: 1,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: '#DC2626',
+                  paddingVertical: 14,
+                  borderRadius: 16
+                }}
+                onPress={handleRejectIncomingCall}
+              >
+                <MaterialCommunityIcons name="phone-hangup" size={22} color="#FFF" style={{ marginRight: 8 }} />
+                <Text style={{ color: '#FFF', fontWeight: '700', fontSize: 14 }}>
+                  {t('Decline')}
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={{
+                  flex: 1,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: '#059669',
+                  paddingVertical: 14,
+                  borderRadius: 16
+                }}
+                onPress={handleAcceptIncomingCall}
+              >
+                <Feather name="video" size={20} color="#FFF" style={{ marginRight: 8 }} />
+                <Text style={{ color: '#FFF', fontWeight: '700', fontSize: 14 }}>
+                  {t('Accept Call')}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
       </Modal>
     </SafeAreaView>
   );

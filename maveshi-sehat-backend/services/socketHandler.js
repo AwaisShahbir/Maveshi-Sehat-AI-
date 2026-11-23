@@ -95,6 +95,79 @@ module.exports = (io, pool) => {
       }
     });
 
+    // --- Phase 2: Live Video Consultation Call Signaling ---
+    socket.on('call_user', async (data) => {
+      try {
+        const { conversationId, callerId, callerName, callerRole, recipientId, isVideo } = data;
+        console.log(`📞 Video call initiated by ${callerName} (ID: ${callerId}) in conv ${conversationId}`);
+
+        // Broadcast to the active conversation room
+        socket.to(conversationId.toString()).emit('incoming_call', {
+          conversationId,
+          callerId,
+          callerName,
+          callerRole,
+          isVideo: isVideo !== false,
+          timestamp: Date.now()
+        });
+
+        // Also broadcast to the recipient's personal user room if available
+        if (recipientId) {
+          io.to(`user_${recipientId}`).emit('incoming_call', {
+            conversationId,
+            callerId,
+            callerName,
+            callerRole,
+            isVideo: isVideo !== false,
+            timestamp: Date.now()
+          });
+
+          // Generate a notification record
+          try {
+            await sendNotification({
+              pool,
+              io,
+              userId: recipientId,
+              type: 'call',
+              title_en: `Incoming Video Call from ${callerName}`,
+              title_ur: `${callerName} کی طرف سے ویڈیو کال`,
+              message_en: `${callerName} is calling for a live video consultation.`,
+              message_ur: `${callerName} لائیو ویڈیو مشاورت کے لیے کال کر رہے ہیں۔`,
+              data: {
+                conversationId,
+                callerId,
+                callerName,
+                callerRole,
+                targetScreen: 'Chat'
+              }
+            });
+          } catch (notifErr) {
+            console.warn('Could not dispatch call push notification:', notifErr.message);
+          }
+        }
+      } catch (err) {
+        console.error('Error handling call_user socket event:', err.message);
+      }
+    });
+
+    socket.on('accept_call', (data) => {
+      const { conversationId, responderId, responderName } = data;
+      console.log(`✅ Call accepted by ${responderName} in conv ${conversationId}`);
+      socket.to(conversationId.toString()).emit('call_accepted', data);
+    });
+
+    socket.on('reject_call', (data) => {
+      const { conversationId, reason } = data;
+      console.log(`❌ Call rejected in conv ${conversationId}: ${reason || 'declined'}`);
+      socket.to(conversationId.toString()).emit('call_rejected', data);
+    });
+
+    socket.on('end_call', (data) => {
+      const { conversationId, duration } = data;
+      console.log(`⏹️ Call ended in conv ${conversationId}, duration: ${duration}`);
+      socket.to(conversationId.toString()).emit('call_ended', data);
+    });
+
     socket.on('disconnect', () => {
       console.log('❌ User disconnected:', socket.id);
     });
