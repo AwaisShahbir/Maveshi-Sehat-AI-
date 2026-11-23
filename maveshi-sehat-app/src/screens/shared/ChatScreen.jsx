@@ -26,6 +26,15 @@ import { t } from '../../utils/translate';
 import { getProfile } from '../../utils/profileStore';
 import { useTheme } from '../../utils/themeContext';
 import { getStyles } from '../../styles/ChatScreenStyles';
+import {
+  createAgoraRtcEngine,
+  RtcSurfaceView,
+  ChannelProfileType,
+  ClientRoleType,
+  VideoSourceType
+} from 'react-native-agora';
+import { requestCameraAndAudioPermissions } from '../../utils/permissionUtils';
+import { AGORA_APP_ID, isAgoraConfigured } from '../../services/agoraConfig';
 
 const parseMessageData = (value) => {
   if (!value) return null;
@@ -93,6 +102,9 @@ export default function ChatScreen() {
   const [snapshotToastVisible, setSnapshotToastVisible] = useState(false);
   const [incomingCallVisible, setIncomingCallVisible] = useState(false);
   const [incomingCallData, setIncomingCallData] = useState(null);
+  const [remoteUid, setRemoteUid] = useState(null);
+  const [isAgoraJoined, setIsAgoraJoined] = useState(false);
+  const agoraEngineRef = useRef(null);
 
   
   const [diagnosis, setDiagnosis] = useState('');
@@ -268,12 +280,124 @@ export default function ChatScreen() {
       timer = setInterval(() => {
         setCallDuration((prev) => prev + 1);
       }, 1000);
+
+      initAgora();
+    } else {
+      destroyAgora();
     }
     return () => {
       if (connectTimeout) clearTimeout(connectTimeout);
       if (timer) clearInterval(timer);
+      destroyAgora();
     };
   }, [videoCallVisible]);
+
+  const initAgora = async () => {
+    try {
+      if (!isAgoraConfigured()) {
+        console.log('ℹ️ Agora App ID is default/test mode. Live camera simulation active.');
+        return;
+      }
+      const hasPermission = await requestCameraAndAudioPermissions();
+      if (!hasPermission) {
+        Alert.alert(t('Notice'), 'Camera and microphone permissions are required for live video consultation.');
+        return;
+      }
+
+      const engine = createAgoraRtcEngine();
+      agoraEngineRef.current = engine;
+      engine.initialize({ appId: AGORA_APP_ID });
+
+      engine.registerEventHandler({
+        onJoinChannelSuccess: (connection, elapsed) => {
+          console.log('✅ Joined Agora Channel:', connection.channelId);
+          setIsAgoraJoined(true);
+        },
+        onUserJoined: (connection, rUid, elapsed) => {
+          console.log('👤 Peer joined Agora video call:', rUid);
+          setRemoteUid(rUid);
+          setCallStatus('connected');
+        },
+        onUserOffline: (connection, rUid, reason) => {
+          console.log('🚪 Peer left Agora video call:', rUid);
+          setRemoteUid(null);
+        },
+        onError: (errCode, msg) => {
+          console.warn('⚠️ Agora RTC Engine event error:', errCode, msg);
+        }
+      });
+
+      engine.enableVideo();
+      engine.startPreview();
+
+      const channelName = `maveshi_${conversationId}`;
+      const uidNum = Number(ourUserId) || Math.floor(Math.random() * 10000) + 1;
+
+      engine.joinChannel('', channelName, uidNum, {
+        clientRoleType: ClientRoleType.ClientRoleBroadcaster,
+        channelProfile: ChannelProfileType.ChannelProfileCommunication,
+        publishMicrophoneTrack: true,
+        publishCameraTrack: true,
+        autoSubscribeAudio: true,
+        autoSubscribeVideo: true,
+      });
+    } catch (err) {
+      console.warn('⚠️ Agora RTC init error:', err);
+    }
+  };
+
+  const destroyAgora = () => {
+    try {
+      if (agoraEngineRef.current) {
+        agoraEngineRef.current.leaveChannel();
+        agoraEngineRef.current.release();
+        agoraEngineRef.current = null;
+      }
+    } catch (e) {
+      console.warn('Error releasing Agora engine:', e);
+    }
+    setIsAgoraJoined(false);
+    setRemoteUid(null);
+  };
+
+  const handleToggleMute = () => {
+    const nextMuted = !isMuted;
+    setIsMuted(nextMuted);
+    try {
+      if (agoraEngineRef.current) {
+        agoraEngineRef.current.muteLocalAudioStream(nextMuted);
+      }
+    } catch (e) {}
+  };
+
+  const handleToggleVideo = () => {
+    const nextDisabled = !isVideoDisabled;
+    setIsVideoDisabled(nextDisabled);
+    try {
+      if (agoraEngineRef.current) {
+        agoraEngineRef.current.muteLocalVideoStream(nextDisabled);
+      }
+    } catch (e) {}
+  };
+
+  const handleToggleCamera = () => {
+    setIsFrontCamera((prev) => !prev);
+    try {
+      if (agoraEngineRef.current) {
+        agoraEngineRef.current.switchCamera();
+      }
+    } catch (e) {}
+  };
+
+  const handleToggleTorch = () => {
+    const nextTorch = !isTorchOn;
+    setIsTorchOn(nextTorch);
+    try {
+      if (agoraEngineRef.current) {
+        agoraEngineRef.current.setCameraTorchOn(nextTorch);
+      }
+    } catch (e) {}
+  };
 
   const formatCallDuration = (secs) => {
     const mins = Math.floor(secs / 60);
@@ -1442,7 +1566,12 @@ export default function ChatScreen() {
           {/* Video Stream Stage */}
           <View style={{ flex: 1, position: 'relative', justifyContent: 'center', alignItems: 'center', backgroundColor: '#0F172A' }}>
             {/* Main Remote Feed View */}
-            {callStatus === 'connected' && !isVideoDisabled ? (
+            {isAgoraJoined && remoteUid && !isVideoDisabled ? (
+              <RtcSurfaceView
+                style={{ width: '100%', height: '100%' }}
+                canvas={{ uid: remoteUid }}
+              />
+            ) : callStatus === 'connected' && !isVideoDisabled ? (
               <View style={{ width: '100%', height: '100%', justifyContent: 'center', alignItems: 'center', backgroundColor: '#1E293B' }}>
                 <View style={{ alignItems: 'center', padding: 24 }}>
                   <View style={{
@@ -1598,7 +1727,12 @@ export default function ChatScreen() {
               justifyContent: 'center',
               alignItems: 'center'
             }}>
-              {isVideoDisabled ? (
+              {isAgoraJoined && !isVideoDisabled ? (
+                <RtcSurfaceView
+                  style={{ width: '100%', height: '100%' }}
+                  canvas={{ uid: 0, sourceType: VideoSourceType.VideoSourceCamera }}
+                />
+              ) : isVideoDisabled ? (
                 <View style={{ alignItems: 'center' }}>
                   <Feather name="video-off" size={24} color="#94A3B8" />
                   <Text style={{ color: '#94A3B8', fontSize: 10, marginTop: 4, fontWeight: '600' }}>{t('Video Off')}</Text>
@@ -1650,7 +1784,7 @@ export default function ChatScreen() {
             }}>
               {/* Mute Button */}
               <TouchableOpacity
-                onPress={() => setIsMuted(!isMuted)}
+                onPress={handleToggleMute}
                 style={{ alignItems: 'center' }}
               >
                 <View style={{
@@ -1671,7 +1805,7 @@ export default function ChatScreen() {
 
               {/* Video Toggle Button */}
               <TouchableOpacity
-                onPress={() => setIsVideoDisabled(!isVideoDisabled)}
+                onPress={handleToggleVideo}
                 style={{ alignItems: 'center' }}
               >
                 <View style={{
@@ -1692,7 +1826,7 @@ export default function ChatScreen() {
 
               {/* Camera Flip Button */}
               <TouchableOpacity
-                onPress={() => setIsFrontCamera(!isFrontCamera)}
+                onPress={handleToggleCamera}
                 style={{ alignItems: 'center' }}
               >
                 <View style={{
@@ -1734,7 +1868,7 @@ export default function ChatScreen() {
 
               {/* Torch Toggle for Dark Barn Inspection */}
               <TouchableOpacity
-                onPress={() => setIsTorchOn(!isTorchOn)}
+                onPress={handleToggleTorch}
                 style={{ alignItems: 'center' }}
               >
                 <View style={{
