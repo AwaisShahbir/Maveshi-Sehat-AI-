@@ -1,14 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { 
   View, 
   Text, 
   SafeAreaView, 
   FlatList, 
-  TextInput, 
   TouchableOpacity, 
   Image, 
-  Modal, 
-  ScrollView, 
   StatusBar, 
   ActivityIndicator, 
   KeyboardAvoidingView, 
@@ -26,16 +23,20 @@ import { t } from '../../utils/translate';
 import { getProfile } from '../../utils/profileStore';
 import { useTheme } from '../../utils/themeContext';
 import { getStyles } from '../../styles/ChatScreenStyles';
-import {
-  createAgoraRtcEngine,
-  RtcSurfaceView,
-  ChannelProfileType,
-  ClientRoleType,
-  VideoSourceType,
-  RenderModeType
-} from 'react-native-agora';
-import { requestCameraAndAudioPermissions } from '../../utils/permissionUtils';
-import { AGORA_APP_ID, isAgoraConfigured } from '../../services/agoraConfig';
+
+// Custom Hooks & Sub-Components
+import useAgoraCall from '../../hooks/useAgoraCall';
+import ClinicalCaseBar from '../../components/chat/ClinicalCaseBar';
+import ConsultationPickerModal from '../../components/chat/ConsultationPickerModal';
+import ChatMessageItem from '../../components/chat/ChatMessageItem';
+import ChatInputBar from '../../components/chat/ChatInputBar';
+import PrescriptionModal from '../../components/chat/PrescriptionModal';
+import VaccinationModal from '../../components/chat/VaccinationModal';
+import AiScanDetailsModal from '../../components/chat/AiScanDetailsModal';
+import VideoCallModal from '../../components/chat/VideoCallModal';
+import IncomingCallModal from '../../components/chat/IncomingCallModal';
+import ClinicalResolutionModal from '../../components/chat/ClinicalResolutionModal';
+import RatingReviewModal from '../../components/chat/RatingReviewModal';
 
 const parseMessageData = (value) => {
   if (!value) return null;
@@ -49,7 +50,7 @@ const parseMessageData = (value) => {
 
 export default function ChatScreen() {
   const { colors, isDark } = useTheme();
-  const styles = React.useMemo(() => getStyles(colors, isDark), [colors, isDark]);
+  const styles = useMemo(() => getStyles(colors, isDark), [colors, isDark]);
   const navigation = useNavigation();
   const route = useRoute();
   const params = route.params || {};
@@ -59,23 +60,26 @@ export default function ChatScreen() {
   const isUrdu = getProfile()?.language === 'Urdu';
   const [pickerModalOpen, setPickerModalOpen] = useState(false);
   const consultationHistory = Array.isArray(params.consultations) ? params.consultations : [];
-  const getConsultationName = (consultationId = selectedConsultationId) => {
-    const consultation = consultationHistory.find(item => String(item.id) === String(consultationId));
+
+  const [selectedConsultationId, setSelectedConsultationId] = useState(() => {
+    return params.consultationId || params.consultation?.id || (Array.isArray(params.consultations) && params.consultations[0]?.id) || null;
+  });
+
+  const getConsultationName = (consultId = selectedConsultationId) => {
+    const consultation = consultationHistory.find(item => String(item.id) === String(consultId));
     return consultation?.reason?.trim() || 'Consultation';
   };
 
-  
+  // Chat Data States
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState('');
   const [conversationStatus, setConversationStatus] = useState('active'); 
   const [loading, setLoading] = useState(true);
   const [ourUserId, setOurUserId] = useState(null);
-  const [prescriptionModalVisible, setPrescriptionModalVisible] = useState(false);
+  const [partnerUserId, setPartnerUserId] = useState(null);
   const [selectedAttachmentUri, setSelectedAttachmentUri] = useState(null);
   const [failedImageIds, setFailedImageIds] = useState({});
-  const [selectedConsultationId, setSelectedConsultationId] = useState(() => {
-    return params.consultationId || params.consultation?.id || (Array.isArray(params.consultations) && params.consultations[0]?.id) || null;
-  });
+
   const [attachedAiRecord, setAttachedAiRecord] = useState(() => {
     if (params.initialRecord) return params.initialRecord;
     if (params.consultation?.ai_record_data) {
@@ -90,13 +94,15 @@ export default function ChatScreen() {
   });
   const [showAiDetailsModal, setShowAiDetailsModal] = useState(false);
 
-  // Video Consultation & Call States
+  // Phone Contact & Video Mode States
   const [partnerPhone, setPartnerPhone] = useState(
     params.partnerPhone || params.consultation?.vet_phone || params.consultation?.farmer_phone || null
   );
   const [partnerConsultationMode, setPartnerConsultationMode] = useState(
     params.consultationMode || params.consultation?.vet_consultation_mode || params.consultation?.consultation_mode || 'Chat + Video'
   );
+
+  // Video Call State Machine
   const [videoCallVisible, setVideoCallVisible] = useState(false);
   const [callStatus, setCallStatus] = useState('calling'); // 'calling' | 'connected'
   const videoCallVisibleRef = useRef(false);
@@ -109,39 +115,30 @@ export default function ChatScreen() {
   useEffect(() => {
     callStatusRef.current = callStatus;
   }, [callStatus]);
-  const [callDuration, setCallDuration] = useState(0);
-  const [isMuted, setIsMuted] = useState(false);
-  const [isVideoDisabled, setIsVideoDisabled] = useState(false);
-  const [isFrontCamera, setIsFrontCamera] = useState(true);
-  const [isTorchOn, setIsTorchOn] = useState(false);
-  const [snapshotToastVisible, setSnapshotToastVisible] = useState(false);
+
   const [incomingCallVisible, setIncomingCallVisible] = useState(false);
   const [incomingCallData, setIncomingCallData] = useState(null);
-  const [remoteUid, setRemoteUid] = useState(null);
-  const [isAgoraJoined, setIsAgoraJoined] = useState(false);
-  const [isAgoraReady, setIsAgoraReady] = useState(false);
-  const [isCameraInMainStage, setIsCameraInMainStage] = useState(false);
-  const [partnerUserId, setPartnerUserId] = useState(null);
-  const agoraEngineRef = useRef(null);
 
-  
+  // Prescription States
+  const [prescriptionModalVisible, setPrescriptionModalVisible] = useState(false);
   const [diagnosis, setDiagnosis] = useState('');
   const [prescriptionMedicines, setPrescriptionMedicines] = useState([{ name: '', dosage: '', duration: '' }]);
   const [instructions, setInstructions] = useState('');
 
+  // Vaccination States
   const [vaccinationModalVisible, setVaccinationModalVisible] = useState(false);
   const [vaccineName, setVaccineName] = useState('');
   const [vaccineDate, setVaccineDate] = useState('');
   const [nextDueDate, setNextDueDate] = useState('');
   const [vaccineNotes, setVaccineNotes] = useState('');
 
-  // Clinical Case Resolution & Discharge States
+  // Clinical Resolution States
   const [resolutionModalVisible, setResolutionModalVisible] = useState(false);
-  const [selectedOutcome, setSelectedOutcome] = useState('fully_recovered'); // 'fully_recovered' | 'improving' | 'referred'
+  const [selectedOutcome, setSelectedOutcome] = useState('fully_recovered');
   const [dischargeNotes, setDischargeNotes] = useState('');
-  const [followUpDays, setFollowUpDays] = useState('3'); // 'none' | '3' | '7' | '14'
+  const [followUpDays, setFollowUpDays] = useState('3');
   
-  // Post-Consultation Rating States (Farmer Side)
+  // Post-Consultation Rating States
   const [ratingModalVisible, setRatingModalVisible] = useState(false);
   const [starRating, setStarRating] = useState(5);
   const [farmerReview, setFarmerReview] = useState('');
@@ -151,8 +148,71 @@ export default function ChatScreen() {
   const flatListRef = useRef(null);
   const baseUrl = 'https://maveshi-sehat-api.onrender.com';
 
+  const handleSendMessage = useCallback((textToSend = null, imageUrl = null, isPrescription = false, prescriptionData = null, isVaccination = false, vaccinationData = null) => {
+    const finalMsg = textToSend !== null ? textToSend : inputText.trim();
+    if (!finalMsg && !imageUrl && !isPrescription && !selectedAttachmentUri && !isVaccination) return;
+
+    const storedProfile = getProfile();
+    const currentSenderId = ourUserId || storedProfile?.userId || (userRole === 'vet' ? (vetId || 1) : 1);
+
+    const payload = {
+      conversationId: Number(conversationId),
+      senderId: currentSenderId,
+      message: finalMsg,
+      imageUrl: imageUrl || selectedAttachmentUri || null,
+      isPrescription: !!isPrescription,
+      prescriptionData: prescriptionData || null,
+      isVaccination: !!isVaccination,
+      vaccinationData: vaccinationData || null,
+      consultationId: selectedConsultationId || params.consultationId || null
+    };
+
+    if (socketRef.current && socketRef.current.connected) {
+      socketRef.current.emit('send_message', payload);
+    }
+
+    if (textToSend === null) {
+      setInputText('');
+      setSelectedAttachmentUri(null);
+    }
+  }, [conversationId, inputText, ourUserId, params.consultationId, selectedAttachmentUri, selectedConsultationId, userRole, vetId]);
+
+  // Agora Live HD RTC Engine Hook
+  const {
+    callDuration,
+    formatCallDuration,
+    isMuted,
+    isVideoDisabled,
+    isFrontCamera,
+    isTorchOn,
+    snapshotToastVisible,
+    remoteUid,
+    isAgoraReady,
+    isCameraInMainStage,
+    setIsCameraInMainStage,
+    handleToggleMute,
+    handleToggleVideo,
+    handleToggleCamera,
+    handleToggleTorch,
+    handleCaptureSnapshot,
+    handleEndVideoCall,
+    resetCallSession
+  } = useAgoraCall({
+    conversationId,
+    videoCallVisible,
+    setVideoCallVisible,
+    callStatus,
+    setCallStatus,
+    socketRef,
+    partnerName,
+    onCallEndedNotice: (formattedDuration) => {
+      handleSendMessage(
+        `📹 ${t('Live Video Consultation completed.')} (${formattedDuration})`
+      );
+    }
+  });
+
   useEffect(() => {
-    
     const initChat = async () => {
       try {
         const storedProfile = getProfile();
@@ -227,14 +287,11 @@ export default function ChatScreen() {
 
     initChat();
 
-    
     socketRef.current = io(baseUrl);
-
     socketRef.current.emit('join_room', conversationId.toString());
 
     socketRef.current.on('incoming_call', (data) => {
       console.log('📞 Received incoming_call socket event:', data);
-      // Suppress incoming call modal if we are already in an active video consultation
       if (videoCallVisibleRef.current || callStatusRef.current === 'connected') {
         console.log('Suppressed incoming call popup because call session is already active');
         return;
@@ -280,11 +337,9 @@ export default function ChatScreen() {
 
     socketRef.current.on('receive_message', (message) => {
       setMessages((prev) => {
-        
         if (prev.some((m) => m.id === message.id)) return prev;
         return [...prev, message];
       });
-      
       setTimeout(() => {
         flatListRef.current?.scrollToEnd({ animated: true });
       }, 100);
@@ -299,11 +354,8 @@ export default function ChatScreen() {
 
   useEffect(() => {
     if (params?.autoAcceptCall) {
+      resetCallSession();
       setCallStatus('connected');
-      setIsMuted(false);
-      setIsVideoDisabled(false);
-      setIsFrontCamera(true);
-      setIsTorchOn(false);
       setVideoCallVisible(true);
       setTimeout(() => {
         if (socketRef.current && socketRef.current.connected) {
@@ -315,218 +367,29 @@ export default function ChatScreen() {
         }
       }, 500);
     }
-  }, [params?.autoAcceptCall]);
+  }, [params?.autoAcceptCall, conversationId, ourUserId, resetCallSession, userName]);
 
-  
   useEffect(() => {
     if (messages.length > 0) {
       setTimeout(() => {
         flatListRef.current?.scrollToEnd({ animated: false });
       }, 200);
     }
-  }, [loading]);
-
-  // Agora RTC engine lifecycle: purely managed by videoCallVisible
-  useEffect(() => {
-    if (videoCallVisible) {
-      initAgora();
-    } else {
-      destroyAgora();
-    }
-    return () => {
-      destroyAgora();
-    };
-  }, [videoCallVisible]);
-
-  // Outgoing call unanswered timeout (35 seconds)
-  useEffect(() => {
-    let ringTimeout;
-    if (videoCallVisible && callStatus === 'calling') {
-      ringTimeout = setTimeout(() => {
-        setVideoCallVisible(false);
-        if (socketRef.current && socketRef.current.connected) {
-          socketRef.current.emit('end_call', {
-            conversationId: Number(conversationId),
-            reason: 'timeout',
-            duration: 0
-          });
-        }
-        Alert.alert(
-          t('No Answer'),
-          `${partnerName || t('The other participant')} ${t('is not answering the call right now. Please try again or leave a message.')}`
-        );
-      }, 35000);
-    }
-    return () => {
-      if (ringTimeout) clearTimeout(ringTimeout);
-    };
-  }, [videoCallVisible, callStatus]);
-
-  // Call duration counter ONLY ticks when status is 'connected'
-  useEffect(() => {
-    let durationTimer;
-    if (videoCallVisible && callStatus === 'connected') {
-      durationTimer = setInterval(() => {
-        setCallDuration((prev) => prev + 1);
-      }, 1000);
-    }
-    return () => {
-      if (durationTimer) clearInterval(durationTimer);
-    };
-  }, [videoCallVisible, callStatus]);
-
-  const initAgora = async () => {
-    try {
-      const hasPermission = await requestCameraAndAudioPermissions();
-      console.log('Camera and Audio permission status:', hasPermission);
-
-      // Clean up previous instance before creating a new one
-      if (agoraEngineRef.current) {
-        try {
-          agoraEngineRef.current.stopPreview();
-          agoraEngineRef.current.leaveChannel();
-          agoraEngineRef.current.release();
-        } catch (_) {}
-        agoraEngineRef.current = null;
-      }
-
-      const engine = createAgoraRtcEngine();
-      agoraEngineRef.current = engine;
-      
-      engine.initialize({
-        appId: AGORA_APP_ID,
-        channelProfile: ChannelProfileType.ChannelProfileCommunication,
-      });
-
-      engine.registerEventHandler({
-        onJoinChannelSuccess: (connection, elapsed) => {
-          console.log('✅ Joined Agora Channel:', connection.channelId, 'dynamic assigned uid:', connection.localUid);
-          setIsAgoraJoined(true);
-        },
-        onUserJoined: (connection, rUid, elapsed) => {
-          console.log('👤 Peer joined Agora video call with remote uid:', rUid);
-          setRemoteUid(rUid);
-          setCallStatus('connected');
-        },
-        onUserOffline: (connection, rUid, reason) => {
-          console.log('🚪 Peer left Agora video call:', rUid, 'reason:', reason);
-          setRemoteUid(null);
-        },
-        onRemoteVideoStateChanged: (connection, rUid, state, reason, elapsed) => {
-          console.log('📹 Remote video state changed for uid:', rUid, 'state:', state, 'reason:', reason);
-          if (rUid && (state === 1 || state === 2)) {
-            setRemoteUid(rUid);
-          }
-        },
-        onError: (errCode, msg) => {
-          console.warn('⚠️ Agora RTC Engine event error:', errCode, msg);
-        }
-      });
-
-      // Activate audio & video engines
-      engine.enableAudio();
-      engine.enableVideo();
-      engine.startPreview();
-      try {
-        engine.setDefaultAudioRouteToSpeakerphone(true);
-        engine.muteLocalAudioStream(false);
-        engine.muteLocalVideoStream(false);
-      } catch (audioErr) {
-        console.warn('Speakerphone setup notice:', audioErr);
-      }
-      setIsAgoraReady(true);
-
-      const channelName = 'maveshi_conv_' + String(conversationId || 'room').replace(/[^a-zA-Z0-9_]/g, '');
-
-      console.log('Joining Agora channel:', channelName, 'with dynamic unique uid: 0');
-      const ret = engine.joinChannel('', channelName, 0, {
-        clientRoleType: ClientRoleType.ClientRoleBroadcaster,
-        channelProfile: ChannelProfileType.ChannelProfileCommunication,
-        publishMicrophoneTrack: true,
-        publishCameraTrack: true,
-        autoSubscribeAudio: true,
-        autoSubscribeVideo: true,
-      });
-      console.log('Agora joinChannel status code:', ret);
-    } catch (err) {
-      console.warn('⚠️ Agora RTC init error:', err);
-    }
-  };
-
-  const destroyAgora = () => {
-    try {
-      if (agoraEngineRef.current) {
-        agoraEngineRef.current.stopPreview();
-        agoraEngineRef.current.leaveChannel();
-        agoraEngineRef.current.release();
-        agoraEngineRef.current = null;
-      }
-    } catch (e) {
-      console.warn('Error releasing Agora engine:', e);
-    }
-    setIsAgoraReady(false);
-    setIsAgoraJoined(false);
-    setRemoteUid(null);
-  };
-
-  const handleToggleMute = () => {
-    const nextMuted = !isMuted;
-    setIsMuted(nextMuted);
-    try {
-      if (agoraEngineRef.current) {
-        agoraEngineRef.current.muteLocalAudioStream(nextMuted);
-      }
-    } catch (e) {}
-  };
-
-  const handleToggleVideo = () => {
-    const nextDisabled = !isVideoDisabled;
-    setIsVideoDisabled(nextDisabled);
-    try {
-      if (agoraEngineRef.current) {
-        agoraEngineRef.current.muteLocalVideoStream(nextDisabled);
-      }
-    } catch (e) {}
-  };
-
-  const handleToggleCamera = () => {
-    setIsFrontCamera((prev) => !prev);
-    try {
-      if (agoraEngineRef.current) {
-        agoraEngineRef.current.switchCamera();
-      }
-    } catch (e) {}
-  };
-
-  const handleToggleTorch = () => {
-    const nextTorch = !isTorchOn;
-    setIsTorchOn(nextTorch);
-    try {
-      if (agoraEngineRef.current) {
-        agoraEngineRef.current.setCameraTorchOn(nextTorch);
-      }
-    } catch (e) {}
-  };
-
-  const formatCallDuration = (secs) => {
-    const mins = Math.floor(secs / 60);
-    const remSecs = secs % 60;
-    return `${mins.toString().padStart(2, '0')}:${remSecs.toString().padStart(2, '0')}`;
-  };
+  }, [loading, messages.length]);
 
   const handlePhoneCall = () => {
-    const targetPhone = partnerPhone || params.consultation?.vet_phone || params.consultation?.farmer_phone;
+    const targetPhone = partnerPhone;
     if (!targetPhone) {
-      Alert.alert(t('Notice'), t('Phone number is not available for this contact.'));
+      Alert.alert(t('Phone Unavailable'), t('No contact number is available for this user.'));
       return;
     }
     Alert.alert(
-      t('Direct Phone Call'),
-      `${t('Do you want to call')} ${partnerName || ''} (${targetPhone})?`,
+      t('Voice Call'),
+      `${t('Call')} ${partnerName} (${targetPhone})?`,
       [
         { text: t('Cancel'), style: 'cancel' },
         { 
-          text: t('Call'), 
+          text: t('Dial Now'), 
           onPress: () => {
             Linking.openURL(`tel:${targetPhone}`).catch(() => {
               Alert.alert(t('Error'), 'Could not open phone dialer.');
@@ -551,12 +414,8 @@ export default function ChatScreen() {
       ? (vetId || params.consultation?.vet_id || 1) 
       : (params.consultation?.farmer_id || 1));
 
-    setCallDuration(0);
+    resetCallSession();
     setCallStatus('calling');
-    setIsMuted(false);
-    setIsVideoDisabled(false);
-    setIsFrontCamera(true);
-    setIsTorchOn(false);
     setVideoCallVisible(true);
 
     if (socketRef.current && socketRef.current.connected) {
@@ -573,12 +432,8 @@ export default function ChatScreen() {
 
   const handleAcceptIncomingCall = () => {
     setIncomingCallVisible(false);
-    setCallDuration(0);
+    resetCallSession();
     setCallStatus('connected');
-    setIsMuted(false);
-    setIsVideoDisabled(false);
-    setIsFrontCamera(true);
-    setIsTorchOn(false);
     setVideoCallVisible(true);
 
     if (socketRef.current && socketRef.current.connected) {
@@ -600,165 +455,39 @@ export default function ChatScreen() {
     }
   };
 
-  const handleEndVideoCall = () => {
-    const duration = callDuration;
-    const durationStr = formatCallDuration(duration);
-    setVideoCallVisible(false);
+  const handleSendText = () => {
+    if (isPendingApproval) {
+      Alert.alert(
+        'Request Pending Approval',
+        'You can send messages once Dr. ' + partnerName + ' accepts this consultation request.'
+      );
+      return;
+    }
+    handleSendMessage();
+  };
 
-    if (socketRef.current && socketRef.current.connected) {
-      socketRef.current.emit('end_call', {
-        conversationId: Number(conversationId),
-        duration: durationStr
+  const handleAttachmentSelect = async () => {
+    try {
+      const results = await pick({
+        type: [types.images],
+        allowMultiSelection: false,
       });
-    }
 
-    if (duration > 2) {
-      handleSendMessage(`📹 ${t('Video Consultation Session')} (${durationStr})`);
-    }
-  };
-
-  const handleCaptureSnapshot = () => {
-    setSnapshotToastVisible(true);
-    setTimeout(() => setSnapshotToastVisible(false), 2200);
-
-    const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    const snapshotTag = `📸 [${t('Clinical Inspection Snapshot')}] (${timeStr})\n${t('Live animal condition recorded for diagnostic review.')}`;
-    handleSendMessage(snapshotTag);
-  };
-
-  const handleSendMessage = async (text = '', imageUrl = null, isPrescription = false, prescriptionData = null, isVaccination = false, vaccinationData = null, consultationIdOverride = null) => {
-    const finalMsg = text.trim();
-    if (!finalMsg && !imageUrl && !isPrescription && !selectedAttachmentUri && !isVaccination) return;
-
-    const storedProfile = getProfile();
-    const currentSenderId = ourUserId || storedProfile?.userId || (userRole === 'vet' ? (vetId || 1) : 1);
-
-    const payload = {
-      conversationId: Number(conversationId),
-      senderId: Number(currentSenderId),
-      message: finalMsg || null,
-      imageUrl: imageUrl || selectedAttachmentUri || null,
-      isPrescription: !!isPrescription,
-      prescriptionData: prescriptionData || null,
-      isVaccination: !!isVaccination,
-      vaccinationData: vaccinationData || null,
-      consultationId: consultationIdOverride || selectedConsultationId
-    };
-
-    if (socketRef.current && socketRef.current.connected) {
-      socketRef.current.emit('send_message', payload);
-      setInputText('');
-      setSelectedAttachmentUri(null);
-    } else {
-      // Robust REST API Fallback
-      try {
-        const res = await fetch(`${baseUrl}/api/chat/message`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-        if (!res.ok) {
-          const errData = await res.json().catch(() => ({}));
-          throw new Error(errData.error || 'Failed to send message');
-        }
-        const savedMessage = await res.json();
-        setMessages((prev) => {
-          if (prev.some((m) => m.id === savedMessage.id)) return prev;
-          return [...prev, savedMessage];
-        });
-        setInputText('');
-        setSelectedAttachmentUri(null);
-        setTimeout(() => {
-          flatListRef.current?.scrollToEnd({ animated: true });
-        }, 100);
-      } catch (err) {
-        console.error('Failed to send message:', err);
-        Alert.alert(
-          t('Message Notice'),
-          isPrescription
-            ? t('Failed to send prescription. Please check your internet connection.')
-            : t('Unable to send message. Please check your internet connection and try again.')
-        );
+      if (results && results.length > 0) {
+        setSelectedAttachmentUri(results[0].uri);
+      }
+    } catch (err) {
+      if (!isCancel(err)) {
+        Alert.alert(t('Error'), 'Could not select the attachment.');
       }
     }
   };
 
-  const handleSendText = () => {
-    handleSendMessage(inputText);
-  };
-
-  const handleSendVaccination = () => {
-    if (!vaccineName.trim()) {
-      alert(t('Please enter vaccine name'));
-      return;
-    }
-    const vaccinationData = {
-      vaccineName: vaccineName.trim(),
-      vaccineDate: vaccineDate.trim() || new Date().toISOString().split('T')[0],
-      nextDueDate: nextDueDate.trim(),
-      notes: vaccineNotes.trim()
-    };
-    handleSendMessage('', null, false, null, true, vaccinationData);
-    setVaccinationModalVisible(false);
-    setVaccineName(''); setVaccineDate(''); setNextDueDate(''); setVaccineNotes('');
-  };
-
-  const handleResolve = () => {
-    handleSendMessage(inputText);
-  };
-
-  const handleAttachmentSelect = () => {
-    Alert.alert(
-      'Attach Image',
-      'Choose a source',
-      [
-        {
-          text: 'Camera',
-          onPress: () => {
-            import('react-native-image-picker').then(({ launchCamera }) => {
-              launchCamera({ mediaType: 'photo', quality: 0.8 }, (res) => {
-                if (res.assets && res.assets.length > 0) setSelectedAttachmentUri(res.assets[0].uri);
-              });
-            }).catch(err => {
-              console.error('Camera launch error:', err);
-              Alert.alert('Error', 'Unable to open camera.');
-            });
-          }
-        },
-        {
-          text: 'Gallery',
-          onPress: () => {
-            import('react-native-image-picker').then(({ launchImageLibrary }) => {
-              launchImageLibrary({ mediaType: 'photo', quality: 0.8 }, (res) => {
-                if (res.assets && res.assets.length > 0) setSelectedAttachmentUri(res.assets[0].uri);
-              });
-            }).catch(err => {
-              console.error('Gallery launch error:', err);
-              Alert.alert('Error', 'Unable to open photo gallery.');
-            });
-          }
-        },
-        {
-          text: 'Document',
-          onPress: async () => {
-            try {
-              const res = await pick({
-                type: [types.allFiles],
-              });
-              if (res && res.length > 0) {
-                setSelectedAttachmentUri(res[0].uri);
-              }
-            } catch (err) {
-              if (!isCancel(err)) {
-                Alert.alert('Error', 'Failed to pick document');
-              }
-            }
-          }
-        },
-        { text: 'Cancel', style: 'cancel' }
-      ],
-      { cancelable: true }
-    );
+  // Prescription Handlers
+  const handleMedicineChange = (text, index, field) => {
+    const updated = [...prescriptionMedicines];
+    updated[index][field] = text;
+    setPrescriptionMedicines(updated);
   };
 
   const handleAddMedicineRow = () => {
@@ -766,42 +495,61 @@ export default function ChatScreen() {
   };
 
   const handleRemoveMedicineRow = (index) => {
-    const updated = prescriptionMedicines.filter((_, i) => i !== index);
-    setPrescriptionMedicines(updated);
-  };
-
-  const handleMedicineChange = (text, index, field) => {
-    const updated = [...prescriptionMedicines];
-    updated[index][field] = text;
-    setPrescriptionMedicines(updated);
+    if (prescriptionMedicines.length > 1) {
+      const updated = prescriptionMedicines.filter((_, i) => i !== index);
+      setPrescriptionMedicines(updated);
+    }
   };
 
   const handleSendPrescription = () => {
     if (!diagnosis.trim()) {
-      alert(t('Please enter a diagnosis'));
-      return;
-    }
-    const validMedicines = prescriptionMedicines.filter(m => m.name.trim());
-    if (validMedicines.length === 0) {
-      alert(t('Please add at least one medicine'));
+      Alert.alert(t('Missing Field'), 'Please enter a diagnosis.');
       return;
     }
 
-    const prescriptionData = {
+    const validMedicines = prescriptionMedicines.filter(m => m.name.trim() !== '');
+    if (validMedicines.length === 0) {
+      Alert.alert(t('Missing Field'), 'Please enter at least one medicine.');
+      return;
+    }
+
+    const prescriptionPayload = {
       diagnosis: diagnosis.trim(),
       medicines: validMedicines,
       instructions: instructions.trim()
     };
 
-    handleSendMessage('', null, true, prescriptionData);
-    
-    
+    handleSendMessage('💊 Prescription Issued', null, true, prescriptionPayload);
+
     setDiagnosis('');
     setPrescriptionMedicines([{ name: '', dosage: '', duration: '' }]);
     setInstructions('');
     setPrescriptionModalVisible(false);
   };
 
+  const handleSendVaccination = () => {
+    if (!vaccineName.trim() || !vaccineDate.trim()) {
+      Alert.alert(t('Missing Information'), 'Please provide Vaccine Name and Date Administered.');
+      return;
+    }
+
+    const vaccinationPayload = {
+      vaccineName: vaccineName.trim(),
+      vaccineDate: vaccineDate.trim(),
+      nextDueDate: nextDueDate.trim(),
+      notes: vaccineNotes.trim()
+    };
+
+    handleSendMessage('💉 Vaccination Scheduled', null, false, null, true, vaccinationPayload);
+
+    setVaccineName('');
+    setVaccineDate('');
+    setNextDueDate('');
+    setVaccineNotes('');
+    setVaccinationModalVisible(false);
+  };
+
+  // Case Resolution & Rating Handlers
   const handleOpenResolutionModal = () => {
     setResolutionModalVisible(true);
   };
@@ -810,7 +558,7 @@ export default function ChatScreen() {
     try {
       setLoading(true);
       const activeConsultId = selectedConsultationId || params.consultationId || params.consultation?.id;
-      const response = await fetch(`${baseUrl}/api/chat/conversation/resolve`, {
+      const res = await fetch(`${baseUrl}/api/chat/conversation/resolve`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -822,15 +570,14 @@ export default function ChatScreen() {
         })
       });
 
-      if (response.ok) {
-        const data = await response.json();
+      const data = await res.json();
+      if (res.ok) {
         if (data.allResolved !== false) {
           setConversationStatus('resolved');
         }
 
         setResolutionModalVisible(false);
 
-        // Format professional clinical discharge note in chat
         const outcomeLabel = selectedOutcome === 'fully_recovered'
           ? (isUrdu ? 'صحت یاب / مکمل علاج' : 'Fully Recovered / Treated')
           : selectedOutcome === 'improving'
@@ -849,19 +596,22 @@ export default function ChatScreen() {
 
         handleSendMessage(summaryMessage);
 
-        // If user is a farmer, open rating modal
         if (userRole === 'farmer') {
           setTimeout(() => {
             setRatingModalVisible(true);
-          }, 600);
+          }, 800);
+        } else {
+          Alert.alert(
+            isUrdu ? 'کیس مکمل' : 'Case Resolved',
+            isUrdu ? 'طبی کیس کامیابی سے ڈسچارج ہو گیا ہے۔' : 'The clinical consultation case has been successfully discharged.'
+          );
         }
       } else {
-        const data = await response.json();
-        Alert.alert(t('Error'), data.error || 'Failed to resolve consultation');
+        Alert.alert(t('Error'), data.error || 'Failed to mark case as resolved.');
       }
-    } catch (error) {
-      console.error('Error resolving conversation:', error);
-      Alert.alert(t('Error'), 'Network error. Could not resolve consultation.');
+    } catch (e) {
+      console.error(e);
+      Alert.alert(t('Error'), 'Could not connect to resolve consultation.');
     } finally {
       setLoading(false);
     }
@@ -875,7 +625,8 @@ export default function ChatScreen() {
         setRatingModalVisible(false);
         return;
       }
-      const response = await fetch(`${baseUrl}/api/consultations/${activeConsultId}/rating`, {
+
+      const res = await fetch(`${baseUrl}/api/consultations/${activeConsultId}/rating`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -884,19 +635,16 @@ export default function ChatScreen() {
         })
       });
 
-      if (response.ok) {
+      if (res.ok) {
         setRatingModalVisible(false);
         Alert.alert(
-          t('Thank You!'),
-          isUrdu 
-            ? 'آپ کا ریویو اور فیڈ بیک کامیابی سے درج ہو چکا ہے۔ ڈاکٹر کے پروفائل پر شامل کر دیا گیا ہے۔'
-            : "Your rating and feedback have been submitted successfully to the doctor's profile."
+          isUrdu ? 'شکریہ!' : 'Thank You!',
+          isUrdu ? 'ڈاکٹر کے لیے آپ کی ریٹنگ کامیابی سے ریکارڈ ہو گئی ہے۔' : 'Your feedback and rating have been recorded for Dr. ' + partnerName + '.'
         );
       } else {
         setRatingModalVisible(false);
       }
-    } catch (err) {
-      console.error('Rating submit error:', err);
+    } catch (e) {
       setRatingModalVisible(false);
     } finally {
       setRatingSubmitting(false);
@@ -905,310 +653,26 @@ export default function ChatScreen() {
 
   const handleReopenConversation = async () => {
     try {
-      const consultationName = getConsultationName();
-      const response = await fetch(`${baseUrl}/api/chat/conversation/reopen`, {
+      setLoading(true);
+      const res = await fetch(`${baseUrl}/api/chat/conversation/reopen`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ conversationId, reason: consultationName })
+        body: JSON.stringify({ conversationId })
       });
-      const responseText = await response.text();
-      let data = {};
-      try {
-        data = responseText ? JSON.parse(responseText) : {};
-      } catch {
-        throw new Error(
-          `The server returned an invalid response (${response.status}). Please restart the backend and try again.`
-        );
+
+      if (res.ok) {
+        setConversationStatus('active');
+        handleSendMessage(t('📢 Conversation reopened for follow-up questions.'));
+      } else {
+        Alert.alert(t('Error'), 'Failed to reopen conversation.');
       }
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to start a new consultation');
-      }
-      setConversationStatus('active');
-      const newConsultation = data.consultation;
-      const newConsultationName = newConsultation?.reason?.trim() || consultationName;
-      handleSendMessage(
-        `📋 ${newConsultationName} consultation has been started.`,
-        null,
-        false,
-        null,
-        false,
-        null,
-        newConsultation?.id || null
-      );
-    } catch (error) {
-      console.error('Error reopening conversation:', error);
-      Alert.alert('Unable to start consultation', error.message || 'Please try again.');
+    } catch (e) {
+      console.error(e);
+      Alert.alert(t('Error'), 'Could not connect to reopen conversation.');
+    } finally {
+      setLoading(false);
     }
   };
-
-  const renderMessageItem = ({ item }) => {
-    if (item.isConsultationMarker) {
-      return (
-        <View style={styles.consultationStartMarker}>
-          <View style={styles.consultationStartLine} />
-          <View style={styles.consultationStartContent}>
-            <MaterialCommunityIcons name="clipboard-check-outline" size={16} color={colors.primary} />
-            <Text style={styles.consultationStartText}>
-              {item.reason} consultation started
-            </Text>
-            {item.created_at && (
-              <Text style={styles.consultationStartDate}>
-                {new Date(item.created_at).toLocaleDateString()}
-              </Text>
-            )}
-          </View>
-          <View style={styles.consultationStartLine} />
-        </View>
-      );
-    }
-
-    const isMe = item.sender_id === ourUserId;
-    const timeText = new Date(item.created_at).toLocaleTimeString(undefined, {
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-    let messageText = typeof item.message === 'string' ? item.message.trim() : '';
-    if (messageText === '📋 A new consultation has been started.') {
-      messageText = `📋 ${getConsultationName(item.consultation_id)} consultation has been started.`;
-    }
-    const hasImage = typeof item.image_url === 'string' && item.image_url.trim().length > 0;
-    const imageFailed = !!failedImageIds[item.id];
-
-    if (item.is_prescription) {
-      const data = parseMessageData(item.prescription_data);
-      if (!data) return null;
-
-      return (
-        <View style={[styles.prescriptionWrapper, isMe ? styles.alignRight : styles.alignLeft]}>
-          <View style={styles.prescriptionCard}>
-            <View style={styles.prescriptionHeader}>
-              <MaterialCommunityIcons name="file-document-edit" size={24} color="#FFF" />
-              <View style={{ marginLeft: 8 }}>
-                <Text style={styles.prescriptionHeaderTitle}>{t('Rx Prescription')}</Text>
-                <Text style={styles.prescriptionHeaderSubtitle}>Maveshi Sehat Vet Advice</Text>
-              </View>
-            </View>
-
-            <View style={styles.prescriptionBody}>
-              <Text style={styles.prescriptionLabel}>{t('Diagnosis')}</Text>
-              <Text style={styles.prescriptionValue}>{data.diagnosis}</Text>
-
-              <Text style={[styles.prescriptionLabel, { marginTop: 12 }]}>{t('Medicines')}</Text>
-              {data.medicines.map((med, index) => (
-                <View key={index} style={styles.medicineItem}>
-                  <Text style={styles.medicineName}>• {med.name}</Text>
-                  <Text style={styles.medicineDosage}>{med.dosage} ({med.duration})</Text>
-                </View>
-              ))}
-
-              {data.instructions ? (
-                <>
-                  <Text style={[styles.prescriptionLabel, { marginTop: 12 }]}>{t('Special Instructions')}</Text>
-                  <Text style={styles.prescriptionValue}>{data.instructions}</Text>
-                </>
-              ) : null}
-            </View>
-
-            {conversationStatus === 'active' && userRole === 'farmer' && (
-              <TouchableOpacity 
-                style={styles.resolveButton} 
-                onPress={handleOpenResolutionModal}
-                activeOpacity={0.8}
-              >
-                <Feather name="check-circle" size={16} color="#FFF" style={{ marginRight: 6 }} />
-                <Text style={styles.resolveButtonText}>{t('Mark Resolved')}</Text>
-              </TouchableOpacity>
-            )}
-
-            {conversationStatus === 'resolved' && (
-              <View style={styles.resolvedLabel}>
-                <Feather name="check" size={14} color="#4CB85C" style={{ marginRight: 4 }} />
-                <Text style={styles.resolvedLabelText}>{t('Case Resolved')}</Text>
-              </View>
-            )}
-          </View>
-          <Text style={styles.messageTime}>{timeText}</Text>
-        </View>
-      );
-    }
-
-    if (item.is_vaccination) {
-      const data = parseMessageData(item.vaccination_data);
-      if (!data) return null;
-
-      return (
-        <View style={[styles.prescriptionWrapper, isMe ? styles.alignRight : styles.alignLeft]}>
-          <View style={styles.prescriptionCard}>
-            <View style={[styles.prescriptionHeader, { backgroundColor: '#3B82F6' }]}>
-              <MaterialCommunityIcons name="needle" size={24} color="#FFF" />
-              <View style={{ marginLeft: 8 }}>
-                <Text style={styles.prescriptionHeaderTitle}>{t('Vaccination Schedule')}</Text>
-                <Text style={styles.prescriptionHeaderSubtitle}>Maveshi Sehat Vet Advice</Text>
-              </View>
-            </View>
-
-            <View style={styles.prescriptionBody}>
-              <Text style={styles.prescriptionLabel}>{t('Vaccine')}</Text>
-              <Text style={styles.prescriptionValue}>{data.vaccineName}</Text>
-
-              <Text style={[styles.prescriptionLabel, { marginTop: 12 }]}>{t('Date Administered')}</Text>
-              <Text style={styles.prescriptionValue}>{data.vaccineDate}</Text>
-
-              {data.nextDueDate ? (
-                <>
-                  <Text style={[styles.prescriptionLabel, { marginTop: 12, color: '#FF3B30' }]}>{t('Next Due Date')}</Text>
-                  <Text style={[styles.prescriptionValue, { color: '#FF3B30', fontWeight: 'bold' }]}>{data.nextDueDate}</Text>
-                </>
-              ) : null}
-
-              {data.notes ? (
-                <>
-                  <Text style={[styles.prescriptionLabel, { marginTop: 12 }]}>{t('Notes')}</Text>
-                  <Text style={styles.prescriptionValue}>{data.notes}</Text>
-                </>
-              ) : null}
-            </View>
-          </View>
-          <Text style={styles.messageTime}>{timeText}</Text>
-        </View>
-      );
-    }
-
-    if (!messageText && !hasImage) return null;
-
-    return (
-      <View style={[styles.bubbleWrapper, isMe ? styles.alignRight : styles.alignLeft]}>
-        <View style={[
-          styles.bubble, 
-          isMe ? styles.bubbleMe : styles.bubblePartner
-        ]}>
-          {hasImage && !imageFailed && (
-            <Image
-              source={{ uri: item.image_url.trim() }}
-              style={styles.bubbleImage}
-              resizeMode="cover"
-              onError={() => setFailedImageIds(prev => ({ ...prev, [item.id]: true }))}
-            />
-          )}
-          {hasImage && imageFailed && (
-            <View style={styles.attachmentUnavailable}>
-              <Feather name="paperclip" size={16} color={isMe ? '#FFF' : colors.textSecondary} />
-              <Text style={[styles.attachmentUnavailableText, isMe ? styles.messageTextMe : styles.messageTextPartner]}>
-                Attachment unavailable
-              </Text>
-            </View>
-          )}
-
-          {!!messageText && (
-            <Text style={[styles.messageText, isMe ? styles.messageTextMe : styles.messageTextPartner]}>
-              {messageText}
-            </Text>
-          )}
-          <Text style={[styles.messageTime, isMe ? { color: 'rgba(255,255,255,0.7)' } : { color: '#999' }]}>{timeText}</Text>
-        </View>
-      </View>
-    );
-  };
-
-  const renderConsultationSummary = () => {
-    if (consultationHistory.length === 0) return null;
-    const selectedConsultation = consultationHistory.find(item => item.id === selectedConsultationId);
-    const isResolved = selectedConsultation?.status === 'completed' || selectedConsultation?.status === 'resolved';
-    return (
-      <View style={styles.consultationSummary}>
-        <View style={[styles.liveConsultationBanner, isResolved && styles.liveConsultationBannerMuted]}>
-          <View style={styles.liveConsultationIcon}>
-            <View style={styles.liveConsultationDot} />
-          </View>
-          <View style={styles.liveConsultationDetails}>
-            <Text style={styles.liveConsultationLabel}>
-              {isResolved ? 'CONSULTATION RESOLVED' : 'CURRENT CONSULTATION'}
-            </Text>
-            <Text style={styles.liveConsultationReason} numberOfLines={2}>
-              {selectedConsultation?.reason || 'Selected consultation'}
-            </Text>
-            {selectedConsultation?.created_at && (
-              <Text style={styles.liveConsultationDate}>
-                Started {new Date(selectedConsultation.created_at).toLocaleDateString()}
-              </Text>
-            )}
-          </View>
-          <Feather name={isResolved ? 'check-circle' : 'radio'} size={20} color={isResolved ? colors.primary : '#FFF'} />
-        </View>
-      </View>
-    );
-  };
-
-  const renderConsultationPicker = () => (
-    <Modal
-      visible={(consultationHistory.length > 0 && !selectedConsultationId) || pickerModalOpen}
-      animationType="slide"
-      transparent={false}
-      onRequestClose={() => {
-        if (selectedConsultationId) setPickerModalOpen(false);
-        else navigation.goBack();
-      }}
-    >
-      <SafeAreaView style={styles.consultationPickerScreen}>
-        <View style={styles.consultationPickerHeader}>
-          <TouchableOpacity 
-            style={styles.backButton} 
-            onPress={() => {
-              if (selectedConsultationId) setPickerModalOpen(false);
-              else navigation.goBack();
-            }}
-          >
-            <Feather name="chevron-left" size={24} color="#FFF" />
-          </TouchableOpacity>
-          <View style={styles.consultationPickerHeaderText}>
-            <Text style={styles.consultationPickerTitle}>Choose a consultation</Text>
-            <Text style={styles.consultationPickerSubtitle}>{partnerName}</Text>
-          </View>
-        </View>
-        <ScrollView contentContainerStyle={styles.consultationPickerContent}>
-          <View style={styles.consultationPickerIntro}>
-            <MaterialCommunityIcons name="clipboard-text-outline" size={30} color={colors.primary} />
-            <Text style={styles.consultationPickerIntroTitle}>What would you like to discuss?</Text>
-            <Text style={styles.consultationPickerIntroText}>
-              Select the consultation before opening the chat. Your messages and prescriptions will be linked to this case.
-            </Text>
-          </View>
-          {consultationHistory.map((consultation, index) => {
-            const resolved = consultation.status === 'completed' || consultation.status === 'resolved';
-            const pending = consultation.status === 'pending';
-            const selectable = !resolved && !(pending && userRole === 'farmer');
-            return (
-              <TouchableOpacity
-                key={consultation.id || index}
-                style={[styles.consultationPickerRow, !selectable && styles.consultationPickerRowDisabled]}
-                onPress={() => {
-                  if (selectable) {
-                    setSelectedConsultationId(consultation.id);
-                    setPickerModalOpen(false);
-                  }
-                }}
-                disabled={!selectable}
-                activeOpacity={0.8}
-              >
-                <View style={styles.consultationPickerRowIcon}>
-                  <MaterialCommunityIcons name={selectable ? 'message-text-outline' : 'lock-outline'} size={20} color={selectable ? colors.primary : colors.textSecondary} />
-                </View>
-                <View style={styles.consultationPickerRowDetails}>
-                  <Text style={styles.consultationPickerReason}>{consultation.reason || 'General consultation'}</Text>
-                  <Text style={styles.consultationPickerDate}>
-                    Started {new Date(consultation.created_at).toLocaleDateString()}
-                  </Text>
-                </View>
-                <View style={styles.consultationPickerStatus}>
-                  <Feather name={selectable ? 'chevron-right' : 'lock'} size={16} color={colors.textSecondary} />
-                </View>
-              </TouchableOpacity>
-            );
-          })}
-        </ScrollView>
-      </SafeAreaView>
-    </Modal>
-  );
 
   const selectedConsultation = consultationHistory.find(
     item => String(item.id) === String(selectedConsultationId)
@@ -1239,7 +703,7 @@ export default function ChatScreen() {
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="light-content" backgroundColor={isDark ? colors.headerBackground : colors.primary} />
 
-      {/* Modern Header */}
+      {/* Top Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
           <Feather name="chevron-left" size={24} color="#FFF" />
@@ -1268,90 +732,37 @@ export default function ChatScreen() {
         </View>
       </View>
 
-      {renderConsultationPicker()}
+      {/* Case Picker Modal */}
+      <ConsultationPickerModal
+        visible={(consultationHistory.length > 0 && !selectedConsultationId) || pickerModalOpen}
+        consultationHistory={consultationHistory}
+        selectedConsultationId={selectedConsultationId}
+        userRole={userRole}
+        partnerName={partnerName}
+        colors={colors}
+        styles={styles}
+        onSelectConsultation={(id) => {
+          setSelectedConsultationId(id);
+          setPickerModalOpen(false);
+        }}
+        onClose={() => {
+          if (selectedConsultationId) setPickerModalOpen(false);
+          else navigation.goBack();
+        }}
+      />
 
       {/* Clinical Case Context Bar */}
-      <View style={{
-        marginHorizontal: 14,
-        marginTop: 6,
-        marginBottom: 4,
-        paddingHorizontal: 12,
-        paddingVertical: 9,
-        backgroundColor: isDark ? 'rgba(30, 41, 59, 0.7)' : '#F1F5F9',
-        borderRadius: 14,
-        borderWidth: 1,
-        borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : '#E2E8F0',
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between'
-      }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, paddingRight: 8 }}>
-          <View style={{
-            width: 8,
-            height: 8,
-            borderRadius: 4,
-            backgroundColor: conversationStatus === 'resolved' ? '#64748B' : '#10B981',
-            marginRight: 8
-          }} />
-          <View style={{ flex: 1 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Text style={{ fontSize: 11, fontWeight: '800', color: colors.primary, textTransform: 'uppercase', letterSpacing: 0.5 }}>
-                {isUrdu ? 'طبی کیس' : 'Clinical Case'} #{selectedConsultationId || params.consultationId || (Array.isArray(params.consultations) && params.consultations[0]?.id) || '1'}
-              </Text>
-              <Text style={{ fontSize: 11, color: colors.textSecondary, marginLeft: 6 }}>
-                · {conversationStatus === 'resolved' ? (isUrdu ? 'مکمل کیس' : 'Resolved') : (isUrdu ? 'جاری کیس' : 'In Progress')}
-              </Text>
-            </View>
-            <Text style={{ fontSize: 12, fontWeight: '600', color: colors.textPrimary, marginTop: 1 }} numberOfLines={1}>
-              {getConsultationName()}
-            </Text>
-          </View>
-        </View>
-
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-          {consultationHistory.length > 1 && (
-            <TouchableOpacity
-              style={{
-                backgroundColor: isDark ? 'rgba(56, 189, 248, 0.15)' : '#E0F2FE',
-                paddingHorizontal: 8,
-                paddingVertical: 5,
-                borderRadius: 8,
-                borderWidth: 1,
-                borderColor: isDark ? 'rgba(56, 189, 248, 0.3)' : '#BAE6FD',
-                flexDirection: 'row',
-                alignItems: 'center'
-              }}
-              onPress={() => setPickerModalOpen(true)}
-            >
-              <MaterialCommunityIcons name="swap-horizontal" size={14} color="#0284C7" style={{ marginRight: 3 }} />
-              <Text style={{ fontSize: 10, fontWeight: '700', color: '#0284C7' }}>
-                {isUrdu ? 'کیس بدلیں' : 'Switch'}
-              </Text>
-            </TouchableOpacity>
-          )}
-
-          {conversationStatus === 'active' && (
-            <TouchableOpacity
-              style={{
-                backgroundColor: isDark ? 'rgba(16, 185, 129, 0.18)' : '#D1FAE5',
-                paddingHorizontal: 9,
-                paddingVertical: 5,
-                borderRadius: 8,
-                borderWidth: 1,
-                borderColor: isDark ? 'rgba(16, 185, 129, 0.35)' : '#A7F3D0',
-                flexDirection: 'row',
-                alignItems: 'center'
-              }}
-              onPress={handleOpenResolutionModal}
-            >
-              <Feather name="check-circle" size={12} color="#059669" style={{ marginRight: 4 }} />
-              <Text style={{ fontSize: 11, fontWeight: '800', color: '#059669' }}>
-                {isUrdu ? 'مکمل کریں' : 'Resolve'}
-              </Text>
-            </TouchableOpacity>
-          )}
-        </View>
-      </View>
+      <ClinicalCaseBar
+        selectedConsultationId={selectedConsultationId || params.consultationId || (Array.isArray(params.consultations) && params.consultations[0]?.id)}
+        consultationHistory={consultationHistory}
+        conversationStatus={conversationStatus}
+        getConsultationName={getConsultationName}
+        isUrdu={isUrdu}
+        isDark={isDark}
+        colors={colors}
+        onOpenPicker={() => setPickerModalOpen(true)}
+        onOpenResolution={handleOpenResolutionModal}
+      />
 
       {/* Attached AI Medical Report Banner */}
       {attachedAiRecord && (
@@ -1403,7 +814,7 @@ export default function ChatScreen() {
         </TouchableOpacity>
       )}
 
-      
+      {/* Main Messages Area */}
       {loading ? (
         <View style={styles.loaderContainer}>
           <ActivityIndicator size="large" color="#58D66D" />
@@ -1418,7 +829,21 @@ export default function ChatScreen() {
           <FlatList
             ref={flatListRef}
             data={chatMessages}
-            renderItem={renderMessageItem}
+            renderItem={({ item }) => (
+              <ChatMessageItem
+                item={item}
+                ourUserId={ourUserId}
+                conversationStatus={conversationStatus}
+                userRole={userRole}
+                failedImageIds={failedImageIds}
+                onImageError={(id) => setFailedImageIds(prev => ({ ...prev, [id]: true }))}
+                onOpenResolution={handleOpenResolutionModal}
+                getConsultationName={getConsultationName}
+                parseMessageData={parseMessageData}
+                colors={colors}
+                styles={styles}
+              />
+            )}
             keyExtractor={(item) => item.id.toString()}
             contentContainerStyle={styles.messagesList}
             showsVerticalScrollIndicator={false}
@@ -1434,1233 +859,137 @@ export default function ChatScreen() {
             }
           />
 
-          
-          {isPendingApproval ? (
-            <View style={[styles.resolvedBanner, { 
-              paddingBottom: Math.max(insets.bottom, 12),
-              backgroundColor: isDark ? 'rgba(245, 158, 11, 0.15)' : '#FEF3C7',
-              borderColor: isDark ? 'rgba(245, 158, 11, 0.3)' : '#FDE68A'
-            }]}>
-              <View style={styles.resolvedBannerTextRow}>
-                <Feather name="clock" size={17} color="#D97706" style={{ marginRight: 6 }} />
-                <Text style={[styles.resolvedBannerText, { color: '#B45309', fontWeight: '700' }]}>
-                  Pending Doctor Approval
-                </Text>
-              </View>
-              <Text style={{ fontSize: 12, color: '#92400E', textAlign: 'center', marginTop: 4, paddingHorizontal: 16 }}>
-                Dr. {partnerName} has not accepted this request yet. Chat will unlock automatically once approved.
-              </Text>
-            </View>
-          ) : conversationStatus === 'resolved' ? (
-            <View style={[styles.resolvedBanner, { paddingBottom: Math.max(insets.bottom, 10) }]}>
-              <View style={styles.resolvedBannerTextRow}>
-                <MaterialCommunityIcons name="lock" size={17} color="#64748B" style={{ marginRight: 6 }} />
-                <Text style={styles.resolvedBannerText}>This consultation is resolved.</Text>
-              </View>
-              <TouchableOpacity
-                style={styles.reopenButton}
-                onPress={handleReopenConversation}
-                activeOpacity={0.8}
-              >
-                <Feather name="plus-circle" size={15} color="#FFF" style={{ marginRight: 6 }} />
-                <Text style={styles.reopenButtonText}>Start New Consultation</Text>
-              </TouchableOpacity>
-            </View>
-          ) : (
-            <View style={{ paddingBottom: Math.max(insets.bottom, 10) }}>
-              {selectedAttachmentUri && (
-                <View style={styles.attachmentPreviewContainer}>
-                  <Image source={{ uri: selectedAttachmentUri }} style={styles.attachmentPreviewImage} />
-                  <TouchableOpacity 
-                    style={styles.attachmentRemoveBtn} 
-                    onPress={() => setSelectedAttachmentUri(null)}
-                  >
-                    <Feather name="x" size={14} color="#FFF" />
-                  </TouchableOpacity>
-                </View>
-              )}
-
-              {userRole === 'vet' && conversationStatus === 'active' && (
-                <View style={styles.vetActionRow}>
-                  <TouchableOpacity 
-                    style={styles.vetActionBtnOutline} 
-                    onPress={() => setPrescriptionModalVisible(true)}
-                  >
-                    <MaterialCommunityIcons name="pill" size={18} color="#58D66D" />
-                    <Text style={styles.vetActionBtnTextOutline}>Rx</Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity 
-                    style={[styles.vetActionBtnOutline, { borderColor: '#3B82F6', flex: 0.8 }]} 
-                    onPress={() => setVaccinationModalVisible(true)}
-                  >
-                    <MaterialCommunityIcons name="needle" size={18} color="#3B82F6" />
-                    <Text style={[styles.vetActionBtnTextOutline, { color: '#3B82F6' }]}>Vaccine</Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity 
-                    style={styles.vetActionBtnSolid} 
-                    onPress={handleOpenResolutionModal}
-                  >
-                    <Text style={styles.vetActionBtnSolidText}>✓ Mark Resolved</Text>
-                  </TouchableOpacity>
-                </View>
-              )}
-
-              <View style={styles.inputContainer}>
-                <TouchableOpacity 
-                  style={styles.iconButton} 
-                  onPress={handleAttachmentSelect}
-                >
-                  <Feather name="paperclip" size={22} color="#4CB85C" style={{ transform: [{ rotate: '-45deg' }] }} />
-                </TouchableOpacity>
-
-              {userRole === 'farmer' && (
-                <TouchableOpacity 
-                  style={styles.iconButton} 
-                  onPress={() => {}}
-                >
-                  <MaterialCommunityIcons name="microphone" size={24} color="#4CB85C" />
-                </TouchableOpacity>
-              )}
-
-              <TextInput
-                style={styles.textInput}
-                placeholder={t('Type message...')}
-                placeholderTextColor="#888"
-                value={inputText}
-                onChangeText={setInputText}
-                multiline
-              />
-
-                <TouchableOpacity 
-                  style={[styles.sendButton, (!inputText.trim() && !selectedAttachmentUri) && styles.sendButtonDisabled]} 
-                  onPress={handleSendText}
-                  disabled={!inputText.trim() && !selectedAttachmentUri}
-                >
-                  <Feather name="send" size={18} color="#FFF" />
-                </TouchableOpacity>
-              </View>
-            </View>
-          )}
+          {/* Bottom Chat Input & Action Bar */}
+          <ChatInputBar
+            isPendingApproval={isPendingApproval}
+            conversationStatus={conversationStatus}
+            partnerName={partnerName}
+            userRole={userRole}
+            selectedAttachmentUri={selectedAttachmentUri}
+            onRemoveAttachment={() => setSelectedAttachmentUri(null)}
+            onOpenPrescription={() => setPrescriptionModalVisible(true)}
+            onOpenVaccination={() => setVaccinationModalVisible(true)}
+            onOpenResolution={handleOpenResolutionModal}
+            onAttachmentSelect={handleAttachmentSelect}
+            inputText={inputText}
+            onChangeInputText={setInputText}
+            onSendText={handleSendText}
+            onReopenConversation={handleReopenConversation}
+            insets={insets}
+            isDark={isDark}
+            colors={colors}
+            styles={styles}
+          />
         </KeyboardAvoidingView>
       )}
 
-      <Modal
+      {/* Prescription Modal */}
+      <PrescriptionModal
         visible={prescriptionModalVisible}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setPrescriptionModalVisible(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <KeyboardAvoidingView 
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            style={styles.prescriptionModalContainer}
-          >
-            <View style={styles.prescriptionModalContent}>
-              <View style={styles.modalHeader}>
-                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                  <MaterialCommunityIcons name="file-document-edit" size={24} color="#58D66D" />
-                  <Text style={[styles.modalTitle, { marginLeft: 8 }]}>Write Prescription</Text>
-                </View>
-                <TouchableOpacity onPress={() => setPrescriptionModalVisible(false)}>
-                  <Feather name="x" size={24} color="#333" />
-                </TouchableOpacity>
-              </View>
-
-              <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 24 }}>
-                
-                <Text style={styles.formLabel}>{t('Diagnosis')}</Text>
-                <TextInput
-                  style={styles.formInput}
-                  placeholder="e.g. Foot and Mouth Disease (FMD)"
-                  placeholderTextColor="#999"
-                  value={diagnosis}
-                  onChangeText={setDiagnosis}
-                />
-
-                
-                <View style={styles.formHeaderRow}>
-                  <Text style={styles.formLabel}>{t('Medicines')}</Text>
-                  <TouchableOpacity style={styles.addButton} onPress={handleAddMedicineRow}>
-                    <Feather name="plus" size={14} color="#58D66D" />
-                    <Text style={styles.addButtonText}>{t('Add')}</Text>
-                  </TouchableOpacity>
-                </View>
-
-                {prescriptionMedicines.map((med, index) => (
-                  <View key={index} style={styles.medicineFormRow}>
-                    <TextInput
-                      style={[styles.formInput, { flex: 2, marginRight: 6, marginBottom: 0 }]}
-                      placeholder="Medicine Name"
-                      placeholderTextColor="#999"
-                      value={med.name}
-                      onChangeText={(text) => handleMedicineChange(text, index, 'name')}
-                    />
-                    <TextInput
-                      style={[styles.formInput, { flex: 1.2, marginRight: 6, marginBottom: 0 }]}
-                      placeholder="Dosage"
-                      placeholderTextColor="#999"
-                      value={med.dosage}
-                      onChangeText={(text) => handleMedicineChange(text, index, 'dosage')}
-                    />
-                    <TextInput
-                      style={[styles.formInput, { flex: 1, marginRight: 6, marginBottom: 0 }]}
-                      placeholder="Days"
-                      placeholderTextColor="#999"
-                      value={med.duration}
-                      onChangeText={(text) => handleMedicineChange(text, index, 'duration')}
-                    />
-                    {prescriptionMedicines.length > 1 && (
-                      <TouchableOpacity 
-                        style={styles.deleteRowButton} 
-                        onPress={() => handleRemoveMedicineRow(index)}
-                      >
-                        <Feather name="trash-2" size={16} color="#FF3B30" />
-                      </TouchableOpacity>
-                    )}
-                  </View>
-                ))}
-
-                
-                <Text style={[styles.formLabel, { marginTop: 14 }]}>{t('Special Instructions')}</Text>
-                <TextInput
-                  style={[styles.formInput, { height: 80, textAlignVertical: 'top' }]}
-                  placeholder="e.g. Isolate the sick cow, wash hooves with antiseptic twice daily."
-                  placeholderTextColor="#999"
-                  value={instructions}
-                  onChangeText={setInstructions}
-                  multiline
-                />
-
-                
-                <TouchableOpacity 
-                  style={styles.submitPrescriptionButton} 
-                  onPress={handleSendPrescription}
-                  activeOpacity={0.8}
-                >
-                  <Text style={styles.submitPrescriptionButtonText}>{t('Send Prescription')}</Text>
-                </TouchableOpacity>
-              </ScrollView>
-            </View>
-          </KeyboardAvoidingView>
-        </View>
-      </Modal>
+        diagnosis={diagnosis}
+        setDiagnosis={setDiagnosis}
+        prescriptionMedicines={prescriptionMedicines}
+        onAddMedicineRow={handleAddMedicineRow}
+        onRemoveMedicineRow={handleRemoveMedicineRow}
+        onChangeMedicine={handleMedicineChange}
+        instructions={instructions}
+        setInstructions={setInstructions}
+        onSendPrescription={handleSendPrescription}
+        onClose={() => setPrescriptionModalVisible(false)}
+        styles={styles}
+      />
 
       {/* Vaccination Modal */}
-      <Modal visible={vaccinationModalVisible} animationType="slide" transparent={true}>
-        <View style={styles.modalOverlay}>
-          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Schedule Vaccination</Text>
-              <TouchableOpacity onPress={() => setVaccinationModalVisible(false)}>
-                <Feather name="x" size={24} color="#333" />
-              </TouchableOpacity>
-            </View>
-            <ScrollView showsVerticalScrollIndicator={false}>
-              <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>{t('Vaccine Name')}</Text>
-                <TextInput style={styles.input} placeholder="e.g. FMD Vaccine" value={vaccineName} onChangeText={setVaccineName} />
-              </View>
-              <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>{t('Date Administered')}</Text>
-                <TextInput style={styles.input} placeholder="YYYY-MM-DD" value={vaccineDate} onChangeText={setVaccineDate} />
-              </View>
-              <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>{t('Next Due Date')}</Text>
-                <TextInput style={styles.input} placeholder="YYYY-MM-DD" value={nextDueDate} onChangeText={setNextDueDate} />
-              </View>
-              <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>{t('Notes')}</Text>
-                <TextInput style={[styles.input, { height: 80, textAlignVertical: 'top' }]} multiline placeholder="Any special instructions..." value={vaccineNotes} onChangeText={setVaccineNotes} />
-              </View>
-              <TouchableOpacity style={[styles.submitPrescriptionButton, { backgroundColor: '#3B82F6' }]} onPress={handleSendVaccination}>
-                <Text style={styles.submitPrescriptionButtonText}>Send Schedule</Text>
-              </TouchableOpacity>
-            </ScrollView>
-          </KeyboardAvoidingView>
-        </View>
-      </Modal>
+      <VaccinationModal
+        visible={vaccinationModalVisible}
+        vaccineName={vaccineName}
+        setVaccineName={setVaccineName}
+        vaccineDate={vaccineDate}
+        setVaccineDate={setVaccineDate}
+        nextDueDate={nextDueDate}
+        setNextDueDate={setNextDueDate}
+        vaccineNotes={vaccineNotes}
+        setVaccineNotes={setVaccineNotes}
+        onSendVaccination={handleSendVaccination}
+        onClose={() => setVaccinationModalVisible(false)}
+        styles={styles}
+      />
 
       {/* Attached AI Report Modal */}
-      <Modal visible={showAiDetailsModal} animationType="slide" transparent={true}>
-        <View style={styles.modalOverlay}>
-          <View style={[styles.modalContent, { maxHeight: '85%' }]}>
-            <View style={styles.modalHeader}>
-              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <MaterialCommunityIcons name="stethoscope" size={22} color="#059669" style={{ marginRight: 8 }} />
-                <Text style={styles.modalTitle}>AI Scan Medical Report</Text>
-              </View>
-              <TouchableOpacity onPress={() => setShowAiDetailsModal(false)}>
-                <Feather name="x" size={24} color="#333" />
-              </TouchableOpacity>
-            </View>
+      <AiScanDetailsModal
+        visible={showAiDetailsModal}
+        attachedAiRecord={attachedAiRecord}
+        onClose={() => setShowAiDetailsModal(false)}
+        styles={styles}
+      />
 
-            <ScrollView showsVerticalScrollIndicator={false}>
-              {attachedAiRecord && (
-                <>
-                  {(attachedAiRecord.imageUrl || attachedAiRecord.uri) ? (
-                    <Image
-                      source={{ uri: attachedAiRecord.imageUrl || attachedAiRecord.uri }}
-                      style={{ width: '100%', height: 180, borderRadius: 12, marginBottom: 14, backgroundColor: '#E2E8F0' }}
-                      resizeMode="cover"
-                    />
-                  ) : null}
-
-                  <View style={{ backgroundColor: '#F8FAFC', padding: 12, borderRadius: 12, marginBottom: 12, borderWidth: 1, borderColor: '#E2E8F0' }}>
-                    <Text style={{ fontSize: 13, color: '#64748B' }}>Livestock Tag / ID</Text>
-                    <Text style={{ fontSize: 18, fontWeight: '800', color: '#1E293B', marginTop: 2 }}>
-                      #{attachedAiRecord.animalId || attachedAiRecord.id || 'N/A'}
-                    </Text>
-
-                    <View style={{ flexDirection: 'row', marginTop: 8, gap: 16 }}>
-                      <View>
-                        <Text style={{ fontSize: 12, color: '#64748B' }}>Species & Breed</Text>
-                        <Text style={{ fontSize: 14, fontWeight: '700', color: '#334155' }}>
-                          {attachedAiRecord.animalType || 'Livestock'} {attachedAiRecord.breed ? `(${attachedAiRecord.breed})` : ''}
-                        </Text>
-                      </View>
-                      <View>
-                        <Text style={{ fontSize: 12, color: '#64748B' }}>Confidence Score</Text>
-                        <Text style={{ fontSize: 14, fontWeight: '700', color: '#059669' }}>
-                          {attachedAiRecord.confidence || 'N/A'}
-                        </Text>
-                      </View>
-                    </View>
-                  </View>
-
-                  <View style={{ marginBottom: 14 }}>
-                    <Text style={{ fontSize: 13, fontWeight: '700', color: '#334155', marginBottom: 4 }}>
-                      Primary Diagnosis:
-                    </Text>
-                    <Text style={{ fontSize: 16, fontWeight: '800', color: '#DC2626' }}>
-                      {attachedAiRecord.disease || attachedAiRecord.name}
-                    </Text>
-                  </View>
-
-                  {attachedAiRecord.description ? (
-                    <View style={{ marginBottom: 14 }}>
-                      <Text style={{ fontSize: 13, fontWeight: '700', color: '#334155', marginBottom: 4 }}>
-                        Clinical Observations:
-                      </Text>
-                      <Text style={{ fontSize: 13, color: '#475569', lineHeight: 20 }}>
-                        {attachedAiRecord.description}
-                      </Text>
-                    </View>
-                  ) : null}
-
-                  {attachedAiRecord.firstAid && (Array.isArray(attachedAiRecord.firstAid) ? attachedAiRecord.firstAid.length > 0 : !!attachedAiRecord.firstAid) ? (
-                    <View style={{ marginBottom: 16 }}>
-                      <Text style={{ fontSize: 13, fontWeight: '700', color: '#334155', marginBottom: 6 }}>
-                        Recommended First Aid:
-                      </Text>
-                      {Array.isArray(attachedAiRecord.firstAid) ? (
-                        attachedAiRecord.firstAid.map((tip, idx) => (
-                          <View key={idx} style={{ flexDirection: 'row', marginBottom: 6 }}>
-                            <Text style={{ color: '#059669', marginRight: 6, fontWeight: '700' }}>•</Text>
-                            <Text style={{ flex: 1, fontSize: 13, color: '#475569', lineHeight: 18 }}>{tip}</Text>
-                          </View>
-                        ))
-                      ) : (
-                        <Text style={{ fontSize: 13, color: '#475569', lineHeight: 18 }}>{attachedAiRecord.firstAid}</Text>
-                      )}
-                    </View>
-                  ) : null}
-                </>
-              )}
-
-              <TouchableOpacity
-                style={[styles.submitPrescriptionButton, { backgroundColor: '#059669', marginTop: 10 }]}
-                onPress={() => setShowAiDetailsModal(false)}
-              >
-                <Text style={styles.submitPrescriptionButtonText}>Close Report</Text>
-              </TouchableOpacity>
-            </ScrollView>
-          </View>
-        </View>
-      </Modal>
-
-      {/* Video Consultation Modal */}
-      <Modal
+      {/* Live Video Consultation Modal (Agora RTC) */}
+      <VideoCallModal
         visible={videoCallVisible}
-        animationType="slide"
-        transparent={false}
-        onRequestClose={handleEndVideoCall}
-      >
-        <SafeAreaView style={{ flex: 1, backgroundColor: '#0B132B' }}>
-          <StatusBar barStyle="light-content" backgroundColor="#0B132B" />
-
-          {/* Top Bar */}
-          <View style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            paddingHorizontal: 20,
-            paddingVertical: 14,
-            borderBottomWidth: 1,
-            borderBottomColor: 'rgba(255, 255, 255, 0.08)'
-          }}>
-            <TouchableOpacity
-              onPress={handleEndVideoCall}
-              style={{
-                width: 38,
-                height: 38,
-                borderRadius: 19,
-                backgroundColor: 'rgba(255, 255, 255, 0.12)',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}
-            >
-              <Feather name="chevron-down" size={22} color="#FFF" />
-            </TouchableOpacity>
-
-            <View style={{ alignItems: 'center' }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 2 }}>
-                <View style={{
-                  width: 8,
-                  height: 8,
-                  borderRadius: 4,
-                  backgroundColor: callStatus === 'calling' ? '#F59E0B' : '#10B981',
-                  marginRight: 6
-                }} />
-                <Text style={{ color: '#FFF', fontSize: 13, fontWeight: '700', letterSpacing: 0.3 }}>
-                  {callStatus === 'calling' ? t('Connecting Call...') : t('Live HD Session')}
-                </Text>
-              </View>
-              <Text style={{ color: '#94A3B8', fontSize: 12, fontWeight: '600' }}>
-                {callStatus === 'calling' ? t('Ringing...') : formatCallDuration(callDuration)}
-              </Text>
-            </View>
-
-            <View style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              backgroundColor: 'rgba(16, 185, 129, 0.15)',
-              paddingHorizontal: 10,
-              paddingVertical: 5,
-              borderRadius: 12
-            }}>
-              <Feather name="lock" size={12} color="#34D399" style={{ marginRight: 4 }} />
-              <Text style={{ color: '#34D399', fontSize: 11, fontWeight: '700' }}>E2EE</Text>
-            </View>
-          </View>
-
-          {/* Video Stream Stage */}
-          <View style={{ flex: 1, position: 'relative', justifyContent: 'center', alignItems: 'center', backgroundColor: '#0F172A' }}>
-            {/* Main Stage View */}
-            {isCameraInMainStage && isAgoraReady && !isVideoDisabled ? (
-              <RtcSurfaceView
-                style={{ width: '100%', height: '100%' }}
-                canvas={{ uid: 0, renderMode: RenderModeType.RenderModeHidden }}
-              />
-            ) : remoteUid && !isVideoDisabled ? (
-              <RtcSurfaceView
-                style={{ width: '100%', height: '100%' }}
-                canvas={{ uid: remoteUid, sourceType: VideoSourceType.VideoSourceRemote, renderMode: RenderModeType.RenderModeHidden }}
-              />
-            ) : callStatus === 'connected' && !isVideoDisabled ? (
-              <View style={{ width: '100%', height: '100%', justifyContent: 'center', alignItems: 'center', backgroundColor: '#1E293B' }}>
-                <View style={{ alignItems: 'center', padding: 24 }}>
-                  <View style={{
-                    width: 130,
-                    height: 130,
-                    borderRadius: 65,
-                    backgroundColor: '#0284C7',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    borderWidth: 4,
-                    borderColor: '#38BDF8',
-                    shadowColor: '#38BDF8',
-                    shadowOpacity: 0.4,
-                    shadowRadius: 15,
-                    elevation: 10,
-                    marginBottom: 16
-                  }}>
-                    <Text style={{ fontSize: 44, fontWeight: '800', color: '#FFF' }}>
-                      {(partnerName || 'V').trim().charAt(0).toUpperCase()}
-                    </Text>
-                  </View>
-                  <Text style={{ fontSize: 22, fontWeight: '800', color: '#FFF', marginBottom: 4 }}>
-                    {partnerName}
-                  </Text>
-                  <Text style={{ fontSize: 14, color: '#38BDF8', fontWeight: '600', marginBottom: 12 }}>
-                    {partnerRole === 'vet' ? 'Veterinary Surgeon · Live Stream' : t('Farmer')}
-                  </Text>
-                  <View style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                    paddingHorizontal: 12,
-                    paddingVertical: 6,
-                    borderRadius: 20
-                  }}>
-                    <Feather name="activity" size={14} color="#34D399" style={{ marginRight: 6 }} />
-                    <Text style={{ color: '#E2E8F0', fontSize: 12, fontWeight: '600' }}>
-                      HD 1080p · 60fps · Audio Synced
-                    </Text>
-                  </View>
-                </View>
-              </View>
-            ) : (
-              /* Calling / Ringing State View */
-              <View style={{ alignItems: 'center', paddingHorizontal: 30 }}>
-                <View style={{
-                  width: 140,
-                  height: 140,
-                  borderRadius: 70,
-                  backgroundColor: 'rgba(2, 132, 199, 0.15)',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  borderWidth: 3,
-                  borderColor: callStatus === 'calling' ? '#0284C7' : '#64748B',
-                  marginBottom: 20
-                }}>
-                  <View style={{
-                    width: 110,
-                    height: 110,
-                    borderRadius: 55,
-                    backgroundColor: '#0284C7',
-                    alignItems: 'center',
-                    justifyContent: 'center'
-                  }}>
-                    <Text style={{ fontSize: 40, fontWeight: '800', color: '#FFF' }}>
-                      {(partnerName || 'V').trim().charAt(0).toUpperCase()}
-                    </Text>
-                  </View>
-                </View>
-                <Text style={{ fontSize: 24, fontWeight: '800', color: '#FFF', marginBottom: 6, textAlign: 'center' }}>
-                  {partnerName}
-                </Text>
-                <Text style={{ fontSize: 15, color: '#94A3B8', fontWeight: '600', marginBottom: 16 }}>
-                  {partnerRole === 'vet' ? 'Large Animal Specialist' : t('Farmer')}
-                </Text>
-                <View style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  backgroundColor: 'rgba(2, 132, 199, 0.2)',
-                  paddingHorizontal: 16,
-                  paddingVertical: 8,
-                  borderRadius: 20
-                }}>
-                  <ActivityIndicator size="small" color="#38BDF8" style={{ marginRight: 8 }} />
-                  <Text style={{ color: '#38BDF8', fontSize: 13, fontWeight: '700' }}>
-                    {callStatus === 'calling' ? `${t('Calling Dr.')} ${partnerName}...` : t('Camera Off')}
-                  </Text>
-                </View>
-              </View>
-            )}
-
-            {/* Flash Snapshot Toast */}
-            {snapshotToastVisible && (
-              <View style={{
-                position: 'absolute',
-                top: 70,
-                alignSelf: 'center',
-                backgroundColor: 'rgba(15, 23, 42, 0.95)',
-                paddingHorizontal: 20,
-                paddingVertical: 12,
-                borderRadius: 24,
-                borderWidth: 1.5,
-                borderColor: '#38BDF8',
-                flexDirection: 'row',
-                alignItems: 'center',
-                zIndex: 99,
-                elevation: 12
-              }}>
-                <Feather name="check-circle" size={18} color="#38BDF8" style={{ marginRight: 8 }} />
-                <Text style={{ color: '#FFF', fontSize: 13, fontWeight: '800' }}>
-                  {t('Snapshot Captured')}
-                </Text>
-              </View>
-            )}
-
-            {/* Rear Camera Indicator Banner for Livestock Inspection */}
-            {!isFrontCamera && (
-              <View style={{
-                position: 'absolute',
-                top: 14,
-                left: 16,
-                backgroundColor: 'rgba(2, 132, 199, 0.9)',
-                paddingHorizontal: 12,
-                paddingVertical: 6,
-                borderRadius: 14,
-                flexDirection: 'row',
-                alignItems: 'center',
-                zIndex: 20
-              }}>
-                <Feather name="camera" size={13} color="#FFF" style={{ marginRight: 6 }} />
-                <Text style={{ color: '#FFF', fontSize: 11, fontWeight: '700' }}>
-                  {t('Rear Camera (Livestock Mode)')}
-                </Text>
-              </View>
-            )}
-
-            {/* Self Picture-in-Picture (PiP) Window (Tap to swap to main stage) */}
-            <TouchableOpacity
-              activeOpacity={0.85}
-              onPress={() => setIsCameraInMainStage((prev) => !prev)}
-              style={{
-                position: 'absolute',
-                right: 18,
-                top: 18,
-                width: 106,
-                height: 150,
-                borderRadius: 16,
-                backgroundColor: '#1E293B',
-                borderWidth: 2,
-                borderColor: isAgoraReady ? '#38BDF8' : 'rgba(255, 255, 255, 0.25)',
-                overflow: 'hidden',
-                elevation: 10,
-                shadowColor: '#000',
-                shadowOpacity: 0.5,
-                shadowRadius: 10,
-                justifyContent: 'center',
-                alignItems: 'center',
-                zIndex: 30
-              }}
-            >
-              {isCameraInMainStage ? (
-                remoteUid && !isVideoDisabled ? (
-                  <RtcSurfaceView
-                    style={{ width: '100%', height: '100%' }}
-                    zOrderMediaOverlay={true}
-                    canvas={{ uid: remoteUid, sourceType: VideoSourceType.VideoSourceRemote, renderMode: RenderModeType.RenderModeHidden }}
-                  />
-                ) : (
-                  <View style={{ width: '100%', height: '100%', backgroundColor: '#0284C7', justifyContent: 'center', alignItems: 'center' }}>
-                    <Text style={{ fontSize: 28, fontWeight: '800', color: '#FFF' }}>
-                      {(partnerName || 'V').trim().charAt(0).toUpperCase()}
-                    </Text>
-                    <Text style={{ color: '#FFF', fontSize: 10, marginTop: 4, fontWeight: '700' }} numberOfLines={1}>
-                      {partnerName}
-                    </Text>
-                    <Text style={{ color: '#E0F2FE', fontSize: 8, marginTop: 2 }}>{t('Tap to swap')}</Text>
-                  </View>
-                )
-              ) : isAgoraReady && !isVideoDisabled ? (
-                <RtcSurfaceView
-                  style={{ width: '100%', height: '100%' }}
-                  zOrderMediaOverlay={true}
-                  canvas={{ uid: 0, renderMode: RenderModeType.RenderModeHidden }}
-                />
-              ) : isVideoDisabled ? (
-                <View style={{ alignItems: 'center' }}>
-                  <Feather name="video-off" size={24} color="#94A3B8" />
-                  <Text style={{ color: '#94A3B8', fontSize: 10, marginTop: 4, fontWeight: '600' }}>{t('Video Off')}</Text>
-                </View>
-              ) : (
-                <View style={{ width: '100%', height: '100%', backgroundColor: '#334155', justifyContent: 'center', alignItems: 'center' }}>
-                  <ActivityIndicator size="small" color="#38BDF8" style={{ marginBottom: 6 }} />
-                  <Text style={{ color: '#FFF', fontSize: 11, fontWeight: '700' }}>{t('Starting...')}</Text>
-                </View>
-              )}
-              {isMuted && (
-                <View style={{
-                  position: 'absolute',
-                  top: 6,
-                  right: 6,
-                  width: 20,
-                  height: 20,
-                  borderRadius: 10,
-                  backgroundColor: '#EF4444',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}>
-                  <Feather name="mic-off" size={11} color="#FFF" />
-                </View>
-              )}
-            </TouchableOpacity>
-          </View>
-
-          {/* Bottom Call Action Controls Bar */}
-          <View style={{
-            paddingHorizontal: 16,
-            paddingVertical: 18,
-            backgroundColor: '#0B132B',
-            borderTopWidth: 1,
-            borderTopColor: 'rgba(255, 255, 255, 0.08)'
-          }}>
-            <View style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              maxWidth: 420,
-              alignSelf: 'center',
-              width: '100%'
-            }}>
-              {/* Mute Button */}
-              <TouchableOpacity
-                onPress={handleToggleMute}
-                style={{ alignItems: 'center' }}
-              >
-                <View style={{
-                  width: 48,
-                  height: 48,
-                  borderRadius: 24,
-                  backgroundColor: isMuted ? '#EF4444' : 'rgba(255, 255, 255, 0.15)',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginBottom: 4
-                }}>
-                  <Feather name={isMuted ? 'mic-off' : 'mic'} size={20} color="#FFF" />
-                </View>
-                <Text style={{ color: '#CBD5E1', fontSize: 10, fontWeight: '600' }}>
-                  {isMuted ? t('Unmute') : t('Mute')}
-                </Text>
-              </TouchableOpacity>
-
-              {/* Video Toggle Button */}
-              <TouchableOpacity
-                onPress={handleToggleVideo}
-                style={{ alignItems: 'center' }}
-              >
-                <View style={{
-                  width: 48,
-                  height: 48,
-                  borderRadius: 24,
-                  backgroundColor: isVideoDisabled ? '#EF4444' : 'rgba(255, 255, 255, 0.15)',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginBottom: 4
-                }}>
-                  <Feather name={isVideoDisabled ? 'video-off' : 'video'} size={20} color="#FFF" />
-                </View>
-                <Text style={{ color: '#CBD5E1', fontSize: 10, fontWeight: '600' }}>
-                  {isVideoDisabled ? t('Video On') : t('Video Off')}
-                </Text>
-              </TouchableOpacity>
-
-              {/* Camera Flip Button */}
-              <TouchableOpacity
-                onPress={handleToggleCamera}
-                style={{ alignItems: 'center' }}
-              >
-                <View style={{
-                  width: 48,
-                  height: 48,
-                  borderRadius: 24,
-                  backgroundColor: isFrontCamera ? 'rgba(255, 255, 255, 0.15)' : '#0284C7',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginBottom: 4
-                }}>
-                  <Feather name="refresh-cw" size={20} color="#FFF" />
-                </View>
-                <Text style={{ color: '#CBD5E1', fontSize: 10, fontWeight: '600' }}>
-                  {t('Flip')}
-                </Text>
-              </TouchableOpacity>
-
-              {/* Snapshot Tool for Clinical Livestock Inspection */}
-              <TouchableOpacity
-                onPress={handleCaptureSnapshot}
-                style={{ alignItems: 'center' }}
-              >
-                <View style={{
-                  width: 48,
-                  height: 48,
-                  borderRadius: 24,
-                  backgroundColor: '#0284C7',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginBottom: 4
-                }}>
-                  <Feather name="camera" size={20} color="#FFF" />
-                </View>
-                <Text style={{ color: '#38BDF8', fontSize: 10, fontWeight: '700' }}>
-                  {t('Snapshot')}
-                </Text>
-              </TouchableOpacity>
-
-              {/* Torch Toggle for Dark Barn Inspection */}
-              <TouchableOpacity
-                onPress={handleToggleTorch}
-                style={{ alignItems: 'center' }}
-              >
-                <View style={{
-                  width: 48,
-                  height: 48,
-                  borderRadius: 24,
-                  backgroundColor: isTorchOn ? '#F59E0B' : 'rgba(255, 255, 255, 0.15)',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginBottom: 4
-                }}>
-                  <Feather name="zap" size={20} color="#FFF" />
-                </View>
-                <Text style={{ color: isTorchOn ? '#FBBF24' : '#CBD5E1', fontSize: 10, fontWeight: '600' }}>
-                  {isTorchOn ? t('Torch On') : t('Torch Off')}
-                </Text>
-              </TouchableOpacity>
-
-              {/* End Call Button */}
-              <TouchableOpacity
-                onPress={handleEndVideoCall}
-                style={{ alignItems: 'center' }}
-              >
-                <View style={{
-                  width: 52,
-                  height: 52,
-                  borderRadius: 26,
-                  backgroundColor: '#DC2626',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginBottom: 4,
-                  shadowColor: '#DC2626',
-                  shadowOpacity: 0.5,
-                  shadowRadius: 10,
-                  elevation: 8
-                }}>
-                  <MaterialCommunityIcons name="phone-hangup" size={24} color="#FFF" />
-                </View>
-                <Text style={{ color: '#F87171', fontSize: 10, fontWeight: '700' }}>
-                  {t('End Call')}
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </SafeAreaView>
-      </Modal>
+        callStatus={callStatus}
+        callDuration={callDuration}
+        formatCallDuration={formatCallDuration}
+        isCameraInMainStage={isCameraInMainStage}
+        onToggleStageSwap={() => setIsCameraInMainStage(!isCameraInMainStage)}
+        isAgoraReady={isAgoraReady}
+        remoteUid={remoteUid}
+        isVideoDisabled={isVideoDisabled}
+        isMuted={isMuted}
+        isFrontCamera={isFrontCamera}
+        isTorchOn={isTorchOn}
+        partnerName={partnerName}
+        partnerRole={partnerRole}
+        snapshotToastVisible={snapshotToastVisible}
+        onToggleMute={handleToggleMute}
+        onToggleVideo={handleToggleVideo}
+        onToggleCamera={handleToggleCamera}
+        onCaptureSnapshot={handleCaptureSnapshot}
+        onToggleTorch={handleToggleTorch}
+        onEndCall={handleEndVideoCall}
+      />
 
       {/* Incoming Video Call Modal */}
-      <Modal
+      <IncomingCallModal
         visible={incomingCallVisible}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={handleRejectIncomingCall}
-      >
-        <View style={{
-          flex: 1,
-          backgroundColor: 'rgba(11, 19, 43, 0.88)',
-          justifyContent: 'flex-end',
-          paddingBottom: Platform.OS === 'ios' ? 40 : 24
-        }}>
-          <View style={{
-            backgroundColor: '#1E293B',
-            marginHorizontal: 16,
-            borderRadius: 24,
-            padding: 24,
-            alignItems: 'center',
-            borderWidth: 1.5,
-            borderColor: 'rgba(56, 189, 248, 0.4)',
-            shadowColor: '#000',
-            shadowOffset: { width: 0, height: 10 },
-            shadowOpacity: 0.5,
-            shadowRadius: 20,
-            elevation: 15
-          }}>
-            {/* Animated Ringing Calling Icon */}
-            <View style={{
-              width: 90,
-              height: 90,
-              borderRadius: 45,
-              backgroundColor: 'rgba(2, 132, 199, 0.2)',
-              justifyContent: 'center',
-              alignItems: 'center',
-              marginBottom: 16,
-              borderWidth: 2,
-              borderColor: '#38BDF8'
-            }}>
-              <View style={{
-                width: 70,
-                height: 70,
-                borderRadius: 35,
-                backgroundColor: '#0284C7',
-                justifyContent: 'center',
-                alignItems: 'center'
-              }}>
-                <Feather name="video" size={32} color="#FFF" />
-              </View>
-            </View>
-
-            <View style={{
-              backgroundColor: 'rgba(16, 185, 129, 0.15)',
-              paddingHorizontal: 12,
-              paddingVertical: 4,
-              borderRadius: 12,
-              marginBottom: 8
-            }}>
-              <Text style={{ color: '#34D399', fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 }}>
-                {t('Incoming Video Consultation Request')}
-              </Text>
-            </View>
-
-            <Text style={{ color: '#FFF', fontSize: 22, fontWeight: '800', textAlign: 'center', marginBottom: 4 }}>
-              {incomingCallData?.callerName || partnerName || 'Doctor'}
-            </Text>
-            <Text style={{ color: '#94A3B8', fontSize: 13, textAlign: 'center', marginBottom: 24 }}>
-              {incomingCallData?.callerRole === 'vet' ? 'Veterinary Surgeon' : t('Farmer')} · {t('is calling for live video clinical inspection')}
-            </Text>
-
-            {/* Accept & Decline Action Row */}
-            <View style={{
-              flexDirection: 'row',
-              justifyContent: 'space-between',
-              width: '100%',
-              gap: 16
-            }}>
-              <TouchableOpacity
-                style={{
-                  flex: 1,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  backgroundColor: '#DC2626',
-                  paddingVertical: 14,
-                  borderRadius: 16
-                }}
-                onPress={handleRejectIncomingCall}
-              >
-                <MaterialCommunityIcons name="phone-hangup" size={22} color="#FFF" style={{ marginRight: 8 }} />
-                <Text style={{ color: '#FFF', fontWeight: '700', fontSize: 14 }}>
-                  {t('Decline')}
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={{
-                  flex: 1,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  backgroundColor: '#059669',
-                  paddingVertical: 14,
-                  borderRadius: 16
-                }}
-                onPress={handleAcceptIncomingCall}
-              >
-                <Feather name="video" size={20} color="#FFF" style={{ marginRight: 8 }} />
-                <Text style={{ color: '#FFF', fontWeight: '700', fontSize: 14 }}>
-                  {t('Accept Call')}
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
+        incomingCallData={incomingCallData}
+        partnerName={partnerName}
+        onAccept={handleAcceptIncomingCall}
+        onReject={handleRejectIncomingCall}
+      />
 
       {/* Clinical Case Resolution & Discharge Modal */}
-      <Modal
+      <ClinicalResolutionModal
         visible={resolutionModalVisible}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={() => setResolutionModalVisible(false)}
-      >
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          style={{
-            flex: 1,
-            backgroundColor: 'rgba(0, 0, 0, 0.65)',
-            justifyContent: 'flex-end'
-          }}
-        >
-          <View style={{
-            backgroundColor: isDark ? '#1E293B' : '#FFFFFF',
-            borderTopLeftRadius: 28,
-            borderTopRightRadius: 28,
-            padding: 24,
-            maxHeight: '90%',
-            borderWidth: 1,
-            borderColor: isDark ? 'rgba(255, 255, 255, 0.1)' : '#E2E8F0'
-          }}>
-            {/* Modal Header */}
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <View style={{
-                  width: 38,
-                  height: 38,
-                  borderRadius: 12,
-                  backgroundColor: isDark ? 'rgba(16, 185, 129, 0.2)' : '#D1FAE5',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  marginRight: 12
-                }}>
-                  <Feather name="check-circle" size={20} color="#059669" />
-                </View>
-                <View>
-                  <Text style={{ fontSize: 17, fontWeight: '800', color: colors.textPrimary }}>
-                    {isUrdu ? 'کیس مکمل اختتام و ڈسچارج' : 'Case Resolution & Sign-Off'}
-                  </Text>
-                  <Text style={{ fontSize: 12, color: colors.textSecondary }}>
-                    {isUrdu ? 'کیس نمبر' : 'Clinical Case'} #{selectedConsultationId || params.consultationId || '1'} · {getConsultationName()}
-                  </Text>
-                </View>
-              </View>
-              <TouchableOpacity onPress={() => setResolutionModalVisible(false)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-                <Feather name="x" size={22} color={colors.textSecondary} />
-              </TouchableOpacity>
-            </View>
-
-            <ScrollView showsVerticalScrollIndicator={false}>
-              {/* Outcome Selector */}
-              <Text style={{ fontSize: 13, fontWeight: '700', color: colors.textPrimary, marginBottom: 8 }}>
-                {isUrdu ? 'طبی نتیجہ منتخب کریں' : 'Select Clinical Outcome'}
-              </Text>
-              <View style={{ gap: 8, marginBottom: 16 }}>
-                {[
-                  { key: 'fully_recovered', label: isUrdu ? 'صحت یاب / مکمل علاج' : 'Fully Recovered / Treated', icon: 'check-circle', color: '#10B981' },
-                  { key: 'improving', label: isUrdu ? 'بہتری کی طرف (گھریلو دیکھ بھال)' : 'Improving (Home Care Continued)', icon: 'activity', color: '#3B82F6' },
-                  { key: 'referred', label: isUrdu ? 'ریفر شدہ برائے فیلڈ ہسپتال' : 'Referred to Field Veterinary Hospital', icon: 'arrow-up-right', color: '#F59E0B' },
-                ].map((item) => {
-                  const isSelected = selectedOutcome === item.key;
-                  return (
-                    <TouchableOpacity
-                      key={item.key}
-                      style={{
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        padding: 12,
-                        borderRadius: 12,
-                        borderWidth: 1.5,
-                        borderColor: isSelected ? item.color : (isDark ? 'rgba(255, 255, 255, 0.1)' : '#E2E8F0'),
-                        backgroundColor: isSelected ? (isDark ? 'rgba(255, 255, 255, 0.06)' : '#F8FAFC') : 'transparent'
-                      }}
-                      onPress={() => setSelectedOutcome(item.key)}
-                    >
-                      <Feather name={item.icon} size={18} color={item.color} style={{ marginRight: 10 }} />
-                      <Text style={{ flex: 1, fontSize: 13, fontWeight: isSelected ? '700' : '500', color: colors.textPrimary }}>
-                        {item.label}
-                      </Text>
-                      <View style={{
-                        width: 18,
-                        height: 18,
-                        borderRadius: 9,
-                        borderWidth: 2,
-                        borderColor: isSelected ? item.color : colors.textSecondary,
-                        justifyContent: 'center',
-                        alignItems: 'center'
-                      }}>
-                        {isSelected && <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: item.color }} />}
-                      </View>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
-
-              {/* Follow-up Timeline */}
-              <Text style={{ fontSize: 13, fontWeight: '700', color: colors.textPrimary, marginBottom: 8 }}>
-                {isUrdu ? 'تجویز کردہ فالو اپ' : 'Recommended Follow-Up'}
-              </Text>
-              <View style={{ flexDirection: 'row', gap: 8, marginBottom: 16 }}>
-                {[
-                  { days: 'none', label: isUrdu ? 'کوئی نہیں' : 'None' },
-                  { days: '3', label: isUrdu ? '3 دن' : '3 Days' },
-                  { days: '7', label: isUrdu ? '7 دن' : '7 Days' },
-                  { days: '14', label: isUrdu ? '14 دن' : '14 Days' },
-                ].map((item) => {
-                  const isSelected = followUpDays === item.days;
-                  return (
-                    <TouchableOpacity
-                      key={item.days}
-                      style={{
-                        flex: 1,
-                        paddingVertical: 9,
-                        borderRadius: 10,
-                        borderWidth: 1,
-                        borderColor: isSelected ? colors.primary : (isDark ? 'rgba(255, 255, 255, 0.1)' : '#E2E8F0'),
-                        backgroundColor: isSelected ? (isDark ? 'rgba(16, 185, 129, 0.15)' : '#ECFDF5') : 'transparent',
-                        alignItems: 'center'
-                      }}
-                      onPress={() => setFollowUpDays(item.days)}
-                    >
-                      <Text style={{ fontSize: 12, fontWeight: isSelected ? '700' : '500', color: isSelected ? colors.primary : colors.textSecondary }}>
-                        {item.label}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
-
-              {/* Clinical Discharge Notes */}
-              <Text style={{ fontSize: 13, fontWeight: '700', color: colors.textPrimary, marginBottom: 6 }}>
-                {isUrdu ? 'اختتامی ریمارکس اور ہدایات' : 'Clinical Discharge Notes (Optional)'}
-              </Text>
-              <TextInput
-                style={{
-                  backgroundColor: isDark ? 'rgba(255, 255, 255, 0.05)' : '#F8FAFC',
-                  borderRadius: 12,
-                  padding: 12,
-                  fontSize: 13,
-                  color: colors.textPrimary,
-                  borderWidth: 1,
-                  borderColor: isDark ? 'rgba(255, 255, 255, 0.1)' : '#E2E8F0',
-                  minHeight: 70,
-                  textAlignVertical: 'top',
-                  marginBottom: 18
-                }}
-                placeholder={isUrdu ? 'مثال: ادویات کا کورس مکمل ہو چکا ہے، بخار معمول پر آ گیا ہے۔' : 'e.g. Temperature normalized, quarantine precautions lifted.'}
-                placeholderTextColor={colors.textSecondary}
-                multiline
-                value={dischargeNotes}
-                onChangeText={setDischargeNotes}
-              />
-
-              {/* Action Buttons */}
-              <View style={{ flexDirection: 'row', gap: 12 }}>
-                <TouchableOpacity
-                  style={{
-                    flex: 1,
-                    paddingVertical: 13,
-                    borderRadius: 14,
-                    backgroundColor: isDark ? 'rgba(255, 255, 255, 0.08)' : '#F1F5F9',
-                    alignItems: 'center'
-                  }}
-                  onPress={() => setResolutionModalVisible(false)}
-                >
-                  <Text style={{ fontSize: 14, fontWeight: '700', color: colors.textSecondary }}>
-                    {isUrdu ? 'منسوخ کریں' : 'Cancel'}
-                  </Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={{
-                    flex: 1.5,
-                    paddingVertical: 13,
-                    borderRadius: 14,
-                    backgroundColor: '#059669',
-                    alignItems: 'center',
-                    flexDirection: 'row',
-                    justifyContent: 'center'
-                  }}
-                  onPress={handleConfirmResolution}
-                >
-                  <Feather name="check-circle" size={16} color="#FFF" style={{ marginRight: 6 }} />
-                  <Text style={{ fontSize: 14, fontWeight: '800', color: '#FFF' }}>
-                    {isUrdu ? 'کیس مکمل کریں' : 'Sign Off & Close'}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </ScrollView>
-          </View>
-        </KeyboardAvoidingView>
-      </Modal>
+        selectedConsultationId={selectedConsultationId || params.consultationId}
+        consultationName={getConsultationName()}
+        selectedOutcome={selectedOutcome}
+        setSelectedOutcome={setSelectedOutcome}
+        dischargeNotes={dischargeNotes}
+        setDischargeNotes={setDischargeNotes}
+        followUpDays={followUpDays}
+        setFollowUpDays={setFollowUpDays}
+        onConfirmResolution={handleConfirmResolution}
+        onClose={() => setResolutionModalVisible(false)}
+        isUrdu={isUrdu}
+        isDark={isDark}
+        colors={colors}
+      />
 
       {/* Farmer Star Rating & Review Modal */}
-      <Modal
+      <RatingReviewModal
         visible={ratingModalVisible}
-        animationType="fade"
-        transparent={true}
-        onRequestClose={() => setRatingModalVisible(false)}
-      >
-        <View style={{
-          flex: 1,
-          backgroundColor: 'rgba(0, 0, 0, 0.7)',
-          justifyContent: 'center',
-          alignItems: 'center',
-          padding: 20
-        }}>
-          <View style={{
-            width: '100%',
-            maxWidth: 400,
-            backgroundColor: isDark ? '#1E293B' : '#FFFFFF',
-            borderRadius: 24,
-            padding: 24,
-            alignItems: 'center',
-            borderWidth: 1,
-            borderColor: isDark ? 'rgba(255, 255, 255, 0.1)' : '#E2E8F0'
-          }}>
-            {/* Star Icon Badge */}
-            <View style={{
-              width: 56,
-              height: 56,
-              borderRadius: 28,
-              backgroundColor: '#FEF3C7',
-              justifyContent: 'center',
-              alignItems: 'center',
-              marginBottom: 12,
-              borderWidth: 2,
-              borderColor: '#FDE68A'
-            }}>
-              <MaterialCommunityIcons name="star" size={32} color="#D97706" />
-            </View>
-
-            <Text style={{ fontSize: 17, fontWeight: '800', color: colors.textPrimary, textAlign: 'center', marginBottom: 4 }}>
-              {isUrdu ? 'ڈاکٹر کو ریویو اور ریٹنگ دیں' : 'Rate Your Consultation'}
-            </Text>
-            <Text style={{ fontSize: 12, color: colors.textSecondary, textAlign: 'center', marginBottom: 16 }}>
-              {isUrdu ? `ڈاکٹر ${partnerName} کے ساتھ آپ کا تجربہ کیسا رہا؟` : `How was your medical consultation with ${partnerName}?`}
-            </Text>
-
-            {/* Interactive Stars */}
-            <View style={{ flexDirection: 'row', gap: 10, marginBottom: 16 }}>
-              {[1, 2, 3, 4, 5].map((star) => (
-                <TouchableOpacity
-                  key={star}
-                  onPress={() => setStarRating(star)}
-                  hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
-                >
-                  <MaterialCommunityIcons
-                    name={star <= starRating ? 'star' : 'star-outline'}
-                    size={36}
-                    color={star <= starRating ? '#F59E0B' : (isDark ? '#475569' : '#CBD5E1')}
-                  />
-                </TouchableOpacity>
-              ))}
-            </View>
-
-            {/* Feedback Input */}
-            <TextInput
-              style={{
-                width: '100%',
-                backgroundColor: isDark ? 'rgba(255, 255, 255, 0.05)' : '#F8FAFC',
-                borderRadius: 12,
-                padding: 12,
-                fontSize: 13,
-                color: colors.textPrimary,
-                borderWidth: 1,
-                borderColor: isDark ? 'rgba(255, 255, 255, 0.1)' : '#E2E8F0',
-                minHeight: 65,
-                textAlignVertical: 'top',
-                marginBottom: 16
-              }}
-              placeholder={isUrdu ? 'اپنا فیڈ بیک اور رائے لکھیں...' : 'Share feedback about response time and diagnosis quality...'}
-              placeholderTextColor={colors.textSecondary}
-              multiline
-              value={farmerReview}
-              onChangeText={setFarmerReview}
-            />
-
-            {/* Submit & Dismiss Row */}
-            <View style={{ flexDirection: 'row', width: '100%', gap: 10 }}>
-              <TouchableOpacity
-                style={{
-                  flex: 1,
-                  paddingVertical: 12,
-                  borderRadius: 12,
-                  backgroundColor: isDark ? 'rgba(255, 255, 255, 0.08)' : '#F1F5F9',
-                  alignItems: 'center'
-                }}
-                onPress={() => setRatingModalVisible(false)}
-              >
-                <Text style={{ fontSize: 13, fontWeight: '700', color: colors.textSecondary }}>
-                  {isUrdu ? 'بعد میں' : 'Later'}
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={{
-                  flex: 1.5,
-                  paddingVertical: 12,
-                  borderRadius: 12,
-                  backgroundColor: '#059669',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}
-                onPress={handleRatingSubmit}
-                disabled={ratingSubmitting}
-              >
-                {ratingSubmitting ? (
-                  <ActivityIndicator size="small" color="#FFF" />
-                ) : (
-                  <Text style={{ fontSize: 13, fontWeight: '800', color: '#FFF' }}>
-                    {isUrdu ? 'ریٹنگ جمع کروائیں' : 'Submit Review'}
-                  </Text>
-                )}
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
+        partnerName={partnerName}
+        starRating={starRating}
+        setStarRating={setStarRating}
+        farmerReview={farmerReview}
+        setFarmerReview={setFarmerReview}
+        ratingSubmitting={ratingSubmitting}
+        onSubmitRating={handleRatingSubmit}
+        onClose={() => setRatingModalVisible(false)}
+        isUrdu={isUrdu}
+        isDark={isDark}
+        colors={colors}
+      />
     </SafeAreaView>
   );
 }
