@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, SafeAreaView, TouchableOpacity, ScrollView, StatusBar, Switch, Modal, TextInput, KeyboardAvoidingView, Platform, Alert } from 'react-native';
+import { View, Text, SafeAreaView, TouchableOpacity, ScrollView, StatusBar, Switch, Modal, TextInput, KeyboardAvoidingView, Platform, Alert, Linking } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -19,6 +19,10 @@ export default function VetProfileScreen() {
   const [profile, setProfile] = useState(getProfile());
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [langModalVisible, setLangModalVisible] = useState(false);
+  const [helpCenterModalVisible, setHelpCenterModalVisible] = useState(false);
+  const [contactAdminModalVisible, setContactAdminModalVisible] = useState(false);
+  const [privacyModalVisible, setPrivacyModalVisible] = useState(false);
+  const [expandedFaq, setExpandedFaq] = useState(null);
 
   useEffect(() => {
     const unsubscribe = subscribeProfile((updatedProfile) => {
@@ -123,6 +127,66 @@ export default function VetProfileScreen() {
     } catch (err) {
       console.error('Error saving vet profile:', err);
       Alert.alert(t('Error') || 'Error', t('Failed to update profile.') || 'Failed to update profile.');
+    }
+  };
+
+  const openSupportEmail = async () => {
+    try {
+      const docName = formName || profile.userName || profile.fullName || 'Doctor';
+      const licenseNum = formLicense || profile.pvmcNumber || profile.license || 'Not specified';
+      const subject = encodeURIComponent(`Vet Support Request - Dr. ${docName} (PVMC: ${licenseNum})`);
+      const body = encodeURIComponent(
+        `Dear Maveshi Sehat Support Team,\n\nDoctor Name: Dr. ${docName}\nPVMC License: ${licenseNum}\nPhone: ${profile.phone || 'N/A'}\nSpecialization: ${formSpec || profile.specialization || 'Livestock Specialist'}\n\nPlease describe your inquiry, verification request, or clinical issue below:\n\n`
+      );
+      const mailtoUrl = `mailto:support@maveshisehat.ai?subject=${subject}&body=${body}`;
+      const canOpen = await Linking.canOpenURL(mailtoUrl);
+      if (!canOpen) {
+        Alert.alert(t('Support unavailable'), t('No email application is available on this device.'));
+        return;
+      }
+      await Linking.openURL(mailtoUrl);
+    } catch (error) {
+      console.error('Unable to open support email:', error);
+      Alert.alert(t('Support unavailable'), t('No email application is available on this device.'));
+    }
+  };
+
+  const openSupportPhone = async () => {
+    try {
+      const phoneUrl = 'tel:+923054758667';
+      const canOpen = await Linking.canOpenURL(phoneUrl);
+      if (!canOpen) {
+        Alert.alert(t('Support unavailable'), t('Calling is not available on this device.'));
+        return;
+      }
+      await Linking.openURL(phoneUrl);
+    } catch (error) {
+      console.error('Unable to open support phone:', error);
+      Alert.alert(t('Support unavailable'), t('Calling is not available on this device.'));
+    }
+  };
+
+  const openSupportWhatsApp = async () => {
+    try {
+      const docName = formName || profile.userName || profile.fullName || 'Doctor';
+      const text = encodeURIComponent(
+        `Hello Maveshi Sehat Support Team,\nI am Dr. ${docName} (PVMC: ${formLicense || profile.pvmcNumber || 'N/A'}). I need veterinary support assistance.`
+      );
+      const waUrl = `https://wa.me/923054758667?text=${text}`;
+      await Linking.openURL(waUrl);
+    } catch (error) {
+      console.error('Unable to open WhatsApp:', error);
+      Alert.alert(t('Support unavailable'), t('WhatsApp is not available on this device.'));
+    }
+  };
+
+  const openEmergencyDesk = async () => {
+    try {
+      const phoneUrl = 'tel:+923054758667';
+      await Linking.openURL(phoneUrl);
+    } catch (error) {
+      console.error('Unable to open emergency desk:', error);
+      Alert.alert(t('Support unavailable'), t('Calling is not available on this device.'));
     }
   };
 
@@ -283,11 +347,83 @@ export default function VetProfileScreen() {
 
           <Text style={styles.sectionHeading}>{t('Support')}</Text>
           <View style={styles.menuCard}>
-            {renderMenuItem('help-circle', 'Help Center')}
+            {renderMenuItem('help-circle', 'Help Center', null, null, () => setHelpCenterModalVisible(true))}
             <View style={styles.menuDivider} />
-            {renderMenuItem('headphones', 'Contact Admin')}
+            {renderMenuItem('headphones', 'Contact Admin', null, null, () => setContactAdminModalVisible(true))}
             <View style={styles.menuDivider} />
-            {renderMenuItem('shield', 'Privacy Policy')}
+            {renderMenuItem('shield', 'Privacy Policy', null, null, () => setPrivacyModalVisible(true))}
+          </View>
+
+          {/* Quick Support Details Card */}
+          <View style={styles.supportSummaryCard}>
+            <View style={styles.supportSummaryHeader}>
+              <View style={styles.supportBadge}>
+                <MaterialCommunityIcons name="shield-check" size={14} color="#059669" />
+                <Text style={styles.supportBadgeText}>{t('24/7 Priority Vet Support')}</Text>
+              </View>
+              <Text style={styles.supportSlaText}>{t('Response within 2 hours')}</Text>
+            </View>
+
+            <TouchableOpacity style={styles.supportQuickRow} onPress={openSupportEmail} activeOpacity={0.7}>
+              <View style={[styles.supportQuickIconBox, { backgroundColor: isDark ? 'rgba(5, 150, 105, 0.2)' : '#ECFDF5' }]}>
+                <Feather name="mail" size={16} color="#059669" />
+              </View>
+              <View style={styles.supportQuickInfo}>
+                <Text style={styles.supportQuickLabel}>{t('Official Support Email')}</Text>
+                <Text style={styles.supportQuickValue}>support@maveshisehat.ai</Text>
+              </View>
+              <Feather name="arrow-up-right" size={16} color={colors.textSecondary} />
+            </TouchableOpacity>
+
+            <View style={styles.supportRowDivider} />
+
+            <TouchableOpacity style={styles.supportQuickRow} onPress={openSupportPhone} activeOpacity={0.7}>
+              <View style={[styles.supportQuickIconBox, { backgroundColor: isDark ? 'rgba(14, 165, 233, 0.2)' : '#F0F9FF' }]}>
+                <Feather name="phone" size={16} color="#0284C7" />
+              </View>
+              <View style={styles.supportQuickInfo}>
+                <Text style={styles.supportQuickLabel}>{t('Helpline Phone')}</Text>
+                <Text style={styles.supportQuickValue}>+92 305 4758667</Text>
+              </View>
+              <Feather name="arrow-up-right" size={16} color={colors.textSecondary} />
+            </TouchableOpacity>
+
+            <View style={styles.supportRowDivider} />
+
+            <TouchableOpacity style={styles.supportQuickRow} onPress={openSupportWhatsApp} activeOpacity={0.7}>
+              <View style={[styles.supportQuickIconBox, { backgroundColor: isDark ? 'rgba(37, 211, 102, 0.2)' : '#F0FDF4' }]}>
+                <MaterialCommunityIcons name="whatsapp" size={18} color="#25D366" />
+              </View>
+              <View style={styles.supportQuickInfo}>
+                <Text style={styles.supportQuickLabel}>{t('WhatsApp Helpdesk')}</Text>
+                <Text style={styles.supportQuickValue}>+92 305 4758667 ({t('Instant Chat')})</Text>
+              </View>
+              <Feather name="arrow-up-right" size={16} color={colors.textSecondary} />
+            </TouchableOpacity>
+
+            <View style={styles.supportRowDivider} />
+
+            <View style={styles.supportQuickRowStatic}>
+              <View style={[styles.supportQuickIconBox, { backgroundColor: isDark ? 'rgba(245, 158, 11, 0.2)' : '#FFFBEB' }]}>
+                <Feather name="clock" size={16} color="#D97706" />
+              </View>
+              <View style={styles.supportQuickInfo}>
+                <Text style={styles.supportQuickLabel}>{t('Operating Hours')}</Text>
+                <Text style={styles.supportQuickValue}>Mon - Sat: 9:00 AM - 6:00 PM (PKT)</Text>
+              </View>
+            </View>
+
+            <View style={styles.supportRowDivider} />
+
+            <View style={styles.supportQuickRowStatic}>
+              <View style={[styles.supportQuickIconBox, { backgroundColor: isDark ? 'rgba(99, 102, 241, 0.2)' : '#EEF2FF' }]}>
+                <Feather name="map-pin" size={16} color="#6366F1" />
+              </View>
+              <View style={styles.supportQuickInfo}>
+                <Text style={styles.supportQuickLabel}>{t('National Operations Office')}</Text>
+                <Text style={styles.supportQuickValue}>Maveshi Sehat AI National Livestock Center, Lahore, Pakistan</Text>
+              </View>
+            </View>
           </View>
 
           <TouchableOpacity style={styles.logoutBtn} onPress={() => navigation.reset({ index: 0, routes: [{ name: 'Welcome' }] })}>
@@ -389,6 +525,240 @@ export default function VetProfileScreen() {
                 )}
               </TouchableOpacity>
             ))}
+          </View>
+        </View>
+      </Modal>
+
+      {/* 1. Help Center Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={helpCenterModalVisible}
+        onRequestClose={() => setHelpCenterModalVisible(false)}
+      >
+        <View style={styles.modalBg}>
+          <View style={styles.modalContainer}>
+            <View style={styles.modalHeader}>
+              <View style={styles.infoModalTitleRow}>
+                <View style={[styles.infoModalIcon, { backgroundColor: isDark ? 'rgba(5, 150, 105, 0.2)' : '#ECFDF5' }]}>
+                  <Feather name="help-circle" size={18} color="#059669" />
+                </View>
+                <Text style={styles.modalTitle}>{t('Veterinary Help Center')}</Text>
+              </View>
+              <TouchableOpacity onPress={() => setHelpCenterModalVisible(false)}>
+                <Feather name="x" size={24} color={colors.textSecondary} />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.infoModalContent}>
+              <Text style={styles.infoModalIntro}>
+                {t('Find quick guidance on PVMC verification, digital prescriptions, consultation management, and clinical decision support.')}
+              </Text>
+
+              {[
+                {
+                  id: 'license_verif',
+                  question: t('How is my PVMC license verified or updated?'),
+                  answer: t('Your Pakistan Veterinary Medical Council (PVMC) license number is submitted during registration and audited by our verification desk. You can update your degree documents, clinic location, or license renewal certificate by opening License Details or contacting Admin Support.')
+                },
+                {
+                  id: 'consult_flow',
+                  question: t('How do consultation requests work?'),
+                  answer: t('When farmers in your district submit consultation requests with symptoms and animal photos, they appear in your Consultations dashboard. You can review the clinical telemetry, accept the case, and conduct chat or video consultations.')
+                },
+                {
+                  id: 'eprescriptions',
+                  question: t('How are digital prescriptions generated & dispensed?'),
+                  answer: t('Use the Prescriptions tab to enter your clinical diagnosis, active chemical entities, dosage (mg/kg), and duration. The signed digital prescription is immediately shared with the farmer and can be dispatched to authorized partner pharmacies.')
+                },
+                {
+                  id: 'ai_cdss',
+                  question: t('How does the Clinical Decision Support System (CDSS) work?'),
+                  answer: t('The CDSS operates in doctor mode: it provides peer-level bovine differential diagnoses, pharmacological dosage guidance, withdrawal intervals, and district epidemic alerts based on active cases.')
+                },
+                {
+                  id: 'hours_mode',
+                  question: t('How can I adjust my availability and consultation hours?'),
+                  answer: t('Tap Availability Schedule under Account to set your daily consultation schedule (e.g. Mon-Fri 9 AM - 5 PM) or temporarily mark yourself as unavailable.')
+                }
+              ].map((faq) => (
+                <View key={faq.id} style={styles.faqItem}>
+                  <TouchableOpacity
+                    style={styles.faqQuestion}
+                    onPress={() => setExpandedFaq(expandedFaq === faq.id ? null : faq.id)}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={styles.faqQuestionText}>{faq.question}</Text>
+                    <Feather name={expandedFaq === faq.id ? 'chevron-up' : 'chevron-down'} size={18} color={colors.textSecondary} />
+                  </TouchableOpacity>
+                  {expandedFaq === faq.id && (
+                    <Text style={styles.faqAnswer}>{faq.answer}</Text>
+                  )}
+                </View>
+              ))}
+
+              <View style={styles.infoModalNotice}>
+                <Feather name="info" size={16} color={colors.primary} />
+                <Text style={styles.infoModalNoticeText}>
+                  {t('Need one-on-one administrative support? Tap Contact Admin below to connect directly with our technical operations desk.')}
+                </Text>
+              </View>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
+      {/* 2. Contact Admin Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={contactAdminModalVisible}
+        onRequestClose={() => setContactAdminModalVisible(false)}
+      >
+        <View style={styles.modalBg}>
+          <View style={styles.modalContainer}>
+            <View style={styles.modalHeader}>
+              <View style={styles.infoModalTitleRow}>
+                <View style={[styles.infoModalIcon, { backgroundColor: isDark ? 'rgba(5, 150, 105, 0.2)' : '#ECFDF5' }]}>
+                  <Feather name="headphones" size={18} color="#059669" />
+                </View>
+                <Text style={styles.modalTitle}>{t('Contact Platform Admin & Helpdesk')}</Text>
+              </View>
+              <TouchableOpacity onPress={() => setContactAdminModalVisible(false)}>
+                <Feather name="x" size={24} color={colors.textSecondary} />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.infoModalContent}>
+              <Text style={styles.infoModalIntro}>
+                {t('Our dedicated administrative operations team provides 24/7 priority assistance to verified veterinarians regarding credential audits, consultations, pharmacy fulfillment, and clinical platform tools.')}
+              </Text>
+
+              <Text style={styles.infoModalHeading}>{t('Direct Contact Channels')}</Text>
+
+              <TouchableOpacity style={styles.supportAction} onPress={openSupportEmail} activeOpacity={0.7}>
+                <Feather name="mail" size={20} color="#059669" />
+                <View style={styles.supportActionDetails}>
+                  <Text style={styles.supportActionTitle}>{t('Official Support Email')}</Text>
+                  <Text style={styles.supportActionSubtitle}>support@maveshisehat.ai</Text>
+                </View>
+                <Feather name="external-link" size={16} color={colors.textSecondary} />
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.supportAction} onPress={openSupportPhone} activeOpacity={0.7}>
+                <Feather name="phone" size={20} color="#0284C7" />
+                <View style={styles.supportActionDetails}>
+                  <Text style={styles.supportActionTitle}>{t('Helpline Phone')}</Text>
+                  <Text style={styles.supportActionSubtitle}>+92 305 4758667 (Toll-Free Helpline)</Text>
+                </View>
+                <Feather name="external-link" size={16} color={colors.textSecondary} />
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.supportAction} onPress={openSupportWhatsApp} activeOpacity={0.7}>
+                <MaterialCommunityIcons name="whatsapp" size={22} color="#25D366" />
+                <View style={styles.supportActionDetails}>
+                  <Text style={styles.supportActionTitle}>{t('WhatsApp Helpdesk')}</Text>
+                  <Text style={styles.supportActionSubtitle}>+92 305 4758667 ({t('Instant Chat')})</Text>
+                </View>
+                <Feather name="external-link" size={16} color={colors.textSecondary} />
+              </TouchableOpacity>
+
+              <TouchableOpacity style={[styles.supportAction, { borderColor: isDark ? 'rgba(239, 68, 68, 0.4)' : '#FEE2E2', backgroundColor: isDark ? 'rgba(239, 68, 68, 0.08)' : '#FEF2F2' }]} onPress={openEmergencyDesk} activeOpacity={0.7}>
+                <Feather name="alert-triangle" size={20} color="#EF4444" />
+                <View style={styles.supportActionDetails}>
+                  <Text style={[styles.supportActionTitle, { color: '#DC2626' }]}>{t('Emergency Disease Outbreak Desk')}</Text>
+                  <Text style={styles.supportActionSubtitle}>{t('Report notifiable epizootic outbreaks (FMD, Anthrax, LSD)')}</Text>
+                </View>
+                <Feather name="external-link" size={16} color="#DC2626" />
+              </TouchableOpacity>
+
+              <Text style={styles.infoModalHeading}>{t('Administrative Details')}</Text>
+              <View style={styles.faqItem}>
+                <View style={{ padding: 14 }}>
+                  <Text style={{ fontSize: 12, fontWeight: '700', color: colors.textPrimary, marginBottom: 4 }}>
+                    {t('Operating Hours')}
+                  </Text>
+                  <Text style={{ fontSize: 12, color: colors.textSecondary, lineHeight: 18 }}>
+                    Monday – Saturday: 9:00 AM – 6:00 PM (PKT)
+                  </Text>
+
+                  <View style={{ height: 1, backgroundColor: colors.border, marginVertical: 8 }} />
+
+                  <Text style={{ fontSize: 12, fontWeight: '700', color: colors.textPrimary, marginBottom: 4 }}>
+                    {t('Response SLA')}
+                  </Text>
+                  <Text style={{ fontSize: 12, color: colors.textSecondary, lineHeight: 18 }}>
+                    {t('Guaranteed response within 2 hours for verified veterinarians.')}
+                  </Text>
+
+                  <View style={{ height: 1, backgroundColor: colors.border, marginVertical: 8 }} />
+
+                  <Text style={{ fontSize: 12, fontWeight: '700', color: colors.textPrimary, marginBottom: 4 }}>
+                    {t('National Operations Center')}
+                  </Text>
+                  <Text style={{ fontSize: 12, color: colors.textSecondary, lineHeight: 18 }}>
+                    Maveshi Sehat AI National Livestock Center, Lahore, Punjab, Pakistan
+                  </Text>
+                </View>
+              </View>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
+      {/* 3. Privacy Policy Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={privacyModalVisible}
+        onRequestClose={() => setPrivacyModalVisible(false)}
+      >
+        <View style={styles.modalBg}>
+          <View style={styles.modalContainer}>
+            <View style={styles.modalHeader}>
+              <View style={styles.infoModalTitleRow}>
+                <View style={[styles.infoModalIcon, { backgroundColor: isDark ? 'rgba(5, 150, 105, 0.2)' : '#ECFDF5' }]}>
+                  <Feather name="shield" size={18} color="#059669" />
+                </View>
+                <Text style={styles.modalTitle}>{t('Clinical Privacy & Data Ethics')}</Text>
+              </View>
+              <TouchableOpacity onPress={() => setPrivacyModalVisible(false)}>
+                <Feather name="x" size={24} color={colors.textSecondary} />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.infoModalContent}>
+              <Text style={styles.infoModalIntro}>
+                {t('Maveshi Sehat AI is committed to maintaining strict clinical data confidentiality, patient health security, and PVMC veterinary regulatory compliance.')}
+              </Text>
+
+              <Text style={styles.infoModalHeading}>{t('1. Veterinary Clinical Confidentiality')}</Text>
+              <Text style={styles.infoModalText}>
+                {t('All clinical notes, diagnoses, and prescription history logged by doctors are strictly confidential. Animal health data is securely encrypted in transit and at rest using 256-bit AES encryption.')}
+              </Text>
+
+              <Text style={styles.infoModalHeading}>{t('2. Farmer & Patient Data Protection')}</Text>
+              <Text style={styles.infoModalText}>
+                {t('Contact information and location coordinates for livestock farmers are shared exclusively during active consultations to facilitate accurate diagnosis and medical care.')}
+              </Text>
+
+              <Text style={styles.infoModalHeading}>{t('3. PVMC Regulatory Compliance')}</Text>
+              <Text style={styles.infoModalText}>
+                {t('Digital prescriptions issued through the platform contain verifiable doctor credentials and PVMC registration tags in compliance with national veterinary medicine regulations.')}
+              </Text>
+
+              <Text style={styles.infoModalHeading}>{t('4. Security & Audit Logging')}</Text>
+              <Text style={styles.infoModalText}>
+                {t('Every administrative check and clinical data access is recorded in an immutable audit trail to protect practitioner integrity and prevent unauthorized record alteration.')}
+              </Text>
+
+              <View style={styles.infoModalNotice}>
+                <MaterialCommunityIcons name="shield-check" size={18} color={colors.primary} />
+                <Text style={styles.infoModalNoticeText}>
+                  {t('For privacy or regulatory inquiries, contact our Data Governance Officer at support@maveshisehat.ai.')}
+                </Text>
+              </View>
+            </ScrollView>
           </View>
         </View>
       </Modal>

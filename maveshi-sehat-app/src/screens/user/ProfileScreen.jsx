@@ -132,7 +132,7 @@ export default function ProfileScreen() {
     try {
       const subject = encodeURIComponent('Maveshi Sehat support request');
       const body = encodeURIComponent(`Hello Maveshi Sehat Support,\n\nFarmer: ${profile.userName}\nPhone: ${profile.phone}\n\nHow can we help?\n`);
-      const mailtoUrl = `mailto:maveshisehatai@gmail.com?subject=${subject}&body=${body}`;
+      const mailtoUrl = `mailto:support@maveshisehat.ai?subject=${subject}&body=${body}`;
       const canOpen = await Linking.canOpenURL(mailtoUrl);
       if (!canOpen) {
         Alert.alert(t('Support unavailable'), t('No email application is available on this device.'));
@@ -147,7 +147,7 @@ export default function ProfileScreen() {
 
   const openSupportPhone = async () => {
     try {
-      const phoneUrl = 'tel:03054758667';
+      const phoneUrl = 'tel:+923054758667';
       const canOpen = await Linking.canOpenURL(phoneUrl);
       if (!canOpen) {
         Alert.alert(t('Support unavailable'), t('Calling is not available on this device.'));
@@ -157,6 +157,17 @@ export default function ProfileScreen() {
     } catch (error) {
       console.error('Unable to open support phone:', error);
       Alert.alert(t('Support unavailable'), t('Calling is not available on this device.'));
+    }
+  };
+
+  const openSupportWhatsApp = async () => {
+    try {
+      const text = encodeURIComponent(`Hello Maveshi Sehat Support,\nFarmer: ${profile.userName || 'N/A'}\nPhone: ${profile.phone || 'N/A'}\nHow can we help?`);
+      const waUrl = `https://wa.me/923054758667?text=${text}`;
+      await Linking.openURL(waUrl);
+    } catch (error) {
+      console.error('Unable to open WhatsApp:', error);
+      Alert.alert(t('Support unavailable'), t('WhatsApp is not available on this device.'));
     }
   };
 
@@ -539,7 +550,7 @@ export default function ProfileScreen() {
                 <Feather name="mail" size={18} color={colors.primary} />
                 <View style={styles.supportActionDetails}>
                   <Text style={styles.supportActionTitle}>{t('Email support')}</Text>
-                  <Text style={styles.supportActionSubtitle}>maveshisehatai@gmail.com</Text>
+                  <Text style={styles.supportActionSubtitle}>support@maveshisehat.ai</Text>
                 </View>
                 <Feather name="external-link" size={16} color={colors.textMuted} />
               </TouchableOpacity>
@@ -547,7 +558,15 @@ export default function ProfileScreen() {
                 <Feather name="phone" size={18} color={colors.primary} />
                 <View style={styles.supportActionDetails}>
                   <Text style={styles.supportActionTitle}>{t('Call support')}</Text>
-                  <Text style={styles.supportActionSubtitle}>03054758667</Text>
+                  <Text style={styles.supportActionSubtitle}>+92 305 4758667</Text>
+                </View>
+                <Feather name="external-link" size={16} color={colors.textMuted} />
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.supportAction} onPress={openSupportWhatsApp}>
+                <MaterialCommunityIcons name="whatsapp" size={20} color="#25D366" />
+                <View style={styles.supportActionDetails}>
+                  <Text style={styles.supportActionTitle}>{t('WhatsApp Support')}</Text>
+                  <Text style={styles.supportActionSubtitle}>+92 305 4758667</Text>
                 </View>
                 <Feather name="external-link" size={16} color={colors.textMuted} />
               </TouchableOpacity>

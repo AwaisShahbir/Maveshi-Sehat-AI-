@@ -53,6 +53,11 @@ export default function Settings({ onProfileUpdate }) {
   const [language, setLanguage] = useState('Both');
   const [timezone, setTimezone] = useState('utc-5');
   const [enforceAdminLanguage, setEnforceAdminLanguage] = useState(true);
+  const [supportEmail, setSupportEmail] = useState('support@maveshisehat.ai');
+  const [supportPhone, setSupportPhone] = useState('+92 305 4758667');
+  const [supportWhatsapp, setSupportWhatsapp] = useState('+92 305 4758667');
+  const [supportHours, setSupportHours] = useState('Mon - Sat: 9:00 AM - 6:00 PM (PKT)');
+  const [officeAddress, setOfficeAddress] = useState('Maveshi Sehat AI National Livestock Center, Lahore, Pakistan');
 
   // AI Assistant Control States
   const [aiEnabled, setAiEnabled] = useState(true);
@@ -97,6 +102,11 @@ export default function Settings({ onProfileUpdate }) {
             if (sys.language !== undefined) setLanguage(sys.language);
             if (sys.timezone !== undefined) setTimezone(sys.timezone);
             if (sys.enforceAdminLanguage !== undefined) setEnforceAdminLanguage(sys.enforceAdminLanguage);
+            if (sys.supportEmail) setSupportEmail(sys.supportEmail);
+            if (sys.supportPhone) setSupportPhone(sys.supportPhone);
+            if (sys.supportWhatsapp) setSupportWhatsapp(sys.supportWhatsapp);
+            if (sys.supportHours) setSupportHours(sys.supportHours);
+            if (sys.officeAddress) setOfficeAddress(sys.officeAddress);
           }
           if (settingsData.ai_assistant) {
             const ai = settingsData.ai_assistant;
@@ -296,7 +306,12 @@ export default function Settings({ onProfileUpdate }) {
             threshold: Number(threshold),
             language,
             timezone,
-            enforceAdminLanguage
+            enforceAdminLanguage,
+            supportEmail,
+            supportPhone,
+            supportWhatsapp,
+            supportHours,
+            officeAddress
           }
         })
       });
@@ -674,6 +689,73 @@ export default function Settings({ onProfileUpdate }) {
                     <option value="utc-5">Asia/Karachi (PKT, UTC+5)</option>
                     <option value="utc">UTC (Universal Time)</option>
                   </select>
+                </div>
+              </div>
+
+              {/* Platform & Veterinarian Support Channels */}
+              <div className="settings-subbox mt-6">
+                <h4 className="text-[15px] font-semibold text-slate-800 mb-1.5">
+                  Platform & Veterinary Support Channels
+                </h4>
+                <p className="text-xs text-slate-500 mb-4">
+                  Configure official contact lines and support credentials broadcasted to veterinarians and mobile app users.
+                </p>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="form-label font-semibold text-xs">Official Support Email</label>
+                    <input
+                      type="email"
+                      value={supportEmail}
+                      onChange={(e) => setSupportEmail(e.target.value)}
+                      className="form-control settings-input"
+                      placeholder="support@maveshisehat.ai"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="form-label font-semibold text-xs">Helpline Phone Number</label>
+                    <input
+                      type="text"
+                      value={supportPhone}
+                      onChange={(e) => setSupportPhone(e.target.value)}
+                      className="form-control settings-input"
+                      placeholder="+92 305 4758667"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="form-label font-semibold text-xs">WhatsApp Helpdesk Line</label>
+                    <input
+                      type="text"
+                      value={supportWhatsapp}
+                      onChange={(e) => setSupportWhatsapp(e.target.value)}
+                      className="form-control settings-input"
+                      placeholder="+92 305 4758667"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="form-label font-semibold text-xs">Operating / Support Hours</label>
+                    <input
+                      type="text"
+                      value={supportHours}
+                      onChange={(e) => setSupportHours(e.target.value)}
+                      className="form-control settings-input"
+                      placeholder="Mon - Sat: 9:00 AM - 6:00 PM (PKT)"
+                    />
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <label className="form-label font-semibold text-xs">National Operations Center Address</label>
+                    <input
+                      type="text"
+                      value={officeAddress}
+                      onChange={(e) => setOfficeAddress(e.target.value)}
+                      className="form-control settings-input"
+                      placeholder="Maveshi Sehat AI National Livestock Center, Lahore, Pakistan"
+                    />
+                  </div>
                 </div>
               </div>
 
