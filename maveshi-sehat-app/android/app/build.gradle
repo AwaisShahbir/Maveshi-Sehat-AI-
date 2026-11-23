@@ -94,6 +94,14 @@ android {
             include "armeabi-v7a", "arm64-v8a", "x86_64"
         }
     }
+    packagingOptions {
+        jniLibs {
+            excludes += [
+                "**/libagora_lip_sync_extension.so",
+                "**/libagora_spatial_audio_extension.so"
+            ]
+        }
+    }
     signingConfigs {
         debug {
             storeFile file('debug.keystore')
