@@ -1,7 +1,7 @@
 import { API_BASE_URL } from '../config';
 import React, { useState } from 'react';
 import { ShieldAlert, CheckCircle, Clock, Heart, TrendingUp, KeyRound, Mail, LogIn, Eye, EyeOff } from 'lucide-react';
-import logoImg from '../assets/logo.png';
+import logoImg from '../assets/logo_circular.png';
 import '../styles/Login.css';
 
 export default function Login({ onLoginSuccess, onViewChange }) {

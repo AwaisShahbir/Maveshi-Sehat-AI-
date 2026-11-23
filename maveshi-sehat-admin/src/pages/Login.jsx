@@ -16,7 +16,7 @@ import {
   ShieldAlert,
   LogIn 
 } from 'lucide-react';
-import logoImg from '../assets/logo.png';
+import logoImg from '../assets/logo_circular.png';
 import '../styles/Login.css';
 
 export default function Login({ onLoginSuccess }) {

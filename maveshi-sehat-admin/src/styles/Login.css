@@ -4,12 +4,12 @@
   display: flex;
   min-height: 100vh;
   width: 100vw;
-  background-color: var(--bg-page, #eff7f2);
+  background-color: #f8fafc;
   overflow-x: hidden;
 }
 
 /* ==========================================================
-   Left Branding Sidepane (Enterprise Brand Showcase)
+   Left Branding Sidepane (Enterprise Bio-Emerald Slate)
    ========================================================== */
 .admin-login-branding {
   flex: 1.1;
@@ -18,8 +18,11 @@
   justify-content: center;
   align-items: center;
   padding: 48px;
-  background: linear-gradient(135deg, #135431 0%, #0e3a22 100%);
-  border-right: 1px solid #0e3a22;
+  background: 
+    radial-gradient(ellipse at 20% 15%, rgba(16, 185, 129, 0.18) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 85%, rgba(5, 150, 105, 0.12) 0%, transparent 55%),
+    linear-gradient(155deg, #092318 0%, #051a12 50%, #020c08 100%);
+  border-right: 1px solid rgba(52, 211, 153, 0.12);
   color: #ffffff;
   position: relative;
 }
@@ -41,22 +44,30 @@
 .admin-login-logo-ring {
   width: 96px;
   height: 96px;
-  border-radius: 9999px;
-  background-color: #ffffff;
-  border: 3px solid #3da860;
+  border-radius: 50%;
+  background: radial-gradient(circle, #0e3d29 0%, #062317 100%);
+  border: 2.5px solid rgba(52, 211, 153, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
   margin-bottom: 20px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 0 0 5px rgba(16, 185, 129, 0.15), 0 16px 36px rgba(0, 0, 0, 0.45);
   overflow: hidden;
-  padding: 8px;
+  position: relative;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.admin-login-logo-ring:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 0 6px rgba(52, 211, 153, 0.25), 0 20px 40px rgba(0, 0, 0, 0.55);
 }
 
 .admin-login-logo-img {
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
 }
 
 .admin-login-brand-title {
@@ -69,9 +80,9 @@
 }
 
 .admin-login-brand-subtitle {
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: #86efac;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #34d399;
   margin-top: 4px;
 }
 
@@ -95,13 +106,13 @@
   width: 40px;
   height: 40px;
   border-radius: 9999px;
-  background-color: rgba(61, 168, 96, 0.15);
-  color: #3da860;
+  background-color: rgba(16, 185, 129, 0.15);
+  color: #34d399;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  border: 1px solid rgba(61, 168, 96, 0.3);
+  border: 1px solid rgba(52, 211, 153, 0.25);
 }
 
 .admin-login-feature-text {
@@ -124,7 +135,7 @@
   flex-direction: column;
   align-items: center;
   gap: 8px;
-  border-top: 1px solid rgba(61, 168, 96, 0.25);
+  border-top: 1px solid rgba(52, 211, 153, 0.15);
   padding-top: 24px;
   width: 100%;
   max-width: 420px;
@@ -136,10 +147,10 @@
   font-size: 0.75rem;
   font-weight: 700;
   color: #86efac;
-  background-color: rgba(61, 168, 96, 0.15);
-  border: 1px solid rgba(61, 168, 96, 0.35);
+  background-color: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(52, 211, 153, 0.3);
   border-radius: 9999px;
-  padding: 4px 16px;
+  padding: 5px 16px;
   letter-spacing: 0.02em;
 }
 
@@ -150,7 +161,7 @@
 }
 
 /* ==========================================================
-   Right Form Sidepane (Auth Form Card)
+   Right Form Sidepane (Clean Crisp Canvas)
    ========================================================== */
 .admin-login-form-pane {
   flex: 1.2;
@@ -158,7 +169,7 @@
   align-items: center;
   justify-content: center;
   padding: 48px;
-  background-color: var(--bg-page, #eff7f2);
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
 }
 
 @media (max-width: 480px) {
@@ -172,9 +183,9 @@
   max-width: 460px;
   background-color: #ffffff;
   border-radius: 24px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid rgba(226, 232, 240, 0.85);
   padding: 48px 40px;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 20px 45px -12px rgba(15, 23, 42, 0.08), 0 8px 16px -8px rgba(15, 23, 42, 0.03);
   display: flex;
   flex-direction: column;
 }
@@ -202,43 +213,44 @@
 }
 
 .admin-login-mobile-logo-ring {
-  width: 64px;
-  height: 64px;
+  width: 68px;
+  height: 68px;
   border-radius: 50%;
-  background-color: #ffffff;
-  border: 2px solid #3da860;
+  background: radial-gradient(circle, #0e3d29 0%, #062317 100%);
+  border: 2px solid rgba(52, 211, 153, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
   margin-bottom: 12px;
-  box-shadow: 0 4px 12px rgba(19, 84, 49, 0.15);
+  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.2);
   overflow: hidden;
-  padding: 4px;
 }
 
 .admin-login-mobile-logo {
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
 }
 
 .admin-login-mobile-title {
   font-family: var(--font-heading, 'Outfit', sans-serif);
   font-size: 1.5rem;
   font-weight: 800;
-  color: #135431;
+  color: #0f172a;
   margin: 0;
 }
 
 .admin-login-mobile-badge {
   font-size: 0.75rem;
   font-weight: 700;
-  color: #3da860;
-  background-color: #eff7f2;
+  color: #059669;
+  background-color: #ecfdf5;
   padding: 3px 12px;
   border-radius: 9999px;
   margin-top: 6px;
-  border: 1px solid rgba(61, 168, 96, 0.25);
+  border: 1px solid rgba(5, 150, 105, 0.2);
 }
 
 .admin-login-card-title {
@@ -333,8 +345,8 @@
 }
 
 .admin-login-input:focus {
-  border-color: #3da860;
-  box-shadow: 0 0 0 3px rgba(61, 168, 96, 0.15);
+  border-color: #059669;
+  box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.15);
   background-color: #ffffff;
 }
 
@@ -357,7 +369,7 @@
 }
 
 .admin-remember-input {
-  accent-color: #3da860;
+  accent-color: #059669;
   width: 15px;
   height: 15px;
   cursor: pointer;
@@ -367,7 +379,7 @@
   background: transparent;
   border: none;
   font-size: 0.8125rem;
-  color: #3da860;
+  color: #059669;
   font-weight: 600;
   cursor: pointer;
   text-decoration: none;
@@ -375,14 +387,14 @@
 }
 
 .admin-forgot-link:hover {
-  color: #2e8c4e;
+  color: #047857;
   text-decoration: underline;
 }
 
 .admin-login-submit-btn {
   width: 100%;
   height: 48px;
-  background-color: #3da860;
+  background: linear-gradient(135deg, #059669 0%, #10b981 100%);
   color: #ffffff;
   font-size: 0.9375rem;
   font-weight: 700;
@@ -393,16 +405,16 @@
   justify-content: center;
   gap: 10px;
   cursor: pointer;
-  box-shadow: 0 4px 14px rgba(61, 168, 96, 0.25);
+  box-shadow: 0 4px 14px rgba(5, 150, 105, 0.25);
   transition: background-color 0.2s ease, transform 0.1s ease;
 }
 
 .admin-login-submit-btn:hover:not(:disabled) {
-  background-color: #2e8c4e;
+  background: linear-gradient(135deg, #047857 0%, #059669 100%);
 }
 
 .admin-login-submit-btn:disabled {
-  background-color: rgba(61, 168, 96, 0.5);
+  background: rgba(5, 150, 105, 0.5);
   cursor: not-allowed;
 }
 
@@ -452,7 +464,7 @@
 }
 
 .admin-reset-modal-header {
-  background: linear-gradient(135deg, #135431 0%, #0d3820 100%);
+  background: linear-gradient(155deg, #092318 0%, #051a12 50%, #020c08 100%);
   padding: 20px 24px;
   display: flex;
   align-items: center;
@@ -513,8 +525,8 @@
 }
 
 .admin-reset-input:focus {
-  border-color: #3da860;
-  box-shadow: 0 0 0 3px rgba(61, 168, 96, 0.15);
+  border-color: #059669;
+  box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.15);
   outline: none;
 }
 
@@ -531,15 +543,15 @@
 }
 
 .admin-reset-otp-input:focus {
-  border-color: #3da860;
-  box-shadow: 0 0 0 3px rgba(61, 168, 96, 0.15);
+  border-color: #059669;
+  box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.15);
   outline: none;
 }
 
 .admin-reset-submit-btn {
   width: 100%;
   height: 44px;
-  background-color: #3da860;
+  background: linear-gradient(135deg, #059669 0%, #10b981 100%);
   color: #ffffff;
   font-weight: 700;
   font-size: 14px;
@@ -550,7 +562,7 @@
 }
 
 .admin-reset-submit-btn:hover:not(:disabled) {
-  background-color: #2e8c4e;
+  background: linear-gradient(135deg, #047857 0%, #059669 100%);
 }
 
 .admin-reset-submit-btn:disabled {
@@ -579,7 +591,7 @@
 
 .admin-reset-success-icon {
   margin: 0 auto 12px auto;
-  color: #3da860;
+  color: #059669;
 }
 
 .admin-reset-success-title {

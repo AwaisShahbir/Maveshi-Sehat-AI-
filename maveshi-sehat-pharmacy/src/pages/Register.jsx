@@ -14,7 +14,7 @@ import {
   FileCheck,
   Check
 } from 'lucide-react';
-import logoImg from '../assets/logo.png';
+import logoImg from '../assets/logo_circular.png';
 import '../styles/Register.css';
 
 export default function Register({ onViewChange }) {
