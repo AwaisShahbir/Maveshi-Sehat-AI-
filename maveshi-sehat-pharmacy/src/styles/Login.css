@@ -122,6 +122,13 @@
   margin: 0;
 }
 
+.pharmacy-login-feature-desc {
+  font-size: 0.8125rem;
+  color: #cbd5e1;
+  margin: 2px 0 0 0;
+  line-height: 1.4;
+}
+
 .pharmacy-login-register-prompt {
   display: flex;
   flex-direction: column;
@@ -188,6 +195,62 @@
     padding: 32px 20px;
     border-radius: 20px;
   }
+}
+
+/* Mobile-only brand header */
+.pharmacy-login-mobile-brand {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+@media (max-width: 900px) {
+  .pharmacy-login-mobile-brand {
+    display: flex;
+  }
+}
+
+.pharmacy-login-mobile-logo-ring {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #0e3d29 0%, #062317 100%);
+  border: 2px solid rgba(52, 211, 153, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.2);
+  overflow: hidden;
+}
+
+.pharmacy-login-mobile-logo {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+}
+
+.pharmacy-login-mobile-title {
+  font-family: var(--font-heading, 'Outfit', sans-serif);
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0;
+}
+
+.pharmacy-login-mobile-badge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #059669;
+  background-color: #ecfdf5;
+  padding: 3px 12px;
+  border-radius: 9999px;
+  margin-top: 6px;
+  border: 1px solid rgba(5, 150, 105, 0.2);
 }
 
 .pharmacy-login-card-title {
@@ -379,19 +442,35 @@
   color: #047857;
 }
 
-.pharmacy-login-support {
-  margin-top: 24px;
-  font-size: 0.75rem;
-  color: #94a3b8;
+.pharmacy-login-card-footer {
+  margin-top: 28px;
   text-align: center;
+  border-top: 1px solid #f1f5f9;
+  padding-top: 20px;
 }
 
-.pharmacy-login-support a {
+.pharmacy-login-footer-support {
+  font-size: 0.75rem;
+  color: #64748b;
+  display: block;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.pharmacy-login-footer-support a {
   color: #059669;
+  font-weight: 700;
   text-decoration: none;
-  font-weight: 600;
+  transition: color 0.15s ease;
 }
 
-.pharmacy-login-support a:hover {
+.pharmacy-login-footer-support a:hover {
+  color: #047857;
   text-decoration: underline;
+}
+
+.pharmacy-login-footer-copy {
+  font-size: 0.6875rem;
+  color: #94a3b8;
+  margin-top: 4px;
 }

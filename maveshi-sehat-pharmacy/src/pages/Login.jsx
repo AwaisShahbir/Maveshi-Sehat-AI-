@@ -60,7 +60,8 @@ export default function Login({ onLoginSuccess, onViewChange }) {
               <CheckCircle size={20} />
             </div>
             <div>
-              <p className="pharmacy-login-feature-text">Verified & trusted platform</p>
+              <p className="pharmacy-login-feature-text">Verified & Trusted Platform</p>
+              <p className="pharmacy-login-feature-desc">DRAP-compliant veterinary network with official license verification</p>
             </div>
           </div>
 
@@ -69,7 +70,8 @@ export default function Login({ onLoginSuccess, onViewChange }) {
               <Clock size={20} />
             </div>
             <div>
-              <p className="pharmacy-login-feature-text">Real-time order management</p>
+              <p className="pharmacy-login-feature-text">Real-Time Order Fulfillment</p>
+              <p className="pharmacy-login-feature-desc">Live order tracking, inventory alerts & prescription dispatching</p>
             </div>
           </div>
 
@@ -78,7 +80,8 @@ export default function Login({ onLoginSuccess, onViewChange }) {
               <Heart size={20} />
             </div>
             <div>
-              <p className="pharmacy-login-feature-text">Direct farmer-pharmacy connection</p>
+              <p className="pharmacy-login-feature-text">Direct Farmer & Vet Network</p>
+              <p className="pharmacy-login-feature-desc">Seamless connectivity with rural livestock owners and certified doctors</p>
             </div>
           </div>
 
@@ -87,7 +90,8 @@ export default function Login({ onLoginSuccess, onViewChange }) {
               <TrendingUp size={20} />
             </div>
             <div>
-              <p className="pharmacy-login-feature-text">Grow your medicine business</p>
+              <p className="pharmacy-login-feature-text">Grow Medicine Business</p>
+              <p className="pharmacy-login-feature-desc">Maximize sales reach with automated livestock pharmaceutical telemetry</p>
             </div>
           </div>
         </div>
@@ -107,6 +111,15 @@ export default function Login({ onLoginSuccess, onViewChange }) {
       {/* Right Form Sidepane */}
       <div className="pharmacy-login-form-pane">
         <div className="pharmacy-login-card">
+          {/* Mobile Brand Header */}
+          <div className="pharmacy-login-mobile-brand">
+            <div className="pharmacy-login-mobile-logo-ring">
+              <img src={logoImg} alt="Maveshi Sehat AI" className="pharmacy-login-mobile-logo" />
+            </div>
+            <h2 className="pharmacy-login-mobile-title">Maveshi Sehat AI</h2>
+            <span className="pharmacy-login-mobile-badge">Pharmacy Portal</span>
+          </div>
+
           <h2 className="pharmacy-login-card-title">Welcome Back</h2>
           <p className="pharmacy-login-card-subtitle">Login to your pharmacy portal</p>
 
@@ -203,8 +216,14 @@ export default function Login({ onLoginSuccess, onViewChange }) {
             Register New Pharmacy
           </button>
 
-          <div className="pharmacy-login-footer">
-            Need help? Contact support at <a href="mailto:support@maveshisehat.ai">support@maveshisehat.ai</a>
+          <div className="pharmacy-login-card-footer">
+            <span className="pharmacy-login-footer-support">
+              🎧 Need assistance? Contact 24/7 Pharmacy Support at{' '}
+              <a href="mailto:support@maveshisehat.ai">support@maveshisehat.ai</a>
+            </span>
+            <p className="pharmacy-login-footer-copy">
+              Maveshi Sehat AI • Licensed Veterinary Pharmaceutical Network
+            </p>
           </div>
         </div>
       </div>
