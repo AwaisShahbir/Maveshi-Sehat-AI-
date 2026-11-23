@@ -246,10 +246,10 @@ let globalSocket = null;
  * Real-time Socket.IO listener that pushes notifications directly to Android status bar
  */
 export const initSocketNotifications = (userId) => {
-  if (!userId) return () => { };
+  if (!userId) return () => {};
   try {
     if (globalSocket) {
-      try { globalSocket.disconnect(); } catch (e) { }
+      try { globalSocket.disconnect(); } catch (e) {}
     }
     const ioClient = require('socket.io-client');
     globalSocket = ioClient(BASE_URL);
@@ -274,13 +274,13 @@ export const initSocketNotifications = (userId) => {
 
     return () => {
       if (globalSocket) {
-        try { globalSocket.disconnect(); } catch (e) { }
+        try { globalSocket.disconnect(); } catch (e) {}
         globalSocket = null;
       }
     };
   } catch (err) {
     console.warn('Socket notification setup error:', err.message);
-    return () => { };
+    return () => {};
   }
 };
 
@@ -318,7 +318,7 @@ export const initNotifications = async (userId) => {
     }
 
     // Token refresh listener
-    let unsubscribeTokenRefresh = () => { };
+    let unsubscribeTokenRefresh = () => {};
     if (typeof messagingModule.onTokenRefresh === 'function') {
       unsubscribeTokenRefresh = messagingModule.onTokenRefresh(msg, async (newToken) => {
         if (userId) await registerPushToken(userId, newToken);
@@ -330,7 +330,7 @@ export const initNotifications = async (userId) => {
     }
 
     // Foreground message handler
-    let unsubscribeForeground = () => { };
+    let unsubscribeForeground = () => {};
     if (typeof messagingModule.onMessage === 'function') {
       unsubscribeForeground = messagingModule.onMessage(msg, async (remoteMessage) => {
         await displayLocalNotification(remoteMessage);
@@ -344,7 +344,7 @@ export const initNotifications = async (userId) => {
     }
 
     // Notification tap handler (Notifee foreground events)
-    let unsubscribeNotifee = () => { };
+    let unsubscribeNotifee = () => {};
     try {
       if (notifee && typeof notifee.onForegroundEvent === 'function') {
         unsubscribeNotifee = notifee.onForegroundEvent(({ type, detail }) => {
@@ -373,11 +373,11 @@ export const initNotifications = async (userId) => {
       if (typeof messagingModule.getInitialNotification === 'function') {
         messagingModule.getInitialNotification(msg).then((remoteMessage) => {
           if (remoteMessage?.data) handleNotificationPress(remoteMessage.data);
-        }).catch(() => { });
+        }).catch(() => {});
       } else if (typeof msg.getInitialNotification === 'function') {
         msg.getInitialNotification().then((remoteMessage) => {
           if (remoteMessage?.data) handleNotificationPress(remoteMessage.data);
-        }).catch(() => { });
+        }).catch(() => {});
       }
     } catch (initNotifErr) {
       console.warn('Initial notification error:', initNotifErr.message);
@@ -558,4 +558,6 @@ export const saveNotificationPreferences = async (userId, preferences) => {
     });
     return res.ok;
   } catch (e) {
-    return false
+    return false;
+  }
+};

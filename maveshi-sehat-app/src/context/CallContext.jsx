@@ -155,11 +155,16 @@ export const CallProvider = ({ children, navigationRef }) => {
     }
 
     // Navigate to Chat screen and auto-connect call
-    if (navigationRef && navigationRef.isReady()) {
-      navigationRef.navigate('Chat', {
+    const nav = navigationRef?.current || navigationRef;
+    if (nav && typeof nav.navigate === 'function') {
+      const myRole = p?.role || (callData.callerRole === 'vet' ? 'farmer' : 'vet');
+      nav.navigate('Chat', {
         conversationId: callData.conversationId,
         partnerName: callData.callerName,
         partnerRole: callData.callerRole,
+        userName: p?.fullName || (myRole === 'vet' ? 'Dr. Doctor' : 'Farmer'),
+        userRole: myRole,
+        vetId: myRole === 'vet' ? (p?.userId || 16) : undefined,
         autoAcceptCall: true
       });
     }

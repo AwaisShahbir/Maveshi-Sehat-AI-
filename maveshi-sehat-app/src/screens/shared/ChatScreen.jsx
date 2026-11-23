@@ -31,7 +31,8 @@ import {
   RtcSurfaceView,
   ChannelProfileType,
   ClientRoleType,
-  VideoSourceType
+  VideoSourceType,
+  RenderModeType
 } from 'react-native-agora';
 import { requestCameraAndAudioPermissions } from '../../utils/permissionUtils';
 import { AGORA_APP_ID, isAgoraConfigured } from '../../services/agoraConfig';
@@ -294,34 +295,39 @@ export default function ChatScreen() {
     }
   }, [loading]);
 
+  // Agora RTC engine lifecycle: purely managed by videoCallVisible
   useEffect(() => {
-    let ringTimeout;
     if (videoCallVisible) {
       initAgora();
-
-      // If initiating the call, start 35-second ring timeout
-      if (callStatus === 'calling') {
-        ringTimeout = setTimeout(() => {
-          setVideoCallVisible(false);
-          if (socketRef.current && socketRef.current.connected) {
-            socketRef.current.emit('end_call', {
-              conversationId: Number(conversationId),
-              reason: 'timeout',
-              duration: 0
-            });
-          }
-          Alert.alert(
-            t('No Answer'),
-            `${partnerName || t('The other participant')} ${t('is not answering the call right now. Please try again or leave a message.')}`
-          );
-        }, 35000);
-      }
     } else {
       destroyAgora();
     }
     return () => {
-      if (ringTimeout) clearTimeout(ringTimeout);
       destroyAgora();
+    };
+  }, [videoCallVisible]);
+
+  // Outgoing call unanswered timeout (35 seconds)
+  useEffect(() => {
+    let ringTimeout;
+    if (videoCallVisible && callStatus === 'calling') {
+      ringTimeout = setTimeout(() => {
+        setVideoCallVisible(false);
+        if (socketRef.current && socketRef.current.connected) {
+          socketRef.current.emit('end_call', {
+            conversationId: Number(conversationId),
+            reason: 'timeout',
+            duration: 0
+          });
+        }
+        Alert.alert(
+          t('No Answer'),
+          `${partnerName || t('The other participant')} ${t('is not answering the call right now. Please try again or leave a message.')}`
+        );
+      }, 35000);
+    }
+    return () => {
+      if (ringTimeout) clearTimeout(ringTimeout);
     };
   }, [videoCallVisible, callStatus]);
 
@@ -362,8 +368,14 @@ export default function ChatScreen() {
           setCallStatus('connected');
         },
         onUserOffline: (connection, rUid, reason) => {
-          console.log('🚪 Peer left Agora video call:', rUid);
+          console.log('🚪 Peer left Agora video call:', rUid, 'reason:', reason);
           setRemoteUid(null);
+        },
+        onRemoteVideoStateChanged: (connection, rUid, state, reason, elapsed) => {
+          console.log('📹 Remote video state changed for uid:', rUid, 'state:', state);
+          if (rUid) {
+            setRemoteUid(rUid);
+          }
         },
         onError: (errCode, msg) => {
           console.warn('⚠️ Agora RTC Engine event error:', errCode, msg);
@@ -376,9 +388,11 @@ export default function ChatScreen() {
       setIsAgoraReady(true);
 
       const channelName = 'maveshi_' + String(conversationId || 'room').replace(/[^a-zA-Z0-9_]/g, '');
-      const uidNum = Number(ourUserId) || 0;
+      const profile = getProfile();
+      const resolvedRole = userRole || profile?.role || (params?.vetId ? 'vet' : 'farmer');
+      const uidNum = Number(ourUserId || profile?.userId || (resolvedRole === 'vet' ? 16 : 2));
 
-      console.log('Joining Agora channel:', channelName, 'with uid:', uidNum);
+      console.log('Joining Agora channel:', channelName, 'with uid:', uidNum, 'role:', resolvedRole);
       engine.joinChannel('', channelName, uidNum, {
         clientRoleType: ClientRoleType.ClientRoleBroadcaster,
         channelProfile: ChannelProfileType.ChannelProfileCommunication,
@@ -1617,12 +1631,12 @@ export default function ChatScreen() {
             {isCameraInMainStage && isAgoraReady && !isVideoDisabled ? (
               <RtcSurfaceView
                 style={{ width: '100%', height: '100%' }}
-                canvas={{ uid: 0, sourceType: VideoSourceType.VideoSourceCameraPrimary }}
+                canvas={{ uid: 0, renderMode: RenderModeType.RenderModeHidden }}
               />
             ) : remoteUid && !isVideoDisabled ? (
               <RtcSurfaceView
                 style={{ width: '100%', height: '100%' }}
-                canvas={{ uid: remoteUid, sourceType: VideoSourceType.VideoSourceRemote }}
+                canvas={{ uid: remoteUid, renderMode: RenderModeType.RenderModeHidden }}
               />
             ) : callStatus === 'connected' && !isVideoDisabled ? (
               <View style={{ width: '100%', height: '100%', justifyContent: 'center', alignItems: 'center', backgroundColor: '#1E293B' }}>
@@ -1790,7 +1804,7 @@ export default function ChatScreen() {
                   <RtcSurfaceView
                     style={{ width: '100%', height: '100%' }}
                     zOrderMediaOverlay={true}
-                    canvas={{ uid: remoteUid, sourceType: VideoSourceType.VideoSourceRemote }}
+                    canvas={{ uid: remoteUid, renderMode: RenderModeType.RenderModeHidden }}
                   />
                 ) : (
                   <View style={{ width: '100%', height: '100%', backgroundColor: '#0284C7', justifyContent: 'center', alignItems: 'center' }}>
@@ -1807,7 +1821,7 @@ export default function ChatScreen() {
                 <RtcSurfaceView
                   style={{ width: '100%', height: '100%' }}
                   zOrderMediaOverlay={true}
-                  canvas={{ uid: 0, sourceType: VideoSourceType.VideoSourceCameraPrimary }}
+                  canvas={{ uid: 0, renderMode: RenderModeType.RenderModeHidden }}
                 />
               ) : isVideoDisabled ? (
                 <View style={{ alignItems: 'center' }}>
