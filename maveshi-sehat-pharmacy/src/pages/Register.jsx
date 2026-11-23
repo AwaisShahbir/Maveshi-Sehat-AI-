@@ -14,6 +14,7 @@ import {
   FileCheck,
   Check
 } from 'lucide-react';
+import logoImg from '../assets/logo.png';
 import '../styles/Register.css';
 
 export default function Register({ onViewChange }) {
@@ -181,7 +182,10 @@ export default function Register({ onViewChange }) {
           <ArrowLeft size={18} />
           <span>Back to Login</span>
         </button>
-        <h1 className="pharmacy-reg-heading">Register Pharmacy Portal</h1>
+        <div className="pharmacy-reg-brand-group">
+          <img src={logoImg} alt="Maveshi Sehat AI" className="pharmacy-reg-logo-img" />
+          <h1 className="pharmacy-reg-heading">Register Pharmacy Portal</h1>
+        </div>
       </header>
 
       {/* Main Form Body */}

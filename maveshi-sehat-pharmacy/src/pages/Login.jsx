@@ -1,6 +1,7 @@
 import { API_BASE_URL } from '../config';
 import React, { useState } from 'react';
 import { ShieldAlert, CheckCircle, Clock, Heart, TrendingUp, KeyRound, Mail, LogIn, Eye, EyeOff } from 'lucide-react';
+import logoImg from '../assets/logo.png';
 import '../styles/Login.css';
 
 export default function Login({ onLoginSuccess, onViewChange }) {
@@ -43,10 +44,11 @@ export default function Login({ onLoginSuccess, onViewChange }) {
       <div className="pharmacy-login-branding">
         <div className="pharmacy-login-brand-header">
           <div className="pharmacy-login-logo-ring">
-            <svg viewBox="0 0 24 24" width="44" height="44" fill="none" stroke="#3da860" strokeWidth="2.5">
-              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-              <path d="M12 8v8M8 12h8" strokeWidth="3" />
-            </svg>
+            <img 
+              src={logoImg} 
+              alt="Maveshi Sehat AI Logo" 
+              className="pharmacy-login-logo-img" 
+            />
           </div>
           <h1 className="pharmacy-login-brand-title">Maveshi Sehat AI</h1>
           <h2 className="pharmacy-login-brand-subtitle">Pharmacy Portal</h2>

@@ -48,6 +48,22 @@
   background-color: #eff7f2;
 }
 
+.pharmacy-reg-brand-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.pharmacy-reg-logo-img {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: contain;
+  background-color: #ffffff;
+  border: 1.5px solid #3da860;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
 .pharmacy-reg-heading {
   font-family: var(--font-heading, 'Outfit', sans-serif);
   font-size: 1.25rem;
