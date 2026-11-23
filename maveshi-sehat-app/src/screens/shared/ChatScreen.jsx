@@ -106,6 +106,7 @@ export default function ChatScreen() {
   const [isAgoraJoined, setIsAgoraJoined] = useState(false);
   const [isAgoraReady, setIsAgoraReady] = useState(false);
   const [isCameraInMainStage, setIsCameraInMainStage] = useState(false);
+  const [partnerUserId, setPartnerUserId] = useState(null);
   const agoraEngineRef = useRef(null);
 
   
@@ -169,12 +170,15 @@ export default function ChatScreen() {
             }
           }
           const resolvedUserId = userRole === 'farmer' ? convData.farmer_id : convData.vet_id;
+          const resolvedPartnerId = userRole === 'farmer' ? convData.vet_id : convData.farmer_id;
           const finalUid = resolvedUserId || storedProfile?.userId || (userRole === 'vet' ? (vetId || 1) : 1);
           setOurUserId(finalUid);
+          setPartnerUserId(resolvedPartnerId || (userRole === 'farmer' ? (vetId || params.consultation?.vet_id) : (params.consultation?.farmer_id)));
           socketRef.current?.emit('join_user', finalUid);
         } else {
           const fallbackUid = storedProfile?.userId || (userRole === 'vet' ? (vetId || 1) : 1);
           setOurUserId(fallbackUid);
+          setPartnerUserId(userRole === 'farmer' ? (vetId || params.consultation?.vet_id) : (params.consultation?.farmer_id));
           socketRef.current?.emit('join_user', fallbackUid);
         }
 
@@ -261,6 +265,26 @@ export default function ChatScreen() {
     };
   }, [conversationId]);
 
+  useEffect(() => {
+    if (params?.autoAcceptCall) {
+      setCallStatus('connected');
+      setIsMuted(false);
+      setIsVideoDisabled(false);
+      setIsFrontCamera(true);
+      setIsTorchOn(false);
+      setVideoCallVisible(true);
+      setTimeout(() => {
+        if (socketRef.current && socketRef.current.connected) {
+          socketRef.current.emit('accept_call', {
+            conversationId: Number(conversationId),
+            responderId: Number(ourUserId || 1),
+            responderName: userName
+          });
+        }
+      }, 500);
+    }
+  }, [params?.autoAcceptCall]);
+
   
   useEffect(() => {
     if (messages.length > 0) {
@@ -271,28 +295,48 @@ export default function ChatScreen() {
   }, [loading]);
 
   useEffect(() => {
-    let timer;
-    let connectTimeout;
+    let ringTimeout;
     if (videoCallVisible) {
-      setCallStatus('calling');
-      connectTimeout = setTimeout(() => {
-        setCallStatus('connected');
-      }, 3000);
-
-      timer = setInterval(() => {
-        setCallDuration((prev) => prev + 1);
-      }, 1000);
-
       initAgora();
+
+      // If initiating the call, start 35-second ring timeout
+      if (callStatus === 'calling') {
+        ringTimeout = setTimeout(() => {
+          setVideoCallVisible(false);
+          if (socketRef.current && socketRef.current.connected) {
+            socketRef.current.emit('end_call', {
+              conversationId: Number(conversationId),
+              reason: 'timeout',
+              duration: 0
+            });
+          }
+          Alert.alert(
+            t('No Answer'),
+            `${partnerName || t('The other participant')} ${t('is not answering the call right now. Please try again or leave a message.')}`
+          );
+        }, 35000);
+      }
     } else {
       destroyAgora();
     }
     return () => {
-      if (connectTimeout) clearTimeout(connectTimeout);
-      if (timer) clearInterval(timer);
+      if (ringTimeout) clearTimeout(ringTimeout);
       destroyAgora();
     };
-  }, [videoCallVisible]);
+  }, [videoCallVisible, callStatus]);
+
+  // Call duration counter ONLY ticks when status is 'connected'
+  useEffect(() => {
+    let durationTimer;
+    if (videoCallVisible && callStatus === 'connected') {
+      durationTimer = setInterval(() => {
+        setCallDuration((prev) => prev + 1);
+      }, 1000);
+    }
+    return () => {
+      if (durationTimer) clearInterval(durationTimer);
+    };
+  }, [videoCallVisible, callStatus]);
 
   const initAgora = async () => {
     try {
@@ -442,9 +486,9 @@ export default function ChatScreen() {
     }
     const storedProfile = getProfile();
     const myId = ourUserId || storedProfile?.userId || (userRole === 'vet' ? (vetId || 1) : 1);
-    const targetRecipientId = userRole === 'farmer' 
+    const targetRecipientId = partnerUserId || (userRole === 'farmer' 
       ? (vetId || params.consultation?.vet_id || 1) 
-      : (params.consultation?.farmer_id || 1);
+      : (params.consultation?.farmer_id || 1));
 
     setCallDuration(0);
     setCallStatus('calling');

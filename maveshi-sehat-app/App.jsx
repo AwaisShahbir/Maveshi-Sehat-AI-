@@ -33,6 +33,7 @@ import MarketplaceScreen from './src/screens/user/MarketplaceScreen';
 import CartScreen from './src/screens/user/CartScreen';
 import VaccinationScreen from './src/screens/user/VaccinationScreen';
 import ChatbotScreen from './src/screens/user/ChatbotScreen';
+import { CallProvider } from './src/context/CallContext';
 
 const Stack = createNativeStackNavigator();
 
@@ -60,37 +61,39 @@ export default function App() {
   return (
     <ThemeProvider>
       <NavigationContainer ref={navigationRef}>
-        <Stack.Navigator initialRouteName="Splash" screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="Splash" component={SplashScreen} />
-          <Stack.Screen name="Welcome" component={WelcomeScreen} />
-          <Stack.Screen name="Login" component={LoginScreen} />
-          <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
-          <Stack.Screen name="Register" component={RegisterScreen} />
-          <Stack.Screen name="Verify" component={VerifyScreen} />
-          <Stack.Screen name="Dashboard" component={DashboardScreen} />
-          <Stack.Screen name="AiScan" component={AiScanScreen} />
-          <Stack.Screen name="HealthRecords" component={HealthRecordsScreen} />
-          <Stack.Screen name="Vaccination" component={VaccinationScreen} />
-          <Stack.Screen name="Profile" component={ProfileScreen} />
-          <Stack.Screen name="Marketplace" component={MarketplaceScreen} />
-          <Stack.Screen name="Cart" component={CartScreen} />
-          <Stack.Screen name="VetDashboard" component={VetDashboardScreen} />
-          <Stack.Screen name="HeatAlert" component={HeatAlertScreen} />
-          <Stack.Screen name="VeterinariansList" component={VeterinariansListScreen} />
-          <Stack.Screen name="VetConsultations" component={VetConsultationsScreen} />
-          <Stack.Screen name="VetCases" component={VetCasesScreen} />
-          <Stack.Screen name="VetPrescriptions" component={VetPrescriptionsScreen} />
-          <Stack.Screen name="VetHealthRecords" component={VetHealthRecordsScreen} />
-          <Stack.Screen name="VetProfile" component={VetProfileScreen} />
-          <Stack.Screen name="VetNotificationCenter" component={VetNotificationCenterScreen} />
-          <Stack.Screen name="Notifications" component={FarmerNotificationCenterScreen} />
-          <Stack.Screen name="FarmerNotificationCenter" component={FarmerNotificationCenterScreen} />
-          <Stack.Screen name="MyConsultations" component={MyConsultationsScreen} />
-          <Stack.Screen name="Chat" component={ChatScreen} />
-          <Stack.Screen name="CommunityForum" component={CommunityForumScreen} />
-          <Stack.Screen name="ForumPostDetail" component={ForumPostDetailScreen} />
-          <Stack.Screen name="Chatbot" component={ChatbotScreen} />
-        </Stack.Navigator>
+        <CallProvider navigationRef={navigationRef}>
+          <Stack.Navigator initialRouteName="Splash" screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="Splash" component={SplashScreen} />
+            <Stack.Screen name="Welcome" component={WelcomeScreen} />
+            <Stack.Screen name="Login" component={LoginScreen} />
+            <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+            <Stack.Screen name="Register" component={RegisterScreen} />
+            <Stack.Screen name="Verify" component={VerifyScreen} />
+            <Stack.Screen name="Dashboard" component={DashboardScreen} />
+            <Stack.Screen name="AiScan" component={AiScanScreen} />
+            <Stack.Screen name="HealthRecords" component={HealthRecordsScreen} />
+            <Stack.Screen name="Vaccination" component={VaccinationScreen} />
+            <Stack.Screen name="Profile" component={ProfileScreen} />
+            <Stack.Screen name="Marketplace" component={MarketplaceScreen} />
+            <Stack.Screen name="Cart" component={CartScreen} />
+            <Stack.Screen name="VetDashboard" component={VetDashboardScreen} />
+            <Stack.Screen name="HeatAlert" component={HeatAlertScreen} />
+            <Stack.Screen name="VeterinariansList" component={VeterinariansListScreen} />
+            <Stack.Screen name="VetConsultations" component={VetConsultationsScreen} />
+            <Stack.Screen name="VetCases" component={VetCasesScreen} />
+            <Stack.Screen name="VetPrescriptions" component={VetPrescriptionsScreen} />
+            <Stack.Screen name="VetHealthRecords" component={VetHealthRecordsScreen} />
+            <Stack.Screen name="VetProfile" component={VetProfileScreen} />
+            <Stack.Screen name="VetNotificationCenter" component={VetNotificationCenterScreen} />
+            <Stack.Screen name="Notifications" component={FarmerNotificationCenterScreen} />
+            <Stack.Screen name="FarmerNotificationCenter" component={FarmerNotificationCenterScreen} />
+            <Stack.Screen name="MyConsultations" component={MyConsultationsScreen} />
+            <Stack.Screen name="Chat" component={ChatScreen} />
+            <Stack.Screen name="CommunityForum" component={CommunityForumScreen} />
+            <Stack.Screen name="ForumPostDetail" component={ForumPostDetailScreen} />
+            <Stack.Screen name="Chatbot" component={ChatbotScreen} />
+          </Stack.Navigator>
+        </CallProvider>
       </NavigationContainer>
     </ThemeProvider>
   );
