@@ -207,28 +207,74 @@ module.exports = (pool, io) => {
     }
   });
 
-  // Resolve a Conversation
+  // Resolve a Conversation / Consultation Case
   router.put('/api/chat/conversation/resolve', async (req, res) => {
     try {
-      const { conversationId } = req.body;
+      const { conversationId, consultationId } = req.body;
       if (!conversationId) {
         return res.status(400).json({ error: 'conversationId is required' });
       }
-      await pool.query(
-        `UPDATE conversations
-         SET status = 'resolved'
-         WHERE id = $1`,
-        [conversationId]
-      );
-      await pool.query(
-        `UPDATE consultations
-         SET status = 'completed', updated_at = CURRENT_TIMESTAMP
+
+      // 1. If a specific consultationId is passed, mark ONLY that specific consultation completed
+      if (consultationId) {
+        await pool.query(
+          `UPDATE consultations
+           SET status = 'completed', updated_at = CURRENT_TIMESTAMP
+           WHERE id = $1`,
+          [consultationId]
+        );
+      } else {
+        // Fallback: resolve only the single most recent active consultation between these two users
+        await pool.query(
+          `UPDATE consultations
+           SET status = 'completed', updated_at = CURRENT_TIMESTAMP
+           WHERE id = (
+             SELECT id FROM consultations
+             WHERE farmer_id = (SELECT farmer_id FROM conversations WHERE id = $1)
+               AND vet_id = (SELECT vet_id FROM conversations WHERE id = $1)
+               AND status IN ('pending', 'approved')
+             ORDER BY created_at DESC
+             LIMIT 1
+           )`,
+          [conversationId]
+        );
+      }
+
+      // 2. Check if there are any remaining pending or approved consultations between this farmer and vet
+      const activeRemaining = await pool.query(
+        `SELECT COUNT(*) as count FROM consultations
          WHERE farmer_id = (SELECT farmer_id FROM conversations WHERE id = $1)
            AND vet_id = (SELECT vet_id FROM conversations WHERE id = $1)
            AND status IN ('pending', 'approved')`,
         [conversationId]
       );
-      res.status(200).json({ message: 'Conversation marked as resolved' });
+
+      const allResolved = parseInt(activeRemaining.rows[0]?.count || '0', 10) === 0;
+
+      // 3. Only mark the whole conversation thread as resolved if NO other active consultations remain
+      if (allResolved) {
+        await pool.query(
+          `UPDATE conversations
+           SET status = 'resolved'
+           WHERE id = $1`,
+          [conversationId]
+        );
+      }
+
+      // 4. Real-time signaling
+      if (io) {
+        io.to(conversationId.toString()).emit('consultation_resolved', {
+          conversationId: Number(conversationId),
+          consultationId: consultationId ? Number(consultationId) : null,
+          allResolved
+        });
+      }
+
+      res.status(200).json({
+        message: 'Consultation marked as resolved',
+        consultationId,
+        allResolved
+      });
     } catch (err) {
       console.error('Error resolving conversation:', err.message);
       res.status(500).json({ error: 'Server error resolving conversation' });

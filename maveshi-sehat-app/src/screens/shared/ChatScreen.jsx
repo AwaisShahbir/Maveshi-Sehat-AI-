@@ -71,7 +71,9 @@ export default function ChatScreen() {
   const [prescriptionModalVisible, setPrescriptionModalVisible] = useState(false);
   const [selectedAttachmentUri, setSelectedAttachmentUri] = useState(null);
   const [failedImageIds, setFailedImageIds] = useState({});
-  const [selectedConsultationId, setSelectedConsultationId] = useState(null);
+  const [selectedConsultationId, setSelectedConsultationId] = useState(() => {
+    return params.consultationId || params.consultation?.id || (Array.isArray(params.consultations) && params.consultations[0]?.id) || null;
+  });
   const [attachedAiRecord, setAttachedAiRecord] = useState(() => {
     if (params.initialRecord) return params.initialRecord;
     if (params.consultation?.ai_record_data) {
@@ -758,16 +760,23 @@ export default function ChatScreen() {
   const handleResolveConversation = async () => {
     try {
       setLoading(true);
+      const activeConsultId = selectedConsultationId || params.consultationId || params.consultation?.id;
       const response = await fetch(`${baseUrl}/api/chat/conversation/resolve`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ conversationId })
+        body: JSON.stringify({ 
+          conversationId,
+          consultationId: activeConsultId
+        })
       });
 
       if (response.ok) {
-        setConversationStatus('resolved');
+        const data = await response.json();
+        if (data.allResolved !== false) {
+          setConversationStatus('resolved');
+        }
         
-        handleSendMessage(t('📢 This consultation has been marked as RESOLVED.'));
+        handleSendMessage(t('📢 This consultation case has been marked as RESOLVED.'));
       } else {
         const data = await response.json();
         alert(data.error || 'Failed to resolve consultation');
