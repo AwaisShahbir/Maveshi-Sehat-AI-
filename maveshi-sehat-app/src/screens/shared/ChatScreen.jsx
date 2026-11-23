@@ -104,6 +104,8 @@ export default function ChatScreen() {
   const [incomingCallData, setIncomingCallData] = useState(null);
   const [remoteUid, setRemoteUid] = useState(null);
   const [isAgoraJoined, setIsAgoraJoined] = useState(false);
+  const [isAgoraReady, setIsAgoraReady] = useState(false);
+  const [isCameraInMainStage, setIsCameraInMainStage] = useState(false);
   const agoraEngineRef = useRef(null);
 
   
@@ -294,23 +296,20 @@ export default function ChatScreen() {
 
   const initAgora = async () => {
     try {
-      if (!isAgoraConfigured()) {
-        console.log('ℹ️ Agora App ID is default/test mode. Live camera simulation active.');
-        return;
-      }
       const hasPermission = await requestCameraAndAudioPermissions();
-      if (!hasPermission) {
-        Alert.alert(t('Notice'), 'Camera and microphone permissions are required for live video consultation.');
-        return;
-      }
+      console.log('Camera and Audio permission status:', hasPermission);
 
       const engine = createAgoraRtcEngine();
       agoraEngineRef.current = engine;
-      engine.initialize({ appId: AGORA_APP_ID });
+      
+      engine.initialize({
+        appId: AGORA_APP_ID,
+        channelProfile: ChannelProfileType.ChannelProfileCommunication,
+      });
 
       engine.registerEventHandler({
         onJoinChannelSuccess: (connection, elapsed) => {
-          console.log('✅ Joined Agora Channel:', connection.channelId);
+          console.log('✅ Joined Agora Channel:', connection.channelId, 'uid:', connection.localUid);
           setIsAgoraJoined(true);
         },
         onUserJoined: (connection, rUid, elapsed) => {
@@ -327,12 +326,15 @@ export default function ChatScreen() {
         }
       });
 
+      // Activate video and start local camera preview immediately
       engine.enableVideo();
       engine.startPreview();
+      setIsAgoraReady(true);
 
-      const channelName = `maveshi_${conversationId}`;
-      const uidNum = Number(ourUserId) || Math.floor(Math.random() * 10000) + 1;
+      const channelName = 'maveshi_' + String(conversationId || 'room').replace(/[^a-zA-Z0-9_]/g, '');
+      const uidNum = Number(ourUserId) || 0;
 
+      console.log('Joining Agora channel:', channelName, 'with uid:', uidNum);
       engine.joinChannel('', channelName, uidNum, {
         clientRoleType: ClientRoleType.ClientRoleBroadcaster,
         channelProfile: ChannelProfileType.ChannelProfileCommunication,
@@ -349,6 +351,7 @@ export default function ChatScreen() {
   const destroyAgora = () => {
     try {
       if (agoraEngineRef.current) {
+        agoraEngineRef.current.stopPreview();
         agoraEngineRef.current.leaveChannel();
         agoraEngineRef.current.release();
         agoraEngineRef.current = null;
@@ -356,6 +359,7 @@ export default function ChatScreen() {
     } catch (e) {
       console.warn('Error releasing Agora engine:', e);
     }
+    setIsAgoraReady(false);
     setIsAgoraJoined(false);
     setRemoteUid(null);
   };
@@ -1565,11 +1569,16 @@ export default function ChatScreen() {
 
           {/* Video Stream Stage */}
           <View style={{ flex: 1, position: 'relative', justifyContent: 'center', alignItems: 'center', backgroundColor: '#0F172A' }}>
-            {/* Main Remote Feed View */}
-            {isAgoraJoined && remoteUid && !isVideoDisabled ? (
+            {/* Main Stage View */}
+            {isCameraInMainStage && isAgoraReady && !isVideoDisabled ? (
               <RtcSurfaceView
                 style={{ width: '100%', height: '100%' }}
-                canvas={{ uid: remoteUid }}
+                canvas={{ uid: 0, sourceType: VideoSourceType.VideoSourceCameraPrimary }}
+              />
+            ) : remoteUid && !isVideoDisabled ? (
+              <RtcSurfaceView
+                style={{ width: '100%', height: '100%' }}
+                canvas={{ uid: remoteUid, sourceType: VideoSourceType.VideoSourceRemote }}
               />
             ) : callStatus === 'connected' && !isVideoDisabled ? (
               <View style={{ width: '100%', height: '100%', justifyContent: 'center', alignItems: 'center', backgroundColor: '#1E293B' }}>
@@ -1708,29 +1717,53 @@ export default function ChatScreen() {
               </View>
             )}
 
-            {/* Self Picture-in-Picture (PiP) Window */}
-            <View style={{
-              position: 'absolute',
-              right: 18,
-              top: 18,
-              width: 104,
-              height: 148,
-              borderRadius: 16,
-              backgroundColor: '#1E293B',
-              borderWidth: 2,
-              borderColor: 'rgba(255, 255, 255, 0.25)',
-              overflow: 'hidden',
-              elevation: 8,
-              shadowColor: '#000',
-              shadowOpacity: 0.5,
-              shadowRadius: 10,
-              justifyContent: 'center',
-              alignItems: 'center'
-            }}>
-              {isAgoraJoined && !isVideoDisabled ? (
+            {/* Self Picture-in-Picture (PiP) Window (Tap to swap to main stage) */}
+            <TouchableOpacity
+              activeOpacity={0.85}
+              onPress={() => setIsCameraInMainStage((prev) => !prev)}
+              style={{
+                position: 'absolute',
+                right: 18,
+                top: 18,
+                width: 106,
+                height: 150,
+                borderRadius: 16,
+                backgroundColor: '#1E293B',
+                borderWidth: 2,
+                borderColor: isAgoraReady ? '#38BDF8' : 'rgba(255, 255, 255, 0.25)',
+                overflow: 'hidden',
+                elevation: 10,
+                shadowColor: '#000',
+                shadowOpacity: 0.5,
+                shadowRadius: 10,
+                justifyContent: 'center',
+                alignItems: 'center',
+                zIndex: 30
+              }}
+            >
+              {isCameraInMainStage ? (
+                remoteUid && !isVideoDisabled ? (
+                  <RtcSurfaceView
+                    style={{ width: '100%', height: '100%' }}
+                    zOrderMediaOverlay={true}
+                    canvas={{ uid: remoteUid, sourceType: VideoSourceType.VideoSourceRemote }}
+                  />
+                ) : (
+                  <View style={{ width: '100%', height: '100%', backgroundColor: '#0284C7', justifyContent: 'center', alignItems: 'center' }}>
+                    <Text style={{ fontSize: 28, fontWeight: '800', color: '#FFF' }}>
+                      {(partnerName || 'V').trim().charAt(0).toUpperCase()}
+                    </Text>
+                    <Text style={{ color: '#FFF', fontSize: 10, marginTop: 4, fontWeight: '700' }} numberOfLines={1}>
+                      {partnerName}
+                    </Text>
+                    <Text style={{ color: '#E0F2FE', fontSize: 8, marginTop: 2 }}>{t('Tap to swap')}</Text>
+                  </View>
+                )
+              ) : isAgoraReady && !isVideoDisabled ? (
                 <RtcSurfaceView
                   style={{ width: '100%', height: '100%' }}
-                  canvas={{ uid: 0, sourceType: VideoSourceType.VideoSourceCamera }}
+                  zOrderMediaOverlay={true}
+                  canvas={{ uid: 0, sourceType: VideoSourceType.VideoSourceCameraPrimary }}
                 />
               ) : isVideoDisabled ? (
                 <View style={{ alignItems: 'center' }}>
@@ -1739,13 +1772,8 @@ export default function ChatScreen() {
                 </View>
               ) : (
                 <View style={{ width: '100%', height: '100%', backgroundColor: '#334155', justifyContent: 'center', alignItems: 'center' }}>
-                  <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: '#475569', justifyContent: 'center', alignItems: 'center', marginBottom: 6 }}>
-                    <Feather name="user" size={22} color="#FFF" />
-                  </View>
-                  <Text style={{ color: '#FFF', fontSize: 11, fontWeight: '700' }}>{t('You')}</Text>
-                  <Text style={{ color: '#94A3B8', fontSize: 9, marginTop: 2 }}>
-                    {isFrontCamera ? 'Front Cam' : 'Rear Lens'}
-                  </Text>
+                  <ActivityIndicator size="small" color="#38BDF8" style={{ marginBottom: 6 }} />
+                  <Text style={{ color: '#FFF', fontSize: 11, fontWeight: '700' }}>{t('Starting...')}</Text>
                 </View>
               )}
               {isMuted && (
@@ -1763,7 +1791,7 @@ export default function ChatScreen() {
                   <Feather name="mic-off" size={11} color="#FFF" />
                 </View>
               )}
-            </View>
+            </TouchableOpacity>
           </View>
 
           {/* Bottom Call Action Controls Bar */}
