@@ -60,12 +60,18 @@ export default function CartScreen() {
   const [orderTransactionId, setOrderTransactionId] = useState('');
   const [orderSenderPhone, setOrderSenderPhone] = useState(profile.phone || '');
 
-  const JAZZCASH_PAY_NUMBER = '03054758667';
-  const JAZZCASH_PAY_TITLE = 'Maveshi Sehat Official';
+  // Pharmacy Direct Payment & Lock Status State
+  const [pharmacyPaymentInfo, setPharmacyPaymentInfo] = useState(null);
+  const [pharmacyLoading, setPharmacyLoading] = useState(false);
+
+  const activePayNumber = pharmacyPaymentInfo?.accountNumber || pharmacyPaymentInfo?.phone || '03054758667';
+  const activePayTitle = pharmacyPaymentInfo?.accountTitle || pharmacyPaymentInfo?.pharmacyName || 'Pharmacy Official';
+  const activePayWallet = pharmacyPaymentInfo?.walletType || 'JazzCash';
+  const isStoreLocked = Boolean(pharmacyPaymentInfo?.isLocked);
 
   const copyPaymentNumber = () => {
-    Clipboard.setString(JAZZCASH_PAY_NUMBER);
-    Alert.alert(t('Copied!'), `${t('JazzCash Number')} ${JAZZCASH_PAY_NUMBER} ${t('copied to clipboard.')}`);
+    Clipboard.setString(activePayNumber);
+    Alert.alert(t('Copied!'), `${activePayWallet} ${t('Number')} ${activePayNumber} ${t('copied to clipboard.')}`);
   };
 
   const handlePickOrderProof = (fromCamera = false) => {
@@ -110,6 +116,31 @@ export default function CartScreen() {
     });
     return () => unsubscribe();
   }, []);
+
+  useEffect(() => {
+    const primaryPharmacyId = cartItems[0]?.pharmacyId;
+    if (!primaryPharmacyId) {
+      setPharmacyPaymentInfo(null);
+      return;
+    }
+
+    const fetchPharmacyPayment = async () => {
+      try {
+        setPharmacyLoading(true);
+        const res = await fetch(`https://maveshi-sehat-api.onrender.com/api/pharmacy/${primaryPharmacyId}/payment-info`);
+        if (res.ok) {
+          const data = await res.json();
+          setPharmacyPaymentInfo(data);
+        }
+      } catch (err) {
+        console.warn('Failed to load pharmacy payment info:', err);
+      } finally {
+        setPharmacyLoading(false);
+      }
+    };
+
+    fetchPharmacyPayment();
+  }, [cartItems]);
 
   const handleIncrement = (item) => {
     updateQuantity(item.id, item.quantity + 1);
@@ -181,6 +212,14 @@ export default function CartScreen() {
   const handleCheckoutPress = () => {
     if (cartItems.length === 0) {
       Alert.alert(t('Empty Cart'), t('Please add medicines to place an order.'));
+      return;
+    }
+
+    if (isStoreLocked) {
+      Alert.alert(
+        t('Pharmacy Store Paused'),
+        `${pharmacyPaymentInfo?.pharmacyName || t('This pharmacy')} ${t('is temporarily paused due to platform commission settlement. Orders cannot be placed at this time.')}`
+      );
       return;
     }
 
@@ -421,6 +460,50 @@ export default function CartScreen() {
             </View>
           ) : (
             <>
+              {/* Pharmacy Store & Fulfillment Info Card */}
+              {pharmacyPaymentInfo && (
+                <View style={{
+                  backgroundColor: isStoreLocked ? '#FEF2F2' : (isDark ? '#1E293B' : '#F0FDF4'),
+                  borderRadius: 14,
+                  padding: 12,
+                  marginBottom: 14,
+                  borderWidth: 1,
+                  borderColor: isStoreLocked ? '#F87171' : (isDark ? 'rgba(255, 255, 255, 0.1)' : '#BBF7D0'),
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'space-between'
+                }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 10 }}>
+                    <MaterialCommunityIcons 
+                      name={isStoreLocked ? "store-off" : "storefront"} 
+                      size={20} 
+                      color={isStoreLocked ? "#DC2626" : "#059669"} 
+                      style={{ marginRight: 8 }}
+                    />
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ fontSize: 13, fontWeight: '800', color: isStoreLocked ? "#991B1B" : (isDark ? '#FFF' : '#065F46') }}>
+                        {pharmacyPaymentInfo.pharmacyName}
+                      </Text>
+                      <Text style={{ fontSize: 11, color: isStoreLocked ? "#B91C1C" : (isDark ? '#94A3B8' : '#047857'), marginTop: 2 }}>
+                        {isStoreLocked 
+                          ? t('Store temporarily paused for commission settlement') 
+                          : t('Responsible for order fulfillment & delivery')}
+                      </Text>
+                    </View>
+                  </View>
+                  <View style={{
+                    paddingHorizontal: 8,
+                    paddingVertical: 4,
+                    borderRadius: 8,
+                    backgroundColor: isStoreLocked ? '#FEE2E2' : '#DCFCE7'
+                  }}>
+                    <Text style={{ fontSize: 10, fontWeight: '800', color: isStoreLocked ? '#DC2626' : '#16A34A' }}>
+                      {isStoreLocked ? t('Paused') : t('Active')}
+                    </Text>
+                  </View>
+                </View>
+              )}
+
               {/* Cart Items List */}
               <View style={styles.itemsWrapper}>
                 {cartItems.map((item) => renderCartItem(item))}
@@ -730,7 +813,7 @@ export default function CartScreen() {
                 <Text style={styles.payAmountValue}>Rs. {Math.round(total)}</Text>
               </View>
 
-              {/* JazzCash Transfer Details Box */}
+              {/* Wallet Transfer Details Box */}
               <View style={{
                 backgroundColor: isDark ? 'rgba(255, 255, 255, 0.05)' : '#FEF2F2',
                 borderRadius: 14,
@@ -740,20 +823,24 @@ export default function CartScreen() {
                 borderColor: '#FCA5A5'
               }}>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                  <Text style={{ fontSize: 12, color: colors.textSecondary }}>{t('Account Title')}:</Text>
-                  <Text style={{ fontSize: 13, fontWeight: '700', color: colors.textPrimary }}>{JAZZCASH_PAY_TITLE}</Text>
+                  <Text style={{ fontSize: 12, color: colors.textSecondary }}>{t('Pharmacy Name')}:</Text>
+                  <Text style={{ fontSize: 13, fontWeight: '700', color: colors.textPrimary }}>{pharmacyPaymentInfo?.pharmacyName || t('Official Pharmacy')}</Text>
                 </View>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                  <Text style={{ fontSize: 12, color: colors.textSecondary }}>{t('JazzCash Number')}:</Text>
+                  <Text style={{ fontSize: 12, color: colors.textSecondary }}>{t('Account Title')}:</Text>
+                  <Text style={{ fontSize: 13, fontWeight: '700', color: colors.textPrimary }}>{activePayTitle}</Text>
+                </View>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                  <Text style={{ fontSize: 12, color: colors.textSecondary }}>{activePayWallet} {t('Number')}:</Text>
                   <TouchableOpacity onPress={copyPaymentNumber} style={{ flexDirection: 'row', alignItems: 'center' }}>
                     <Text style={{ fontSize: 14, fontWeight: '900', color: '#DC2626', marginRight: 6 }}>
-                      {JAZZCASH_PAY_NUMBER}
+                      {activePayNumber}
                     </Text>
                     <Feather name="copy" size={13} color="#DC2626" />
                   </TouchableOpacity>
                 </View>
                 <Text style={{ fontSize: 11, color: colors.textSecondary, marginTop: 4 }}>
-                  {t('Transfer Rs.')} {Math.round(total)} {t('to this JazzCash account, then enter TID and attach screenshot below.')}
+                  {t('Transfer Rs.')} {Math.round(total)} {t('directly to the pharmacy account above. The pharmacy is responsible for verifying your payment and managing delivery.')}
                 </Text>
               </View>
 

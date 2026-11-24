@@ -72,6 +72,36 @@ pool.connect((err, client, release) => {
       ALTER TABLE orders ADD COLUMN IF NOT EXISTS payment_status VARCHAR(50) DEFAULT 'unpaid';
       ALTER TABLE orders ADD COLUMN IF NOT EXISTS sender_phone VARCHAR(50);
       ALTER TABLE orders ADD COLUMN IF NOT EXISTS payment_proof_url TEXT;
+      ALTER TABLE orders ADD COLUMN IF NOT EXISTS commission_rate DECIMAL(5, 2) DEFAULT 10.00;
+      ALTER TABLE orders ADD COLUMN IF NOT EXISTS admin_commission DECIMAL(10, 2) DEFAULT 0.00;
+      ALTER TABLE orders ADD COLUMN IF NOT EXISTS pharmacy_earnings DECIMAL(10, 2) DEFAULT 0.00;
+
+      -- Pharmacy Direct Payment & Commission Columns
+      ALTER TABLE pharmacies ADD COLUMN IF NOT EXISTS payment_wallet_type VARCHAR(50) DEFAULT 'JazzCash';
+      ALTER TABLE pharmacies ADD COLUMN IF NOT EXISTS payment_account_title VARCHAR(150);
+      ALTER TABLE pharmacies ADD COLUMN IF NOT EXISTS payment_account_number VARCHAR(50);
+      ALTER TABLE pharmacies ADD COLUMN IF NOT EXISTS commission_rate DECIMAL(5, 2) DEFAULT 10.00;
+      ALTER TABLE pharmacies ADD COLUMN IF NOT EXISTS commission_due DECIMAL(10, 2) DEFAULT 0.00;
+      ALTER TABLE pharmacies ADD COLUMN IF NOT EXISTS commission_paid DECIMAL(10, 2) DEFAULT 0.00;
+      ALTER TABLE pharmacies ADD COLUMN IF NOT EXISTS is_locked BOOLEAN DEFAULT FALSE;
+      ALTER TABLE pharmacies ADD COLUMN IF NOT EXISTS lock_reason TEXT;
+
+      -- Pharmacy Commission Settlement Ledger
+      CREATE TABLE IF NOT EXISTS pharmacy_commission_settlements (
+        id SERIAL PRIMARY KEY,
+        pharmacy_id INT REFERENCES pharmacies(id) ON DELETE CASCADE,
+        pharmacy_name VARCHAR(255),
+        amount DECIMAL(10, 2) NOT NULL,
+        payment_method VARCHAR(50) DEFAULT 'JazzCash',
+        account_number VARCHAR(50) DEFAULT '03054758667',
+        sender_phone VARCHAR(50) NOT NULL,
+        transaction_id VARCHAR(100) NOT NULL,
+        proof_image_url TEXT NOT NULL,
+        status VARCHAR(20) DEFAULT 'pending',
+        admin_notes TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        reviewed_at TIMESTAMP
+      );
 
       ALTER TABLE users ADD COLUMN IF NOT EXISTS scans_used INT DEFAULT 0;
       ALTER TABLE users ADD COLUMN IF NOT EXISTS subscription_status VARCHAR(50) DEFAULT 'free';

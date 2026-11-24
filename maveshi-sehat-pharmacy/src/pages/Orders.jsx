@@ -227,8 +227,27 @@ export default function Orders({ pharmacy, onOrderAction, formatPrice, getStatus
                     </div>
 
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-t border-slate-100 pt-4 gap-4">
-                      <div className="text-xs text-slate-400">
-                        Total Amount: <span className="text-slate-900 font-extrabold">{formatPrice(order.total_price)}</span>
+                      <div className="flex flex-wrap items-center gap-2.5 text-xs">
+                        <span className="text-slate-500">Gross: <strong className="text-slate-900">{formatPrice(order.total_price)}</strong></span>
+                        <span className="text-slate-300">|</span>
+                        <span className="text-emerald-700 font-bold bg-emerald-50 px-2.5 py-0.5 rounded-md border border-emerald-200">
+                          Your 90%: {formatPrice(order.pharmacy_earnings || (order.total_price * 0.90))}
+                        </span>
+                        <span className="text-slate-300">|</span>
+                        <span className="text-amber-700 font-bold bg-amber-50 px-2.5 py-0.5 rounded-md border border-amber-200">
+                          Platform 10%: {formatPrice(order.admin_commission || (order.total_price * 0.10))}
+                        </span>
+
+                        {order.payment_proof_url && (
+                          <a 
+                            href={order.payment_proof_url} 
+                            target="_blank" 
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-1 text-[11px] font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 px-2.5 py-1 rounded-md border border-blue-200 transition-colors ml-1"
+                          >
+                            🔍 Customer Receipt
+                          </a>
+                        )}
                       </div>
                       
                       <div className="flex gap-2 w-full sm:w-auto">

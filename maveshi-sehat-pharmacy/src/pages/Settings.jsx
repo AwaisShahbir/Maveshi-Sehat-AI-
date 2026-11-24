@@ -2,7 +2,7 @@ import { API_BASE_URL } from '../config';
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   User, Lock, Bell, Store, CheckCircle2, AlertCircle, 
-  Eye, EyeOff, ShieldCheck 
+  Eye, EyeOff, ShieldCheck, CreditCard, RefreshCw, Upload, DollarSign, AlertTriangle, ArrowRight
 } from 'lucide-react';
 import '../styles/Settings.css';
 
@@ -23,6 +23,20 @@ export default function Settings({ pharmacy }) {
   const [province, setProvince] = useState('');
   const [address, setAddress] = useState('');
   const [description, setDescription] = useState('');
+
+  // Payment Credentials & Commission States
+  const [walletType, setWalletType] = useState('JazzCash');
+  const [accountTitle, setAccountTitle] = useState('');
+  const [accountNumber, setAccountNumber] = useState('');
+  const [commissionData, setCommissionData] = useState(null);
+  const [commissionLoading, setCommissionLoading] = useState(false);
+  const [isSettlementModalOpen, setIsSettlementModalOpen] = useState(false);
+  const [settlementAmount, setSettlementAmount] = useState('');
+  const [settlementSenderPhone, setSettlementSenderPhone] = useState(pharmacy?.phone || '');
+  const [settlementTid, setSettlementTid] = useState('');
+  const [settlementProofBase64, setSettlementProofBase64] = useState(null);
+  const [settlementSubmitting, setSettlementSubmitting] = useState(false);
+  const settlementFileRef = useRef(null);
   
   // Avatar / Logo State
   const [avatarUrl, setAvatarUrl] = useState(() => {
@@ -72,6 +86,9 @@ export default function Settings({ pharmacy }) {
           setProvince(data.province || '');
           setAddress(data.address || '');
           setDescription(data.description || '');
+          setWalletType(data.payment_wallet_type || 'JazzCash');
+          setAccountTitle(data.payment_account_title || data.name || '');
+          setAccountNumber(data.payment_account_number || data.phone || '');
         }
       } catch (err) {
         console.error('Failed to load pharmacy profile:', err);
@@ -283,6 +300,103 @@ export default function Settings({ pharmacy }) {
     }
   };
 
+  const fetchCommissionStatus = async () => {
+    if (!pharmacy?.id) return;
+    try {
+      setCommissionLoading(true);
+      const res = await fetch(`${API_BASE_URL}/api/pharmacy/${pharmacy.id}/commission-status`);
+      if (res.ok) {
+        const data = await res.json();
+        setCommissionData(data);
+        if (data.commissionDue !== undefined) {
+          setSettlementAmount(String(data.commissionDue));
+        }
+      }
+    } catch (err) {
+      console.error('Failed to load commission data:', err);
+    } finally {
+      setCommissionLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (subTab === 'commissions') {
+      fetchCommissionStatus();
+    }
+  }, [subTab, pharmacy?.id]);
+
+  const handleSavePaymentCredentials = async (e) => {
+    e.preventDefault();
+    if (!accountTitle.trim() || !accountNumber.trim()) {
+      setFeedback({ type: 'error', message: 'Please enter account title and account number.' });
+      return;
+    }
+    try {
+      setLoading(true);
+      const res = await fetch(`${API_BASE_URL}/api/pharmacy/${pharmacy.id}/payment-info`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          walletType,
+          accountTitle: accountTitle.trim(),
+          accountNumber: accountNumber.trim()
+        })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to update payment info');
+      setFeedback({ type: 'success', message: 'Online payment credentials updated successfully! Farmers will now transfer directly to your account.' });
+    } catch (err) {
+      setFeedback({ type: 'error', message: err.message });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSettlementFilePick = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setSettlementProofBase64(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleSubmitSettlement = async (e) => {
+    e.preventDefault();
+    if (!settlementSenderPhone || !settlementTid || !settlementProofBase64) {
+      alert('Please enter your sender phone number, TID, and attach payment screenshot proof.');
+      return;
+    }
+    try {
+      setSettlementSubmitting(true);
+      const res = await fetch(`${API_BASE_URL}/api/pharmacy/settlements/submit`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          pharmacyId: pharmacy.id,
+          amount: parseFloat(settlementAmount),
+          senderPhone: settlementSenderPhone.trim(),
+          transactionId: settlementTid.trim(),
+          paymentMethod: 'JazzCash',
+          proofBase64: settlementProofBase64
+        })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to submit settlement proof');
+      alert(data.message || 'Settlement submitted! Admin will verify and unlock your store.');
+      setIsSettlementModalOpen(false);
+      setSettlementTid('');
+      setSettlementProofBase64(null);
+      fetchCommissionStatus();
+    } catch (err) {
+      alert('Error submitting settlement: ' + err.message);
+    } finally {
+      setSettlementSubmitting(false);
+    }
+  };
+
   return (
     <div className="settings-view">
       <div className="settings-layout">
@@ -291,6 +405,7 @@ export default function Settings({ pharmacy }) {
         <div className="settings-nav">
           {[
             { id: 'profile', label: 'Profile & Account', icon: <User size={18} /> },
+            { id: 'commissions', label: 'Payment & Commissions', icon: <CreditCard size={18} /> },
             { id: 'security', label: 'Security', icon: <Lock size={18} /> },
             { id: 'notifications', label: 'Notifications', icon: <Bell size={18} /> },
             { id: 'store', label: 'Store Settings', icon: <Store size={18} /> }
@@ -794,6 +909,357 @@ export default function Settings({ pharmacy }) {
                   {loading ? 'Applying...' : 'Apply Store Settings'}
                 </button>
               </div>
+            </div>
+          )}
+
+          {/* ─── Payment & Platform Commission Tab ─── */}
+          {subTab === 'commissions' && (
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+                <div>
+                  <h3 className="settings-heading" style={{ margin: 0 }}>Payment & Platform Commissions</h3>
+                  <p className="settings-subheading" style={{ margin: '4px 0 0 0' }}>Manage customer direct payment credentials & 10% platform commission ledger</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={fetchCommissionStatus}
+                  className="btn"
+                  style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 8, fontSize: 13, cursor: 'pointer', backgroundColor: '#F1F5F9', border: '1px solid #CBD5E1', color: '#334155' }}
+                >
+                  <RefreshCw size={14} className={commissionLoading ? 'animate-spin' : ''} /> Refresh Ledger
+                </button>
+              </div>
+
+              {/* Commission Debt & Store Status Alert */}
+              {commissionData && (
+                <div style={{
+                  backgroundColor: commissionData.isLocked ? '#FEF2F2' : '#F0FDF4',
+                  border: `1px solid ${commissionData.isLocked ? '#F87171' : '#86EFAC'}`,
+                  borderRadius: 12,
+                  padding: 16,
+                  marginBottom: 24
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16 }}>
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                        {commissionData.isLocked ? (
+                          <AlertTriangle size={20} color="#DC2626" />
+                        ) : (
+                          <CheckCircle2 size={20} color="#059669" />
+                        )}
+                        <h4 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: commissionData.isLocked ? '#991B1B' : '#065F46' }}>
+                          {commissionData.isLocked ? 'Store Paused: Commission Limit Reached' : 'Store Active: Commission in Good Standing'}
+                        </h4>
+                      </div>
+                      <p style={{ margin: 0, fontSize: 13, color: commissionData.isLocked ? '#B91C1C' : '#047857' }}>
+                        {commissionData.isLocked
+                          ? `Your unpaid commission is Rs. ${commissionData.commissionDue.toFixed(2)}, which exceeds the Rs. 1,000 credit threshold. Farmers cannot place orders until you settle this balance.`
+                          : `Platform charges 10% commission on sales. Your outstanding commission due is Rs. ${commissionData.commissionDue.toFixed(2)} (Limit: Rs. 1,000). Remaining allowance: Rs. ${commissionData.remainingCredit.toFixed(2)}.`}
+                      </p>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => setIsSettlementModalOpen(true)}
+                      style={{
+                        padding: '10px 18px',
+                        backgroundColor: '#059669',
+                        color: '#FFF',
+                        borderRadius: 8,
+                        fontWeight: 700,
+                        fontSize: 13,
+                        border: 'none',
+                        cursor: 'pointer',
+                        whiteSpace: 'nowrap',
+                        boxShadow: '0 2px 4px rgba(5, 150, 105, 0.2)'
+                      }}
+                    >
+                      Settle Commission
+                    </button>
+                  </div>
+
+                  {/* Progress bar towards Rs. 1000 */}
+                  <div style={{ marginTop: 14 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, fontWeight: 700, color: '#64748B', marginBottom: 4 }}>
+                      <span>Due: Rs. {commissionData.commissionDue.toFixed(2)}</span>
+                      <span>Max Allowance: Rs. 1,000.00</span>
+                    </div>
+                    <div style={{ width: '100%', height: 8, backgroundColor: '#E2E8F0', borderRadius: 4, overflow: 'hidden' }}>
+                      <div style={{
+                        width: `${Math.min(100, (commissionData.commissionDue / 1000) * 100)}%`,
+                        height: '100%',
+                        backgroundColor: commissionData.isLocked ? '#DC2626' : (commissionData.commissionDue > 700 ? '#F59E0B' : '#059669'),
+                        borderRadius: 4,
+                        transition: 'width 0.3s ease'
+                      }} />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Form 1: Online Customer Payment Credentials */}
+              <form onSubmit={handleSavePaymentCredentials} style={{ marginBottom: 32 }}>
+                <div style={{ borderBottom: '1px solid #E2E8F0', paddingBottom: 12, marginBottom: 16 }}>
+                  <h4 style={{ fontSize: 16, fontWeight: 700, color: '#1E293B', margin: '0 0 4px 0' }}>
+                    Customer Payment Credentials
+                  </h4>
+                  <p style={{ fontSize: 13, color: '#64748B', margin: 0 }}>
+                    When farmers checkout with online payment, they send money directly to this wallet. You verify the receipt and dispatch delivery.
+                  </p>
+                </div>
+
+                <div className="settings-form-grid">
+                  <div className="form-group">
+                    <label className="settings-label">Wallet / Bank Type</label>
+                    <select
+                      className="form-control settings-input"
+                      value={walletType}
+                      onChange={(e) => setWalletType(e.target.value)}
+                    >
+                      <option value="JazzCash">JazzCash</option>
+                      <option value="EasyPaisa">EasyPaisa</option>
+                      <option value="Bank Account">Bank Account / Nayapay</option>
+                    </select>
+                  </div>
+
+                  <div className="form-group">
+                    <label className="settings-label">Account Title</label>
+                    <input
+                      type="text"
+                      className="form-control settings-input"
+                      value={accountTitle}
+                      onChange={(e) => setAccountTitle(e.target.value)}
+                      placeholder="e.g. Al-Madina Vet Pharmacy"
+                      required
+                    />
+                  </div>
+
+                  <div className="form-group settings-form-grid-full">
+                    <label className="settings-label">Account / Mobile Number</label>
+                    <input
+                      type="text"
+                      className="form-control settings-input"
+                      value={accountNumber}
+                      onChange={(e) => setAccountNumber(e.target.value)}
+                      placeholder="e.g. 03001234567 or IBAN"
+                      required
+                    />
+                    <span className="settings-avatar-hint">
+                      This number is presented to customers during mobile app checkout with a 1-tap copy button.
+                    </span>
+                  </div>
+                </div>
+
+                <div className="settings-form-footer">
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="btn btn-primary settings-save-btn"
+                  >
+                    {loading ? 'Saving...' : 'Save Payment Credentials'}
+                  </button>
+                </div>
+              </form>
+
+              {/* Commission Financials Summary Grid */}
+              {commissionData && (
+                <div>
+                  <h4 style={{ fontSize: 16, fontWeight: 700, color: '#1E293B', margin: '0 0 12px 0' }}>
+                    Financials & Commission Breakdown
+                  </h4>
+                  
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16, marginBottom: 24 }}>
+                    <div style={{ backgroundColor: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 12, padding: 16 }}>
+                      <span style={{ fontSize: 12, color: '#64748B', fontWeight: 600 }}>Total Gross Sales</span>
+                      <h3 style={{ fontSize: 20, fontWeight: 800, color: '#0F172A', margin: '6px 0 0 0' }}>
+                        Rs. {(commissionData.salesSummary?.total_sales || 0).toLocaleString()}
+                      </h3>
+                    </div>
+
+                    <div style={{ backgroundColor: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: 12, padding: 16 }}>
+                      <span style={{ fontSize: 12, color: '#166534', fontWeight: 600 }}>Your Net Revenue (90%)</span>
+                      <h3 style={{ fontSize: 20, fontWeight: 800, color: '#15803D', margin: '6px 0 0 0' }}>
+                        Rs. {(commissionData.salesSummary?.total_pharmacy_earnings || 0).toLocaleString()}
+                      </h3>
+                    </div>
+
+                    <div style={{ backgroundColor: '#FEF3C7', border: '1px solid #FDE68A', borderRadius: 12, padding: 16 }}>
+                      <span style={{ fontSize: 12, color: '#92400E', fontWeight: 600 }}>Platform Commission (10%)</span>
+                      <h3 style={{ fontSize: 20, fontWeight: 800, color: '#B45309', margin: '6px 0 0 0' }}>
+                        Rs. {(commissionData.salesSummary?.total_admin_commission || 0).toLocaleString()}
+                      </h3>
+                    </div>
+
+                    <div style={{ backgroundColor: '#EFF6FF', border: '1px solid #BFDBFE', borderRadius: 12, padding: 16 }}>
+                      <span style={{ fontSize: 12, color: '#1E40AF', fontWeight: 600 }}>Settled to Date</span>
+                      <h3 style={{ fontSize: 20, fontWeight: 800, color: '#1D4ED8', margin: '6px 0 0 0' }}>
+                        Rs. {(commissionData.commissionPaid || 0).toLocaleString()}
+                      </h3>
+                    </div>
+                  </div>
+
+                  {/* Past Settlements History */}
+                  <h5 style={{ fontSize: 14, fontWeight: 700, color: '#334155', margin: '0 0 10px 0' }}>
+                    Past Commission Settlements Submitted to Admin
+                  </h5>
+                  {commissionData.settlements?.length === 0 ? (
+                    <p style={{ fontSize: 13, color: '#94A3B8' }}>No commission settlements recorded yet.</p>
+                  ) : (
+                    <div style={{ overflowX: 'auto', border: '1px solid #E2E8F0', borderRadius: 10 }}>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+                        <thead>
+                          <tr style={{ backgroundColor: '#F8FAFC', borderBottom: '1px solid #E2E8F0', textAlign: 'left' }}>
+                            <th style={{ padding: '10px 14px' }}>Date</th>
+                            <th style={{ padding: '10px 14px' }}>Amount</th>
+                            <th style={{ padding: '10px 14px' }}>TID</th>
+                            <th style={{ padding: '10px 14px' }}>Status</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {commissionData.settlements.map((s) => (
+                            <tr key={s.id} style={{ borderBottom: '1px solid #F1F5F9' }}>
+                              <td style={{ padding: '10px 14px' }}>{new Date(s.created_at).toLocaleDateString()}</td>
+                              <td style={{ padding: '10px 14px', fontWeight: 700 }}>Rs. {parseFloat(s.amount).toFixed(2)}</td>
+                              <td style={{ padding: '10px 14px', fontFamily: 'monospace' }}>{s.transaction_id}</td>
+                              <td style={{ padding: '10px 14px' }}>
+                                <span style={{
+                                  padding: '3px 8px',
+                                  borderRadius: 6,
+                                  fontSize: 11,
+                                  fontWeight: 700,
+                                  backgroundColor: s.status === 'approved' ? '#DCFCE7' : (s.status === 'rejected' ? '#FEE2E2' : '#FEF3C7'),
+                                  color: s.status === 'approved' ? '#16A34A' : (s.status === 'rejected' ? '#DC2626' : '#D97706')
+                                }}>
+                                  {s.status.toUpperCase()}
+                                </span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Settlement Modal */}
+              {isSettlementModalOpen && (
+                <div style={{
+                  position: 'fixed',
+                  inset: 0,
+                  backgroundColor: 'rgba(0, 0, 0, 0.6)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  zIndex: 9999,
+                  padding: 16
+                }}>
+                  <div style={{
+                    backgroundColor: '#FFF',
+                    borderRadius: 16,
+                    width: '100%',
+                    maxWidth: 480,
+                    padding: 24,
+                    boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)'
+                  }}>
+                    <h3 style={{ fontSize: 18, fontWeight: 800, color: '#1E293B', margin: '0 0 8px 0' }}>
+                      Settle Platform Commission
+                    </h3>
+                    <p style={{ fontSize: 13, color: '#64748B', margin: '0 0 16px 0' }}>
+                      Transfer your owed commission to the platform Admin JazzCash account below. Once approved, your store is instantly unlocked.
+                    </p>
+
+                    <div style={{ backgroundColor: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 10, padding: 12, marginBottom: 16 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#64748B', marginBottom: 4 }}>
+                        <span>Admin JazzCash Number:</span>
+                        <strong style={{ color: '#DC2626', fontSize: 14 }}>03054758667</strong>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#64748B' }}>
+                        <span>Account Title:</span>
+                        <strong style={{ color: '#1E293B' }}>Maveshi Sehat Official</strong>
+                      </div>
+                    </div>
+
+                    <form onSubmit={handleSubmitSettlement}>
+                      <div style={{ marginBottom: 12 }}>
+                        <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#475569', marginBottom: 4 }}>
+                          Amount to Settle (PKR)
+                        </label>
+                        <input
+                          type="number"
+                          className="form-control"
+                          value={settlementAmount}
+                          onChange={(e) => setSettlementAmount(e.target.value)}
+                          required
+                          min="1"
+                          style={{ width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid #CBD5E1' }}
+                        />
+                      </div>
+
+                      <div style={{ marginBottom: 12 }}>
+                        <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#475569', marginBottom: 4 }}>
+                          Your Sender JazzCash Phone Number
+                        </label>
+                        <input
+                          type="text"
+                          className="form-control"
+                          value={settlementSenderPhone}
+                          onChange={(e) => setSettlementSenderPhone(e.target.value)}
+                          placeholder="03XXXXXXXXX"
+                          required
+                          style={{ width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid #CBD5E1' }}
+                        />
+                      </div>
+
+                      <div style={{ marginBottom: 12 }}>
+                        <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#475569', marginBottom: 4 }}>
+                          JazzCash Transaction ID (TID)
+                        </label>
+                        <input
+                          type="text"
+                          className="form-control"
+                          value={settlementTid}
+                          onChange={(e) => setSettlementTid(e.target.value)}
+                          placeholder="e.g. JC891238910"
+                          required
+                          style={{ width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid #CBD5E1' }}
+                        />
+                      </div>
+
+                      <div style={{ marginBottom: 20 }}>
+                        <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#475569', marginBottom: 4 }}>
+                          Payment Receipt Screenshot Proof
+                        </label>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          ref={settlementFileRef}
+                          onChange={handleSettlementFilePick}
+                          required
+                          style={{ fontSize: 12 }}
+                        />
+                      </div>
+
+                      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+                        <button
+                          type="button"
+                          onClick={() => setIsSettlementModalOpen(false)}
+                          style={{ padding: '8px 16px', borderRadius: 8, border: '1px solid #CBD5E1', backgroundColor: '#F1F5F9', cursor: 'pointer', fontSize: 13 }}
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="submit"
+                          disabled={settlementSubmitting}
+                          style={{ padding: '8px 18px', borderRadius: 8, border: 'none', backgroundColor: '#059669', color: '#FFF', fontWeight: 700, cursor: 'pointer', fontSize: 13 }}
+                        >
+                          {settlementSubmitting ? 'Submitting Proof...' : 'Submit Settlement Proof'}
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

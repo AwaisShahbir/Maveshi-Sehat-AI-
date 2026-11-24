@@ -11,14 +11,21 @@ import {
   RefreshCw,
   Search,
   Check,
-  X
+  X,
+  Store,
+  AlertTriangle,
+  Lock,
+  Unlock,
+  DollarSign
 } from 'lucide-react';
 import '../styles/App.css';
 
 export default function SubscriptionsAndPayments() {
-  const [activeTab, setActiveTab] = useState('subscriptions'); // 'subscriptions' or 'orders'
+  const [activeTab, setActiveTab] = useState('subscriptions'); // 'subscriptions', 'orders', or 'commissions'
   const [subscriptions, setSubscriptions] = useState([]);
   const [orderProofs, setOrderProofs] = useState([]);
+  const [pharmacyCommissions, setPharmacyCommissions] = useState([]);
+  const [pharmacySettlements, setPharmacySettlements] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedProofImg, setSelectedProofImg] = useState(null);
@@ -48,9 +55,38 @@ export default function SubscriptionsAndPayments() {
     }
   };
 
+  const fetchPharmacyCommissions = async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/admin/pharmacies-commissions`);
+      if (res.ok) {
+        const data = await res.json();
+        setPharmacyCommissions(data);
+      }
+    } catch (err) {
+      console.error('Error fetching pharmacy commissions:', err);
+    }
+  };
+
+  const fetchPharmacySettlements = async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/admin/pharmacy-settlements`);
+      if (res.ok) {
+        const data = await res.json();
+        setPharmacySettlements(data);
+      }
+    } catch (err) {
+      console.error('Error fetching pharmacy settlements:', err);
+    }
+  };
+
   const loadAll = async () => {
     setLoading(true);
-    await Promise.all([fetchSubscriptions(), fetchOrderProofs()]);
+    await Promise.all([
+      fetchSubscriptions(),
+      fetchOrderProofs(),
+      fetchPharmacyCommissions(),
+      fetchPharmacySettlements()
+    ]);
     setLoading(false);
   };
 
@@ -147,8 +183,94 @@ export default function SubscriptionsAndPayments() {
     }
   };
 
+  const handleApproveSettlement = async (id, pharmacyName, amount) => {
+    if (!window.confirm(`Approve commission settlement of Rs. ${amount} from '${pharmacyName}'? This will deduct the amount from their debt and restore their store if under Rs. 1,000.`)) {
+      return;
+    }
+    try {
+      setActionLoading(true);
+      const res = await fetch(`${API_BASE_URL}/api/admin/pharmacy-settlements/${id}/approve`, {
+        method: 'PUT'
+      });
+      const data = await res.json();
+      if (res.ok) {
+        alert(data.message || 'Settlement approved!');
+        fetchPharmacySettlements();
+        fetchPharmacyCommissions();
+      } else {
+        alert(data.error || 'Failed to approve settlement');
+      }
+    } catch (e) {
+      alert('Error: ' + e.message);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleRejectSettlement = async (id) => {
+    const reason = window.prompt('Enter reason for rejecting this settlement proof:', 'TID not verified in JazzCash account');
+    if (!reason) return;
+    try {
+      setActionLoading(true);
+      const res = await fetch(`${API_BASE_URL}/api/admin/pharmacy-settlements/${id}/reject`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reason })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        alert(data.message || 'Settlement rejected.');
+        fetchPharmacySettlements();
+      } else {
+        alert(data.error || 'Failed to reject settlement');
+      }
+    } catch (e) {
+      alert('Error: ' + e.message);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleTogglePharmacyLock = async (pharmacyId, currentLock, pharmacyName) => {
+    const nextLock = !currentLock;
+    const confirmMsg = nextLock
+      ? `Manually lock '${pharmacyName}' store? Farmers will not be able to place orders from this pharmacy.`
+      : `Unlock '${pharmacyName}' store? This will restore their store in the marketplace.`;
+    if (!window.confirm(confirmMsg)) return;
+
+    try {
+      setActionLoading(true);
+      const res = await fetch(`${API_BASE_URL}/api/admin/pharmacies/${pharmacyId}/toggle-lock`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isLocked: nextLock, reason: nextLock ? 'Manually locked by administrator' : null })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        alert(data.message || 'Pharmacy lock status updated.');
+        fetchPharmacyCommissions();
+      } else {
+        alert(data.error || 'Failed to toggle lock');
+      }
+    } catch (e) {
+      alert('Error: ' + e.message);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   const pendingSubsCount = subscriptions.filter(s => s.status === 'pending').length;
   const pendingOrdersCount = orderProofs.filter(o => o.payment_status === 'pending_verification').length;
+  const pendingSettlementsCount = pharmacySettlements.filter(s => s.status === 'pending').length;
+
+  const filteredCommissions = pharmacyCommissions.filter(p => {
+    const q = searchTerm.toLowerCase();
+    return (
+      (p.name && p.name.toLowerCase().includes(q)) ||
+      (p.owner_name && p.owner_name.toLowerCase().includes(q)) ||
+      (p.phone && p.phone.includes(q))
+    );
+  });
 
   const filteredSubs = subscriptions.filter(s => {
     const q = searchTerm.toLowerCase();
@@ -264,6 +386,38 @@ export default function SubscriptionsAndPayments() {
               fontWeight: '800'
             }}>
               {pendingOrdersCount}
+            </span>
+          )}
+        </button>
+
+        <button
+          onClick={() => setActiveTab('commissions')}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '12px 20px',
+            fontSize: '14px',
+            fontWeight: '700',
+            border: 'none',
+            borderBottom: activeTab === 'commissions' ? '3px solid #059669' : '3px solid transparent',
+            color: activeTab === 'commissions' ? '#059669' : '#64748B',
+            backgroundColor: 'transparent',
+            cursor: 'pointer'
+          }}
+        >
+          <Store size={18} />
+          Pharmacy Commissions & Settlements
+          {pendingSettlementsCount > 0 && (
+            <span style={{
+              backgroundColor: '#EF4444',
+              color: '#FFF',
+              borderRadius: '12px',
+              padding: '2px 8px',
+              fontSize: '11px',
+              fontWeight: '800'
+            }}>
+              {pendingSettlementsCount}
             </span>
           )}
         </button>
@@ -551,6 +705,294 @@ export default function SubscriptionsAndPayments() {
               </tbody>
             </table>
           )}
+        </div>
+      )}
+
+      {/* Tab 3: Pharmacy Commissions & Settlements */}
+      {activeTab === 'commissions' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          
+          {/* Financials KPI Header */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
+            <div style={{ backgroundColor: '#FFF', padding: '18px', borderRadius: '14px', border: '1px solid #E2E8F0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+              <span style={{ fontSize: '12px', fontWeight: '700', color: '#64748B' }}>TOTAL MARKETPLACE SALES</span>
+              <h2 style={{ fontSize: '24px', fontWeight: '900', color: '#0F172A', margin: '8px 0 0 0' }}>
+                Rs. {pharmacyCommissions.reduce((acc, p) => acc + (parseFloat(p.total_gross_sales) || 0), 0).toLocaleString()}
+              </h2>
+            </div>
+
+            <div style={{ backgroundColor: '#F0FDF4', padding: '18px', borderRadius: '14px', border: '1px solid #BBF7D0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+              <span style={{ fontSize: '12px', fontWeight: '700', color: '#166534' }}>10% PLATFORM COMMISSION EARNED</span>
+              <h2 style={{ fontSize: '24px', fontWeight: '900', color: '#15803D', margin: '8px 0 0 0' }}>
+                Rs. {pharmacyCommissions.reduce((acc, p) => acc + (parseFloat(p.total_admin_commission_earned) || 0), 0).toLocaleString()}
+              </h2>
+            </div>
+
+            <div style={{ backgroundColor: '#FEF2F2', padding: '18px', borderRadius: '14px', border: '1px solid #FECACA', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+              <span style={{ fontSize: '12px', fontWeight: '700', color: '#991B1B' }}>OUTSTANDING COMMISSION DUE</span>
+              <h2 style={{ fontSize: '24px', fontWeight: '900', color: '#DC2626', margin: '8px 0 0 0' }}>
+                Rs. {pharmacyCommissions.reduce((acc, p) => acc + (parseFloat(p.commission_due) || 0), 0).toLocaleString()}
+              </h2>
+            </div>
+
+            <div style={{ backgroundColor: '#FFFBEB', padding: '18px', borderRadius: '14px', border: '1px solid #FDE68A', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+              <span style={{ fontSize: '12px', fontWeight: '700', color: '#92400E' }}>LOCKED PHARMACIES (&gt;= Rs. 1,000)</span>
+              <h2 style={{ fontSize: '24px', fontWeight: '900', color: '#D97706', margin: '8px 0 0 0' }}>
+                {pharmacyCommissions.filter(p => p.is_locked || (parseFloat(p.commission_due) >= 1000)).length}
+              </h2>
+            </div>
+          </div>
+
+          {/* Section 1: Pending Settlement Proofs */}
+          <div style={{ backgroundColor: '#FFF', borderRadius: '14px', border: '1px solid #E2E8F0', padding: '20px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <div>
+                <h3 style={{ fontSize: '16px', fontWeight: '800', color: '#1E293B', margin: 0 }}>
+                  Pharmacy Commission Settlement Proofs
+                </h3>
+                <p style={{ fontSize: '13px', color: '#64748B', margin: '4px 0 0 0' }}>
+                  Pharmacies transferring their 10% commission to Admin JazzCash (<strong>03054758667</strong>) to restore or maintain active store status.
+                </p>
+              </div>
+            </div>
+
+            {pharmacySettlements.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '32px', color: '#94A3B8', fontSize: '14px' }}>
+                No commission settlement proofs submitted yet.
+              </div>
+            ) : (
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
+                  <thead>
+                    <tr style={{ backgroundColor: '#F8FAFC', borderBottom: '2px solid #E2E8F0' }}>
+                      <th style={{ padding: '12px 16px', color: '#475569', fontWeight: '700' }}>Date</th>
+                      <th style={{ padding: '12px 16px', color: '#475569', fontWeight: '700' }}>Pharmacy</th>
+                      <th style={{ padding: '12px 16px', color: '#475569', fontWeight: '700' }}>Amount Settled</th>
+                      <th style={{ padding: '12px 16px', color: '#475569', fontWeight: '700' }}>Sender Phone</th>
+                      <th style={{ padding: '12px 16px', color: '#475569', fontWeight: '700' }}>TID</th>
+                      <th style={{ padding: '12px 16px', color: '#475569', fontWeight: '700' }}>Receipt Proof</th>
+                      <th style={{ padding: '12px 16px', color: '#475569', fontWeight: '700' }}>Status</th>
+                      <th style={{ padding: '12px 16px', color: '#475569', fontWeight: '700', textAlign: 'center' }}>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {pharmacySettlements.map((s) => (
+                      <tr key={s.id} style={{ borderBottom: '1px solid #F1F5F9' }}>
+                        <td style={{ padding: '14px 16px', color: '#64748B' }}>
+                          {new Date(s.created_at).toLocaleDateString()}
+                        </td>
+                        <td style={{ padding: '14px 16px' }}>
+                          <span style={{ fontWeight: '800', color: '#0F172A' }}>{s.pharmacy_name}</span>
+                        </td>
+                        <td style={{ padding: '14px 16px' }}>
+                          <span style={{ fontWeight: '900', color: '#059669', fontSize: '14px' }}>
+                            Rs. {parseFloat(s.amount).toFixed(2)}
+                          </span>
+                        </td>
+                        <td style={{ padding: '14px 16px', fontFamily: 'monospace' }}>
+                          {s.sender_phone}
+                        </td>
+                        <td style={{ padding: '14px 16px', fontFamily: 'monospace', fontWeight: '700', color: '#2563EB' }}>
+                          {s.transaction_id}
+                        </td>
+                        <td style={{ padding: '14px 16px' }}>
+                          {s.proof_image_url ? (
+                            <button
+                              onClick={() => setSelectedProofImg(s.proof_image_url)}
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                padding: '6px 12px',
+                                backgroundColor: '#EFF6FF',
+                                color: '#2563EB',
+                                border: '1px solid #BFDBFE',
+                                borderRadius: '8px',
+                                fontSize: '12px',
+                                fontWeight: '700',
+                                cursor: 'pointer'
+                              }}
+                            >
+                              <Eye size={14} /> View Receipt
+                            </button>
+                          ) : (
+                            <span style={{ color: '#94A3B8' }}>No image</span>
+                          )}
+                        </td>
+                        <td style={{ padding: '14px 16px' }}>
+                          <span style={{
+                            padding: '4px 10px',
+                            borderRadius: '20px',
+                            fontSize: '11px',
+                            fontWeight: '800',
+                            backgroundColor: s.status === 'approved' ? '#DCFCE7' : (s.status === 'rejected' ? '#FEE2E2' : '#FEF3C7'),
+                            color: s.status === 'approved' ? '#16A34A' : (s.status === 'rejected' ? '#DC2626' : '#D97706')
+                          }}>
+                            {s.status.toUpperCase()}
+                          </span>
+                        </td>
+                        <td style={{ padding: '14px 16px', textAlign: 'center' }}>
+                          {s.status === 'pending' ? (
+                            <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+                              <button
+                                onClick={() => handleApproveSettlement(s.id, s.pharmacy_name, s.amount)}
+                                disabled={actionLoading}
+                                style={{
+                                  backgroundColor: '#059669',
+                                  color: '#FFF',
+                                  border: 'none',
+                                  borderRadius: '8px',
+                                  padding: '6px 12px',
+                                  fontSize: '12px',
+                                  fontWeight: '700',
+                                  cursor: 'pointer',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '4px'
+                                }}
+                              >
+                                <Check size={14} /> Approve & Unlock
+                              </button>
+                              <button
+                                onClick={() => handleRejectSettlement(s.id)}
+                                disabled={actionLoading}
+                                style={{
+                                  backgroundColor: '#EF4444',
+                                  color: '#FFF',
+                                  border: 'none',
+                                  borderRadius: '8px',
+                                  padding: '6px 12px',
+                                  fontSize: '12px',
+                                  fontWeight: '700',
+                                  cursor: 'pointer',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '4px'
+                                }}
+                              >
+                                <X size={14} /> Reject
+                              </button>
+                            </div>
+                          ) : (
+                            <span style={{ color: '#94A3B8', fontSize: '12px' }}>Processed</span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+
+          {/* Section 2: All Pharmacies Commission Ledger */}
+          <div style={{ backgroundColor: '#FFF', borderRadius: '14px', border: '1px solid #E2E8F0', padding: '20px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <div>
+                <h3 style={{ fontSize: '16px', fontWeight: '800', color: '#1E293B', margin: 0 }}>
+                  Pharmacies Commission Ledger & Store Status
+                </h3>
+                <p style={{ fontSize: '13px', color: '#64748B', margin: '4px 0 0 0' }}>
+                  Platform automatically pauses pharmacy stores when unpaid commission reaches or exceeds the <strong>Rs. 1,000 threshold</strong>.
+                </p>
+              </div>
+            </div>
+
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
+                <thead>
+                  <tr style={{ backgroundColor: '#F8FAFC', borderBottom: '2px solid #E2E8F0' }}>
+                    <th style={{ padding: '12px 16px', color: '#475569', fontWeight: '700' }}>Pharmacy & Owner</th>
+                    <th style={{ padding: '12px 16px', color: '#475569', fontWeight: '700' }}>Direct Payment Account</th>
+                    <th style={{ padding: '12px 16px', color: '#475569', fontWeight: '700' }}>Gross Sales</th>
+                    <th style={{ padding: '12px 16px', color: '#475569', fontWeight: '700' }}>Platform 10%</th>
+                    <th style={{ padding: '12px 16px', color: '#475569', fontWeight: '700' }}>Commission Due</th>
+                    <th style={{ padding: '12px 16px', color: '#475569', fontWeight: '700' }}>Credit Status</th>
+                    <th style={{ padding: '12px 16px', color: '#475569', fontWeight: '700' }}>Store Status</th>
+                    <th style={{ padding: '12px 16px', color: '#475569', fontWeight: '700', textAlign: 'center' }}>Admin Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredCommissions.map((p) => {
+                    const due = parseFloat(p.commission_due) || 0.00;
+                    const isOverdue = due >= 1000.00;
+                    const isLocked = p.is_locked || isOverdue;
+
+                    return (
+                      <tr key={p.id} style={{ borderBottom: '1px solid #F1F5F9', backgroundColor: isLocked ? '#FEF2F2' : 'transparent' }}>
+                        <td style={{ padding: '14px 16px' }}>
+                          <div style={{ fontWeight: '800', color: '#0F172A' }}>{p.name}</div>
+                          <div style={{ fontSize: '11px', color: '#64748B' }}>Owner: {p.owner_name || 'N/A'} • {p.phone}</div>
+                        </td>
+                        <td style={{ padding: '14px 16px' }}>
+                          <div style={{ fontWeight: '700', color: '#1E293B' }}>{p.payment_wallet_type || 'JazzCash'}: {p.payment_account_number || p.phone}</div>
+                          <div style={{ fontSize: '11px', color: '#64748B' }}>Title: {p.payment_account_title || p.name}</div>
+                        </td>
+                        <td style={{ padding: '14px 16px', fontWeight: '700', color: '#0F172A' }}>
+                          Rs. {(parseFloat(p.total_gross_sales) || 0).toLocaleString()}
+                        </td>
+                        <td style={{ padding: '14px 16px', fontWeight: '700', color: '#059669' }}>
+                          Rs. {(parseFloat(p.total_admin_commission_earned) || 0).toLocaleString()}
+                        </td>
+                        <td style={{ padding: '14px 16px' }}>
+                          <span style={{ fontWeight: '900', fontSize: '14px', color: isOverdue ? '#DC2626' : '#1E293B' }}>
+                            Rs. {due.toFixed(2)}
+                          </span>
+                        </td>
+                        <td style={{ padding: '14px 16px' }}>
+                          <span style={{
+                            padding: '4px 10px',
+                            borderRadius: '20px',
+                            fontSize: '11px',
+                            fontWeight: '800',
+                            backgroundColor: isOverdue ? '#FEE2E2' : '#DCFCE7',
+                            color: isOverdue ? '#DC2626' : '#16A34A'
+                          }}>
+                            {isOverdue ? '🚨 LIMIT EXCEEDED (Rs. 1000+)' : 'Good Standing'}
+                          </span>
+                        </td>
+                        <td style={{ padding: '14px 16px' }}>
+                          <span style={{
+                            padding: '4px 10px',
+                            borderRadius: '20px',
+                            fontSize: '11px',
+                            fontWeight: '800',
+                            backgroundColor: isLocked ? '#FEF2F2' : '#F0FDF4',
+                            color: isLocked ? '#B91C1C' : '#15803D',
+                            border: `1px solid ${isLocked ? '#FCA5A5' : '#BBF7D0'}`
+                          }}>
+                            {isLocked ? 'STORE PAUSED' : 'ACTIVE'}
+                          </span>
+                        </td>
+                        <td style={{ padding: '14px 16px', textAlign: 'center' }}>
+                          <button
+                            onClick={() => handleTogglePharmacyLock(p.id, isLocked, p.name)}
+                            disabled={actionLoading}
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '6px',
+                              padding: '6px 12px',
+                              backgroundColor: isLocked ? '#059669' : '#F1F5F9',
+                              color: isLocked ? '#FFF' : '#DC2626',
+                              border: `1px solid ${isLocked ? '#059669' : '#CBD5E1'}`,
+                              borderRadius: '8px',
+                              fontSize: '12px',
+                              fontWeight: '700',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            {isLocked ? <Unlock size={14} /> : <Lock size={14} />}
+                            {isLocked ? 'Unlock Store' : 'Lock Store'}
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
       )}
 

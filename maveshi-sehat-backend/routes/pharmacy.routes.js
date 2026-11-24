@@ -607,6 +607,24 @@ module.exports = (pool) => {
 
       const pId = parseInt(pharmacyId);
 
+      // Check if pharmacy store is locked due to commission threshold
+      const pharmCheck = await pool.query(
+        "SELECT id, name, is_locked, commission_due, commission_rate FROM pharmacies WHERE id = $1",
+        [pId]
+      );
+      if (pharmCheck.rows.length === 0) {
+        return res.status(404).json({ error: 'Selected pharmacy does not exist.' });
+      }
+      const targetPharm = pharmCheck.rows[0];
+      const currentDue = parseFloat(targetPharm.commission_due) || 0.00;
+      if (targetPharm.is_locked || currentDue >= 1000.00) {
+        return res.status(403).json({
+          error: `This pharmacy's store is temporarily paused because their accumulated commission due (Rs. ${currentDue.toFixed(2)}) has reached the Rs. 1,000 threshold. Orders cannot be placed until the pharmacy settles their commission with the platform administrator.`,
+          isLocked: true,
+          commissionDue: currentDue
+        });
+      }
+
       const countRes = await pool.query("SELECT COUNT(*) FROM orders");
       const count = parseInt(countRes.rows[0].count) || 0;
       const orderId = `ORD-${1000 + count + Math.floor(Math.random() * 100)}`;
@@ -616,7 +634,13 @@ module.exports = (pool) => {
         totalQty += parseInt(item.quantity);
       });
 
-      // Handle JazzCash payment proof upload
+      // Calculate 10% Platform Commission & 90% Pharmacy Earnings
+      const parsedTotal = parseFloat(totalPrice);
+      const commissionRate = parseFloat(targetPharm.commission_rate) || 10.00;
+      const adminCommission = parseFloat(((parsedTotal * commissionRate) / 100).toFixed(2));
+      const pharmacyEarnings = parseFloat((parsedTotal - adminCommission).toFixed(2));
+
+      // Handle payment proof upload
       let finalProofUrl = existingProofUrl || null;
       if (paymentProofBase64) {
         try {
@@ -642,24 +666,56 @@ module.exports = (pool) => {
       const resolvedPaymentStatus = paymentStatus || (isManualOnline ? 'pending_verification' : (paymentMethod === 'COD' ? 'unpaid' : 'paid'));
 
       const orderResult = await pool.query(
-        `INSERT INTO orders (id, buyer_name, buyer_name_urdu, pharmacy_id, items_count, total_price, payment_method, status, delivery_address, phone, transaction_id, payment_status, sender_phone, payment_proof_url, created_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, 'pending', $8, $9, $10, $11, $12, $13, CURRENT_TIMESTAMP) RETURNING *`,
+        `INSERT INTO orders (
+           id, buyer_name, buyer_name_urdu, pharmacy_id, items_count, total_price,
+           payment_method, status, delivery_address, phone, transaction_id, payment_status,
+           sender_phone, payment_proof_url, commission_rate, admin_commission, pharmacy_earnings, created_at
+         )
+         VALUES ($1, $2, $3, $4, $5, $6, $7, 'pending', $8, $9, $10, $11, $12, $13, $14, $15, $16, CURRENT_TIMESTAMP) RETURNING *`,
         [
           orderId, 
           buyerName, 
           buyerNameUrdu || null, 
           pId, 
           totalQty, 
-          parseFloat(totalPrice), 
+          parsedTotal, 
           paymentMethod,
           deliveryAddress || null,
           phone || null,
           transactionId || null,
           resolvedPaymentStatus,
           senderPhone || phone || null,
-          finalProofUrl
+          finalProofUrl,
+          commissionRate,
+          adminCommission,
+          pharmacyEarnings
         ]
       );
+
+      // Increment pharmacy commission debt & check Rs. 1,000 threshold
+      const newCommissionTotal = currentDue + adminCommission;
+      await pool.query(
+        `UPDATE pharmacies 
+         SET commission_due = commission_due + $1,
+             is_locked = CASE WHEN (commission_due + $1) >= 1000.00 THEN TRUE ELSE is_locked END,
+             lock_reason = CASE WHEN (commission_due + $1) >= 1000.00 THEN 'Commission due has reached or exceeded Rs. 1,000 limit' ELSE lock_reason END
+         WHERE id = $2`,
+        [adminCommission, pId]
+      );
+
+      if (newCommissionTotal >= 1000.00) {
+        try {
+          await pool.query(
+            `INSERT INTO admin_notifications (type, message_en, message_ur)
+             VALUES ($1, $2, $3)`,
+            [
+              'pharmacy_commission_lock',
+              `⚠️ Pharmacy '${targetPharm.name}' has been auto-locked. Outstanding commission reached Rs. ${newCommissionTotal.toFixed(2)} (Limit: Rs. 1,000).`,
+              `فارمیسی '${targetPharm.name}' کی کمیشن بقایا رقم 1,000 روپے سے زائد ہونے کی وجہ سے عارضی طور پر بند کر دی گئی ہے`
+            ]
+          );
+        } catch (_) {}
+      }
 
       // Notify admin if manual JazzCash proof attached
       if (isManualOnline && finalProofUrl) {
@@ -713,7 +769,11 @@ module.exports = (pool) => {
         return res.status(400).json({ error: 'pharmacyId parameter is required' });
       }
       const result = await pool.query(
-        "SELECT id, name, name_urdu, license_number, license_expiry, owner_name, cnic, phone, whatsapp, email, address, province, city, business_hours, description, status FROM pharmacies WHERE id = $1",
+        `SELECT id, name, name_urdu, license_number, license_expiry, owner_name, cnic, phone, whatsapp, email, 
+                address, province, city, business_hours, description, status,
+                payment_wallet_type, payment_account_title, payment_account_number,
+                commission_rate, commission_due, commission_paid, is_locked, lock_reason 
+         FROM pharmacies WHERE id = $1`,
         [parseInt(pharmacyId)]
       );
       if (result.rows.length === 0) {
@@ -730,17 +790,26 @@ module.exports = (pool) => {
     try {
       const {
         pharmacyId, name, nameUrdu, ownerName, phone, whatsapp,
-        address, province, city, businessHours, description
+        address, province, city, businessHours, description,
+        paymentWalletType, paymentAccountTitle, paymentAccountNumber
       } = req.body;
 
       const result = await pool.query(
         `UPDATE pharmacies SET 
           name = $1, name_urdu = $2, owner_name = $3, phone = $4, whatsapp = $5,
-          address = $6, province = $7, city = $8, business_hours = $9, description = $10
-        WHERE id = $11 RETURNING id, name, name_urdu, owner_name, phone, whatsapp, address, province, city, business_hours, description, status`,
+          address = $6, province = $7, city = $8, business_hours = $9, description = $10,
+          payment_wallet_type = COALESCE($11, payment_wallet_type),
+          payment_account_title = COALESCE($12, payment_account_title),
+          payment_account_number = COALESCE($13, payment_account_number)
+        WHERE id = $14 
+        RETURNING id, name, name_urdu, owner_name, phone, whatsapp, address, province, city, business_hours, description, status,
+                  payment_wallet_type, payment_account_title, payment_account_number,
+                  commission_rate, commission_due, commission_paid, is_locked, lock_reason`,
         [
           name, nameUrdu, ownerName, phone, whatsapp,
-          address, province, city, businessHours, description, parseInt(pharmacyId)
+          address, province, city, businessHours, description,
+          paymentWalletType || null, paymentAccountTitle || null, paymentAccountNumber || null,
+          parseInt(pharmacyId)
         ]
       );
       res.status(200).json(result.rows[0]);
@@ -832,6 +901,367 @@ module.exports = (pool) => {
     } catch (err) {
       console.error('Reject order payment error:', err.message);
       res.status(500).json({ error: 'Failed to reject order payment.' });
+    }
+  });
+
+  // ==========================================
+  // PHARMACY PAYMENT & COMMISSION MANAGEMENT
+  // ==========================================
+
+  // 1. GET Pharmacy Online Payment Credentials (for Mobile Cart Checkout)
+  router.get('/api/pharmacy/:id/payment-info', async (req, res) => {
+    try {
+      const { id } = req.params;
+      const result = await pool.query(
+        `SELECT id, name, name_urdu, phone, whatsapp, 
+                payment_wallet_type, payment_account_title, payment_account_number,
+                commission_rate, commission_due, is_locked, lock_reason, status
+         FROM pharmacies WHERE id = $1`,
+        [parseInt(id)]
+      );
+
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Pharmacy not found.' });
+      }
+
+      const p = result.rows[0];
+      const due = parseFloat(p.commission_due) || 0.00;
+      const locked = p.is_locked || due >= 1000.00;
+
+      res.status(200).json({
+        pharmacyId: p.id,
+        pharmacyName: p.name,
+        pharmacyNameUrdu: p.name_urdu,
+        phone: p.phone,
+        walletType: p.payment_wallet_type || 'JazzCash',
+        accountTitle: p.payment_account_title || p.name,
+        accountNumber: p.payment_account_number || p.phone,
+        commissionRate: parseFloat(p.commission_rate) || 10.00,
+        commissionDue: due,
+        isLocked: locked,
+        lockReason: p.lock_reason,
+        canAcceptOrders: !locked && p.status === 'approved'
+      });
+    } catch (err) {
+      console.error('Error fetching pharmacy payment info:', err.message);
+      res.status(500).json({ error: 'Failed to fetch pharmacy payment info.' });
+    }
+  });
+
+  // 2. UPDATE Pharmacy Payment Credentials
+  router.put('/api/pharmacy/:id/payment-info', async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { walletType, accountTitle, accountNumber } = req.body;
+
+      if (!accountNumber || !accountTitle) {
+        return res.status(400).json({ error: 'Account title and account number are required.' });
+      }
+
+      const result = await pool.query(
+        `UPDATE pharmacies 
+         SET payment_wallet_type = $1, payment_account_title = $2, payment_account_number = $3
+         WHERE id = $4
+         RETURNING id, name, payment_wallet_type, payment_account_title, payment_account_number`,
+        [walletType || 'JazzCash', accountTitle.trim(), accountNumber.trim(), parseInt(id)]
+      );
+
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Pharmacy not found.' });
+      }
+
+      res.status(200).json({
+        success: true,
+        message: 'Payment credentials updated successfully.',
+        paymentInfo: result.rows[0]
+      });
+    } catch (err) {
+      console.error('Error updating pharmacy payment info:', err.message);
+      res.status(500).json({ error: 'Failed to update payment credentials.' });
+    }
+  });
+
+  // 3. GET Pharmacy Commission Status & Ledger (for Pharmacy Portal)
+  router.get('/api/pharmacy/:id/commission-status', async (req, res) => {
+    try {
+      const { id } = req.params;
+      const pId = parseInt(id);
+
+      const pharmRes = await pool.query(
+        `SELECT id, name, commission_rate, commission_due, commission_paid, is_locked, lock_reason, status
+         FROM pharmacies WHERE id = $1`,
+        [pId]
+      );
+
+      if (pharmRes.rows.length === 0) {
+        return res.status(404).json({ error: 'Pharmacy not found.' });
+      }
+
+      const pharm = pharmRes.rows[0];
+      const commissionDue = parseFloat(pharm.commission_due) || 0.00;
+      const commissionPaid = parseFloat(pharm.commission_paid) || 0.00;
+      const threshold = 1000.00;
+      const isLocked = pharm.is_locked || commissionDue >= threshold;
+
+      // Fetch sales summary
+      const salesRes = await pool.query(
+        `SELECT COALESCE(SUM(total_price), 0)::float as total_sales,
+                COALESCE(SUM(admin_commission), 0)::float as total_admin_commission,
+                COALESCE(SUM(pharmacy_earnings), 0)::float as total_pharmacy_earnings,
+                COUNT(*)::int as total_orders
+         FROM orders WHERE pharmacy_id = $1`,
+        [pId]
+      );
+
+      // Fetch settlement history
+      const settlementsRes = await pool.query(
+        `SELECT * FROM pharmacy_commission_settlements 
+         WHERE pharmacy_id = $1 
+         ORDER BY created_at DESC LIMIT 20`,
+        [pId]
+      );
+
+      // Fetch recent orders with commission breakdown
+      const recentOrdersRes = await pool.query(
+        `SELECT id, total_price, admin_commission, pharmacy_earnings, payment_method, payment_status, status, created_at
+         FROM orders 
+         WHERE pharmacy_id = $1 
+         ORDER BY created_at DESC LIMIT 10`,
+        [pId]
+      );
+
+      res.status(200).json({
+        pharmacyId: pharm.id,
+        pharmacyName: pharm.name,
+        commissionRate: parseFloat(pharm.commission_rate) || 10.00,
+        commissionDue,
+        commissionPaid,
+        thresholdLimit: threshold,
+        remainingCredit: Math.max(0, threshold - commissionDue),
+        isLocked,
+        lockReason: pharm.lock_reason,
+        salesSummary: salesRes.rows[0],
+        recentOrders: recentOrdersRes.rows,
+        settlements: settlementsRes.rows,
+        adminJazzCashNumber: '03054758667',
+        adminAccountTitle: 'Maveshi Sehat Official'
+      });
+    } catch (err) {
+      console.error('Error fetching commission status:', err.message);
+      res.status(500).json({ error: 'Failed to fetch commission status.' });
+    }
+  });
+
+  // 4. Pharmacy Submits Commission Settlement Proof (to Admin JazzCash)
+  router.post('/api/pharmacy/settlements/submit', async (req, res) => {
+    try {
+      const {
+        pharmacyId,
+        amount,
+        senderPhone,
+        transactionId,
+        paymentMethod = 'JazzCash',
+        proofBase64
+      } = req.body;
+
+      if (!pharmacyId || !amount || !senderPhone || !transactionId || !proofBase64) {
+        return res.status(400).json({
+          error: 'Pharmacy ID, amount, sender phone, transaction ID, and payment proof screenshot are required.'
+        });
+      }
+
+      const pId = parseInt(pharmacyId);
+      const pharmRes = await pool.query("SELECT id, name FROM pharmacies WHERE id = $1", [pId]);
+      if (pharmRes.rows.length === 0) {
+        return res.status(404).json({ error: 'Pharmacy not found.' });
+      }
+
+      const pharmName = pharmRes.rows[0].name;
+
+      // Save screenshot
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+      const fileName = `settlement-proof-${pId}-${uniqueSuffix}.jpg`;
+      const uploadDir = path.join(__dirname, '..', 'uploads');
+      if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
+      }
+      const filePath = path.join(uploadDir, fileName);
+      const cleanBase64 = proofBase64.replace(/^data:image\/\w+;base64,/, '');
+      fs.writeFileSync(filePath, Buffer.from(cleanBase64, 'base64'));
+
+      const host = req.get('host');
+      const protocol = req.protocol === 'https' || req.headers['x-forwarded-proto'] === 'https' ? 'https' : 'http';
+      const proofUrl = `${protocol}://${host}/uploads/${fileName}`;
+      await persistUploadedFile(pool, fileName, filePath, 'image/jpeg');
+
+      // Insert settlement record
+      const result = await pool.query(
+        `INSERT INTO pharmacy_commission_settlements 
+         (pharmacy_id, pharmacy_name, amount, payment_method, account_number, sender_phone, transaction_id, proof_image_url, status)
+         VALUES ($1, $2, $3, $4, '03054758667', $5, $6, $7, 'pending')
+         RETURNING *`,
+        [pId, pharmName, parseFloat(amount), paymentMethod, senderPhone.trim(), transactionId.trim(), proofUrl]
+      );
+
+      // Insert Admin notification
+      await pool.query(
+        `INSERT INTO admin_notifications (type, message_en, message_ur)
+         VALUES ($1, $2, $3)`,
+        [
+          'pharmacy_commission_settlement',
+          `New 10% Commission Settlement Proof of Rs. ${amount} from Pharmacy '${pharmName}' (TID: ${transactionId})`,
+          `فارمیسی '${pharmName}' نے کمیشن ادائیگی کی مد میں ${amount} روپے کی رسید جمع کرائی ہے — جانچ درکار ہے`
+        ]
+      );
+
+      res.status(201).json({
+        success: true,
+        message: 'Commission payment proof submitted successfully. Admin will verify and unlock your store shortly.',
+        settlement: result.rows[0]
+      });
+    } catch (err) {
+      console.error('Error submitting commission settlement:', err.message);
+      res.status(500).json({ error: 'Failed to submit settlement proof.' });
+    }
+  });
+
+  // 5. Admin: List All Pharmacy Settlements
+  router.get('/api/admin/pharmacy-settlements', async (req, res) => {
+    try {
+      const result = await pool.query(`
+        SELECT s.*, p.commission_due as current_pharmacy_due, p.is_locked as pharmacy_locked, p.phone as pharmacy_phone
+        FROM pharmacy_commission_settlements s
+        LEFT JOIN pharmacies p ON s.pharmacy_id = p.id
+        ORDER BY s.created_at DESC
+      `);
+      res.status(200).json(result.rows);
+    } catch (err) {
+      console.error('Error fetching pharmacy settlements:', err.message);
+      res.status(500).json({ error: 'Failed to fetch settlements.' });
+    }
+  });
+
+  // 6. Admin: Approve Pharmacy Settlement & Unlock Store
+  router.put('/api/admin/pharmacy-settlements/:id/approve', async (req, res) => {
+    try {
+      const { id } = req.params;
+      const settleRes = await pool.query(
+        "SELECT * FROM pharmacy_commission_settlements WHERE id = $1",
+        [parseInt(id)]
+      );
+
+      if (settleRes.rows.length === 0) {
+        return res.status(404).json({ error: 'Settlement record not found.' });
+      }
+
+      const settlement = settleRes.rows[0];
+      if (settlement.status === 'approved') {
+        return res.status(400).json({ error: 'Settlement has already been approved.' });
+      }
+
+      const pId = settlement.pharmacy_id;
+      const settleAmount = parseFloat(settlement.amount);
+
+      // Update settlement status
+      await pool.query(
+        "UPDATE pharmacy_commission_settlements SET status = 'approved', reviewed_at = CURRENT_TIMESTAMP WHERE id = $1",
+        [parseInt(id)]
+      );
+
+      // Deduct from pharmacy commission_due and add to commission_paid
+      const updatePharmRes = await pool.query(
+        `UPDATE pharmacies 
+         SET commission_due = GREATEST(0.00, commission_due - $1),
+             commission_paid = commission_paid + $1,
+             is_locked = CASE WHEN (commission_due - $1) < 1000.00 THEN FALSE ELSE is_locked END,
+             lock_reason = CASE WHEN (commission_due - $1) < 1000.00 THEN NULL ELSE lock_reason END
+         WHERE id = $2
+         RETURNING id, name, commission_due, commission_paid, is_locked`,
+        [settleAmount, pId]
+      );
+
+      res.status(200).json({
+        success: true,
+        message: `Settlement of Rs. ${settleAmount} approved! Pharmacy balance updated and store status refreshed.`,
+        pharmacy: updatePharmRes.rows[0]
+      });
+    } catch (err) {
+      console.error('Error approving pharmacy settlement:', err.message);
+      res.status(500).json({ error: 'Failed to approve settlement.' });
+    }
+  });
+
+  // 7. Admin: Reject Pharmacy Settlement
+  router.put('/api/admin/pharmacy-settlements/:id/reject', async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { reason } = req.body;
+
+      const result = await pool.query(
+        "UPDATE pharmacy_commission_settlements SET status = 'rejected', admin_notes = $1, reviewed_at = CURRENT_TIMESTAMP WHERE id = $2 RETURNING *",
+        [reason || 'Payment could not be verified in JazzCash account', parseInt(id)]
+      );
+
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Settlement record not found.' });
+      }
+
+      res.status(200).json({
+        success: true,
+        message: 'Settlement rejected.',
+        settlement: result.rows[0]
+      });
+    } catch (err) {
+      console.error('Error rejecting pharmacy settlement:', err.message);
+      res.status(500).json({ error: 'Failed to reject settlement.' });
+    }
+  });
+
+  // 8. Admin: List All Pharmacies with Commissions & Overdue Status
+  router.get('/api/admin/pharmacies-commissions', async (req, res) => {
+    try {
+      const result = await pool.query(`
+        SELECT p.id, p.name, p.owner_name, p.phone, p.status,
+               p.payment_wallet_type, p.payment_account_title, p.payment_account_number,
+               p.commission_rate, p.commission_due, p.commission_paid, p.is_locked, p.lock_reason,
+               COALESCE(SUM(o.total_price), 0)::float as total_gross_sales,
+               COALESCE(SUM(o.admin_commission), 0)::float as total_admin_commission_earned,
+               COUNT(o.id)::int as total_orders
+        FROM pharmacies p
+        LEFT JOIN orders o ON p.id = o.pharmacy_id
+        GROUP BY p.id
+        ORDER BY p.commission_due DESC, p.id ASC
+      `);
+      res.status(200).json(result.rows);
+    } catch (err) {
+      console.error('Error fetching pharmacies commission ledger:', err.message);
+      res.status(500).json({ error: 'Failed to fetch pharmacies commission overview.' });
+    }
+  });
+
+  // 9. Admin: Manually Lock / Unlock Pharmacy
+  router.put('/api/admin/pharmacies/:id/toggle-lock', async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { isLocked, reason } = req.body;
+
+      const result = await pool.query(
+        "UPDATE pharmacies SET is_locked = $1, lock_reason = $2 WHERE id = $3 RETURNING id, name, is_locked, lock_reason, commission_due",
+        [Boolean(isLocked), isLocked ? (reason || 'Manually locked by administrator') : null, parseInt(id)]
+      );
+
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Pharmacy not found.' });
+      }
+
+      res.status(200).json({
+        success: true,
+        message: `Pharmacy store ${isLocked ? 'locked' : 'unlocked'} successfully.`,
+        pharmacy: result.rows[0]
+      });
+    } catch (err) {
+      console.error('Error toggling pharmacy lock:', err.message);
+      res.status(500).json({ error: 'Failed to toggle pharmacy lock status.' });
     }
   });
 
