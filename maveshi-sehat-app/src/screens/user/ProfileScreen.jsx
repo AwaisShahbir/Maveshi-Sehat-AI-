@@ -95,14 +95,22 @@ export default function ProfileScreen() {
   };
 
   const handleSaveProfile = () => {
-    if (!editName.trim()) {
-      Alert.alert(t('Error'), t('Name cannot be empty.'));
+    if (!editName.trim() || editName.trim().length < 3) {
+      Alert.alert(t('Error'), t('Name must be at least 3 characters long.'));
       return;
     }
+    const cleanPhone = editPhone ? editPhone.trim().replace(/[\s\-]/g, '') : '';
+    if (cleanPhone) {
+      const pkPhoneRegex = /^(03\d{9}|\+923\d{9})$/;
+      if (!pkPhoneRegex.test(cleanPhone)) {
+        Alert.alert(t('Error'), t('Please enter a valid Pakistani mobile number (e.g. 03001234567).'));
+        return;
+      }
+    }
     updateProfile({
-      userName: editName,
-      phone: editPhone,
-      location: editLocation
+      userName: editName.trim(),
+      phone: cleanPhone || editPhone,
+      location: editLocation ? editLocation.trim() : ''
     });
     setEditModalVisible(false);
     Alert.alert(t('Success'), t('Saved successfully'));

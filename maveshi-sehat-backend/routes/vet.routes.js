@@ -348,8 +348,17 @@ module.exports = (pool, io) => {
   router.post('/api/vet/prescriptions', async (req, res) => {
     try {
       const { vetId, vetName, farmerId, farmerName, animal, diagnosis, diagnosisUrdu, medicines, notes } = req.body;
-      if ((!farmerId && !farmerName) || !diagnosis) {
-        return res.status(400).json({ error: 'Farmer and diagnosis are required' });
+      if ((!farmerId && !farmerName) || !diagnosis || typeof diagnosis !== 'string' || diagnosis.trim().length < 2) {
+        return res.status(400).json({ error: 'A valid farmer and clinical diagnosis (minimum 2 characters) are required.' });
+      }
+
+      if (!medicines || !Array.isArray(medicines) || medicines.length === 0) {
+        return res.status(400).json({ error: 'At least one medicine must be added to the prescription.' });
+      }
+
+      const validMedicines = medicines.filter(m => m && typeof m.name === 'string' && m.name.trim().length > 0);
+      if (validMedicines.length === 0) {
+        return res.status(400).json({ error: 'Please enter a valid medicine name.' });
       }
 
       let resolvedVetId = vetId;

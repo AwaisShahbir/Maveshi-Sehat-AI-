@@ -78,13 +78,56 @@ module.exports = (pool) => {
       } = req.body;
 
       if (!fullName || !phoneNumber || !email || !password) {
-        return res.status(400).json({ error: 'Please provide all required fields.' });
+        return res.status(400).json({ error: 'Please provide all required fields (Name, Phone, Email, Password).' });
+      }
+
+      const cleanName = String(fullName).trim();
+      if (cleanName.length < 3) {
+        return res.status(400).json({ error: 'Full name must be at least 3 characters long.' });
       }
 
       const cleanPhone = normalizePhoneNumber(phoneNumber);
-      const altPhone = cleanPhone.startsWith('0') ? '+92' + cleanPhone.slice(1) : cleanPhone;
+      if (!/^03\d{9}$/.test(cleanPhone)) {
+        return res.status(400).json({ error: 'Please enter a valid 11-digit Pakistani mobile number (e.g. 03001234567 or +923001234567).' });
+      }
+      const altPhone = '+92' + cleanPhone.slice(1);
+
       const cleanEmail = String(email).trim().toLowerCase();
-      const cleanName = String(fullName).trim();
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(cleanEmail)) {
+        return res.status(400).json({ error: 'Please enter a valid email address (e.g. farmer@example.com).' });
+      }
+
+      if (String(password).length < 6) {
+        return res.status(400).json({ error: 'Password must be at least 6 characters long.' });
+      }
+
+      const validRoles = ['farmer', 'vet'];
+      if (!role || !validRoles.includes(role)) {
+        return res.status(400).json({ error: 'Role must be either "farmer" or "vet".' });
+      }
+
+      if (role === 'vet') {
+        if (!pvmcNumber || !/^pvmc-\d{4,}$/i.test(String(pvmcNumber).trim())) {
+          return res.status(400).json({ error: 'License number must start with PVMC- followed by at least 4 digits (e.g. PVMC-1234).' });
+        }
+        const cleanCnic = String(cnic || '').replace(/\D/g, '');
+        if (cleanCnic.length !== 13) {
+          return res.status(400).json({ error: 'CNIC must be exactly 13 digits (e.g. 35201-1234567-1).' });
+        }
+        if (!specialization || String(specialization).trim().length < 2) {
+          return res.status(400).json({ error: 'Please enter your professional veterinary specialization.' });
+        }
+        if (experienceYears === undefined || experienceYears === null || isNaN(experienceYears) || parseInt(experienceYears) < 0 || parseInt(experienceYears) > 65) {
+          return res.status(400).json({ error: 'Please enter valid years of experience (0 - 65).' });
+        }
+        if (!licenseDocumentUrl || !String(licenseDocumentUrl).trim()) {
+          return res.status(400).json({ error: 'Please upload your official PVMC License Document.' });
+        }
+        if (!cnicDocumentUrl || !String(cnicDocumentUrl).trim()) {
+          return res.status(400).json({ error: 'Please upload your National CNIC Document.' });
+        }
+      }
 
       const userExists = await pool.query(
         'SELECT * FROM users WHERE phone_number = $1 OR phone_number = $2 OR LOWER(email) = $3',

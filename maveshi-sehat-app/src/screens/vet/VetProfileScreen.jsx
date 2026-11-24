@@ -104,6 +104,23 @@ export default function VetProfileScreen() {
   }, [vetId]);
 
   const handleSave = async () => {
+    if (activeModal === 'name' && (!formName.trim() || formName.trim().length < 3)) {
+      Alert.alert(t('Error') || 'Error', 'Full name must be at least 3 characters long.');
+      return;
+    }
+    if (activeModal === 'license' && (!formLicense.trim() || !/^pvmc-\d{4,}$/i.test(formLicense.trim()))) {
+      Alert.alert(t('Error') || 'Error', 'License number must start with PVMC- followed by at least 4 digits (e.g. PVMC-1234).');
+      return;
+    }
+    if (activeModal === 'specialization' && (!formSpec.trim() || formSpec.trim().length < 2)) {
+      Alert.alert(t('Error') || 'Error', 'Specialization must be at least 2 characters long.');
+      return;
+    }
+    if (activeModal === 'availability' && (!formAvail.trim() || formAvail.trim().length < 3)) {
+      Alert.alert(t('Error') || 'Error', 'Schedule details must be at least 3 characters long.');
+      return;
+    }
+
     try {
       if (vetId) {
         await fetch(`${baseUrl}/api/vet/profile`, {

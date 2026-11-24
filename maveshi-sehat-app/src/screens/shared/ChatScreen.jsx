@@ -502,14 +502,14 @@ export default function ChatScreen() {
   };
 
   const handleSendPrescription = () => {
-    if (!diagnosis.trim()) {
-      Alert.alert(t('Missing Field'), 'Please enter a diagnosis.');
+    if (!diagnosis.trim() || diagnosis.trim().length < 3) {
+      Alert.alert(t('Missing Field'), isUrdu ? 'براہ کرم بیماری کی تشخیص (کم از کم 3 حروف) درج کریں۔' : 'Please enter a clinical diagnosis (at least 3 characters).');
       return;
     }
 
-    const validMedicines = prescriptionMedicines.filter(m => m.name.trim() !== '');
+    const validMedicines = prescriptionMedicines.filter(m => m.name && m.name.trim() !== '');
     if (validMedicines.length === 0) {
-      Alert.alert(t('Missing Field'), 'Please enter at least one medicine.');
+      Alert.alert(t('Missing Field'), isUrdu ? 'براہ کرم کم از کم ایک دوا کا نام درج کریں۔' : 'Please enter at least one medicine with its name.');
       return;
     }
 
@@ -528,9 +528,26 @@ export default function ChatScreen() {
   };
 
   const handleSendVaccination = () => {
-    if (!vaccineName.trim() || !vaccineDate.trim()) {
-      Alert.alert(t('Missing Information'), 'Please provide Vaccine Name and Date Administered.');
+    if (!vaccineName.trim() || vaccineName.trim().length < 2) {
+      Alert.alert(t('Missing Information'), isUrdu ? 'براہ کرم ویکسین کا نام درج کریں۔' : 'Please provide a valid Vaccine Name.');
       return;
+    }
+
+    const dateRegex = /^\d{4}-\d{1,2}-\d{1,2}$/;
+    if (!vaccineDate.trim() || !dateRegex.test(vaccineDate.trim()) || isNaN(new Date(vaccineDate.trim()).getTime())) {
+      Alert.alert(t('Invalid Date'), isUrdu ? 'براہ کرم درست تاریخ درج کریں (مثال: YYYY-MM-DD)' : 'Please enter a valid vaccination date (e.g. YYYY-MM-DD).');
+      return;
+    }
+
+    if (nextDueDate.trim()) {
+      if (!dateRegex.test(nextDueDate.trim()) || isNaN(new Date(nextDueDate.trim()).getTime())) {
+        Alert.alert(t('Invalid Date'), isUrdu ? 'اگلی مقررہ تاریخ درست نہیں ہے (مثال: YYYY-MM-DD)' : 'Next due date must be a valid date in YYYY-MM-DD format.');
+        return;
+      }
+      if (new Date(nextDueDate.trim()).getTime() < new Date(vaccineDate.trim()).getTime()) {
+        Alert.alert(t('Invalid Date'), isUrdu ? 'اگلی تاریخ پچھلی تاریخ کے بعد ہونی چاہیے۔' : 'Next due date cannot be earlier than vaccination date.');
+        return;
+      }
     }
 
     const vaccinationPayload = {
@@ -555,6 +572,15 @@ export default function ChatScreen() {
   };
 
   const handleConfirmResolution = async () => {
+    if (!selectedOutcome) {
+      Alert.alert(t('Required'), isUrdu ? 'براہ کرم طبی نتیجہ منتخب کریں۔' : 'Please select a clinical outcome.');
+      return;
+    }
+    if (!dischargeNotes.trim() || dischargeNotes.trim().length < 5) {
+      Alert.alert(t('Required'), isUrdu ? 'براہ کرم ڈسچارج ہدایات اور دیکھ بھال کا پلان درج کریں (کم از کم 5 حروف)۔' : 'Please enter discharge instructions & recovery advice (minimum 5 characters).');
+      return;
+    }
+
     try {
       setLoading(true);
       const activeConsultId = selectedConsultationId || params.consultationId || params.consultation?.id;

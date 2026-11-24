@@ -381,6 +381,22 @@ module.exports = (pool, io) => {
     }
   });
 
+  // Helper validator for ISO / standard date strings
+  function isValidCalendarDate(dateStr) {
+    if (!dateStr || typeof dateStr !== 'string') return false;
+    const trimmed = dateStr.trim();
+    // Match YYYY-MM-DD or ISO 8601
+    const regex = /^(\d{4})-(\d{1,2})-(\d{1,2})(?:[ T](\d{1,2}):(\d{1,2})(?::(\d{1,2}))?)?/;
+    const match = trimmed.match(regex);
+    if (!match) return false;
+    const y = parseInt(match[1], 10);
+    const m = parseInt(match[2], 10);
+    const d = parseInt(match[3], 10);
+    if (m < 1 || m > 12 || d < 1 || d > 31) return false;
+    const parsed = new Date(trimmed);
+    return !isNaN(parsed.getTime());
+  }
+
   // Create Consultation Request
   router.post('/api/consultations', async (req, res) => {
     try {
@@ -390,10 +406,41 @@ module.exports = (pool, io) => {
         return res.status(400).json({ error: 'farmer_id, vet_id, and type are required' });
       }
 
+      const validTypes = ['chat', 'video', 'physical'];
+      if (!validTypes.includes(type)) {
+        return res.status(400).json({ error: `Invalid consultation type "${type}". Must be one of: ${validTypes.join(', ')}` });
+      }
+
+      // Strict validation for physical in-person appointments
+      if (type === 'physical') {
+        if (!appointment_date || !appointment_date.trim()) {
+          return res.status(400).json({ error: 'Physical appointments require a designated appointment date and time.' });
+        }
+        if (!isValidCalendarDate(appointment_date)) {
+          return res.status(400).json({ 
+            error: 'Invalid appointment date format. Please provide a valid calendar date and time (e.g. YYYY-MM-DD HH:MM).' 
+          });
+        }
+        const apptTimestamp = new Date(appointment_date).getTime();
+        // Allow up to 15 minutes in the past for clock drift
+        if (apptTimestamp < Date.now() - 15 * 60 * 1000) {
+          return res.status(400).json({ error: 'Appointment date and time cannot be in the past.' });
+        }
+        // Disallow dates more than 6 months ahead
+        const maxFuture = Date.now() + 180 * 24 * 60 * 60 * 1000;
+        if (apptTimestamp > maxFuture) {
+          return res.status(400).json({ error: 'Appointments cannot be scheduled more than 6 months in advance.' });
+        }
+      }
+
+      if (reason && reason.trim().length > 0 && reason.trim().length < 5) {
+        return res.status(400).json({ error: 'Reason for consultation must be at least 5 characters.' });
+      }
+
       const result = await pool.query(
         `INSERT INTO consultations (farmer_id, vet_id, type, ai_record_data, appointment_date, reason, status)
          VALUES ($1, $2, $3, $4, $5, $6, 'pending') RETURNING *`,
-        [farmer_id, vet_id, type, ai_record_data ? JSON.stringify(ai_record_data) : null, appointment_date, reason]
+        [farmer_id, vet_id, type, ai_record_data ? JSON.stringify(ai_record_data) : null, appointment_date ? appointment_date.trim() : null, reason ? reason.trim() : null]
       );
 
       const createdConsultation = result.rows[0];
@@ -577,8 +624,23 @@ module.exports = (pool, io) => {
   router.post('/api/farmer/vaccinations', async (req, res) => {
     try {
       const { farmerId, farmerName, vaccineName, animalType, administeredDate, nextDueDate, status, notes } = req.body;
-      if (!vaccineName) {
-        return res.status(400).json({ error: 'Vaccine name is required' });
+      if (!vaccineName || typeof vaccineName !== 'string' || vaccineName.trim().length < 2) {
+        return res.status(400).json({ error: 'A valid vaccine name (minimum 2 characters) is required' });
+      }
+
+      if (administeredDate && !isValidCalendarDate(administeredDate)) {
+        return res.status(400).json({ error: 'Administered date must be a valid date in YYYY-MM-DD format.' });
+      }
+
+      if (nextDueDate) {
+        if (!isValidCalendarDate(nextDueDate)) {
+          return res.status(400).json({ error: 'Next due date must be a valid date in YYYY-MM-DD format.' });
+        }
+        const admTimestamp = administeredDate ? new Date(administeredDate).getTime() : Date.now();
+        const dueTimestamp = new Date(nextDueDate).getTime();
+        if (dueTimestamp < admTimestamp) {
+          return res.status(400).json({ error: 'Next due date cannot be earlier than the administered date.' });
+        }
       }
 
       let targetFarmerId = farmerId;

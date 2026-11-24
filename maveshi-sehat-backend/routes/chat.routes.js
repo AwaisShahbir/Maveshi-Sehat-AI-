@@ -121,6 +121,47 @@ module.exports = (pool, io) => {
         return res.status(400).json({ error: 'conversationId is required' });
       }
 
+      // Payload validation for prescription messages
+      if (isPrescription) {
+        let pData = prescriptionData;
+        if (typeof pData === 'string') {
+          try { pData = JSON.parse(pData); } catch (e) { pData = null; }
+        }
+        if (!pData || typeof pData !== 'object') {
+          return res.status(400).json({ error: 'Valid prescriptionData object is required for prescriptions.' });
+        }
+        if (!pData.diagnosis || typeof pData.diagnosis !== 'string' || pData.diagnosis.trim().length < 2) {
+          return res.status(400).json({ error: 'A clinical diagnosis (minimum 2 characters) is required.' });
+        }
+        if (!Array.isArray(pData.medicines) || pData.medicines.length === 0) {
+          return res.status(400).json({ error: 'At least one prescribed medicine is required.' });
+        }
+        const hasValidMed = pData.medicines.some(m => m && typeof m.name === 'string' && m.name.trim().length > 0);
+        if (!hasValidMed) {
+          return res.status(400).json({ error: 'Prescribed medicines must have valid names.' });
+        }
+      }
+
+      // Payload validation for vaccination schedules
+      if (isVaccination) {
+        let vData = vaccinationData;
+        if (typeof vData === 'string') {
+          try { vData = JSON.parse(vData); } catch (e) { vData = null; }
+        }
+        if (!vData || typeof vData !== 'object') {
+          return res.status(400).json({ error: 'Valid vaccinationData object is required for vaccination schedules.' });
+        }
+        if (!vData.vaccineName || typeof vData.vaccineName !== 'string' || vData.vaccineName.trim().length < 2) {
+          return res.status(400).json({ error: 'A valid vaccine name is required.' });
+        }
+        if (vData.vaccineDate && isNaN(new Date(vData.vaccineDate).getTime())) {
+          return res.status(400).json({ error: 'Invalid vaccination date format.' });
+        }
+        if (vData.nextDueDate && isNaN(new Date(vData.nextDueDate).getTime())) {
+          return res.status(400).json({ error: 'Invalid next due date format.' });
+        }
+      }
+
       const result = await pool.query(
         `INSERT INTO messages (
           conversation_id, sender_id, message, image_url, is_prescription, prescription_data,
@@ -213,6 +254,17 @@ module.exports = (pool, io) => {
       const { conversationId, consultationId, outcome, dischargeNotes, followUpDays } = req.body;
       if (!conversationId) {
         return res.status(400).json({ error: 'conversationId is required' });
+      }
+
+      const validOutcomes = ['fully_recovered', 'improving', 'referred'];
+      if (outcome && !validOutcomes.includes(outcome)) {
+        return res.status(400).json({ error: `Invalid outcome. Must be one of: ${validOutcomes.join(', ')}` });
+      }
+
+      if (dischargeNotes !== undefined && dischargeNotes !== null) {
+        if (typeof dischargeNotes !== 'string' || dischargeNotes.trim().length < 3) {
+          return res.status(400).json({ error: 'Discharge notes must be at least 3 characters long.' });
+        }
       }
 
       // Calculate optional follow-up timestamp

@@ -104,8 +104,51 @@ export default function Register({ onViewChange }) {
     e.preventDefault();
     setError('');
 
+    if (!formData.name.trim() || formData.name.trim().length < 3) {
+      setError('Pharmacy name must be at least 3 characters long.');
+      return;
+    }
+
+    if (!formData.ownerName.trim() || formData.ownerName.trim().length < 3) {
+      setError('Owner / Pharmacist name must be at least 3 characters long.');
+      return;
+    }
+
+    const cleanCnic = (formData.cnic || '').replace(/\D/g, '');
+    if (cleanCnic.length !== 13) {
+      setError('CNIC must be exactly 13 digits (e.g. 35201-1234567-1).');
+      return;
+    }
+
+    const cleanPhone = (formData.phone || '').trim().replace(/[\s\-]/g, '');
+    if (!/^(03\d{9}|\+923\d{9})$/.test(cleanPhone)) {
+      setError('Please enter a valid Pakistani mobile number (e.g. 03001234567).');
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test((formData.email || '').trim())) {
+      setError('Please enter a valid email address.');
+      return;
+    }
+
+    if (!formData.password || formData.password.length < 6) {
+      setError('Password must be at least 6 characters long.');
+      return;
+    }
+
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match!');
+      return;
+    }
+
+    if (!formData.licenseNumber.trim()) {
+      setError('Please enter your Pharmacy Drug License Number.');
+      return;
+    }
+
+    if (!formData.address.trim() || formData.address.trim().length < 5) {
+      setError('Please enter complete pharmacy address (minimum 5 characters).');
       return;
     }
 

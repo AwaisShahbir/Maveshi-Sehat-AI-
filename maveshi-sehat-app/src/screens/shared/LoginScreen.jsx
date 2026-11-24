@@ -52,8 +52,16 @@ export default function LoginScreen() {
     }
 
     const isEmail = cleanId.includes('@');
-    if (!isEmail && cleanId.replace(/\D/g, '').length < 10) {
-      return setErrorMsg('Please enter a valid phone number or email address');
+    if (isEmail) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(cleanId)) {
+        return setErrorMsg('Please enter a valid email address');
+      }
+    } else {
+      const cleanPhoneDigits = cleanId.replace(/\D/g, '');
+      if (cleanPhoneDigits.length < 10 || cleanPhoneDigits.length > 13) {
+        return setErrorMsg('Please enter a valid phone number (e.g. 03001234567)');
+      }
     }
 
     setLoading(true);

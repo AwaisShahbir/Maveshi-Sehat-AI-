@@ -584,6 +584,21 @@ module.exports = (pool) => {
         return res.status(400).json({ error: 'Missing required parameters or empty items list.' });
       }
 
+      if (!deliveryAddress || typeof deliveryAddress !== 'string' || deliveryAddress.trim().length < 5) {
+        return res.status(400).json({ error: 'A complete delivery address (minimum 5 characters) is required.' });
+      }
+
+      if (!phone || typeof phone !== 'string' || phone.trim().replace(/\D/g, '').length < 10) {
+        return res.status(400).json({ error: 'A valid Pakistani contact phone number (at least 10-11 digits) is required.' });
+      }
+
+      for (let i = 0; i < items.length; i++) {
+        const it = items[i];
+        if (!it.medicineId || parseInt(it.quantity) <= 0 || parseFloat(it.price) < 0) {
+          return res.status(400).json({ error: `Invalid item details at position ${i + 1}. Quantity must be > 0 and price >= 0.` });
+        }
+      }
+
       const pId = parseInt(pharmacyId);
 
       const countRes = await pool.query("SELECT COUNT(*) FROM orders");

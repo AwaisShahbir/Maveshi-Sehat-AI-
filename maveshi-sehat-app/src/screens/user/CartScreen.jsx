@@ -106,28 +106,30 @@ export default function CartScreen() {
 
   // Save Address
   const handleSaveAddress = () => {
-    if (!editName.trim()) {
-      Alert.alert(t('Validation Error'), t('Please enter recipient full name'));
+    if (!editName.trim() || editName.trim().length < 3) {
+      Alert.alert(t('Validation Error'), t('Please enter recipient full name (minimum 3 characters)'));
       return;
     }
-    if (!editPhone.trim()) {
-      Alert.alert(t('Validation Error'), t('Please enter contact phone number'));
+    const cleanPhone = editPhone.trim().replace(/[\s\-]/g, '');
+    const pkPhoneRegex = /^(03\d{9}|\+923\d{9})$/;
+    if (!pkPhoneRegex.test(cleanPhone)) {
+      Alert.alert(t('Validation Error'), t('Please enter a valid Pakistani mobile number (e.g. 03001234567)'));
       return;
     }
-    if (!editStreet.trim()) {
-      Alert.alert(t('Validation Error'), t('Please enter delivery address / street / village'));
+    if (!editStreet.trim() || editStreet.trim().length < 5) {
+      Alert.alert(t('Validation Error'), t('Please enter delivery address / street / village (minimum 5 characters)'));
       return;
     }
 
     setBuyerName(editName.trim());
-    setPhone(editPhone.trim());
+    setPhone(cleanPhone);
     setStreetAddress(editStreet.trim());
     setDistrict(editDistrict.trim() || 'Lahore');
 
     // Persist to profile store
     updateProfile({
       deliveryAddress: editStreet.trim(),
-      phone: editPhone.trim(),
+      phone: cleanPhone,
       location: editDistrict.trim() || district
     });
 
@@ -170,12 +172,14 @@ export default function CartScreen() {
 
   // Process Online Mobile Wallet Authorization (JazzCash / EasyPaisa)
   const handleAuthorizeOnlinePayment = async () => {
-    if (!walletPhone.trim() || walletPhone.length < 10) {
+    const cleanWalletPhone = walletPhone.trim().replace(/[\s\-]/g, '');
+    const pkPhoneRegex = /^(03\d{9}|\+923\d{9})$/;
+    if (!pkPhoneRegex.test(cleanWalletPhone)) {
       Alert.alert(t('Invalid Phone'), t('Please enter a valid Pakistani mobile wallet phone number (e.g. 03001234567)'));
       return;
     }
-    if (!walletMpin || walletMpin.length < 4) {
-      Alert.alert(t('PIN Required'), t('Please enter your 4-digit MPIN to authorize the transaction'));
+    if (!walletMpin || !/^\d{4}$/.test(walletMpin.trim())) {
+      Alert.alert(t('PIN Required'), t('Please enter your 4-digit numeric MPIN (e.g. 1234) to authorize the transaction'));
       return;
     }
 

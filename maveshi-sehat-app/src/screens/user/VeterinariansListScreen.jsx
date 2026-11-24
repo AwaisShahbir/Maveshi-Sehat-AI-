@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import {
   View, Text, SafeAreaView, FlatList, TextInput,
-  TouchableOpacity, StatusBar, ActivityIndicator, Platform, Alert, Image, Modal
+  TouchableOpacity, StatusBar, ActivityIndicator, Platform, Alert, Image, Modal,
+  ScrollView, KeyboardAvoidingView
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
@@ -33,6 +34,101 @@ export default function VeterinariansListScreen() {
   const [appointmentDate, setAppointmentDate] = useState('');
   const [appointmentTime, setAppointmentTime] = useState('');
   const [reason, setReason] = useState('');
+  const [errors, setErrors] = useState({
+    reason: '',
+    appointmentDate: '',
+    appointmentTime: ''
+  });
+
+  const getFormattedFutureDate = (daysAhead = 0) => {
+    const d = new Date();
+    d.setDate(d.getDate() + daysAhead);
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  };
+
+  const validateDateString = (dateStr) => {
+    if (!dateStr || !dateStr.trim()) {
+      return t('Appointment date is required (YYYY-MM-DD).');
+    }
+    const trimmed = dateStr.trim();
+    const formatMatch = trimmed.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+    if (!formatMatch) {
+      return t('Format must be YYYY-MM-DD (e.g. 2026-11-25).');
+    }
+    const year = parseInt(formatMatch[1], 10);
+    const month = parseInt(formatMatch[2], 10);
+    const day = parseInt(formatMatch[3], 10);
+
+    if (month < 1 || month > 12) {
+      return t('Invalid month. Month must be between 01 and 12.');
+    }
+    if (day < 1 || day > 31) {
+      return t('Invalid day. Day must be between 01 and 31.');
+    }
+
+    const d = new Date(year, month - 1, day);
+    if (d.getFullYear() !== year || d.getMonth() !== month - 1 || d.getDate() !== day) {
+      return t('Invalid calendar date for this month.');
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (d < today) {
+      return t('Date cannot be in the past. Select today or a future date.');
+    }
+
+    const maxDate = new Date();
+    maxDate.setMonth(maxDate.getMonth() + 6);
+    if (d > maxDate) {
+      return t('Date cannot be more than 6 months ahead.');
+    }
+
+    return '';
+  };
+
+  const validateTimeString = (timeStr, dateStr) => {
+    if (!timeStr || !timeStr.trim()) {
+      return t('Appointment time is required (HH:MM).');
+    }
+    const trimmed = timeStr.trim();
+    const timeMatch = trimmed.match(/^([0-1]?[0-9]|2[0-3]):([0-5][0-9])$/);
+    if (!timeMatch) {
+      return t('Time must be in 24-hr format (e.g. 14:30 or 09:30).');
+    }
+    const hours = parseInt(timeMatch[1], 10);
+    const minutes = parseInt(timeMatch[2], 10);
+
+    if (dateStr && !validateDateString(dateStr)) {
+      const parts = dateStr.trim().split('-').map(Number);
+      if (parts.length === 3) {
+        const [y, m, d] = parts;
+        const targetDate = new Date(y, m - 1, d);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        if (targetDate.getTime() === today.getTime()) {
+          const now = new Date();
+          if (hours < now.getHours() || (hours === now.getHours() && minutes <= now.getMinutes())) {
+            return t('Selected time has already passed for today.');
+          }
+        }
+      }
+    }
+
+    return '';
+  };
+
+  const validateReasonString = (reasonStr) => {
+    if (!reasonStr || !reasonStr.trim()) {
+      return t('Please describe your animal condition or reason.');
+    }
+    if (reasonStr.trim().length < 5) {
+      return t('Reason must be at least 5 characters long.');
+    }
+    return '';
+  };
 
   useEffect(() => {
     const unsubscribeProfile = subscribeProfile((updatedProfile) => {
@@ -74,6 +170,17 @@ export default function VeterinariansListScreen() {
       ? 'video_consult'
       : type;
     setConsultType(resolvedType);
+    setErrors({
+      reason: '',
+      appointmentDate: '',
+      appointmentTime: ''
+    });
+
+    if (resolvedType === 'physical_appointment' && !appointmentDate) {
+      setAppointmentDate(getFormattedFutureDate(0));
+      setAppointmentTime('14:30');
+    }
+
     if (params.initialRecord) {
       const rec = params.initialRecord;
       const tag = rec.animalId || rec.id || '';
@@ -87,13 +194,31 @@ export default function VeterinariansListScreen() {
   };
 
   const submitConsultationRequest = async () => {
-    if (!reason.trim()) {
-      Alert.alert('Required', 'Please provide a reason for the consultation.');
+    const reasonErr = validateReasonString(reason);
+    let dateErr = '';
+    let timeErr = '';
+
+    if (consultType === 'physical_appointment') {
+      dateErr = validateDateString(appointmentDate);
+      timeErr = validateTimeString(appointmentTime, appointmentDate);
+    }
+
+    setErrors({
+      reason: reasonErr,
+      appointmentDate: dateErr,
+      appointmentTime: timeErr
+    });
+
+    if (reasonErr || dateErr || timeErr) {
+      const firstError = reasonErr || dateErr || timeErr;
+      Alert.alert(t('Validation Error'), firstError);
       return;
     }
-    if (consultType === 'physical_appointment' && (!appointmentDate || !appointmentTime)) {
-      Alert.alert('Required', 'Please provide both date and time for the physical appointment.');
-      return;
+
+    let formattedDate = appointmentDate.trim();
+    let formattedTime = appointmentTime.trim();
+    if (/^[0-9]:[0-5][0-9]$/.test(formattedTime)) {
+      formattedTime = '0' + formattedTime;
     }
 
     try {
@@ -106,8 +231,8 @@ export default function VeterinariansListScreen() {
           farmer_id: userId,
           vet_id: selectedVet.id,
           type: consultType,
-          reason: reason,
-          appointment_date: consultType === 'physical_appointment' ? `${appointmentDate} ${appointmentTime}` : null,
+          reason: reason.trim(),
+          appointment_date: consultType === 'physical_appointment' ? `${formattedDate} ${formattedTime}` : null,
           ai_record_data: params.initialRecord || null
         })
       });
@@ -121,6 +246,7 @@ export default function VeterinariansListScreen() {
       setReason('');
       setAppointmentDate('');
       setAppointmentTime('');
+      setErrors({ reason: '', appointmentDate: '', appointmentTime: '' });
 
       Alert.alert(
         t('Request Sent'),
@@ -135,7 +261,7 @@ export default function VeterinariansListScreen() {
 
     } catch (error) {
       console.error('Error submitting consultation:', error);
-      Alert.alert('Error', 'Could not send request. Please try again later.');
+      Alert.alert('Error', error.message || 'Could not send request. Please try again later.');
     } finally {
       setLoading(false);
     }
@@ -331,140 +457,285 @@ export default function VeterinariansListScreen() {
       )}
       {/* Consultation Request Modal */}
       <Modal visible={consultModalVisible} transparent={true} animationType="slide">
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>
-              {consultType === 'video_consult'
-                ? t('Request Video Consultation')
-                : consultType === 'online_chat'
-                  ? t('Request Online Consultation')
-                  : t('Book Physical Appointment')}
-            </Text>
-            <Text style={styles.modalSubtitle}>with Dr. {selectedVet?.full_name?.replace('Dr. ', '')}</Text>
+        <KeyboardAvoidingView 
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.modalOverlay}
+        >
+          <View style={[styles.modalContent, { maxHeight: '92%' }]}>
+            <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+              <Text style={styles.modalTitle}>
+                {consultType === 'video_consult'
+                  ? t('Request Video Consultation')
+                  : consultType === 'online_chat'
+                    ? t('Request Online Consultation')
+                    : t('Book Physical Appointment')}
+              </Text>
+              <Text style={styles.modalSubtitle}>with Dr. {selectedVet?.full_name?.replace('Dr. ', '')}</Text>
 
-            {/* Mode Selector if Dr supports both */}
-            {(selectedVet?.consultation_mode === 'Chat + Video' || !selectedVet?.consultation_mode) && consultType !== 'physical_appointment' && (
-              <View style={{ flexDirection: 'row', gap: 8, marginTop: 8, marginBottom: 12 }}>
-                <TouchableOpacity
-                  style={{
-                    flex: 1,
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    paddingVertical: 10,
-                    borderRadius: 12,
-                    backgroundColor: consultType === 'online_chat' ? colors.primary : (isDark ? '#1E293B' : '#F1F5F9'),
-                    borderWidth: 1,
-                    borderColor: consultType === 'online_chat' ? colors.primary : colors.border
-                  }}
-                  onPress={() => setConsultType('online_chat')}
-                >
-                  <Feather name="message-square" size={14} color={consultType === 'online_chat' ? '#FFF' : colors.textSecondary} style={{ marginRight: 6 }} />
-                  <Text style={{ fontSize: 12, fontWeight: '700', color: consultType === 'online_chat' ? '#FFF' : colors.textPrimary }}>
-                    {t('Chat Consult')}
-                  </Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={{
-                    flex: 1,
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    paddingVertical: 10,
-                    borderRadius: 12,
-                    backgroundColor: consultType === 'video_consult' ? '#0284C7' : (isDark ? '#1E293B' : '#F1F5F9'),
-                    borderWidth: 1,
-                    borderColor: consultType === 'video_consult' ? '#0284C7' : colors.border
-                  }}
-                  onPress={() => setConsultType('video_consult')}
-                >
-                  <Feather name="video" size={14} color={consultType === 'video_consult' ? '#FFF' : colors.textSecondary} style={{ marginRight: 6 }} />
-                  <Text style={{ fontSize: 12, fontWeight: '700', color: consultType === 'video_consult' ? '#FFF' : colors.textPrimary }}>
-                    {t('Video Consult')}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            )}
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Reason for Consultation:</Text>
-              <TextInput
-                style={[styles.textInput, { height: 80, textAlignVertical: 'top' }]}
-                placeholder="Describe your animal's issue..."
-                value={reason}
-                onChangeText={setReason}
-                multiline
-              />
-            </View>
-
-            {consultType === 'physical_appointment' && (
-              <>
-                <View style={styles.inputGroup}>
-                  <Text style={styles.inputLabel}>Date (e.g. YYYY-MM-DD):</Text>
-                  <TextInput
-                    style={styles.textInput}
-                    placeholder="2023-10-15"
-                    value={appointmentDate}
-                    onChangeText={setAppointmentDate}
-                  />
-                </View>
-                <View style={styles.inputGroup}>
-                  <Text style={styles.inputLabel}>Time (e.g. 14:30):</Text>
-                  <TextInput
-                    style={styles.textInput}
-                    placeholder="14:30"
-                    value={appointmentTime}
-                    onChangeText={setAppointmentTime}
-                  />
-                </View>
-              </>
-            )}
-
-            {params.initialRecord && (
-              <View style={{
-                backgroundColor: isDark ? 'rgba(16, 185, 129, 0.1)' : '#ECFDF5',
-                borderRadius: 14,
-                borderWidth: 1,
-                borderColor: isDark ? 'rgba(16, 185, 129, 0.3)' : '#A7F3D0',
-                padding: 12,
-                marginBottom: 16,
-              }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
-                  <MaterialCommunityIcons name="check-decagram" size={16} color="#059669" style={{ marginRight: 6 }} />
-                  <Text style={{ fontSize: 13, fontWeight: '700', color: isDark ? '#34D399' : '#047857' }}>
-                    AI Medical Report Attached
-                  </Text>
-                </View>
-                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                  {params.initialRecord.imageUrl || params.initialRecord.uri ? (
-                    <Image
-                      source={{ uri: params.initialRecord.imageUrl || params.initialRecord.uri }}
-                      style={{ width: 44, height: 44, borderRadius: 8, marginRight: 10, backgroundColor: '#E2E8F0' }}
-                    />
-                  ) : null}
-                  <View style={{ flex: 1 }}>
-                    <Text style={{ fontSize: 13, fontWeight: '700', color: colors.textPrimary }}>
-                      Livestock #{params.initialRecord.animalId || params.initialRecord.id || 'N/A'} ({params.initialRecord.animalType || 'Livestock'})
+              {/* Mode Selector if Dr supports both */}
+              {(selectedVet?.consultation_mode === 'Chat + Video' || !selectedVet?.consultation_mode) && consultType !== 'physical_appointment' && (
+                <View style={{ flexDirection: 'row', gap: 8, marginTop: 8, marginBottom: 12 }}>
+                  <TouchableOpacity
+                    style={{
+                      flex: 1,
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      paddingVertical: 10,
+                      borderRadius: 12,
+                      backgroundColor: consultType === 'online_chat' ? colors.primary : (isDark ? '#1E293B' : '#F1F5F9'),
+                      borderWidth: 1,
+                      borderColor: consultType === 'online_chat' ? colors.primary : colors.border
+                    }}
+                    onPress={() => setConsultType('online_chat')}
+                  >
+                    <Feather name="message-square" size={14} color={consultType === 'online_chat' ? '#FFF' : colors.textSecondary} style={{ marginRight: 6 }} />
+                    <Text style={{ fontSize: 12, fontWeight: '700', color: consultType === 'online_chat' ? '#FFF' : colors.textPrimary }}>
+                      {t('Chat Consult')}
                     </Text>
-                    <Text style={{ fontSize: 12, color: colors.textSecondary, marginTop: 2 }}>
-                      Diagnosis: {params.initialRecord.disease || params.initialRecord.name} · {params.initialRecord.confidence}
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={{
+                      flex: 1,
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      paddingVertical: 10,
+                      borderRadius: 12,
+                      backgroundColor: consultType === 'video_consult' ? '#0284C7' : (isDark ? '#1E293B' : '#F1F5F9'),
+                      borderWidth: 1,
+                      borderColor: consultType === 'video_consult' ? '#0284C7' : colors.border
+                    }}
+                    onPress={() => setConsultType('video_consult')}
+                  >
+                    <Feather name="video" size={14} color={consultType === 'video_consult' ? '#FFF' : colors.textSecondary} style={{ marginRight: 6 }} />
+                    <Text style={{ fontSize: 12, fontWeight: '700', color: consultType === 'video_consult' ? '#FFF' : colors.textPrimary }}>
+                      {t('Video Consult')}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+
+              {/* Reason for Consultation */}
+              <View style={styles.inputGroup}>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                  <Text style={styles.inputLabel}>Reason for Consultation *</Text>
+                  {errors.reason ? (
+                    <Text style={{ color: '#EF4444', fontSize: 11, fontWeight: '600' }}>{errors.reason}</Text>
+                  ) : null}
+                </View>
+                <TextInput
+                  style={[
+                    styles.textInput,
+                    { height: 80, textAlignVertical: 'top' },
+                    errors.reason ? { borderColor: '#EF4444', borderWidth: 1.5, backgroundColor: isDark ? 'rgba(239,68,68,0.1)' : '#FEF2F2' } : null
+                  ]}
+                  placeholder="Describe your animal's issue or symptoms..."
+                  placeholderTextColor={colors.placeholderText || '#94A3B8'}
+                  value={reason}
+                  onChangeText={(text) => {
+                    setReason(text);
+                    if (errors.reason) {
+                      setErrors(prev => ({ ...prev, reason: validateReasonString(text) }));
+                    }
+                  }}
+                  multiline
+                />
+              </View>
+
+              {/* Physical Appointment Date & Time */}
+              {consultType === 'physical_appointment' && (
+                <>
+                  <View style={styles.inputGroup}>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                      <Text style={styles.inputLabel}>Date (YYYY-MM-DD) *</Text>
+                      {errors.appointmentDate ? (
+                        <Text style={{ color: '#EF4444', fontSize: 11, fontWeight: '600' }}>{errors.appointmentDate}</Text>
+                      ) : null}
+                    </View>
+
+                    {/* Quick Date Chips */}
+                    <View style={{ flexDirection: 'row', gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
+                      <TouchableOpacity
+                        style={{
+                          paddingHorizontal: 12,
+                          paddingVertical: 6,
+                          borderRadius: 10,
+                          backgroundColor: appointmentDate === getFormattedFutureDate(0) ? colors.primary : (isDark ? '#1E293B' : '#F1F5F9'),
+                          borderWidth: 1,
+                          borderColor: appointmentDate === getFormattedFutureDate(0) ? colors.primary : colors.border
+                        }}
+                        onPress={() => {
+                          const d = getFormattedFutureDate(0);
+                          setAppointmentDate(d);
+                          setErrors(prev => ({ ...prev, appointmentDate: '' }));
+                        }}
+                      >
+                        <Text style={{ fontSize: 11, fontWeight: '700', color: appointmentDate === getFormattedFutureDate(0) ? '#FFF' : colors.textPrimary }}>
+                          {t('Today')}
+                        </Text>
+                      </TouchableOpacity>
+
+                      <TouchableOpacity
+                        style={{
+                          paddingHorizontal: 12,
+                          paddingVertical: 6,
+                          borderRadius: 10,
+                          backgroundColor: appointmentDate === getFormattedFutureDate(1) ? colors.primary : (isDark ? '#1E293B' : '#F1F5F9'),
+                          borderWidth: 1,
+                          borderColor: appointmentDate === getFormattedFutureDate(1) ? colors.primary : colors.border
+                        }}
+                        onPress={() => {
+                          const d = getFormattedFutureDate(1);
+                          setAppointmentDate(d);
+                          setErrors(prev => ({ ...prev, appointmentDate: '' }));
+                        }}
+                      >
+                        <Text style={{ fontSize: 11, fontWeight: '700', color: appointmentDate === getFormattedFutureDate(1) ? '#FFF' : colors.textPrimary }}>
+                          {t('Tomorrow')}
+                        </Text>
+                      </TouchableOpacity>
+
+                      <TouchableOpacity
+                        style={{
+                          paddingHorizontal: 12,
+                          paddingVertical: 6,
+                          borderRadius: 10,
+                          backgroundColor: appointmentDate === getFormattedFutureDate(2) ? colors.primary : (isDark ? '#1E293B' : '#F1F5F9'),
+                          borderWidth: 1,
+                          borderColor: appointmentDate === getFormattedFutureDate(2) ? colors.primary : colors.border
+                        }}
+                        onPress={() => {
+                          const d = getFormattedFutureDate(2);
+                          setAppointmentDate(d);
+                          setErrors(prev => ({ ...prev, appointmentDate: '' }));
+                        }}
+                      >
+                        <Text style={{ fontSize: 11, fontWeight: '700', color: appointmentDate === getFormattedFutureDate(2) ? '#FFF' : colors.textPrimary }}>
+                          {t('+2 Days')}
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+
+                    <TextInput
+                      style={[
+                        styles.textInput,
+                        errors.appointmentDate ? { borderColor: '#EF4444', borderWidth: 1.5, backgroundColor: isDark ? 'rgba(239,68,68,0.1)' : '#FEF2F2' } : null
+                      ]}
+                      placeholder={getFormattedFutureDate(0)}
+                      placeholderTextColor={colors.placeholderText || '#94A3B8'}
+                      value={appointmentDate}
+                      maxLength={10}
+                      keyboardType="numbers-and-punctuation"
+                      onChangeText={(text) => {
+                        setAppointmentDate(text);
+                        if (errors.appointmentDate) {
+                          setErrors(prev => ({ ...prev, appointmentDate: validateDateString(text) }));
+                        }
+                      }}
+                    />
+                  </View>
+
+                  <View style={styles.inputGroup}>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                      <Text style={styles.inputLabel}>Time (24-Hour HH:MM) *</Text>
+                      {errors.appointmentTime ? (
+                        <Text style={{ color: '#EF4444', fontSize: 11, fontWeight: '600' }}>{errors.appointmentTime}</Text>
+                      ) : null}
+                    </View>
+
+                    {/* Quick Time Slots */}
+                    <View style={{ flexDirection: 'row', gap: 6, marginBottom: 8, flexWrap: 'wrap' }}>
+                      {['09:30', '11:00', '14:30', '16:00', '17:30'].map((slot) => (
+                        <TouchableOpacity
+                          key={slot}
+                          style={{
+                            paddingHorizontal: 10,
+                            paddingVertical: 5,
+                            borderRadius: 10,
+                            backgroundColor: appointmentTime === slot ? '#0284C7' : (isDark ? '#1E293B' : '#F1F5F9'),
+                            borderWidth: 1,
+                            borderColor: appointmentTime === slot ? '#0284C7' : colors.border
+                          }}
+                          onPress={() => {
+                            setAppointmentTime(slot);
+                            setErrors(prev => ({ ...prev, appointmentTime: '' }));
+                          }}
+                        >
+                          <Text style={{ fontSize: 11, fontWeight: '700', color: appointmentTime === slot ? '#FFF' : colors.textPrimary }}>
+                            {slot}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+
+                    <TextInput
+                      style={[
+                        styles.textInput,
+                        errors.appointmentTime ? { borderColor: '#EF4444', borderWidth: 1.5, backgroundColor: isDark ? 'rgba(239,68,68,0.1)' : '#FEF2F2' } : null
+                      ]}
+                      placeholder="14:30"
+                      placeholderTextColor={colors.placeholderText || '#94A3B8'}
+                      value={appointmentTime}
+                      maxLength={5}
+                      keyboardType="numbers-and-punctuation"
+                      onChangeText={(text) => {
+                        setAppointmentTime(text);
+                        if (errors.appointmentTime) {
+                          setErrors(prev => ({ ...prev, appointmentTime: validateTimeString(text, appointmentDate) }));
+                        }
+                      }}
+                    />
+                  </View>
+                </>
+              )}
+
+              {params.initialRecord && (
+                <View style={{
+                  backgroundColor: isDark ? 'rgba(16, 185, 129, 0.1)' : '#ECFDF5',
+                  borderRadius: 14,
+                  borderWidth: 1,
+                  borderColor: isDark ? 'rgba(16, 185, 129, 0.3)' : '#A7F3D0',
+                  padding: 12,
+                  marginBottom: 16,
+                }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+                    <MaterialCommunityIcons name="check-decagram" size={16} color="#059669" style={{ marginRight: 6 }} />
+                    <Text style={{ fontSize: 13, fontWeight: '700', color: isDark ? '#34D399' : '#047857' }}>
+                      AI Medical Report Attached
                     </Text>
                   </View>
+                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    {params.initialRecord.imageUrl || params.initialRecord.uri ? (
+                      <Image
+                        source={{ uri: params.initialRecord.imageUrl || params.initialRecord.uri }}
+                        style={{ width: 44, height: 44, borderRadius: 8, marginRight: 10, backgroundColor: '#E2E8F0' }}
+                      />
+                    ) : null}
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ fontSize: 13, fontWeight: '700', color: colors.textPrimary }}>
+                        Livestock #{params.initialRecord.animalId || params.initialRecord.id || 'N/A'} ({params.initialRecord.animalType || 'Livestock'})
+                      </Text>
+                      <Text style={{ fontSize: 12, color: colors.textSecondary, marginTop: 2 }}>
+                        Diagnosis: {params.initialRecord.disease || params.initialRecord.name} · {params.initialRecord.confidence}
+                      </Text>
+                    </View>
+                  </View>
                 </View>
-              </View>
-            )}
+              )}
 
-            <View style={styles.modalButtons}>
-              <TouchableOpacity style={styles.cancelBtn} onPress={() => setConsultModalVisible(false)}>
-                <Text style={styles.cancelBtnText}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.submitBtn} onPress={submitConsultationRequest}>
-                <Text style={styles.submitBtnText}>Submit Request</Text>
-              </TouchableOpacity>
-            </View>
+              <View style={styles.modalButtons}>
+                <TouchableOpacity style={styles.cancelBtn} onPress={() => setConsultModalVisible(false)}>
+                  <Text style={styles.cancelBtnText}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.submitBtn} onPress={submitConsultationRequest}>
+                  <Text style={styles.submitBtnText}>Submit Request</Text>
+                </TouchableOpacity>
+              </View>
+            </ScrollView>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
     </SafeAreaView>
   );

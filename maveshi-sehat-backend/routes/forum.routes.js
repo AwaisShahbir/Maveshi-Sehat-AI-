@@ -89,6 +89,12 @@ module.exports = (pool) => {
       if (!title || !description || !category) {
         return res.status(400).json({ error: 'Title, description, and category are required' });
       }
+      if (title.trim().length < 5) {
+        return res.status(400).json({ error: 'Post title must be at least 5 characters long.' });
+      }
+      if (description.trim().length < 10) {
+        return res.status(400).json({ error: 'Post description must provide clear details (minimum 10 characters).' });
+      }
       if (!userName && !providedUserId) {
         return res.status(400).json({ error: 'User identification is required' });
       }
@@ -161,8 +167,8 @@ module.exports = (pool) => {
     try {
       const { id } = req.params;
       const { userName, userId: providedUserId, comment, parentCommentId, imageUrl: directImageUrl } = req.body;
-      if (!comment || !comment.trim()) {
-        return res.status(400).json({ error: 'Comment text is required' });
+      if (!comment || !comment.trim() || comment.trim().length < 2) {
+        return res.status(400).json({ error: 'Comment must be at least 2 characters long' });
       }
       if (!userName && !providedUserId) {
         return res.status(400).json({ error: 'User identification is required' });

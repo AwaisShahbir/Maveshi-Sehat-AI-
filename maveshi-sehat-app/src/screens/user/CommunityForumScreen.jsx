@@ -221,12 +221,12 @@ export default function CommunityForumScreen() {
       Alert.alert(t('Not Logged In'), t('Please log in to post a discussion.'));
       return;
     }
-    if (!postTitle.trim()) {
-      Alert.alert(t('Required'), t('Please enter a title for your post.'));
+    if (!postTitle.trim() || postTitle.trim().length < 5) {
+      Alert.alert(t('Required'), t('Please enter a descriptive title for your post (minimum 5 characters).'));
       return;
     }
-    if (!postDescription.trim()) {
-      Alert.alert(t('Required'), t('Please enter details for your post.'));
+    if (!postDescription.trim() || postDescription.trim().length < 10) {
+      Alert.alert(t('Required'), t('Please enter detailed information for your post (minimum 10 characters).'));
       return;
     }
 

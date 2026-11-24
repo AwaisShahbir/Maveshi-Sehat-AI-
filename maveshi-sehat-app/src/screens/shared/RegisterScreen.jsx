@@ -155,13 +155,25 @@ export default function RegisterScreen() {
       return setErrorMsg('Please fill in all required fields');
     }
     
-    
-    if (phoneNumber.length < 10) {
-      return setErrorMsg('Please enter a valid phone number');
+    if (fullName.trim().length < 3) {
+      return setErrorMsg('Full Name must be at least 3 characters long');
     }
-    if (!email.includes('@')) {
-      return setErrorMsg('Please enter a valid email address');
+
+    const cleanPhone = phoneNumber.trim().replace(/[\s\-]/g, '');
+    const pkPhoneRegex = /^(03\d{9}|\+923\d{9})$/;
+    if (!pkPhoneRegex.test(cleanPhone)) {
+      return setErrorMsg('Please enter a valid Pakistani mobile number (e.g. 03001234567 or +923001234567)');
     }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email.trim())) {
+      return setErrorMsg('Please enter a valid email address (e.g. name@example.com)');
+    }
+
+    if (!district.trim()) {
+      return setErrorMsg('Please select your District');
+    }
+
     if (password.length < 6) {
       return setErrorMsg('Password must be at least 6 characters long');
     }
@@ -169,7 +181,6 @@ export default function RegisterScreen() {
       return setErrorMsg('Passwords do not match!');
     }
 
-    
     if (role === 'vet') {
       if (!pvmcNumber.trim()) {
         return setErrorMsg('Please enter your PVMC License Number');
@@ -182,14 +193,15 @@ export default function RegisterScreen() {
         return setErrorMsg('Please enter your 13-digit National CNIC Number');
       }
       const cleanCnic = vetCnic.replace(/\D/g, '');
-      if (cleanCnic.length < 13) {
-        return setErrorMsg('CNIC must be at least 13 digits (e.g. 35201-1234567-1)');
+      if (cleanCnic.length !== 13) {
+        return setErrorMsg('CNIC must be exactly 13 digits (e.g. 35201-1234567-1)');
       }
-      if (!specialization.trim()) {
-        return setErrorMsg('Please enter your Specialization');
+      if (!specialization.trim() || specialization.trim().length < 2) {
+        return setErrorMsg('Please enter your Specialization (minimum 2 characters)');
       }
-      if (!experienceYears.trim() || isNaN(experienceYears)) {
-        return setErrorMsg('Please enter a valid number of years of experience');
+      const expNum = parseInt(experienceYears, 10);
+      if (!experienceYears.trim() || isNaN(expNum) || expNum < 0 || expNum > 65) {
+        return setErrorMsg('Please enter a valid number of years of experience (0 - 65)');
       }
       if (!licenseDocumentUrl.trim()) {
         return setErrorMsg('Please upload your official PVMC License Document');

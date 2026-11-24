@@ -135,7 +135,14 @@ export default function ForumPostDetailScreen() {
 
   const handleSendReply = async () => {
     const trimmed = replyText.trim();
-    if (!trimmed && !replyImage) return;
+    if (!trimmed && !replyImage) {
+      Alert.alert(t('Required'), t('Please enter a reply message or attach a photo.'));
+      return;
+    }
+    if (trimmed && trimmed.length < 2 && !replyImage) {
+      Alert.alert(t('Required'), t('Reply message must be at least 2 characters long.'));
+      return;
+    }
     if (!userName) {
       Alert.alert(t('Not Logged In'), t('Please log in to post a reply.'));
       return;

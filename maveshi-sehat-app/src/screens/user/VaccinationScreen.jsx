@@ -126,9 +126,27 @@ export default function VaccinationScreen() {
 
   const handleSaveVaccination = async () => {
     const finalName = customVaccineName.trim() || selectedPreset;
-    if (!finalName) {
-      Alert.alert(t('Error'), t('Please enter vaccine name'));
+    if (!finalName || finalName.length < 2) {
+      Alert.alert(t('Error'), t('Please enter a valid vaccine name (minimum 2 characters)'));
       return;
+    }
+
+    const dateRegex = /^\d{4}-\d{1,2}-\d{1,2}$/;
+    if (administeredDate && (!dateRegex.test(administeredDate.trim()) || isNaN(new Date(administeredDate.trim()).getTime()))) {
+      Alert.alert(t('Error'), t('Please enter a valid administered date (YYYY-MM-DD)'));
+      return;
+    }
+
+    if (nextDueDate && nextDueDate.trim()) {
+      if (!dateRegex.test(nextDueDate.trim()) || isNaN(new Date(nextDueDate.trim()).getTime())) {
+        Alert.alert(t('Error'), t('Next due date must be a valid date in YYYY-MM-DD format'));
+        return;
+      }
+      const admTime = administeredDate ? new Date(administeredDate.trim()).getTime() : Date.now();
+      if (new Date(nextDueDate.trim()).getTime() < admTime) {
+        Alert.alert(t('Error'), t('Next due date cannot be earlier than the administered date'));
+        return;
+      }
     }
 
     setSubmitting(true);

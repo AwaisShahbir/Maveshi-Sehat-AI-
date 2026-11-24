@@ -64,8 +64,28 @@ export default function AddMedicine({ pharmacy, onSaveSuccess, onCancel }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!form.name || !form.manufacturer || !form.category || !form.dosageForm || !form.strength || !form.price || !form.stock || !form.minStock || !form.expiryDate) {
+    if (!form.name.trim() || !form.manufacturer.trim() || !form.category || !form.dosageForm || !form.strength.trim() || !form.price || form.stock === '' || form.minStock === '' || !form.expiryDate) {
       alert('Please fill in all required fields marked with *');
+      return;
+    }
+
+    if (parseFloat(form.price) <= 0 || isNaN(parseFloat(form.price))) {
+      alert('Please enter a valid price greater than 0');
+      return;
+    }
+
+    if (parseInt(form.stock) < 0 || isNaN(parseInt(form.stock))) {
+      alert('Stock quantity cannot be negative');
+      return;
+    }
+
+    if (parseInt(form.minStock) < 0 || isNaN(parseInt(form.minStock))) {
+      alert('Minimum alert stock cannot be negative');
+      return;
+    }
+
+    if (new Date(form.expiryDate).getTime() <= Date.now()) {
+      alert('Expiry date must be a future date');
       return;
     }
 
