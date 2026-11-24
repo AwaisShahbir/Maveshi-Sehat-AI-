@@ -50,6 +50,52 @@ export default function AiScanScreen() {
   const [scanProgressText, setScanProgressText] = useState('Uploading Image...');
   const [showReport, setShowReport] = useState(false);
   const [scanResult, setScanResult] = useState(null);
+  const [subData, setSubData] = useState(null);
+
+  const fetchSubscription = async () => {
+    if (!userId) return;
+    try {
+      const res = await fetch(`${BASE_URL}/api/subscriptions/status/${userId}`);
+      if (res.ok) {
+        const data = await res.json();
+        setSubData(data);
+      }
+    } catch (e) {
+      console.warn('Subscription fetch in AiScanScreen error:', e.message);
+    }
+  };
+
+  useEffect(() => {
+    fetchSubscription();
+  }, [userId]);
+
+  const checkCanScan = () => {
+    if (!subData) return true;
+    if (subData.isUnlimited) return true;
+    if (subData.subscriptionStatus === 'pending_approval' && subData.scansUsed >= 10) {
+      Alert.alert(
+        t('Payment Proof Under Review'),
+        t('Your payment proof is currently under review by Admin. Access will be unlocked as soon as verified.'),
+        [
+          { text: t('View Status'), onPress: () => navigation.navigate('Subscription') },
+          { text: t('OK'), style: 'cancel' }
+        ]
+      );
+      return false;
+    }
+    if (subData.scansRemaining <= 0) {
+      Alert.alert(
+        t('Free Scan Limit Reached (10/10)'),
+        t('You have used all 10 free AI disease scans. Upgrade to Monthly Pro (Rs. 300) for unlimited scans.'),
+        [
+          { text: t('Later'), style: 'cancel' },
+          { text: t('Upgrade Plan'), onPress: () => navigation.navigate('Subscription') }
+        ]
+      );
+      return false;
+    }
+    return true;
+  };
 
   const scanLineAnim = useRef(new Animated.Value(0)).current;
   const animationLoopRef = useRef(null);
@@ -88,6 +134,8 @@ export default function AiScanScreen() {
   };
 
   const handleTakePhoto = () => {
+    if (!checkCanScan()) return;
+
     if (!animalTagId || !animalTagId.trim()) {
       Alert.alert(
         t('Livestock ID Required'),
@@ -138,6 +186,8 @@ export default function AiScanScreen() {
   };
 
   const handleChooseFromGallery = () => {
+    if (!checkCanScan()) return;
+
     if (!animalTagId || !animalTagId.trim()) {
       Alert.alert(
         t('Livestock ID Required'),
@@ -186,102 +236,130 @@ export default function AiScanScreen() {
   };
 
   const handleAnalyze = async () => {
-  if (!selectedImage) return;
+    if (!selectedImage) return;
 
-  if (!animalTagId || !animalTagId.trim()) {
-    Alert.alert(
-      t('Livestock ID Required'),
-      t('Please enter the Livestock ID (e.g. COW-101, TAG-201) before running AI diagnosis.')
-    );
-    return;
-  }
+    if (!checkCanScan()) return;
 
-  setIsScanning(true);
-  setShowReport(false);
-  startScanAnimation();
-
-  const scanNow = new Date();
-  const exactScanTime = scanNow.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ', ' + scanNow.toLocaleDateString([], { day: '2-digit', month: 'short', year: 'numeric' });
-
-  setScanProgressText(t('Validating Image & Species...'));
-
-  const t1 = setTimeout(() => {
-    setScanProgressText(t('Running Roboflow Vision Core...'));
-  }, 1100);
-
-  const t2 = setTimeout(() => {
-    setScanProgressText(t('Synthesizing Clinical Pathology Report...'));
-  }, 2200);
-
-  try {
-    let response;
-    const effectiveAnimalId = animalTagId.trim();
-
-    if (selectedImage.uri && selectedImage.isLocal) {
-      const formData = new FormData();
-      formData.append('image', {
-        uri: Platform.OS === 'android' ? selectedImage.uri : selectedImage.uri.replace('file://', ''),
-        name: selectedImage.fileName || `scan-${Date.now()}.jpg`,
-        type: selectedImage.type || 'image/jpeg'
-      });
-      formData.append('ownerName', userName || 'Farmer');
-      formData.append('animalId', effectiveAnimalId);
-      formData.append('province', userRegion);
-
-      response = await fetch(`${BASE_URL}/api/ai/scan-disease`, {
-        method: 'POST',
-        body: formData,
-      });
-    } else if (selectedImage.base64) {
-      response = await fetch(`${BASE_URL}/api/ai/scan-disease`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          imageBase64: selectedImage.base64,
-          ownerName: userName || 'Farmer',
-          animalId: effectiveAnimalId,
-          province: userRegion
-        }),
-      });
-    } else {
-      response = await fetch(`${BASE_URL}/api/ai/scan-disease`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          imageUrl: selectedImage.uri,
-          ownerName: userName || 'Farmer',
-          animalId: effectiveAnimalId,
-          province: userRegion
-        }),
-      });
+    if (!animalTagId || !animalTagId.trim()) {
+      Alert.alert(
+        t('Livestock ID Required'),
+        t('Please enter the Livestock ID (e.g. COW-101, TAG-201) before running AI diagnosis.')
+      );
+      return;
     }
 
-    clearTimeout(t1);
-    clearTimeout(t2);
+    setIsScanning(true);
+    setShowReport(false);
+    startScanAnimation();
 
-    const rawResponseText = await response.text();
-    let data;
+    const scanNow = new Date();
+    const exactScanTime = scanNow.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ', ' + scanNow.toLocaleDateString([], { day: '2-digit', month: 'short', year: 'numeric' });
+
+    setScanProgressText(t('Validating Image & Species...'));
+
+    const t1 = setTimeout(() => {
+      setScanProgressText(t('Running Roboflow Vision Core...'));
+    }, 1100);
+
+    const t2 = setTimeout(() => {
+      setScanProgressText(t('Synthesizing Clinical Pathology Report...'));
+    }, 2200);
+
     try {
-      data = JSON.parse(rawResponseText);
-    } catch (parseErr) {
-      if (response.status === 413) {
-        throw new Error('Image is too large. Please take a photo with standard resolution.');
-      }
-      if (response.status >= 500) {
-        throw new Error('AI analysis server is waking up on Render. Please try again in 5 seconds.');
-      }
-      throw new Error(`Server response error (${response.status}): ${rawResponseText.slice(0, 100)}`);
-    }
+      let response;
+      const effectiveAnimalId = animalTagId.trim();
 
-    if (!response.ok || !data.success) {
-      throw new Error(data.error || 'Failed to detect disease');
-    }
+      if (selectedImage.uri && selectedImage.isLocal) {
+        const formData = new FormData();
+        formData.append('image', {
+          uri: Platform.OS === 'android' ? selectedImage.uri : selectedImage.uri.replace('file://', ''),
+          name: selectedImage.fileName || `scan-${Date.now()}.jpg`,
+          type: selectedImage.type || 'image/jpeg'
+        });
+        formData.append('ownerName', userName || 'Farmer');
+        formData.append('animalId', effectiveAnimalId);
+        formData.append('province', userRegion);
+        if (userId) formData.append('userId', userId);
 
-    const diagnosis = data.diagnosis;
+        response = await fetch(`${BASE_URL}/api/ai/scan-disease`, {
+          method: 'POST',
+          body: formData,
+        });
+      } else if (selectedImage.base64) {
+        response = await fetch(`${BASE_URL}/api/ai/scan-disease`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            imageBase64: selectedImage.base64,
+            ownerName: userName || 'Farmer',
+            animalId: effectiveAnimalId,
+            province: userRegion,
+            userId: userId || null
+          }),
+        });
+      } else {
+        response = await fetch(`${BASE_URL}/api/ai/scan-disease`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            imageUrl: selectedImage.uri,
+            ownerName: userName || 'Farmer',
+            animalId: effectiveAnimalId,
+            province: userRegion,
+            userId: userId || null
+          }),
+        });
+      }
+
+      clearTimeout(t1);
+      clearTimeout(t2);
+
+      const rawResponseText = await response.text();
+      let data;
+      try {
+        data = JSON.parse(rawResponseText);
+      } catch (parseErr) {
+        if (response.status === 413) {
+          throw new Error('Image is too large. Please take a photo with standard resolution.');
+        }
+        if (response.status >= 500) {
+          throw new Error('AI analysis server is waking up on Render. Please try again in 5 seconds.');
+        }
+        throw new Error(`Server response error (${response.status}): ${rawResponseText.slice(0, 100)}`);
+      }
+
+      if (data.limitReached || response.status === 403) {
+        stopScanAnimation();
+        setIsScanning(false);
+        Alert.alert(
+          t('Free Scan Limit Reached (10/10)'),
+          data.error || t('You have used all 10 free AI disease scans. Upgrade to Monthly Pro (Rs. 300) for unlimited scans.'),
+          [
+            { text: t('Later'), style: 'cancel' },
+            { text: t('Upgrade Plan'), onPress: () => navigation.navigate('Subscription') }
+          ]
+        );
+        return;
+      }
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || 'Failed to detect disease');
+      }
+
+      if (data.scansRemaining !== undefined) {
+        setSubData(prev => ({
+          ...prev,
+          scansUsed: data.scansUsed,
+          scansRemaining: data.scansRemaining,
+          isUnlimited: data.isUnlimited
+        }));
+      }
+
+      const diagnosis = data.diagnosis;
 
     const serverImg = diagnosis.imageUrl || (data.record && data.record.image_url);
     const fullImageUrl = serverImg
@@ -399,6 +477,54 @@ return (
 
 
       <View style={styles.mainCard}>
+        {/* Subscription Plan & Scans Allowance Banner */}
+        <TouchableOpacity
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            backgroundColor: subData?.isUnlimited
+              ? (isDark ? '#064E3B' : '#ECFDF5')
+              : (subData?.subscriptionStatus === 'pending_approval'
+                ? (isDark ? '#78350F' : '#FEF3C7')
+                : (isDark ? '#1E293B' : '#F1F5F9')),
+            borderWidth: 1,
+            borderColor: subData?.isUnlimited
+              ? '#10B981'
+              : (subData?.subscriptionStatus === 'pending_approval' ? '#F59E0B' : '#CBD5E1'),
+            borderRadius: 14,
+            paddingHorizontal: 14,
+            paddingVertical: 10,
+            marginBottom: 12
+          }}
+          onPress={() => navigation.navigate('Subscription')}
+          activeOpacity={0.8}
+        >
+          <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+            <MaterialCommunityIcons
+              name={subData?.isUnlimited ? 'crown' : (subData?.subscriptionStatus === 'pending_approval' ? 'clock-alert-outline' : 'lightning-bolt')}
+              size={20}
+              color={subData?.isUnlimited ? '#059669' : (subData?.subscriptionStatus === 'pending_approval' ? '#D97706' : '#0284C7')}
+              style={{ marginRight: 8 }}
+            />
+            <View>
+              <Text style={{ fontSize: 12, fontWeight: '800', color: colors.textPrimary }}>
+                {subData?.isUnlimited
+                  ? t('Pro Active · Unlimited AI Scans')
+                  : (subData?.subscriptionStatus === 'pending_approval'
+                    ? t('Rs. 300 Plan · Review Pending')
+                    : `${t('Free AI Scans')}: ${subData?.scansRemaining !== undefined ? subData.scansRemaining : 10} / 10 ${t('Remaining')}`)}
+              </Text>
+              {!subData?.isUnlimited && (
+                <Text style={{ fontSize: 10, color: colors.textSecondary, marginTop: 1 }}>
+                  {t('Tap to upgrade for unlimited scans (Rs. 300/mo)')}
+                </Text>
+              )}
+            </View>
+          </View>
+          <Feather name="chevron-right" size={18} color={colors.textSecondary} />
+        </TouchableOpacity>
+
         {/* AI Species Auto-Detection Banner */}
         <View style={{
           flexDirection: 'row',

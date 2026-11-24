@@ -14,6 +14,7 @@ import {
   LogOut,
   Activity,
   MessageSquare,
+  CreditCard,
   X
 } from 'lucide-react';
 import logoImg from '../assets/logo.png';
@@ -75,6 +76,12 @@ export default function Sidebar({ onLogout, adminUser, isOpen, onClose }) {
         { path: '/users', label: 'User Management', icon: Users, badgeKey: 'users' },
         { path: '/vets', label: 'Vet Verification', icon: UserCheck, badgeKey: 'vets' },
         { path: '/pharmacy-approval', label: 'Pharmacy Approval', icon: Store, badgeKey: 'pharmacies' }
+      ]
+    },
+    {
+      title: 'BILLING & PAYMENTS',
+      items: [
+        { path: '/subscriptions', label: 'Subscriptions & Payments', icon: CreditCard }
       ]
     },
     {

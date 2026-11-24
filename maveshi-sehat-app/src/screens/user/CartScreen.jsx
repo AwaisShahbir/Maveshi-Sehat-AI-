@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { 
   View, Text, SafeAreaView, ScrollView, 
-  TouchableOpacity, StatusBar, Alert, Platform, Image, TextInput, Modal, ActivityIndicator, KeyboardAvoidingView 
+  TouchableOpacity, StatusBar, Alert, Platform, Image, TextInput, Modal, ActivityIndicator, KeyboardAvoidingView,
+  Clipboard
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import { getProfile, updateProfile } from '../../utils/profileStore';
 import { useTranslation } from '../../utils/translate';
 import { 
@@ -54,6 +56,45 @@ export default function CartScreen() {
   const [walletPhone, setWalletPhone] = useState(profile.phone || '');
   const [walletMpin, setWalletMpin] = useState('');
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [orderProofImage, setOrderProofImage] = useState(null);
+  const [orderTransactionId, setOrderTransactionId] = useState('');
+  const [orderSenderPhone, setOrderSenderPhone] = useState(profile.phone || '');
+
+  const JAZZCASH_PAY_NUMBER = '03054758667';
+  const JAZZCASH_PAY_TITLE = 'Maveshi Sehat Official';
+
+  const copyPaymentNumber = () => {
+    Clipboard.setString(JAZZCASH_PAY_NUMBER);
+    Alert.alert(t('Copied!'), `${t('JazzCash Number')} ${JAZZCASH_PAY_NUMBER} ${t('copied to clipboard.')}`);
+  };
+
+  const handlePickOrderProof = (fromCamera = false) => {
+    const options = {
+      mediaType: 'photo',
+      maxWidth: 1024,
+      maxHeight: 1024,
+      quality: 0.8,
+      includeBase64: true
+    };
+
+    const launcher = fromCamera ? launchCamera : launchImageLibrary;
+    launcher(options, (response) => {
+      if (response.didCancel) return;
+      if (response.errorMessage) {
+        Alert.alert(t('Image Error'), response.errorMessage);
+        return;
+      }
+      if (response.assets && response.assets[0]) {
+        const asset = response.assets[0];
+        setOrderProofImage({
+          uri: asset.uri,
+          base64: asset.base64,
+          type: asset.type || 'image/jpeg',
+          fileName: asset.fileName || `order-proof-${Date.now()}.jpg`
+        });
+      }
+    });
+  };
 
   // Success Receipt Modal State
   const [isSuccessModalVisible, setIsSuccessModalVisible] = useState(false);
@@ -170,45 +211,46 @@ export default function CartScreen() {
     }
   };
 
-  // Process Online Mobile Wallet Authorization (JazzCash / EasyPaisa)
+  // Process Online Mobile Wallet (JazzCash / EasyPaisa) with Payment Proof Upload
   const handleAuthorizeOnlinePayment = async () => {
-    const cleanWalletPhone = walletPhone.trim().replace(/[\s\-]/g, '');
+    const cleanSenderPhone = (orderSenderPhone || phone || '').trim().replace(/[\s\-]/g, '');
     const pkPhoneRegex = /^(03\d{9}|\+923\d{9})$/;
-    if (!pkPhoneRegex.test(cleanWalletPhone)) {
-      Alert.alert(t('Invalid Phone'), t('Please enter a valid Pakistani mobile wallet phone number (e.g. 03001234567)'));
+    if (!pkPhoneRegex.test(cleanSenderPhone)) {
+      Alert.alert(t('Invalid Phone'), t('Please enter a valid Pakistani sender phone number (e.g. 03001234567)'));
       return;
     }
-    if (!walletMpin || !/^\d{4}$/.test(walletMpin.trim())) {
-      Alert.alert(t('PIN Required'), t('Please enter your 4-digit numeric MPIN (e.g. 1234) to authorize the transaction'));
+    if (!orderTransactionId || !orderTransactionId.trim()) {
+      Alert.alert(t('TID Required'), t('Please enter the JazzCash Transaction ID (TID) from the confirmation SMS.'));
+      return;
+    }
+    if (!orderProofImage) {
+      Alert.alert(t('Proof Required'), t('Please attach a screenshot or photo of your JazzCash payment receipt.'));
       return;
     }
 
     setIsProcessingPayment(true);
 
     try {
-      // Simulate real-time secure network handshake with JazzCash / EasyPaisa API
-      await new Promise(resolve => setTimeout(resolve, 1400));
-
-      // Generate realistic Transaction Reference ID
-      const prefix = selectedWallet === 'JazzCash' ? 'JC' : 'EP';
-      const randomTid = `${prefix}-${Math.floor(10000000 + Math.random() * 90000000)}`;
-
       await submitOrder({
         method: selectedWallet,
-        paymentStatus: 'paid',
-        transactionId: randomTid
+        paymentStatus: 'pending_verification',
+        transactionId: orderTransactionId.trim(),
+        senderPhone: cleanSenderPhone,
+        paymentProofBase64: orderProofImage.base64
       });
 
       setIsPaymentModalVisible(false);
+      setOrderProofImage(null);
+      setOrderTransactionId('');
     } catch (err) {
-      Alert.alert(t('Payment Failed'), err.message || t('Could not process mobile wallet payment'));
+      Alert.alert(t('Payment Submission Failed'), err.message || t('Could not submit payment proof'));
     } finally {
       setIsProcessingPayment(false);
     }
   };
 
   // Submit Order to Backend
-  const submitOrder = async ({ method, paymentStatus, transactionId }) => {
+  const submitOrder = async ({ method, paymentStatus, transactionId, senderPhone, paymentProofBase64 }) => {
     try {
       setLoading(true);
       const baseUrl = 'https://maveshi-sehat-api.onrender.com';
@@ -223,6 +265,8 @@ export default function CartScreen() {
         paymentMethod: method,
         paymentStatus: paymentStatus,
         transactionId: transactionId,
+        senderPhone: senderPhone || phone,
+        paymentProofBase64: paymentProofBase64 || null,
         deliveryAddress: fullDeliveryAddress,
         phone: phone,
         items: cartItems.map(item => ({
@@ -670,7 +714,7 @@ export default function CartScreen() {
             <View style={styles.payModalHeader}>
               <View style={styles.payModalTitleRow}>
                 <Feather name="shield" size={20} color={colors.primary} />
-                <Text style={styles.payModalTitle}>{t('Mobile Wallet Checkout')}</Text>
+                <Text style={styles.payModalTitle}>{t('JazzCash Payment Checkout')}</Text>
               </View>
               {!isProcessingPayment && (
                 <TouchableOpacity onPress={() => setIsPaymentModalVisible(false)}>
@@ -679,110 +723,159 @@ export default function CartScreen() {
               )}
             </View>
 
-            {/* Payable Amount Banner */}
-            <View style={styles.payAmountBanner}>
-              <Text style={styles.payAmountLabel}>{t('Amount Payable')}</Text>
-              <Text style={styles.payAmountValue}>Rs. {Math.round(total)}</Text>
-            </View>
+            <ScrollView showsVerticalScrollIndicator={false} style={{ maxHeight: 420 }}>
+              {/* Payable Amount Banner */}
+              <View style={styles.payAmountBanner}>
+                <Text style={styles.payAmountLabel}>{t('Amount Payable')}</Text>
+                <Text style={styles.payAmountValue}>Rs. {Math.round(total)}</Text>
+              </View>
 
-            {/* Wallet Selection: JazzCash or EasyPaisa */}
-            <View style={styles.walletTabsRow}>
-              <TouchableOpacity
-                style={[
-                  styles.walletTab, 
-                  selectedWallet === 'JazzCash' && styles.walletTabActiveJazz
-                ]}
-                onPress={() => setSelectedWallet('JazzCash')}
-                activeOpacity={0.8}
-              >
-                <View style={[styles.walletLogoCircle, { backgroundColor: '#E4002B' }]}>
-                  <Text style={{ color: '#FFF', fontSize: 11, fontWeight: '900' }}>J</Text>
+              {/* JazzCash Transfer Details Box */}
+              <View style={{
+                backgroundColor: isDark ? 'rgba(255, 255, 255, 0.05)' : '#FEF2F2',
+                borderRadius: 14,
+                padding: 14,
+                marginBottom: 14,
+                borderWidth: 1,
+                borderColor: '#FCA5A5'
+              }}>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                  <Text style={{ fontSize: 12, color: colors.textSecondary }}>{t('Account Title')}:</Text>
+                  <Text style={{ fontSize: 13, fontWeight: '700', color: colors.textPrimary }}>{JAZZCASH_PAY_TITLE}</Text>
                 </View>
-                <View>
-                  <Text style={styles.walletTabText}>JazzCash</Text>
-                  <Text style={styles.walletTabSubtext}>{t('Mobile Wallet')}</Text>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                  <Text style={{ fontSize: 12, color: colors.textSecondary }}>{t('JazzCash Number')}:</Text>
+                  <TouchableOpacity onPress={copyPaymentNumber} style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <Text style={{ fontSize: 14, fontWeight: '900', color: '#DC2626', marginRight: 6 }}>
+                      {JAZZCASH_PAY_NUMBER}
+                    </Text>
+                    <Feather name="copy" size={13} color="#DC2626" />
+                  </TouchableOpacity>
                 </View>
-              </TouchableOpacity>
+                <Text style={{ fontSize: 11, color: colors.textSecondary, marginTop: 4 }}>
+                  {t('Transfer Rs.')} {Math.round(total)} {t('to this JazzCash account, then enter TID and attach screenshot below.')}
+                </Text>
+              </View>
 
-              <TouchableOpacity
-                style={[
-                  styles.walletTab, 
-                  selectedWallet === 'EasyPaisa' && styles.walletTabActiveEasy
-                ]}
-                onPress={() => setSelectedWallet('EasyPaisa')}
-                activeOpacity={0.8}
-              >
-                <View style={[styles.walletLogoCircle, { backgroundColor: '#00A859' }]}>
-                  <Text style={{ color: '#FFF', fontSize: 11, fontWeight: '900' }}>E</Text>
-                </View>
-                <View>
-                  <Text style={styles.walletTabText}>EasyPaisa</Text>
-                  <Text style={styles.walletTabSubtext}>{t('Mobile Wallet')}</Text>
-                </View>
-              </TouchableOpacity>
-            </View>
-
-            {/* Account Phone Input */}
-            <Text style={styles.modalFieldLabel}>
-              {selectedWallet} {t('Account Number')}
-            </Text>
-            <TextInput
-              style={styles.modalInput}
-              value={walletPhone}
-              onChangeText={setWalletPhone}
-              placeholder="03XXXXXXXXX"
-              keyboardType="phone-pad"
-              maxLength={11}
-              placeholderTextColor={colors.textMuted}
-              editable={!isProcessingPayment}
-            />
-
-            {/* MPIN Input */}
-            <Text style={styles.modalFieldLabel}>
-              {t('4-Digit Security MPIN / PIN')}
-            </Text>
-            <TextInput
-              style={styles.modalInput}
-              value={walletMpin}
-              onChangeText={setWalletMpin}
-              placeholder="••••"
-              secureTextEntry={true}
-              keyboardType="number-pad"
-              maxLength={4}
-              placeholderTextColor={colors.textMuted}
-              editable={!isProcessingPayment}
-            />
-
-            {/* Security Guarantee Pill */}
-            <View style={styles.securityPill}>
-              <Feather name="lock" size={14} color={isDark ? '#60A5FA' : '#1D4ED8'} />
-              <Text style={styles.securityPillText}>
-                {t('Encrypted with 256-Bit SSL. A prompt will be sent to your registered SIM.')}
+              {/* Sender Phone Input */}
+              <Text style={styles.modalFieldLabel}>
+                {t('Sender JazzCash Phone Number')} *
               </Text>
-            </View>
+              <TextInput
+                style={styles.modalInput}
+                value={orderSenderPhone}
+                onChangeText={setOrderSenderPhone}
+                placeholder="03XXXXXXXXX"
+                keyboardType="phone-pad"
+                maxLength={11}
+                placeholderTextColor={colors.textMuted}
+                editable={!isProcessingPayment}
+              />
 
-            {/* Authorize & Pay Button */}
-            <TouchableOpacity
-              style={[
-                styles.paySubmitBtn,
-                selectedWallet === 'JazzCash' ? { backgroundColor: '#E4002B' } : { backgroundColor: '#00A859' },
-                isProcessingPayment && { opacity: 0.7 }
-              ]}
-              onPress={handleAuthorizeOnlinePayment}
-              disabled={isProcessingPayment}
-              activeOpacity={0.85}
-            >
-              {isProcessingPayment ? (
-                <ActivityIndicator size="small" color="#FFFFFF" />
+              {/* TID Input */}
+              <Text style={styles.modalFieldLabel}>
+                {t('Transaction ID (TID)')} *
+              </Text>
+              <TextInput
+                style={styles.modalInput}
+                value={orderTransactionId}
+                onChangeText={setOrderTransactionId}
+                placeholder="e.g. 01847583920"
+                placeholderTextColor={colors.textMuted}
+                editable={!isProcessingPayment}
+              />
+
+              {/* Proof Image Upload */}
+              <Text style={styles.modalFieldLabel}>
+                {t('Payment Receipt Screenshot')} *
+              </Text>
+
+              {orderProofImage ? (
+                <View style={{ marginBottom: 14, position: 'relative' }}>
+                  <Image
+                    source={{ uri: orderProofImage.uri }}
+                    style={{ width: '100%', height: 140, borderRadius: 10 }}
+                    resizeMode="cover"
+                  />
+                  <TouchableOpacity
+                    style={{
+                      position: 'absolute',
+                      top: 6,
+                      right: 6,
+                      backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                      borderRadius: 14,
+                      padding: 5
+                    }}
+                    onPress={() => setOrderProofImage(null)}
+                  >
+                    <Feather name="trash-2" size={14} color="#FFF" />
+                  </TouchableOpacity>
+                </View>
               ) : (
-                <>
-                  <Feather name="check-circle" size={18} color="#FFFFFF" />
-                  <Text style={styles.paySubmitBtnText}>
-                    {t('Authorize & Pay')} Rs. {Math.round(total)}
-                  </Text>
-                </>
+                <View style={{ flexDirection: 'row', gap: 8, marginBottom: 16 }}>
+                  <TouchableOpacity
+                    style={{
+                      flex: 1,
+                      backgroundColor: isDark ? 'rgba(255, 255, 255, 0.05)' : '#F1F5F9',
+                      paddingVertical: 10,
+                      borderRadius: 10,
+                      alignItems: 'center',
+                      borderWidth: 1,
+                      borderColor: isDark ? 'rgba(255, 255, 255, 0.1)' : '#E2E8F0',
+                      borderStyle: 'dashed'
+                    }}
+                    onPress={() => handlePickOrderProof(false)}
+                  >
+                    <Feather name="image" size={18} color="#059669" style={{ marginBottom: 2 }} />
+                    <Text style={{ fontSize: 11, fontWeight: '700', color: colors.textPrimary }}>
+                      {t('Gallery Receipt')}
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={{
+                      flex: 1,
+                      backgroundColor: isDark ? 'rgba(255, 255, 255, 0.05)' : '#F1F5F9',
+                      paddingVertical: 10,
+                      borderRadius: 10,
+                      alignItems: 'center',
+                      borderWidth: 1,
+                      borderColor: isDark ? 'rgba(255, 255, 255, 0.1)' : '#E2E8F0',
+                      borderStyle: 'dashed'
+                    }}
+                    onPress={() => handlePickOrderProof(true)}
+                  >
+                    <Feather name="camera" size={18} color="#0284C7" style={{ marginBottom: 2 }} />
+                    <Text style={{ fontSize: 11, fontWeight: '700', color: colors.textPrimary }}>
+                      {t('Take Photo')}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
               )}
-            </TouchableOpacity>
+
+              {/* Authorize & Submit Order Button */}
+              <TouchableOpacity
+                style={[
+                  styles.paySubmitBtn,
+                  { backgroundColor: '#059669' },
+                  isProcessingPayment && { opacity: 0.7 }
+                ]}
+                onPress={handleAuthorizeOnlinePayment}
+                disabled={isProcessingPayment}
+                activeOpacity={0.85}
+              >
+                {isProcessingPayment ? (
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                ) : (
+                  <>
+                    <Feather name="check-circle" size={18} color="#FFFFFF" />
+                    <Text style={styles.paySubmitBtnText}>
+                      {t('Submit Order with Payment Proof')}
+                    </Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            </ScrollView>
           </View>
         </KeyboardAvoidingView>
       </Modal>
@@ -799,13 +892,18 @@ export default function CartScreen() {
               <Feather name="check" size={38} color="#15803D" />
             </View>
             <Text style={styles.receiptTitle}>
-              {completedOrder?.paymentMethod === 'COD' 
-                ? t('Order Placed Successfully!') 
-                : t('Payment & Order Confirmed!')
+              {completedOrder?.paymentStatus === 'pending_verification'
+                ? t('Order Placed - Payment Under Review')
+                : (completedOrder?.paymentMethod === 'COD' 
+                  ? t('Order Placed Successfully!') 
+                  : t('Payment & Order Confirmed!'))
               }
             </Text>
             <Text style={styles.receiptSubtitle}>
-              {t('Your medicine order has been sent to the pharmacy for packaging and dispatch.')}
+              {completedOrder?.paymentStatus === 'pending_verification'
+                ? t('Your JazzCash payment proof has been submitted. The pharmacy and admin will verify the receipt and dispatch your medicines.')
+                : t('Your medicine order has been sent to the pharmacy for packaging and dispatch.')
+              }
             </Text>
 
             <View style={styles.receiptBox}>

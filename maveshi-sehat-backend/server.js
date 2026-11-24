@@ -77,6 +77,7 @@ const translateRoutes = require('./routes/translate.routes')();
 const chatbotRoutes = require('./routes/chatbot')(pool);
 const notificationRoutes = require('./routes/notification.routes')(pool, io);
 const weatherRoutes = require('./routes/weather.routes')(pool, io);
+const subscriptionRoutes = require('./routes/subscription.routes')(pool, io);
 const { initHeatStressCron } = require('./services/heatStressService');
 
 // Mount All Routers
@@ -90,6 +91,7 @@ app.use('/', forumRoutes);
 app.use('/', translateRoutes);
 app.use('/', notificationRoutes);
 app.use('/', weatherRoutes);
+app.use('/', subscriptionRoutes);
 app.use('/api/chatbot', chatbotRoutes);
 app.use('/api/chat', chatbotRoutes);
 

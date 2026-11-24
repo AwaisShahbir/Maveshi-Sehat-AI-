@@ -14,6 +14,7 @@ import DiseaseAnalytics from './pages/DiseaseAnalytics';
 import Notifications from './pages/Notifications';
 import Settings from './pages/Settings';
 import CommunityForum from './pages/CommunityForum';
+import SubscriptionsAndPayments from './pages/SubscriptionsAndPayments';
 import './styles/App.css';
 
 function PlaceholderPage({ name }) {
@@ -152,7 +153,8 @@ export default function App() {
               <Route path="/health-records" element={<HealthRecords />} />
               <Route path="/community-forum" element={<CommunityForum />} />
               <Route path="/medicines" element={<PharmacyApproval />} />
-              <Route path="/orders" element={<PlaceholderPage name="Order Management" />} />
+              <Route path="/subscriptions" element={<SubscriptionsAndPayments />} />
+              <Route path="/orders" element={<SubscriptionsAndPayments />} />
               <Route path="/notifications" element={<Notifications />} />
               <Route path="/settings" element={<Settings onProfileUpdate={handleLoginSuccess} />} />
               

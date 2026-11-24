@@ -70,6 +70,31 @@ pool.connect((err, client, release) => {
       ALTER TABLE orders ADD COLUMN IF NOT EXISTS phone VARCHAR(50);
       ALTER TABLE orders ADD COLUMN IF NOT EXISTS transaction_id VARCHAR(100);
       ALTER TABLE orders ADD COLUMN IF NOT EXISTS payment_status VARCHAR(50) DEFAULT 'unpaid';
+      ALTER TABLE orders ADD COLUMN IF NOT EXISTS sender_phone VARCHAR(50);
+      ALTER TABLE orders ADD COLUMN IF NOT EXISTS payment_proof_url TEXT;
+
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS scans_used INT DEFAULT 0;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS subscription_status VARCHAR(50) DEFAULT 'free';
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS subscription_plan VARCHAR(50) DEFAULT NULL;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS subscription_expires_at TIMESTAMP DEFAULT NULL;
+
+      CREATE TABLE IF NOT EXISTS subscription_requests (
+        id SERIAL PRIMARY KEY,
+        user_id INT REFERENCES users(id) ON DELETE CASCADE,
+        user_name VARCHAR(100),
+        user_phone VARCHAR(20),
+        plan_type VARCHAR(50) NOT NULL,
+        amount DECIMAL(10, 2) NOT NULL DEFAULT 300.00,
+        payment_method VARCHAR(50) DEFAULT 'JazzCash',
+        account_number VARCHAR(50) DEFAULT '03054758667',
+        sender_phone VARCHAR(50) NOT NULL,
+        transaction_id VARCHAR(100),
+        proof_image_url TEXT NOT NULL,
+        status VARCHAR(20) DEFAULT 'pending',
+        admin_notes TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
 
       CREATE TABLE IF NOT EXISTS order_items (
         id SERIAL PRIMARY KEY,

@@ -235,7 +235,61 @@ module.exports = (pool, io) => {
   // AI Disease Detection Scanner via Roboflow
   router.post('/api/ai/scan-disease', scanUpload.single('image'), async (req, res) => {
     try {
-      const { animalType = 'Cow', ownerName = 'Farmer', province, animalId } = req.body;
+      const { animalType = 'Cow', ownerName = 'Farmer', province, animalId, userId } = req.body;
+
+      // 1. Check User Subscription & Free Scan Allowance (Max 10 Free Scans)
+      let effectiveUserId = userId;
+      if (!effectiveUserId && ownerName && ownerName !== 'Farmer') {
+        try {
+          const uRes = await pool.query('SELECT id FROM users WHERE LOWER(full_name) = LOWER($1) LIMIT 1', [ownerName]);
+          if (uRes.rows.length > 0) effectiveUserId = uRes.rows[0].id;
+        } catch (findErr) {
+          console.warn('User lookup warning in scan:', findErr.message);
+        }
+      }
+
+      let userSubData = null;
+      if (effectiveUserId) {
+        try {
+          const uRes = await pool.query(
+            'SELECT id, scans_used, subscription_status, subscription_expires_at FROM users WHERE id = $1',
+            [effectiveUserId]
+          );
+          if (uRes.rows.length > 0) {
+            userSubData = uRes.rows[0];
+            let status = userSubData.subscription_status || 'free';
+            const scansUsed = parseInt(userSubData.scans_used, 10) || 0;
+
+            if (status === 'active' && userSubData.subscription_expires_at && new Date(userSubData.subscription_expires_at) < new Date()) {
+              status = 'expired';
+              await pool.query('UPDATE users SET subscription_status = $1 WHERE id = $2', ['expired', effectiveUserId]);
+            }
+
+            if (status === 'pending_approval' && scansUsed >= 10) {
+              return res.status(403).json({
+                error: 'Your payment proof for Rs. 300 subscription is currently under review by Admin. Access will be unlocked as soon as verified.',
+                limitReached: true,
+                pendingApproval: true,
+                scansUsed,
+                maxFreeScans: 10
+              });
+            }
+
+            if ((status === 'free' || status === 'expired') && scansUsed >= 10) {
+              return res.status(403).json({
+                error: 'You have exhausted your 10 free AI scans. Please upgrade to our Monthly Pro Plan (Rs. 300) for unlimited scans.',
+                limitReached: true,
+                requiresSubscription: true,
+                scansUsed,
+                maxFreeScans: 10
+              });
+            }
+          }
+        } catch (subErr) {
+          console.warn('Subscription check warning in scan:', subErr.message);
+        }
+      }
+
       let imageFilePath = null;
       let publicImageUrl = null;
 
@@ -356,6 +410,22 @@ module.exports = (pool, io) => {
         statusValue
       ]);
 
+      // Increment scans_used for user upon valid livestock diagnosis
+      let currentScansUsed = (userSubData?.scans_used || 0);
+      if (effectiveUserId) {
+        try {
+          const updateRes = await pool.query(
+            'UPDATE users SET scans_used = COALESCE(scans_used, 0) + 1 WHERE id = $1 RETURNING scans_used',
+            [effectiveUserId]
+          );
+          if (updateRes.rows.length > 0) {
+            currentScansUsed = updateRes.rows[0].scans_used;
+          }
+        } catch (incErr) {
+          console.warn('Could not increment scans_used:', incErr.message);
+        }
+      }
+
       // Emit realtime websocket event if IO is present
       if (io) {
         io.emit('new_detection', dbRes.rows[0]);
@@ -368,6 +438,10 @@ module.exports = (pool, io) => {
       res.status(200).json({
         success: true,
         record: dbRes.rows[0],
+        scansUsed: currentScansUsed,
+        maxFreeScans: 10,
+        scansRemaining: Math.max(0, 10 - currentScansUsed),
+        isUnlimited: userSubData?.subscription_status === 'active' || userSubData?.subscription_status === 'lifetime',
         diagnosis: {
           ...diagnosis,
           animalId: assignedAnimalId,

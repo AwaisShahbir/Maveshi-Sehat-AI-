@@ -1,6 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
+const fs = require('fs');
+const path = require('path');
+const { persistUploadedFile } = require('../utils/fileStore');
 
 module.exports = (pool) => {
   // Pharmacy Registration
@@ -578,7 +581,10 @@ module.exports = (pool) => {
         deliveryAddress,
         phone,
         transactionId,
-        paymentStatus
+        paymentStatus,
+        senderPhone,
+        paymentProofBase64,
+        paymentProofUrl: existingProofUrl
       } = req.body;
       if (!buyerName || !pharmacyId || !totalPrice || !paymentMethod || !items || !Array.isArray(items) || items.length === 0) {
         return res.status(400).json({ error: 'Missing required parameters or empty items list.' });
@@ -610,11 +616,34 @@ module.exports = (pool) => {
         totalQty += parseInt(item.quantity);
       });
 
-      const resolvedPaymentStatus = paymentStatus || (paymentMethod === 'COD' ? 'unpaid' : 'paid');
+      // Handle JazzCash payment proof upload
+      let finalProofUrl = existingProofUrl || null;
+      if (paymentProofBase64) {
+        try {
+          const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+          const fileName = `order-proof-${orderId}-${uniqueSuffix}.jpg`;
+          const uploadDir = path.join(__dirname, '..', 'uploads');
+          if (!fs.existsSync(uploadDir)) {
+            fs.mkdirSync(uploadDir, { recursive: true });
+          }
+          const filePath = path.join(uploadDir, fileName);
+          const cleanBase64 = paymentProofBase64.replace(/^data:image\/\w+;base64,/, '');
+          fs.writeFileSync(filePath, Buffer.from(cleanBase64, 'base64'));
+          const host = req.get('host');
+          const protocol = req.protocol === 'https' || req.headers['x-forwarded-proto'] === 'https' ? 'https' : 'http';
+          finalProofUrl = `${protocol}://${host}/uploads/${fileName}`;
+          await persistUploadedFile(pool, fileName, filePath, 'image/jpeg');
+        } catch (proofErr) {
+          console.warn('Order payment proof save error:', proofErr.message);
+        }
+      }
+
+      const isManualOnline = paymentMethod === 'JazzCash' || paymentMethod === 'Online';
+      const resolvedPaymentStatus = paymentStatus || (isManualOnline ? 'pending_verification' : (paymentMethod === 'COD' ? 'unpaid' : 'paid'));
 
       const orderResult = await pool.query(
-        `INSERT INTO orders (id, buyer_name, buyer_name_urdu, pharmacy_id, items_count, total_price, payment_method, status, delivery_address, phone, transaction_id, payment_status, created_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, 'pending', $8, $9, $10, $11, CURRENT_TIMESTAMP) RETURNING *`,
+        `INSERT INTO orders (id, buyer_name, buyer_name_urdu, pharmacy_id, items_count, total_price, payment_method, status, delivery_address, phone, transaction_id, payment_status, sender_phone, payment_proof_url, created_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, 'pending', $8, $9, $10, $11, $12, $13, CURRENT_TIMESTAMP) RETURNING *`,
         [
           orderId, 
           buyerName, 
@@ -626,9 +655,28 @@ module.exports = (pool) => {
           deliveryAddress || null,
           phone || null,
           transactionId || null,
-          resolvedPaymentStatus
+          resolvedPaymentStatus,
+          senderPhone || phone || null,
+          finalProofUrl
         ]
       );
+
+      // Notify admin if manual JazzCash proof attached
+      if (isManualOnline && finalProofUrl) {
+        try {
+          await pool.query(
+            `INSERT INTO admin_notifications (type, message_en, message_ur)
+             VALUES ($1, $2, $3)`,
+            [
+              'order_payment_verification',
+              `New JazzCash receipt for Order #${orderId} (Rs. ${totalPrice}) from ${buyerName} (TID: ${transactionId || 'N/A'})`,
+              `آرڈر #${orderId} (رقم: ${totalPrice} روپے) کے لیے جاز کیش رسید جمع کرائی گئی ہے — جانچ درکار ہے`
+            ]
+          );
+        } catch (notifErr) {
+          console.warn('Admin notification warning for order payment:', notifErr.message);
+        }
+      }
 
       for (const item of items) {
         await pool.query(
@@ -723,6 +771,67 @@ module.exports = (pool) => {
     } catch (err) {
       console.error('Pharmacy change password error:', err.message);
       res.status(500).json({ error: 'Failed to update password.' });
+    }
+  });
+
+  // Admin: List Orders with Payment Proofs Pending Verification
+  router.get('/api/admin/orders/pending-proofs', async (req, res) => {
+    try {
+      const result = await pool.query(`
+        SELECT o.*, p.name as pharmacy_name
+        FROM orders o
+        LEFT JOIN pharmacies p ON o.pharmacy_id = p.id
+        WHERE o.payment_proof_url IS NOT NULL
+        ORDER BY o.created_at DESC
+      `);
+      res.status(200).json(result.rows);
+    } catch (err) {
+      console.error('Error fetching order proofs:', err.message);
+      res.status(500).json({ error: 'Failed to fetch order payment proofs.' });
+    }
+  });
+
+  // Admin / Pharmacy: Verify & Approve Order Payment
+  router.put('/api/admin/orders/:id/verify-payment', async (req, res) => {
+    try {
+      const { id } = req.params;
+      const result = await pool.query(
+        "UPDATE orders SET payment_status = 'paid' WHERE id = $1 RETURNING *",
+        [id]
+      );
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Order not found.' });
+      }
+      res.status(200).json({
+        success: true,
+        message: 'Order payment successfully verified and marked as Paid!',
+        order: result.rows[0]
+      });
+    } catch (err) {
+      console.error('Verify order payment error:', err.message);
+      res.status(500).json({ error: 'Failed to verify order payment.' });
+    }
+  });
+
+  // Admin / Pharmacy: Reject Order Payment
+  router.put('/api/admin/orders/:id/reject-payment', async (req, res) => {
+    try {
+      const { id } = req.params;
+      const result = await pool.query(
+        "UPDATE orders SET payment_status = 'rejected', status = 'cancelled' WHERE id = $1 RETURNING *",
+        [id]
+      );
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Order not found.' });
+      }
+      res.status(200).json({
+        success: true,
+        message: 'Order payment rejected and order marked as Cancelled.',
+        order: result.rows[0]
+      });
+    } catch (err) {
+      console.error('Reject order payment error:', err.message);
+      res.status(500).json({ error: 'Failed to reject order payment.' });
     }
   });
 

@@ -27,6 +27,7 @@ import ChatScreen from './src/screens/shared/ChatScreen';
 import CommunityForumScreen from './src/screens/user/CommunityForumScreen';
 import ForumPostDetailScreen from './src/screens/user/ForumPostDetailScreen';
 import AiScanScreen from './src/screens/user/AiScanScreen';
+import SubscriptionScreen from './src/screens/user/SubscriptionScreen';
 import HealthRecordsScreen from './src/screens/user/HealthRecordsScreen';
 import ProfileScreen from './src/screens/user/ProfileScreen';
 import MarketplaceScreen from './src/screens/user/MarketplaceScreen';
@@ -71,6 +72,7 @@ export default function App() {
             <Stack.Screen name="Verify" component={VerifyScreen} />
             <Stack.Screen name="Dashboard" component={DashboardScreen} />
             <Stack.Screen name="AiScan" component={AiScanScreen} />
+            <Stack.Screen name="Subscription" component={SubscriptionScreen} />
             <Stack.Screen name="HealthRecords" component={HealthRecordsScreen} />
             <Stack.Screen name="Vaccination" component={VaccinationScreen} />
             <Stack.Screen name="Profile" component={ProfileScreen} />
