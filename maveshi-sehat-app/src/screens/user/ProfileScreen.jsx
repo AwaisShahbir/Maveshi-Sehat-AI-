@@ -268,6 +268,23 @@ export default function ProfileScreen() {
           </TouchableOpacity>
         </View>
 
+        <Text style={[styles.groupTitle, isUrdu && { fontFamily: fonts.urduBold }]}>{t('Marketplace & Orders')}</Text>
+        <View style={styles.settingsGroup}>
+          <TouchableOpacity 
+            style={[styles.settingsItem, { borderBottomWidth: 0 }]} 
+            onPress={() => navigation.navigate('OrderHistory', { userId: profile.userId, phone: profile.phone })}
+          >
+            <View style={[styles.itemIconBg, { backgroundColor: '#DCFCE7' }]}>
+              <Feather name="package" size={18} color="#16A34A" />
+            </View>
+            <View style={styles.itemDetails}>
+              <Text style={[styles.itemTitle, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('My Medicine Orders')}</Text>
+              <Text style={[styles.itemVal, isUrdu && { fontFamily: fonts.urduRegular }]}>{t('Track active & previous pharmacy orders')}</Text>
+            </View>
+            <Feather name="chevron-right" size={18} color={colors.textMuted} />
+          </TouchableOpacity>
+        </View>
+
         <Text style={[styles.groupTitle, isUrdu && { fontFamily: fonts.urduBold }]}>{t('Preferences')}</Text>
         <View style={styles.settingsGroup}>
           <TouchableOpacity

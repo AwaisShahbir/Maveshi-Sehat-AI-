@@ -298,6 +298,7 @@ export default function CartScreen() {
       const fullDeliveryAddress = `${streetAddress}${district ? `, ${district}` : ''}`;
 
       const orderPayload = {
+        userId: profile?.userId || (route.params && route.params.userId) || null,
         buyerName: buyerName,
         pharmacyId: primaryPharmacyId,
         totalPrice: total,
@@ -1037,11 +1038,23 @@ export default function CartScreen() {
             </View>
 
             <TouchableOpacity 
-              style={styles.receiptDoneBtn}
+              style={[styles.receiptDoneBtn, { backgroundColor: '#059669', marginBottom: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }]}
+              onPress={() => {
+                setIsSuccessModalVisible(false);
+                navigation.navigate('OrderHistory', { userId: profile?.userId, phone: phone });
+              }}
+              activeOpacity={0.85}
+            >
+              <Feather name="package" size={16} color="#FFF" style={{ marginRight: 6 }} />
+              <Text style={styles.receiptDoneBtnText}>{t('Track My Orders')}</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={[styles.receiptDoneBtn, { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border }]}
               onPress={handleFinishAndNavigate}
               activeOpacity={0.85}
             >
-              <Text style={styles.receiptDoneBtnText}>{t('Back to Dashboard')}</Text>
+              <Text style={[styles.receiptDoneBtnText, { color: colors.textSecondary }]}>{t('Back to Dashboard')}</Text>
             </TouchableOpacity>
           </View>
         </View>

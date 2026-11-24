@@ -247,19 +247,29 @@ export default function MarketplaceScreen() {
             <Text style={styles.headerSubtitle}>{t('Certified Vet Medicines & Vaccines')}</Text>
           </View>
 
-          {/* Cart Icon with Counter Badge */}
-          <TouchableOpacity 
-            style={styles.cartButton} 
-            onPress={() => navigation.navigate('Cart', { userName, userId })}
-            activeOpacity={0.85}
-          >
-            <Feather name="shopping-bag" size={20} color={colors.primary} />
-            {cartCount > 0 && (
-              <View style={styles.cartBadge}>
-                <Text style={styles.cartBadgeText}>{cartCount}</Text>
-              </View>
-            )}
-          </TouchableOpacity>
+          {/* Action Buttons: My Orders & Cart */}
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <TouchableOpacity 
+              style={[styles.cartButton, { marginRight: 8 }]} 
+              onPress={() => navigation.navigate('OrderHistory', { userName, userId })}
+              activeOpacity={0.85}
+            >
+              <Feather name="package" size={20} color={colors.primary} />
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={styles.cartButton} 
+              onPress={() => navigation.navigate('Cart', { userName, userId })}
+              activeOpacity={0.85}
+            >
+              <Feather name="shopping-bag" size={20} color={colors.primary} />
+              {cartCount > 0 && (
+                <View style={styles.cartBadge}>
+                  <Text style={styles.cartBadgeText}>{cartCount}</Text>
+                </View>
+              )}
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Search Bar */}

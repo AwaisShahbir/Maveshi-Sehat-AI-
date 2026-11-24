@@ -582,10 +582,78 @@ module.exports = (pool) => {
     }
   });
 
+  // GET Orders for a specific user / farmer (Order History & Live Condition Tracking)
+  router.get('/api/pharmacy/orders/user/:userId', async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const phone = req.query.phone ? req.query.phone.trim() : '';
+      const parsedUserId = parseInt(userId);
+      const validUserId = !isNaN(parsedUserId) ? parsedUserId : null;
+
+      const conditions = [];
+      const params = [];
+
+      if (validUserId) {
+        params.push(validUserId);
+        conditions.push(`o.user_id = $${params.length}`);
+      }
+
+      if (phone && phone.length > 5) {
+        params.push(phone);
+        const pIdx = params.length;
+        conditions.push(`(o.phone = $${pIdx} OR o.sender_phone = $${pIdx})`);
+      }
+
+      if (conditions.length === 0) {
+        return res.status(200).json([]);
+      }
+
+      const whereClause = `WHERE (${conditions.join(' OR ')})`;
+
+      const result = await pool.query(
+        `SELECT 
+           o.*, 
+           p.name as pharmacy_name, 
+           p.name_urdu as pharmacy_name_urdu,
+           p.phone as pharmacy_phone, 
+           p.city as pharmacy_city,
+           p.address as pharmacy_address,
+           p.whatsapp as pharmacy_whatsapp,
+           COALESCE(
+             (
+               SELECT json_agg(json_build_object(
+                 'id', oi.id,
+                 'medicine_id', oi.medicine_id,
+                 'name', m.name,
+                 'name_urdu', m.name_urdu,
+                 'quantity', oi.quantity,
+                 'price', oi.price,
+                 'image_url', m.image_url
+               ))
+               FROM order_items oi
+               LEFT JOIN medicines m ON oi.medicine_id = m.id
+               WHERE oi.order_id = o.id
+             ), '[]'::json
+           ) as items
+         FROM orders o
+         LEFT JOIN pharmacies p ON o.pharmacy_id = p.id
+         ${whereClause}
+         ORDER BY o.created_at DESC`,
+        params
+      );
+
+      res.status(200).json(result.rows);
+    } catch (err) {
+      console.error('Error fetching user orders history:', err.message);
+      res.status(500).json({ error: 'Failed to fetch user order history.' });
+    }
+  });
+
   // CREATE Order
   router.post('/api/pharmacy/orders', async (req, res) => {
     try {
       const { 
+        userId,
         buyerName, 
         buyerNameUrdu, 
         pharmacyId, 
@@ -678,14 +746,16 @@ module.exports = (pool) => {
 
       const isManualOnline = paymentMethod === 'JazzCash' || paymentMethod === 'Online';
       const resolvedPaymentStatus = paymentStatus || (isManualOnline ? 'pending_verification' : (paymentMethod === 'COD' ? 'unpaid' : 'paid'));
+      const parsedUserId = userId ? parseInt(userId) : null;
+      const validUserId = !isNaN(parsedUserId) ? parsedUserId : null;
 
       const orderResult = await pool.query(
         `INSERT INTO orders (
            id, buyer_name, buyer_name_urdu, pharmacy_id, items_count, total_price,
            payment_method, status, delivery_address, phone, transaction_id, payment_status,
-           sender_phone, payment_proof_url, commission_rate, admin_commission, pharmacy_earnings, created_at
+           sender_phone, payment_proof_url, commission_rate, admin_commission, pharmacy_earnings, user_id, created_at
          )
-         VALUES ($1, $2, $3, $4, $5, $6, $7, 'pending', $8, $9, $10, $11, $12, $13, $14, $15, $16, CURRENT_TIMESTAMP) RETURNING *`,
+         VALUES ($1, $2, $3, $4, $5, $6, $7, 'pending', $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, CURRENT_TIMESTAMP) RETURNING *`,
         [
           orderId, 
           buyerName, 
@@ -702,7 +772,8 @@ module.exports = (pool) => {
           finalProofUrl,
           commissionRate,
           adminCommission,
-          pharmacyEarnings
+          pharmacyEarnings,
+          validUserId
         ]
       );
 
