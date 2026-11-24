@@ -134,23 +134,23 @@ module.exports = (pool) => {
 
       const pId = parseInt(pharmacyId);
 
-      // All-time revenue
+      // All-time revenue / Total Sales GMV (all non-cancelled orders)
       const revRes = await pool.query(
-        "SELECT COALESCE(SUM(total_price), 0) FROM orders WHERE pharmacy_id = $1 AND status IN ('delivered', 'completed')",
+        "SELECT COALESCE(SUM(total_price), 0) FROM orders WHERE pharmacy_id = $1 AND status NOT IN ('cancelled', 'rejected')",
         [pId]
       );
       const totalRevenue = parseFloat(revRes.rows[0].coalesce) || 0.00;
 
-      // Today's revenue
+      // Today's revenue (all non-cancelled orders today)
       const todayRevRes = await pool.query(
-        "SELECT COALESCE(SUM(total_price), 0) FROM orders WHERE pharmacy_id = $1 AND status IN ('delivered', 'completed') AND created_at >= CURRENT_DATE",
+        "SELECT COALESCE(SUM(total_price), 0) FROM orders WHERE pharmacy_id = $1 AND status NOT IN ('cancelled', 'rejected') AND created_at >= CURRENT_DATE",
         [pId]
       );
       const todayRevenue = parseFloat(todayRevRes.rows[0].coalesce) || 0.00;
 
-      // This Month's revenue
+      // This Month's revenue (all non-cancelled orders this month)
       const monthRevRes = await pool.query(
-        "SELECT COALESCE(SUM(total_price), 0) FROM orders WHERE pharmacy_id = $1 AND status IN ('delivered', 'completed') AND created_at >= DATE_TRUNC('month', CURRENT_DATE)",
+        "SELECT COALESCE(SUM(total_price), 0) FROM orders WHERE pharmacy_id = $1 AND status NOT IN ('cancelled', 'rejected') AND created_at >= DATE_TRUNC('month', CURRENT_DATE)",
         [pId]
       );
       const monthRevenue = parseFloat(monthRevRes.rows[0].coalesce) || 0.00;
@@ -400,7 +400,7 @@ module.exports = (pool) => {
       const pId = parseInt(pharmacyId);
 
       const revRes = await pool.query(
-        "SELECT SUM(total_price) FROM orders WHERE pharmacy_id = $1 AND status IN ('delivered', 'completed')",
+        "SELECT COALESCE(SUM(total_price), 0) as sum FROM orders WHERE pharmacy_id = $1 AND status NOT IN ('cancelled', 'rejected')",
         [pId]
       );
       const totalRevenue = parseFloat(revRes.rows[0].sum) || 0.00;
@@ -418,7 +418,7 @@ module.exports = (pool) => {
       const activeCustomers = parseInt(custRes.rows[0].count) || 0;
 
       const avgRes = await pool.query(
-        "SELECT AVG(total_price) FROM orders WHERE pharmacy_id = $1 AND status IN ('delivered', 'completed')",
+        "SELECT COALESCE(AVG(total_price), 0) as avg FROM orders WHERE pharmacy_id = $1 AND status NOT IN ('cancelled', 'rejected')",
         [pId]
       );
       const avgOrderValue = parseFloat(avgRes.rows[0].avg) || 0.00;
@@ -430,7 +430,7 @@ module.exports = (pool) => {
            COUNT(*)::int as order_count,
            DATE_TRUNC('month', created_at) as month_date
          FROM orders 
-         WHERE pharmacy_id = $1 AND created_at >= NOW() - INTERVAL '6 months'
+         WHERE pharmacy_id = $1 AND status NOT IN ('cancelled', 'rejected') AND created_at >= NOW() - INTERVAL '6 months'
          GROUP BY TO_CHAR(created_at, 'Mon'), DATE_TRUNC('month', created_at)
          ORDER BY month_date ASC`,
         [pId]
