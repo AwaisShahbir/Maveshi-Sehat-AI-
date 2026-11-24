@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TextInput, TouchableOpacity, Modal, ActivityIndicator } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { t } from '../../utils/translate';
 
 export default function RatingReviewModal({
   visible,
@@ -56,10 +57,10 @@ export default function RatingReviewModal({
           </View>
 
           <Text style={{ fontSize: 17, fontWeight: '800', color: colors.textPrimary, textAlign: 'center', marginBottom: 4 }}>
-            {isUrdu ? 'ڈاکٹر کو ریویو اور ریٹنگ دیں' : 'Rate Your Consultation'}
+            {t('Rate Your Consultation')}
           </Text>
           <Text style={{ fontSize: 12, color: colors.textSecondary, textAlign: 'center', marginBottom: 16 }}>
-            {isUrdu ? `ڈاکٹر ${partnerName} کے ساتھ آپ کا تجربہ کیسا رہا؟` : `How was your medical consultation with ${partnerName}?`}
+            {isUrdu ? `${partnerName} ${t('How was your medical consultation with')}` : `${t('How was your medical consultation with')} ${partnerName}?`}
           </Text>
 
           {/* Interactive Stars */}
@@ -94,7 +95,7 @@ export default function RatingReviewModal({
               textAlignVertical: 'top',
               marginBottom: 16
             }}
-            placeholder={isUrdu ? 'اپنا فیڈ بیک اور رائے لکھیں...' : 'Share feedback about response time and diagnosis quality...'}
+            placeholder={t('Share feedback about response time and diagnosis quality...')}
             placeholderTextColor={colors.textSecondary}
             multiline
             value={farmerReview}
@@ -114,7 +115,7 @@ export default function RatingReviewModal({
               onPress={onClose}
             >
               <Text style={{ fontSize: 13, fontWeight: '700', color: colors.textSecondary }}>
-                {isUrdu ? 'بعد میں' : 'Later'}
+                {t('Later')}
               </Text>
             </TouchableOpacity>
 
@@ -134,7 +135,7 @@ export default function RatingReviewModal({
                 <ActivityIndicator size="small" color="#FFF" />
               ) : (
                 <Text style={{ fontSize: 13, fontWeight: '800', color: '#FFF' }}>
-                  {isUrdu ? 'ریٹنگ جمع کروائیں' : 'Submit Review'}
+                  {t('Submit Review')}
                 </Text>
               )}
             </TouchableOpacity>

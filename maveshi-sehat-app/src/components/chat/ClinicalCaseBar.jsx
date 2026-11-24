@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { t } from '../../utils/translate';
 
 export default function ClinicalCaseBar({
   selectedConsultationId,
@@ -36,14 +37,14 @@ export default function ClinicalCaseBar({
         <View style={{ flex: 1 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             <Text style={{ fontSize: 11, fontWeight: '800', color: colors?.primary || '#059669', textTransform: 'uppercase', letterSpacing: 0.5 }}>
-              {isUrdu ? 'طبی کیس' : 'Clinical Case'} #{selectedConsultationId || '1'}
+              {t('Clinical Case')} #{selectedConsultationId || '1'}
             </Text>
             <Text style={{ fontSize: 11, color: colors?.textSecondary || '#64748B', marginLeft: 6 }}>
-              · {conversationStatus === 'resolved' ? (isUrdu ? 'مکمل کیس' : 'Resolved') : (isUrdu ? 'جاری کیس' : 'In Progress')}
+              · {conversationStatus === 'resolved' ? t('Resolved') : t('In Progress')}
             </Text>
           </View>
           <Text style={{ fontSize: 12, fontWeight: '600', color: colors?.textPrimary || '#1E293B', marginTop: 1 }} numberOfLines={1}>
-            {typeof getConsultationName === 'function' ? getConsultationName() : 'Selected consultation'}
+            {typeof getConsultationName === 'function' ? getConsultationName() : t('Selected consultation')}
           </Text>
         </View>
       </View>
@@ -65,7 +66,7 @@ export default function ClinicalCaseBar({
           >
             <MaterialCommunityIcons name="swap-horizontal" size={14} color="#0284C7" style={{ marginRight: 3 }} />
             <Text style={{ fontSize: 10, fontWeight: '700', color: '#0284C7' }}>
-              {isUrdu ? 'کیس بدلیں' : 'Switch'}
+              {t('Switch')}
             </Text>
           </TouchableOpacity>
         )}
@@ -86,7 +87,7 @@ export default function ClinicalCaseBar({
           >
             <Feather name="check-circle" size={12} color="#059669" style={{ marginRight: 4 }} />
             <Text style={{ fontSize: 11, fontWeight: '800', color: '#059669' }}>
-              {isUrdu ? 'مکمل کریں' : 'Resolve'}
+              {t('Resolve')}
             </Text>
           </TouchableOpacity>
         )}

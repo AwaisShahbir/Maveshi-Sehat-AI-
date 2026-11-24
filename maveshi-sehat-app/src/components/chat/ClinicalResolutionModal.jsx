@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, Modal, KeyboardAvoidingView, Platform } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
+import { t } from '../../utils/translate';
 
 export default function ClinicalResolutionModal({
   visible,
@@ -58,10 +59,10 @@ export default function ClinicalResolutionModal({
               </View>
               <View>
                 <Text style={{ fontSize: 17, fontWeight: '800', color: colors.textPrimary }}>
-                  {isUrdu ? 'کیس مکمل اختتام و ڈسچارج' : 'Case Resolution & Sign-Off'}
+                  {t('Case Resolution & Sign-Off')}
                 </Text>
                 <Text style={{ fontSize: 12, color: colors.textSecondary }}>
-                  {isUrdu ? 'کیس نمبر' : 'Clinical Case'} #{selectedConsultationId || '1'} · {consultationName}
+                  {t('Clinical Case')} #{selectedConsultationId || '1'} · {consultationName}
                 </Text>
               </View>
             </View>
@@ -73,13 +74,13 @@ export default function ClinicalResolutionModal({
           <ScrollView showsVerticalScrollIndicator={false}>
             {/* Outcome Selector */}
             <Text style={{ fontSize: 13, fontWeight: '700', color: colors.textPrimary, marginBottom: 8 }}>
-              {isUrdu ? 'طبی نتیجہ منتخب کریں' : 'Select Clinical Outcome'}
+              {t('Select Clinical Outcome')}
             </Text>
             <View style={{ gap: 8, marginBottom: 16 }}>
               {[
-                { key: 'fully_recovered', label: isUrdu ? 'صحت یاب / مکمل علاج' : 'Fully Recovered / Treated', icon: 'check-circle', color: '#10B981' },
-                { key: 'improving', label: isUrdu ? 'بہتری کی طرف (گھریلو دیکھ بھال)' : 'Improving (Home Care Continued)', icon: 'activity', color: '#3B82F6' },
-                { key: 'referred', label: isUrdu ? 'ریفر شدہ برائے فیلڈ ہسپتال' : 'Referred to Field Veterinary Hospital', icon: 'arrow-up-right', color: '#F59E0B' },
+                { key: 'fully_recovered', label: t('Fully Recovered / Treated'), icon: 'check-circle', color: '#10B981' },
+                { key: 'improving', label: t('Improving (Home Care Continued)'), icon: 'activity', color: '#3B82F6' },
+                { key: 'referred', label: t('Referred to Field Veterinary Hospital'), icon: 'arrow-up-right', color: '#F59E0B' },
               ].map((item) => {
                 const isSelected = selectedOutcome === item.key;
                 return (
@@ -108,14 +109,14 @@ export default function ClinicalResolutionModal({
 
             {/* Follow-up Days Timeline */}
             <Text style={{ fontSize: 13, fontWeight: '700', color: colors.textPrimary, marginBottom: 8 }}>
-              {isUrdu ? 'تجویز کردہ فالو اپ شیڈول' : 'Recommended Follow-Up'}
+              {t('Recommended Follow-Up')}
             </Text>
             <View style={{ flexDirection: 'row', gap: 8, marginBottom: 16 }}>
               {[
-                { val: 'none', label: isUrdu ? 'کوئی نہیں' : 'None' },
-                { val: '3', label: isUrdu ? '3 دن' : '3 Days' },
-                { val: '7', label: isUrdu ? '7 دن' : '7 Days' },
-                { val: '14', label: isUrdu ? '14 دن' : '14 Days' },
+                { val: 'none', label: t('None') },
+                { val: '3', label: t('3 Days') },
+                { val: '7', label: t('7 Days') },
+                { val: '14', label: t('14 Days') },
               ].map((fu) => {
                 const isChosen = followUpDays === fu.val;
                 return (
@@ -143,7 +144,7 @@ export default function ClinicalResolutionModal({
 
             {/* Discharge Instructions */}
             <Text style={{ fontSize: 13, fontWeight: '700', color: colors.textPrimary, marginBottom: 6 }}>
-              {isUrdu ? 'ڈسچارج ہدایات اور دیکھ بھال کا پلان' : 'Discharge Instructions & Recovery Advice'}
+              {t('Discharge Instructions & Recovery Advice')}
             </Text>
             <TextInput
               style={{
@@ -158,7 +159,7 @@ export default function ClinicalResolutionModal({
                 textAlignVertical: 'top',
                 marginBottom: 20
               }}
-              placeholder={isUrdu ? 'مثال کے طور پر: جانور کو علیحدہ رکھیں، پاؤں کی صفائی جاری رکھیں...' : 'e.g. Ensure dry bedding, monitor temperature for 48 hours, report any relapse...'}
+              placeholder={t('e.g. Ensure dry bedding, monitor temperature for 48 hours, report any relapse...')}
               placeholderTextColor={colors.textSecondary}
               multiline
               value={dischargeNotes}
@@ -179,7 +180,7 @@ export default function ClinicalResolutionModal({
                 onPress={onClose}
               >
                 <Text style={{ fontSize: 14, fontWeight: '700', color: colors.textSecondary }}>
-                  {isUrdu ? 'منسوخ کریں' : 'Cancel'}
+                  {t('Cancel')}
                 </Text>
               </TouchableOpacity>
 
@@ -197,7 +198,7 @@ export default function ClinicalResolutionModal({
               >
                 <Feather name="check-circle" size={16} color="#FFF" style={{ marginRight: 6 }} />
                 <Text style={{ fontSize: 14, fontWeight: '800', color: '#FFF' }}>
-                  {isUrdu ? 'کیس بند کریں' : 'Resolve & Discharge'}
+                  {t('Resolve & Discharge')}
                 </Text>
               </TouchableOpacity>
             </View>

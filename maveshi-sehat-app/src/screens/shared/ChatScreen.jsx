@@ -503,13 +503,13 @@ export default function ChatScreen() {
 
   const handleSendPrescription = () => {
     if (!diagnosis.trim() || diagnosis.trim().length < 3) {
-      Alert.alert(t('Missing Field'), isUrdu ? 'براہ کرم بیماری کی تشخیص (کم از کم 3 حروف) درج کریں۔' : 'Please enter a clinical diagnosis (at least 3 characters).');
+      Alert.alert(t('Missing Field'), t('Please enter a clinical diagnosis (at least 3 characters).'));
       return;
     }
 
     const validMedicines = prescriptionMedicines.filter(m => m.name && m.name.trim() !== '');
     if (validMedicines.length === 0) {
-      Alert.alert(t('Missing Field'), isUrdu ? 'براہ کرم کم از کم ایک دوا کا نام درج کریں۔' : 'Please enter at least one medicine with its name.');
+      Alert.alert(t('Missing Field'), t('Please enter at least one medicine with its name.'));
       return;
     }
 
@@ -529,23 +529,23 @@ export default function ChatScreen() {
 
   const handleSendVaccination = () => {
     if (!vaccineName.trim() || vaccineName.trim().length < 2) {
-      Alert.alert(t('Missing Information'), isUrdu ? 'براہ کرم ویکسین کا نام درج کریں۔' : 'Please provide a valid Vaccine Name.');
+      Alert.alert(t('Missing Information'), t('Please provide a valid Vaccine Name.'));
       return;
     }
 
     const dateRegex = /^\d{4}-\d{1,2}-\d{1,2}$/;
     if (!vaccineDate.trim() || !dateRegex.test(vaccineDate.trim()) || isNaN(new Date(vaccineDate.trim()).getTime())) {
-      Alert.alert(t('Invalid Date'), isUrdu ? 'براہ کرم درست تاریخ درج کریں (مثال: YYYY-MM-DD)' : 'Please enter a valid vaccination date (e.g. YYYY-MM-DD).');
+      Alert.alert(t('Invalid Date'), t('Please enter a valid vaccination date (e.g. YYYY-MM-DD).'));
       return;
     }
 
     if (nextDueDate.trim()) {
       if (!dateRegex.test(nextDueDate.trim()) || isNaN(new Date(nextDueDate.trim()).getTime())) {
-        Alert.alert(t('Invalid Date'), isUrdu ? 'اگلی مقررہ تاریخ درست نہیں ہے (مثال: YYYY-MM-DD)' : 'Next due date must be a valid date in YYYY-MM-DD format.');
+        Alert.alert(t('Invalid Date'), t('Next due date must be a valid date in YYYY-MM-DD format.'));
         return;
       }
       if (new Date(nextDueDate.trim()).getTime() < new Date(vaccineDate.trim()).getTime()) {
-        Alert.alert(t('Invalid Date'), isUrdu ? 'اگلی تاریخ پچھلی تاریخ کے بعد ہونی چاہیے۔' : 'Next due date cannot be earlier than vaccination date.');
+        Alert.alert(t('Invalid Date'), t('Next due date cannot be earlier than vaccination date.'));
         return;
       }
     }
@@ -573,11 +573,11 @@ export default function ChatScreen() {
 
   const handleConfirmResolution = async () => {
     if (!selectedOutcome) {
-      Alert.alert(t('Required'), isUrdu ? 'براہ کرم طبی نتیجہ منتخب کریں۔' : 'Please select a clinical outcome.');
+      Alert.alert(t('Required'), t('Please select a clinical outcome.'));
       return;
     }
     if (!dischargeNotes.trim() || dischargeNotes.trim().length < 5) {
-      Alert.alert(t('Required'), isUrdu ? 'براہ کرم ڈسچارج ہدایات اور دیکھ بھال کا پلان درج کریں (کم از کم 5 حروف)۔' : 'Please enter discharge instructions & recovery advice (minimum 5 characters).');
+      Alert.alert(t('Required'), t('Please enter discharge instructions & recovery advice (minimum 5 characters).'));
       return;
     }
 
@@ -605,20 +605,20 @@ export default function ChatScreen() {
         setResolutionModalVisible(false);
 
         const outcomeLabel = selectedOutcome === 'fully_recovered'
-          ? (isUrdu ? 'صحت یاب / مکمل علاج' : 'Fully Recovered / Treated')
+          ? t('Fully Recovered / Treated')
           : selectedOutcome === 'improving'
-          ? (isUrdu ? 'بہتری کی طرف (گھریلو دیکھ بھال)' : 'Improving (Home Care Continued)')
-          : (isUrdu ? 'ریفر شدہ برائے فیلڈ ہسپتال' : 'Referred to Field Veterinary Hospital');
+          ? t('Improving (Home Care Continued)')
+          : t('Referred to Field Veterinary Hospital');
 
         const followUpLabel = followUpDays === 'none'
-          ? (isUrdu ? 'کسی فالو اپ کی ضرورت نہیں' : 'No follow-up needed')
-          : `${isUrdu ? 'فالو اپ بعد از' : 'Follow-up in'} ${followUpDays} ${isUrdu ? 'دن' : 'Days'}`;
+          ? t('No follow-up needed')
+          : `${t('Follow-up in')} ${followUpDays} ${t('Days')}`;
 
-        const summaryMessage = `📋 **${isUrdu ? 'کیس مکمل اختتام و ڈسچارج سمری' : 'CLINICAL CASE DISCHARGE SUMMARY'}**\n` +
-          `• **${isUrdu ? 'کیس نمبر' : 'Case ID'}**: #${activeConsultId || 'General'}\n` +
-          `• **${isUrdu ? 'نتیجہ' : 'Clinical Outcome'}**: ${outcomeLabel}\n` +
-          (dischargeNotes.trim() ? `• **${isUrdu ? 'ڈاکٹر کی ہدایات' : 'Discharge Notes'}**: ${dischargeNotes.trim()}\n` : '') +
-          `• **${isUrdu ? 'تجویز کردہ فالو اپ' : 'Follow-up Check'}**: ${followUpLabel}`;
+        const summaryMessage = `📋 **${t('CLINICAL CASE DISCHARGE SUMMARY')}**\n` +
+          `• **${t('Case ID')}**: #${activeConsultId || 'General'}\n` +
+          `• **${t('Clinical Outcome')}**: ${outcomeLabel}\n` +
+          (dischargeNotes.trim() ? `• **${t('Discharge Notes')}**: ${dischargeNotes.trim()}\n` : '') +
+          `• **${t('Follow-up Check')}**: ${followUpLabel}`;
 
         handleSendMessage(summaryMessage);
 
@@ -628,8 +628,8 @@ export default function ChatScreen() {
           }, 800);
         } else {
           Alert.alert(
-            isUrdu ? 'کیس مکمل' : 'Case Resolved',
-            isUrdu ? 'طبی کیس کامیابی سے ڈسچارج ہو گیا ہے۔' : 'The clinical consultation case has been successfully discharged.'
+            t('Case Resolved'),
+            t('The clinical consultation case has been successfully discharged.')
           );
         }
       } else {
@@ -664,8 +664,8 @@ export default function ChatScreen() {
       if (res.ok) {
         setRatingModalVisible(false);
         Alert.alert(
-          isUrdu ? 'شکریہ!' : 'Thank You!',
-          isUrdu ? 'ڈاکٹر کے لیے آپ کی ریٹنگ کامیابی سے ریکارڈ ہو گئی ہے۔' : 'Your feedback and rating have been recorded for Dr. ' + partnerName + '.'
+          t('Thank You!'),
+          `${t('Your feedback and rating have been recorded for Dr.')} ${partnerName}.`
         );
       } else {
         setRatingModalVisible(false);
