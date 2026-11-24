@@ -1,6 +1,6 @@
 import { API_BASE_URL } from '../config';
 import React, { useState, useEffect } from 'react';
-import { ChevronRight, ChevronDown, Clock, ShoppingBag, Truck, CheckCircle, AlertTriangle } from 'lucide-react';
+import { ChevronRight, ChevronDown, Clock, ShoppingBag, Truck, CheckCircle, AlertTriangle, Check, X, Eye } from 'lucide-react';
 import '../styles/Orders.css';
 
 export default function Orders({ pharmacy, onOrderAction, formatPrice, getStatusBadge, initialStatus = 'All' }) {
@@ -9,6 +9,8 @@ export default function Orders({ pharmacy, onOrderAction, formatPrice, getStatus
   const [selectedStatus, setSelectedStatus] = useState(initialStatus || 'All'); 
   const [expandedOrders, setExpandedOrders] = useState({});
   const [orderDetails, setOrderDetails] = useState({});
+  const [selectedProofImg, setSelectedProofImg] = useState(null);
+  const [actionLoading, setActionLoading] = useState(false);
 
   useEffect(() => {
     if (initialStatus) {
@@ -57,6 +59,48 @@ export default function Orders({ pharmacy, onOrderAction, formatPrice, getStatus
   const handleAction = async (orderId, status) => {
     await onOrderAction(orderId, status);
     fetchOrders();
+  };
+
+  const handleVerifyPayment = async (orderId) => {
+    if (!window.confirm(`Verify that the customer payment for order #${orderId} was received in your pharmacy JazzCash/EasyPaisa account?`)) return;
+    try {
+      setActionLoading(true);
+      const res = await fetch(`${API_BASE_URL}/api/pharmacy/orders/${orderId}/verify-payment`, {
+        method: 'PUT'
+      });
+      const data = await res.json();
+      if (res.ok) {
+        alert(data.message || 'Payment verified and marked as Paid!');
+        fetchOrders();
+      } else {
+        alert(data.error || 'Failed to verify payment');
+      }
+    } catch (err) {
+      alert('Error verifying payment: ' + err.message);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleRejectPayment = async (orderId) => {
+    if (!window.confirm(`Reject customer payment for order #${orderId}? This will cancel the order.`)) return;
+    try {
+      setActionLoading(true);
+      const res = await fetch(`${API_BASE_URL}/api/pharmacy/orders/${orderId}/reject-payment`, {
+        method: 'PUT'
+      });
+      const data = await res.json();
+      if (res.ok) {
+        alert(data.message || 'Payment rejected.');
+        fetchOrders();
+      } else {
+        alert(data.error || 'Failed to reject payment');
+      }
+    } catch (err) {
+      alert('Error rejecting payment: ' + err.message);
+    } finally {
+      setActionLoading(false);
+    }
   };
 
   const getCounts = (status) => {
@@ -239,18 +283,38 @@ export default function Orders({ pharmacy, onOrderAction, formatPrice, getStatus
                         </span>
 
                         {order.payment_proof_url && (
-                          <a 
-                            href={order.payment_proof_url} 
-                            target="_blank" 
-                            rel="noreferrer"
-                            className="inline-flex items-center gap-1 text-[11px] font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 px-2.5 py-1 rounded-md border border-blue-200 transition-colors ml-1"
+                          <button 
+                            type="button"
+                            onClick={() => setSelectedProofImg(order.payment_proof_url)}
+                            className="inline-flex items-center gap-1 text-[11px] font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 px-2.5 py-1 rounded-md border border-blue-200 transition-colors ml-1 cursor-pointer"
                           >
-                            🔍 Customer Receipt
-                          </a>
+                            <Eye size={12} /> View Customer Receipt
+                          </button>
                         )}
                       </div>
                       
-                      <div className="flex gap-2 w-full sm:w-auto">
+                      <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+                        {order.payment_status === 'pending_verification' && (
+                          <div className="flex items-center gap-1.5 bg-amber-50 border border-amber-200 p-1.5 px-2.5 rounded-xl">
+                            <span className="text-[11px] font-bold text-amber-800 whitespace-nowrap">Payment:</span>
+                            <button 
+                              type="button"
+                              disabled={actionLoading}
+                              className="px-2 py-1 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-sm flex items-center gap-1 cursor-pointer"
+                              onClick={() => handleVerifyPayment(order.id)}
+                            >
+                              <Check size={12} /> Verify Paid
+                            </button>
+                            <button 
+                              type="button"
+                              disabled={actionLoading}
+                              className="px-2 py-1 text-xs font-bold text-white bg-red-600 hover:bg-red-700 rounded-lg shadow-sm flex items-center gap-1 cursor-pointer"
+                              onClick={() => handleRejectPayment(order.id)}
+                            >
+                              <X size={12} /> Reject
+                            </button>
+                          </div>
+                        )}
                         {order.status.toLowerCase() === 'pending' && (
                           <>
                             <button 
@@ -303,6 +367,40 @@ export default function Orders({ pharmacy, onOrderAction, formatPrice, getStatus
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* Customer Receipt Zoom Modal */}
+      {selectedProofImg && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+          <div className="relative max-w-lg w-full bg-white rounded-2xl overflow-hidden shadow-2xl border border-slate-200">
+            <div className="flex justify-between items-center px-5 py-4 border-b border-slate-100 bg-slate-50/80">
+              <h3 className="font-extrabold text-slate-800 text-sm">Customer Payment Receipt</h3>
+              <button
+                type="button"
+                onClick={() => setSelectedProofImg(null)}
+                className="text-slate-400 hover:text-slate-600 p-1 rounded-lg transition-colors cursor-pointer"
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <div className="p-4 text-center max-h-[70vh] overflow-y-auto bg-slate-900/5">
+              <img
+                src={selectedProofImg}
+                alt="Payment Receipt"
+                className="max-w-full max-h-[60vh] mx-auto rounded-xl object-contain shadow-sm border border-slate-200"
+              />
+            </div>
+            <div className="p-3 bg-slate-50 border-t border-slate-100 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setSelectedProofImg(null)}
+                className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold rounded-xl transition-colors cursor-pointer"
+              >
+                Close
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

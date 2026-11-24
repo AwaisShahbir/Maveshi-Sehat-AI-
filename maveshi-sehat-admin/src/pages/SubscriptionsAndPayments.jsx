@@ -301,7 +301,7 @@ export default function SubscriptionsAndPayments() {
             Subscriptions & Payment Approvals
           </h1>
           <p style={{ color: '#64748B', fontSize: '14px', margin: 0 }}>
-            Verify JazzCash payment screenshots sent to <strong>03054758667</strong> for Rs. 300 AI Subscriptions & Marketplace Orders.
+            Verify JazzCash payment screenshots sent to <strong>03054758667</strong> for Rs. 300 AI Subscriptions & Pharmacy Commission Settlements.
           </p>
         </div>
         <button
@@ -375,7 +375,7 @@ export default function SubscriptionsAndPayments() {
           }}
         >
           <ShoppingBag size={18} />
-          Marketplace Order Payments
+          Marketplace Orders (Pharmacy Handled)
           {pendingOrdersCount > 0 && (
             <span style={{
               backgroundColor: '#EF4444',
@@ -580,131 +580,137 @@ export default function SubscriptionsAndPayments() {
         </div>
       ) : (
         /* Orders Payment Proofs Table */
-        <div style={{ backgroundColor: '#FFFFFF', borderRadius: '16px', border: '1px solid #E2E8F0', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
-          {filteredOrders.length === 0 ? (
-            <div style={{ padding: '50px', textAlign: 'center', color: '#64748B' }}>
-              No marketplace orders with JazzCash receipts found.
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {/* Pharmacy Authority Separation Banner */}
+          <div style={{
+            backgroundColor: '#F0FDF4',
+            border: '1px solid #BBF7D0',
+            borderRadius: '12px',
+            padding: '16px 20px',
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: '14px'
+          }}>
+            <Store size={22} style={{ color: '#16A34A', marginTop: '2px', flexShrink: 0 }} />
+            <div>
+              <div style={{ fontWeight: '800', color: '#166534', fontSize: '14px', marginBottom: '4px' }}>
+                Direct Pharmacy Authority Separation
+              </div>
+              <div style={{ color: '#15803D', fontSize: '13px', lineHeight: '1.5' }}>
+                In Maveshi Sehat Marketplace, farmers submit medicine payments directly to each individual <strong>Pharmacy's JazzCash / EasyPaisa</strong> account. Therefore, <strong>the pharmacy itself verifies customer transaction receipts and approves or rejects order payments</strong> in their Pharmacy Web Portal. Platform Admin monitors order flow and tracks the accrued 10% platform commission under the <strong>Pharmacy Commissions & Settlements</strong> tab.
+              </div>
             </div>
-          ) : (
-            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
-              <thead>
-                <tr style={{ backgroundColor: '#F8FAFC', borderBottom: '1px solid #E2E8F0', color: '#475569', fontWeight: '700' }}>
-                  <th style={{ padding: '14px 16px' }}>Order ID</th>
-                  <th style={{ padding: '14px 16px' }}>Buyer & Contact</th>
-                  <th style={{ padding: '14px 16px' }}>Total Amount</th>
-                  <th style={{ padding: '14px 16px' }}>Sender & TID</th>
-                  <th style={{ padding: '14px 16px' }}>Receipt Proof</th>
-                  <th style={{ padding: '14px 16px' }}>Payment Status</th>
-                  <th style={{ padding: '14px 16px', textAlign: 'center' }}>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredOrders.map((order) => (
-                  <tr key={order.id} style={{ borderBottom: '1px solid #F1F5F9' }}>
-                    <td style={{ padding: '14px 16px', fontWeight: '800', color: '#1E293B' }}>
-                      #{order.id}
-                    </td>
-                    <td style={{ padding: '14px 16px' }}>
-                      <div style={{ fontWeight: '700', color: '#1E293B' }}>{order.buyer_name}</div>
-                      <div style={{ color: '#64748B', fontSize: '12px' }}>{order.phone || order.sender_phone}</div>
-                    </td>
-                    <td style={{ padding: '14px 16px', fontWeight: '800', color: '#059669' }}>
-                      Rs. {Math.round(order.total_price)}
-                    </td>
-                    <td style={{ padding: '14px 16px' }}>
-                      <div style={{ fontWeight: '600', color: '#1E293B' }}>{order.sender_phone || order.phone}</div>
-                      <div style={{ fontSize: '11px', color: '#0284C7', fontFamily: 'monospace' }}>
-                        TID: {order.transaction_id || 'N/A'}
-                      </div>
-                    </td>
-                    <td style={{ padding: '14px 16px' }}>
-                      {order.payment_proof_url ? (
-                        <div
-                          onClick={() => setSelectedProofImg(order.payment_proof_url)}
-                          style={{
+          </div>
+
+          <div style={{ backgroundColor: '#FFFFFF', borderRadius: '16px', border: '1px solid #E2E8F0', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+            {filteredOrders.length === 0 ? (
+              <div style={{ padding: '50px', textAlign: 'center', color: '#64748B' }}>
+                No marketplace orders recorded yet.
+              </div>
+            ) : (
+              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
+                <thead>
+                  <tr style={{ backgroundColor: '#F8FAFC', borderBottom: '1px solid #E2E8F0', color: '#475569', fontWeight: '700' }}>
+                    <th style={{ padding: '14px 16px' }}>Order ID</th>
+                    <th style={{ padding: '14px 16px' }}>Buyer & Contact</th>
+                    <th style={{ padding: '14px 16px' }}>Gross Total</th>
+                    <th style={{ padding: '14px 16px' }}>10% Platform Cut</th>
+                    <th style={{ padding: '14px 16px' }}>Sender & TID</th>
+                    <th style={{ padding: '14px 16px' }}>Customer Receipt</th>
+                    <th style={{ padding: '14px 16px' }}>Payment Status</th>
+                    <th style={{ padding: '14px 16px', textAlign: 'center' }}>Pharmacy Verification</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredOrders.map((order) => (
+                    <tr key={order.id} style={{ borderBottom: '1px solid #F1F5F9' }}>
+                      <td style={{ padding: '14px 16px', fontWeight: '800', color: '#1E293B' }}>
+                        #{order.id}
+                      </td>
+                      <td style={{ padding: '14px 16px' }}>
+                        <div style={{ fontWeight: '700', color: '#1E293B' }}>{order.buyer_name}</div>
+                        <div style={{ color: '#64748B', fontSize: '12px' }}>{order.phone || order.sender_phone}</div>
+                      </td>
+                      <td style={{ padding: '14px 16px', fontWeight: '800', color: '#059669' }}>
+                        Rs. {Math.round(order.total_price)}
+                      </td>
+                      <td style={{ padding: '14px 16px', fontWeight: '800', color: '#D97706' }}>
+                        Rs. {Math.round(order.admin_commission || (order.total_price * 0.10))}
+                      </td>
+                      <td style={{ padding: '14px 16px' }}>
+                        <div style={{ fontWeight: '600', color: '#1E293B' }}>{order.sender_phone || order.phone}</div>
+                        <div style={{ fontSize: '11px', color: '#0284C7', fontFamily: 'monospace' }}>
+                          TID: {order.transaction_id || 'N/A'}
+                        </div>
+                      </td>
+                      <td style={{ padding: '14px 16px' }}>
+                        {order.payment_proof_url ? (
+                          <div
+                            onClick={() => setSelectedProofImg(order.payment_proof_url)}
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '6px',
+                              cursor: 'pointer',
+                              color: '#0284C7',
+                              fontWeight: '600'
+                            }}
+                          >
+                            <img
+                              src={order.payment_proof_url}
+                              alt="Receipt"
+                              style={{ width: '40px', height: '40px', borderRadius: '6px', objectFit: 'cover', border: '1px solid #CBD5E1' }}
+                            />
+                            <Eye size={14} /> View
+                          </div>
+                        ) : (
+                          <span style={{ color: '#94A3B8' }}>No receipt</span>
+                        )}
+                      </td>
+                      <td style={{ padding: '14px 16px' }}>
+                        <span style={{
+                          display: 'inline-block',
+                          padding: '4px 10px',
+                          borderRadius: '12px',
+                          fontSize: '11px',
+                          fontWeight: '800',
+                          backgroundColor: order.payment_status === 'paid' ? '#D1FAE5' : (order.payment_status === 'rejected' ? '#FEE2E2' : '#FEF3C7'),
+                          color: order.payment_status === 'paid' ? '#065F46' : (order.payment_status === 'rejected' ? '#991B1B' : '#92400E')
+                        }}>
+                          {order.payment_status ? order.payment_status.replace('_', ' ').toUpperCase() : 'PENDING'}
+                        </span>
+                      </td>
+                      <td style={{ padding: '14px 16px', textAlign: 'center' }}>
+                        {order.payment_status === 'paid' ? (
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: '#059669', fontWeight: '700', fontSize: '12px' }}>
+                            <CheckCircle2 size={15} /> Approved by Pharmacy
+                          </span>
+                        ) : order.payment_status === 'rejected' ? (
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: '#DC2626', fontWeight: '700', fontSize: '12px' }}>
+                            <XCircle size={15} /> Rejected by Pharmacy
+                          </span>
+                        ) : (
+                          <span style={{
                             display: 'inline-flex',
                             alignItems: 'center',
-                            gap: '6px',
-                            cursor: 'pointer',
-                            color: '#0284C7',
-                            fontWeight: '600'
-                          }}
-                        >
-                          <img
-                            src={order.payment_proof_url}
-                            alt="Receipt"
-                            style={{ width: '40px', height: '40px', borderRadius: '6px', objectFit: 'cover', border: '1px solid #CBD5E1' }}
-                          />
-                          <Eye size={14} /> View
-                        </div>
-                      ) : (
-                        <span style={{ color: '#94A3B8' }}>No receipt</span>
-                      )}
-                    </td>
-                    <td style={{ padding: '14px 16px' }}>
-                      <span style={{
-                        display: 'inline-block',
-                        padding: '4px 10px',
-                        borderRadius: '12px',
-                        fontSize: '11px',
-                        fontWeight: '800',
-                        backgroundColor: order.payment_status === 'paid' ? '#D1FAE5' : (order.payment_status === 'rejected' ? '#FEE2E2' : '#FEF3C7'),
-                        color: order.payment_status === 'paid' ? '#065F46' : (order.payment_status === 'rejected' ? '#991B1B' : '#92400E')
-                      }}>
-                        {order.payment_status ? order.payment_status.replace('_', ' ').toUpperCase() : 'PENDING'}
-                      </span>
-                    </td>
-                    <td style={{ padding: '14px 16px', textAlign: 'center' }}>
-                      {order.payment_status === 'pending_verification' ? (
-                        <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
-                          <button
-                            onClick={() => handleVerifyOrderPayment(order.id)}
-                            disabled={actionLoading}
-                            style={{
-                              backgroundColor: '#059669',
-                              color: '#FFF',
-                              border: 'none',
-                              borderRadius: '8px',
-                              padding: '6px 12px',
-                              fontSize: '12px',
-                              fontWeight: '700',
-                              cursor: 'pointer',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '4px'
-                            }}
-                          >
-                            <Check size={14} /> Verify & Paid
-                          </button>
-                          <button
-                            onClick={() => handleRejectOrderPayment(order.id)}
-                            disabled={actionLoading}
-                            style={{
-                              backgroundColor: '#EF4444',
-                              color: '#FFF',
-                              border: 'none',
-                              borderRadius: '8px',
-                              padding: '6px 12px',
-                              fontSize: '12px',
-                              fontWeight: '700',
-                              cursor: 'pointer',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '4px'
-                            }}
-                          >
-                            <X size={14} /> Reject
-                          </button>
-                        </div>
-                      ) : (
-                        <span style={{ color: '#94A3B8', fontSize: '12px' }}>Verified</span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
+                            gap: '5px',
+                            color: '#92400E',
+                            fontWeight: '700',
+                            fontSize: '11px',
+                            backgroundColor: '#FEF3C7',
+                            padding: '4px 10px',
+                            borderRadius: '8px'
+                          }}>
+                            <Clock size={13} /> Awaiting Pharmacy Action
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
         </div>
       )}
 

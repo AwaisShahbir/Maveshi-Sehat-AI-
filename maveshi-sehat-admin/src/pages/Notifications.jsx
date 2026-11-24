@@ -145,8 +145,17 @@ export default function Notifications() {
   const getNotifDetails = (n) => {
     const type = (n.type || 'general').toLowerCase();
     const msg = (n.message_en || '').toLowerCase();
+    const title = (n.title || '').toLowerCase();
 
-    if (type.includes('subscription') || type.includes('payment') || msg.includes('subscription') || msg.includes('jazzcash') || msg.includes('tid')) {
+    if (
+      type.includes('subscription') || 
+      type.includes('payment') || 
+      msg.includes('subscription') || 
+      msg.includes('jazzcash') || 
+      msg.includes('tid') ||
+      title.includes('subscription') ||
+      title.includes('payment')
+    ) {
       return {
         icon: <CreditCard size={18} />,
         itemClass: 'type-payment',
@@ -195,11 +204,19 @@ export default function Notifications() {
     };
   };
 
-  const getCategoryDetails = (type, message) => {
+  const getCategoryDetails = (type, message, title = '') => {
     const t = (type || 'general').toLowerCase();
     const msg = (message || '').toLowerCase();
+    const ttl = (title || '').toLowerCase();
 
-    if (t.includes('subscription') || t.includes('payment') || msg.includes('subscription') || msg.includes('jazzcash')) {
+    if (
+      t.includes('subscription') || 
+      t.includes('payment') || 
+      msg.includes('subscription') || 
+      msg.includes('jazzcash') ||
+      ttl.includes('subscription') ||
+      ttl.includes('payment')
+    ) {
       return { label: 'Payment Proof', badgeClass: 'cat-payment' };
     }
 
@@ -324,7 +341,7 @@ export default function Notifications() {
             <div className="notifications-list">
               {filteredNotifs.map((n) => {
                 const details = getNotifDetails(n);
-                const category = getCategoryDetails(n.type, n.message_en);
+                const category = getCategoryDetails(n.type, n.message_en, n.title);
                 return (
                   <div 
                     key={n.id} 

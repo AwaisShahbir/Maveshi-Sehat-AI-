@@ -860,7 +860,51 @@ module.exports = (pool) => {
     }
   });
 
-  // Admin / Pharmacy: Verify & Approve Order Payment
+  // Pharmacy / Admin: Verify & Approve Customer Order Payment
+  router.put('/api/pharmacy/orders/:id/verify-payment', async (req, res) => {
+    try {
+      const { id } = req.params;
+      const result = await pool.query(
+        "UPDATE orders SET payment_status = 'paid' WHERE id = $1 RETURNING *",
+        [id]
+      );
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Order not found.' });
+      }
+      res.status(200).json({
+        success: true,
+        message: 'Customer payment successfully verified by pharmacy and marked as Paid!',
+        order: result.rows[0]
+      });
+    } catch (err) {
+      console.error('Verify order payment error:', err.message);
+      res.status(500).json({ error: 'Failed to verify order payment.' });
+    }
+  });
+
+  // Pharmacy / Admin: Reject Customer Order Payment
+  router.put('/api/pharmacy/orders/:id/reject-payment', async (req, res) => {
+    try {
+      const { id } = req.params;
+      const result = await pool.query(
+        "UPDATE orders SET payment_status = 'rejected', status = 'cancelled' WHERE id = $1 RETURNING *",
+        [id]
+      );
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Order not found.' });
+      }
+      res.status(200).json({
+        success: true,
+        message: 'Order payment rejected by pharmacy and order marked as Cancelled.',
+        order: result.rows[0]
+      });
+    } catch (err) {
+      console.error('Reject order payment error:', err.message);
+      res.status(500).json({ error: 'Failed to reject order payment.' });
+    }
+  });
+
+  // Admin: Verify & Approve Order Payment (legacy alias)
   router.put('/api/admin/orders/:id/verify-payment', async (req, res) => {
     try {
       const { id } = req.params;
@@ -882,7 +926,7 @@ module.exports = (pool) => {
     }
   });
 
-  // Admin / Pharmacy: Reject Order Payment
+  // Admin: Reject Order Payment (legacy alias)
   router.put('/api/admin/orders/:id/reject-payment', async (req, res) => {
     try {
       const { id } = req.params;
