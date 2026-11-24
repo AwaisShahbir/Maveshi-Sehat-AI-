@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import {
   Menu, X, LayoutDashboard, BarChart3, Pill, PlusCircle, Tags, AlertTriangle, 
   ShoppingBag, Clock, Truck, CheckCircle, User, Settings, LogOut, Bell, Store, ArrowUpRight,
-  TrendingUp, ShieldCheck, PackageCheck, FileText, Calendar
+  TrendingUp, ShieldCheck, PackageCheck, FileText, Calendar, CreditCard
 } from 'lucide-react';
 import Medicines from './Medicines';
 import Orders from './Orders';
@@ -17,6 +17,7 @@ import '../styles/Dashboard.css';
 
 export default function Dashboard({ pharmacy, onLogout }) {
   const [currentView, setCurrentView] = useState('dashboard'); 
+  const [settingsSubTab, setSettingsSubTab] = useState('profile');
   const [editMedId, setEditMedId] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [stats, setStats] = useState({
@@ -331,6 +332,27 @@ export default function Dashboard({ pharmacy, onLogout }) {
           </div>
 
           <div className="mb-5">
+            <span className="block text-[10px] font-extrabold text-[#c5dbd0]/75 px-6 mb-2.5 tracking-wider">FINANCIALS</span>
+            <ul className="list-none flex flex-col gap-1.5">
+              <li>
+                <button 
+                  onClick={() => { setSettingsSubTab('commissions'); setCurrentView('settings'); setSidebarOpen(false); }}
+                  className={`flex items-center gap-3.5 mx-3 px-3.5 py-2.5 w-[calc(100%-24px)] text-left cursor-pointer text-sm rounded-xl transition-all duration-200 ${
+                    currentView === 'settings' && settingsSubTab === 'commissions'
+                      ? 'text-white bg-[#3da860] font-bold shadow-md shadow-emerald-950/20' 
+                      : 'text-[#c5dbd0] bg-transparent border-none hover:text-white hover:bg-white/5'
+                  }`}
+                >
+                  <CreditCard size={18} />
+                  <div className="flex-1 flex flex-col">
+                    <span className="font-semibold">Commissions & Payouts</span>
+                  </div>
+                </button>
+              </li>
+            </ul>
+          </div>
+
+          <div className="mb-5">
             <span className="block text-[10px] font-extrabold text-[#c5dbd0]/75 px-6 mb-2.5 tracking-wider">ACCOUNT</span>
             <ul className="list-none flex flex-col gap-1.5">
               <li>
@@ -350,9 +372,9 @@ export default function Dashboard({ pharmacy, onLogout }) {
               </li>
               <li>
                 <button 
-                  onClick={() => { setCurrentView('settings'); setSidebarOpen(false); }}
+                  onClick={() => { setSettingsSubTab('profile'); setCurrentView('settings'); setSidebarOpen(false); }}
                   className={`flex items-center gap-3.5 mx-3 px-3.5 py-2.5 w-[calc(100%-24px)] text-left cursor-pointer text-sm rounded-xl transition-all duration-200 ${
-                    currentView === 'settings' 
+                    currentView === 'settings' && settingsSubTab !== 'commissions'
                       ? 'text-white bg-[#3da860] font-bold shadow-md shadow-emerald-950/20' 
                       : 'text-[#c5dbd0] bg-transparent border-none hover:text-white hover:bg-white/5'
                   }`}
@@ -858,7 +880,7 @@ export default function Dashboard({ pharmacy, onLogout }) {
           )}
 
           {currentView === 'settings' && (
-            <SettingsPage pharmacy={pharmacy} />
+            <SettingsPage pharmacy={pharmacy} initialSubTab={settingsSubTab} />
           )}
         </div>
       </main>

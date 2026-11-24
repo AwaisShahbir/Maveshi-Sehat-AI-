@@ -6,8 +6,14 @@ import {
 } from 'lucide-react';
 import '../styles/Settings.css';
 
-export default function Settings({ pharmacy }) {
-  const [subTab, setSubTab] = useState('profile');
+export default function Settings({ pharmacy, initialSubTab = 'profile' }) {
+  const [subTab, setSubTab] = useState(initialSubTab);
+
+  useEffect(() => {
+    if (initialSubTab) {
+      setSubTab(initialSubTab);
+    }
+  }, [initialSubTab]);
   const [feedback, setFeedback] = useState({ type: '', message: '' });
   const [loading, setLoading] = useState(false);
 
