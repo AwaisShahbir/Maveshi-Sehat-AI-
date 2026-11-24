@@ -81,7 +81,7 @@ export default function Sidebar({ onLogout, adminUser, isOpen, onClose }) {
     {
       title: 'BILLING & PAYMENTS',
       items: [
-        { path: '/subscriptions', label: 'Subscriptions & Payments', icon: CreditCard }
+        { path: '/subscriptions', label: 'Subscriptions & Payments', icon: CreditCard, badgeKey: 'subscriptions' }
       ]
     },
     {
@@ -111,7 +111,8 @@ export default function Sidebar({ onLogout, adminUser, isOpen, onClose }) {
     vets: stats?.pendingVetsCount ?? 0,
     pharmacies: stats?.pendingActions?.pharmacies?.length ?? 0,
     notifications: stats?.unreadNotificationsCount ?? 0,
-    forumPosts: stats?.totalForumPosts ?? 0
+    forumPosts: stats?.totalForumPosts ?? 0,
+    subscriptions: stats?.pendingSubscriptionsCount ?? 0
   };
 
   return (

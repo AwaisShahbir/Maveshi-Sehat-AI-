@@ -1,5 +1,6 @@
 import { API_BASE_URL } from '../config';
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { 
   Bell, 
   Send, 
@@ -11,7 +12,8 @@ import {
   CheckCircle2,
   Users,
   Calendar,
-  Tag
+  Tag,
+  CreditCard
 } from 'lucide-react';
 import '../styles/Notifications.css';
 
@@ -123,6 +125,11 @@ export default function Notifications() {
   const filteredNotifs = notifications.filter(n => {
     if (filter === 'all') return true;
     if (filter === 'broadcasts') return n.source === 'announcement';
+    if (filter === 'payment') {
+      const isPay = (n.type && (n.type.includes('payment') || n.type.includes('subscription'))) ||
+                    (n.message_en && (n.message_en.includes('Subscription') || n.message_en.includes('JazzCash') || n.message_en.includes('TID')));
+      return isPay;
+    }
     if (filter === 'vet') {
       return (n.type && n.type.includes('vet')) || (n.target_audience && n.target_audience.includes('vet'));
     }
@@ -137,6 +144,17 @@ export default function Notifications() {
 
   const getNotifDetails = (n) => {
     const type = (n.type || 'general').toLowerCase();
+    const msg = (n.message_en || '').toLowerCase();
+
+    if (type.includes('subscription') || type.includes('payment') || msg.includes('subscription') || msg.includes('jazzcash') || msg.includes('tid')) {
+      return {
+        icon: <CreditCard size={18} />,
+        itemClass: 'type-payment',
+        iconClass: 'icon-payment',
+        actionText: 'Review & Approve',
+        actionUrl: '/subscriptions'
+      };
+    }
     if (type.includes('vet')) {
       return {
         icon: <UserCheck size={18} />,
@@ -177,8 +195,14 @@ export default function Notifications() {
     };
   };
 
-  const getCategoryDetails = (type) => {
+  const getCategoryDetails = (type, message) => {
     const t = (type || 'general').toLowerCase();
+    const msg = (message || '').toLowerCase();
+
+    if (t.includes('subscription') || t.includes('payment') || msg.includes('subscription') || msg.includes('jazzcash')) {
+      return { label: 'Payment Proof', badgeClass: 'cat-payment' };
+    }
+
     switch (t) {
       case 'outbreak':
       case 'disease_outbreak':
@@ -274,6 +298,12 @@ export default function Notifications() {
               Disease Alerts
             </button>
             <button 
+              className={`notifications-tab-btn ${filter === 'payment' ? 'active' : ''}`}
+              onClick={() => setFilter('payment')}
+            >
+              Payment Proofs
+            </button>
+            <button 
               className={`notifications-tab-btn ${filter === 'pharmacy' ? 'active' : ''}`}
               onClick={() => setFilter('pharmacy')}
             >
@@ -294,7 +324,7 @@ export default function Notifications() {
             <div className="notifications-list">
               {filteredNotifs.map((n) => {
                 const details = getNotifDetails(n);
-                const category = getCategoryDetails(n.type);
+                const category = getCategoryDetails(n.type, n.message_en);
                 return (
                   <div 
                     key={n.id} 
@@ -314,6 +344,31 @@ export default function Notifications() {
                       </div>
 
                       <p className="notifications-text">{n.message_en}</p>
+
+                      {details.actionUrl && (
+                        <div style={{ marginTop: 10, marginBottom: 10 }}>
+                          <Link 
+                            to={details.actionUrl}
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: 8,
+                              padding: '8px 16px',
+                              backgroundColor: '#059669',
+                              color: '#ffffff',
+                              borderRadius: 8,
+                              fontSize: 13,
+                              fontWeight: '700',
+                              textDecoration: 'none',
+                              boxShadow: '0 2px 6px rgba(5, 150, 105, 0.3)',
+                              transition: 'all 0.2s ease'
+                            }}
+                          >
+                            <CreditCard size={15} />
+                            Review & Approve Payment →
+                          </Link>
+                        </div>
+                      )}
 
                       <div className="notifications-footer-row">
                         <div className="notifications-audience-container">

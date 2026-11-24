@@ -54,6 +54,12 @@ module.exports = (pool, io) => {
       const totalVaccinationsRes = await pool.query("SELECT COUNT(*) FROM farmer_vaccinations");
       const totalForumPostsRes = await pool.query("SELECT COUNT(*) FROM forum_posts");
 
+      let pendingSubscriptionsCount = 0;
+      try {
+        const pendingSubsRes = await pool.query("SELECT COUNT(*) FROM subscription_requests WHERE status = 'pending'");
+        pendingSubscriptionsCount = parseInt(pendingSubsRes.rows[0].count) || 0;
+      } catch (_) {}
+
       const unreadNotifsRes = await pool.query("SELECT COUNT(*) FROM admin_notifications WHERE read = FALSE");
       const unreadNotificationsCount = parseInt(unreadNotifsRes.rows[0].count) || 0;
 
@@ -147,6 +153,7 @@ module.exports = (pool, io) => {
 
         totalVaccinations: parseInt(totalVaccinationsRes.rows[0].count) || 0,
         totalForumPosts: parseInt(totalForumPostsRes.rows[0].count) || 0,
+        pendingSubscriptionsCount,
 
         topDiseases: diseaseDistributionRes.rows,
         topMedicines,
