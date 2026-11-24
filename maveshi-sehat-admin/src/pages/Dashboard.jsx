@@ -166,6 +166,116 @@ export default function Dashboard() {
             </span>
           </div>
         </div>
+
+        {/* Admin Total Net Earnings */}
+        <div 
+          className="card dashboard-kpi-card cursor-pointer-card"
+          onClick={() => navigate('/subscriptions')}
+          style={{ cursor: 'pointer', border: '1px solid #BBF7D0', backgroundColor: '#F0FDF4' }}
+          title="Click to view Subscriptions & Settlements ledger"
+        >
+          <div className="kpi-icon-wrapper" style={{ backgroundColor: '#DCFCE7', color: '#15803D' }}>
+            <DollarSign size={24} />
+          </div>
+          <div className="kpi-card-details">
+            <h2 className="kpi-card-value" style={{ color: '#15803D' }}>
+              Rs. {(stats?.adminEarnings?.totalEarnings ?? 0).toLocaleString()}
+            </h2>
+            <p className="kpi-card-label" style={{ color: '#166534', fontWeight: '700' }}>Admin Total Earnings</p>
+            <span className="kpi-card-trend" style={{ color: '#15803D', fontSize: '11px', fontWeight: '600' }}>
+              Rs. {(stats?.adminEarnings?.subscriptionsRevenue ?? 0).toLocaleString()} Subs • Rs. {(stats?.adminEarnings?.pharmacyCommissionEarned ?? 0).toLocaleString()} Comm.
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Admin Revenue & Platform Financials Banner */}
+      <div className="card" style={{
+        padding: '20px 24px',
+        marginBottom: '24px',
+        background: 'linear-gradient(135deg, #135431 0%, #1a6b3e 100%)',
+        color: '#ffffff',
+        borderRadius: '16px',
+        boxShadow: '0 4px 15px rgba(19, 84, 49, 0.15)'
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', marginBottom: '16px', borderBottom: '1px solid rgba(255,255,255,0.15)', paddingBottom: '14px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ width: '42px', height: '42px', borderRadius: '12px', backgroundColor: 'rgba(255,255,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <DollarSign size={24} color="#FFF" />
+            </div>
+            <div>
+              <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '800', color: '#FFF' }}>
+                Admin Platform Revenue & Earnings
+              </h3>
+              <p style={{ margin: '2px 0 0 0', fontSize: '12px', color: '#c5dbd0' }}>
+                Consolidated net income from AI Disease Subscriptions (Rs. 300) & 10% Pharmacy Commissions
+              </p>
+            </div>
+          </div>
+
+          <button
+            onClick={() => navigate('/subscriptions')}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '8px 16px',
+              backgroundColor: '#ffffff',
+              color: '#135431',
+              borderRadius: '10px',
+              fontSize: '12px',
+              fontWeight: '800',
+              border: 'none',
+              cursor: 'pointer',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+            }}
+          >
+            <span>View Billing & Settlements Ledger</span>
+            <ExternalLink size={14} />
+          </button>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
+          <div style={{ backgroundColor: 'rgba(255,255,255,0.1)', padding: '14px 16px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)' }}>
+            <span style={{ fontSize: '11px', color: '#c5dbd0', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Total Admin Earnings</span>
+            <h2 style={{ fontSize: '24px', fontWeight: '900', color: '#ffffff', margin: '6px 0 0 0' }}>
+              Rs. {(stats?.adminEarnings?.totalEarnings ?? 0).toLocaleString()}
+            </h2>
+            <span style={{ fontSize: '10px', color: '#c5dbd0', display: 'block', marginTop: '2px' }}>
+              100% Platform Net Revenue
+            </span>
+          </div>
+
+          <div style={{ backgroundColor: 'rgba(255,255,255,0.1)', padding: '14px 16px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)' }}>
+            <span style={{ fontSize: '11px', color: '#c5dbd0', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px' }}>AI Scan Subscriptions</span>
+            <h2 style={{ fontSize: '24px', fontWeight: '900', color: '#A7F3D0', margin: '6px 0 0 0' }}>
+              Rs. {(stats?.adminEarnings?.subscriptionsRevenue ?? 0).toLocaleString()}
+            </h2>
+            <span style={{ fontSize: '10px', color: '#c5dbd0', display: 'block', marginTop: '2px' }}>
+              {stats?.adminEarnings?.approvedSubscriptionsCount ?? 0} Approved Subscriptions
+            </span>
+          </div>
+
+          <div style={{ backgroundColor: 'rgba(255,255,255,0.1)', padding: '14px 16px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)' }}>
+            <span style={{ fontSize: '11px', color: '#c5dbd0', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px' }}>10% Pharmacy Commission</span>
+            <h2 style={{ fontSize: '24px', fontWeight: '900', color: '#FDE68A', margin: '6px 0 0 0' }}>
+              Rs. {(stats?.adminEarnings?.pharmacyCommissionEarned ?? 0).toLocaleString()}
+            </h2>
+            <span style={{ fontSize: '10px', color: '#c5dbd0', display: 'block', marginTop: '2px' }}>
+              From Rs. {(stats?.totalRevenue ?? 0).toLocaleString()} Marketplace Sales
+            </span>
+          </div>
+
+          <div style={{ backgroundColor: 'rgba(255,255,255,0.1)', padding: '14px 16px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)' }}>
+            <span style={{ fontSize: '11px', color: '#c5dbd0', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Commission Settled Cash</span>
+            <h2 style={{ fontSize: '24px', fontWeight: '900', color: '#93C5FD', margin: '6px 0 0 0' }}>
+              Rs. {(stats?.adminEarnings?.pharmacyCommissionSettled ?? 0).toLocaleString()}
+            </h2>
+            <span style={{ fontSize: '10px', color: '#c5dbd0', display: 'block', marginTop: '2px' }}>
+              Due Debt: Rs. {(stats?.adminEarnings?.pharmacyCommissionDue ?? 0).toLocaleString()}
+            </span>
+          </div>
+        </div>
       </div>
 
       {/* Secondary Operational Stats Ribbon */}

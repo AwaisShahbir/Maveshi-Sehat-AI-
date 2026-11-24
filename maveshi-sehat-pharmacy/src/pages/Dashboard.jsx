@@ -85,6 +85,16 @@ export default function Dashboard({ pharmacy, onLogout }) {
     const list = [];
     let notifId = 1;
 
+    // Critical Lock Alert
+    if (stats.isLocked) {
+      list.push({
+        id: 'lock_alert',
+        text: `🚨 CRITICAL: Store & Stock Blocked! Unpaid commission (Rs. ${(stats.commissionDue || 0).toFixed(0)}) exceeded Rs. 2,000 limit. Settle at least Rs. 1,000.`,
+        time: 'Immediate',
+        unread: true
+      });
+    }
+
     // Admin Announcements
     announcements.forEach(ann => {
       list.push({
@@ -208,7 +218,11 @@ export default function Dashboard({ pharmacy, onLogout }) {
           </div>
           <div>
             <span className="text-sm font-bold text-white block">{pharmacy.name}</span>
-            <span className="text-[11px] text-[#c5dbd0] font-semibold block mt-0.5">Verified</span>
+            {stats.isLocked ? (
+              <span className="text-[11px] text-red-400 font-extrabold block mt-0.5">⚠️ Stock Blocked</span>
+            ) : (
+              <span className="text-[11px] text-[#c5dbd0] font-semibold block mt-0.5">Verified</span>
+            )}
           </div>
         </div>
 
@@ -458,6 +472,35 @@ export default function Dashboard({ pharmacy, onLogout }) {
         </header>
 
         <div className="page-container p-4 sm:p-6 md:p-8 flex-1 min-w-0 max-w-full overflow-x-hidden">
+          {/* Global Stock Block Warning Banner */}
+          {stats.isLocked && (
+            <div className="bg-red-50 border-2 border-red-400 text-red-900 rounded-2xl p-4 sm:p-5 mb-6 shadow-md flex flex-col md:flex-row justify-between items-start md:items-center gap-4 animate-pulse">
+              <div className="flex items-start gap-3">
+                <AlertTriangle size={28} className="text-red-600 shrink-0 mt-0.5" />
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h4 className="font-extrabold text-sm sm:text-base text-red-900">
+                      ⚠️ Store Paused & Medicine Stock Blocked!
+                    </h4>
+                    <span className="bg-red-600 text-white text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                      Locked
+                    </span>
+                  </div>
+                  <p className="text-xs text-red-800 mt-1 max-w-2xl leading-relaxed">
+                    Your platform commission debt has reached <strong>Rs. {(stats.commissionDue || 0).toFixed(2)}</strong>, exceeding the <strong>Rs. 2,000 credit limit</strong>. Customers cannot place orders for your medicines until you transfer at least <strong>Rs. 1,000</strong> to Admin JazzCash (<strong>03054758667</strong>).
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => { setSettingsSubTab('commissions'); setCurrentView('settings'); }}
+                className="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white font-extrabold text-xs rounded-xl shadow-md transition-all cursor-pointer whitespace-nowrap shrink-0 flex items-center gap-2"
+              >
+                <CreditCard size={15} />
+                Settle Now (Min Rs. 1,000) →
+              </button>
+            </div>
+          )}
+
           {currentView === 'dashboard' && (
             <>
               

@@ -183,8 +183,11 @@ export default function SubscriptionsAndPayments() {
     }
   };
 
-  const handleApproveSettlement = async (id, pharmacyName, amount) => {
-    if (!window.confirm(`Approve commission settlement of Rs. ${amount} from '${pharmacyName}'? This will deduct the amount from their debt and restore their store if under Rs. 1,000.`)) {
+  const handleApproveSettlement = async (id, pharmacyName, amount, isLocked) => {
+    const confirmMsg = isLocked
+      ? `Approve commission settlement of Rs. ${amount} from '${pharmacyName}'? This will deduct the amount from their debt and restore their store & stock.`
+      : `Approve commission deposit of Rs. ${amount} from '${pharmacyName}'? This will credit their account and reduce their outstanding balance.`;
+    if (!window.confirm(confirmMsg)) {
       return;
     }
     try {
@@ -742,9 +745,9 @@ export default function SubscriptionsAndPayments() {
             </div>
 
             <div style={{ backgroundColor: '#FFFBEB', padding: '18px', borderRadius: '14px', border: '1px solid #FDE68A', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
-              <span style={{ fontSize: '12px', fontWeight: '700', color: '#92400E' }}>LOCKED PHARMACIES (&gt;= Rs. 1,000)</span>
+              <span style={{ fontSize: '12px', fontWeight: '700', color: '#92400E' }}>STOCK BLOCKED (&gt;= Rs. 2,000)</span>
               <h2 style={{ fontSize: '24px', fontWeight: '900', color: '#D97706', margin: '8px 0 0 0' }}>
-                {pharmacyCommissions.filter(p => p.is_locked || (parseFloat(p.commission_due) >= 1000)).length}
+                {pharmacyCommissions.filter(p => p.is_locked || (parseFloat(p.commission_due) >= 2000)).length}
               </h2>
             </div>
           </div>
@@ -788,7 +791,19 @@ export default function SubscriptionsAndPayments() {
                           {new Date(s.created_at).toLocaleDateString()}
                         </td>
                         <td style={{ padding: '14px 16px' }}>
-                          <span style={{ fontWeight: '800', color: '#0F172A' }}>{s.pharmacy_name}</span>
+                          <span style={{ fontWeight: '800', color: '#0F172A', display: 'block' }}>{s.pharmacy_name}</span>
+                          <span style={{
+                            display: 'inline-block',
+                            marginTop: '3px',
+                            fontSize: '10px',
+                            fontWeight: '800',
+                            padding: '1px 6px',
+                            borderRadius: '4px',
+                            backgroundColor: (s.pharmacy_locked || (parseFloat(s.current_pharmacy_due) >= 2000)) ? '#FEE2E2' : '#DCFCE7',
+                            color: (s.pharmacy_locked || (parseFloat(s.current_pharmacy_due) >= 2000)) ? '#DC2626' : '#16A34A'
+                          }}>
+                            {(s.pharmacy_locked || (parseFloat(s.current_pharmacy_due) >= 2000)) ? 'Stock Blocked (Debt ≥ Rs. 2,000)' : 'Active (Under Rs. 2,000 Limit)'}
+                          </span>
                         </td>
                         <td style={{ padding: '14px 16px' }}>
                           <span style={{ fontWeight: '900', color: '#059669', fontSize: '14px' }}>
@@ -841,7 +856,7 @@ export default function SubscriptionsAndPayments() {
                           {s.status === 'pending' ? (
                             <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
                               <button
-                                onClick={() => handleApproveSettlement(s.id, s.pharmacy_name, s.amount)}
+                                onClick={() => handleApproveSettlement(s.id, s.pharmacy_name, s.amount, Boolean(s.pharmacy_locked || (parseFloat(s.current_pharmacy_due) >= 2000)))}
                                 disabled={actionLoading}
                                 style={{
                                   backgroundColor: '#059669',
@@ -857,7 +872,7 @@ export default function SubscriptionsAndPayments() {
                                   gap: '4px'
                                 }}
                               >
-                                <Check size={14} /> Approve & Unlock
+                                <Check size={14} /> {(Boolean(s.pharmacy_locked || (parseFloat(s.current_pharmacy_due) >= 2000))) ? 'Approve & Unlock' : 'Approve Settlement'}
                               </button>
                               <button
                                 onClick={() => handleRejectSettlement(s.id)}
@@ -899,7 +914,7 @@ export default function SubscriptionsAndPayments() {
                   Pharmacies Commission Ledger & Store Status
                 </h3>
                 <p style={{ fontSize: '13px', color: '#64748B', margin: '4px 0 0 0' }}>
-                  Platform automatically pauses pharmacy stores when unpaid commission reaches or exceeds the <strong>Rs. 1,000 threshold</strong>.
+                  Platform automatically pauses pharmacy stores and blocks stock when unpaid commission reaches or exceeds the <strong>Rs. 2,000 threshold</strong>. Pharmacies must transfer a minimum of Rs. 1,000 to restore active status.
                 </p>
               </div>
             </div>
@@ -921,7 +936,7 @@ export default function SubscriptionsAndPayments() {
                 <tbody>
                   {filteredCommissions.map((p) => {
                     const due = parseFloat(p.commission_due) || 0.00;
-                    const isOverdue = due >= 1000.00;
+                    const isOverdue = due >= 2000.00;
                     const isLocked = p.is_locked || isOverdue;
 
                     return (
@@ -954,7 +969,7 @@ export default function SubscriptionsAndPayments() {
                             backgroundColor: isOverdue ? '#FEE2E2' : '#DCFCE7',
                             color: isOverdue ? '#DC2626' : '#16A34A'
                           }}>
-                            {isOverdue ? '🚨 LIMIT EXCEEDED (Rs. 1000+)' : 'Good Standing'}
+                            {isOverdue ? '🚨 STOCK BLOCKED (Rs. 2000+)' : 'Good Standing'}
                           </span>
                         </td>
                         <td style={{ padding: '14px 16px' }}>

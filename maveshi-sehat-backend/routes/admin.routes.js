@@ -55,10 +55,37 @@ module.exports = (pool, io) => {
       const totalForumPostsRes = await pool.query("SELECT COUNT(*) FROM forum_posts");
 
       let pendingSubscriptionsCount = 0;
+      let adminSubscriptionsEarned = 0.00;
+      let approvedSubscriptionsCount = 0;
       try {
         const pendingSubsRes = await pool.query("SELECT COUNT(*) FROM subscription_requests WHERE status = 'pending'");
         pendingSubscriptionsCount = parseInt(pendingSubsRes.rows[0].count) || 0;
+
+        const subEarnRes = await pool.query("SELECT COALESCE(SUM(amount), 0) as total, COUNT(*) as count FROM subscription_requests WHERE status = 'approved'");
+        adminSubscriptionsEarned = parseFloat(subEarnRes.rows[0]?.total) || 0.00;
+        approvedSubscriptionsCount = parseInt(subEarnRes.rows[0]?.count) || 0;
       } catch (_) {}
+
+      // Admin 10% Pharmacy Commissions & Settlements
+      let adminCommissionEarned = 0.00;
+      try {
+        const commRes = await pool.query("SELECT COALESCE(SUM(admin_commission), 0) FROM orders WHERE status != 'cancelled'");
+        adminCommissionEarned = parseFloat(commRes.rows[0]?.coalesce) || 0.00;
+      } catch (_) {}
+
+      let adminCommissionPaid = 0.00;
+      try {
+        const paidRes = await pool.query("SELECT COALESCE(SUM(amount), 0) FROM pharmacy_commission_settlements WHERE status = 'approved'");
+        adminCommissionPaid = parseFloat(paidRes.rows[0]?.coalesce) || 0.00;
+      } catch (_) {}
+
+      let adminCommissionDue = 0.00;
+      try {
+        const dueRes = await pool.query("SELECT COALESCE(SUM(commission_due), 0) FROM pharmacies");
+        adminCommissionDue = parseFloat(dueRes.rows[0]?.coalesce) || 0.00;
+      } catch (_) {}
+
+      const adminTotalEarnings = adminCommissionEarned + adminSubscriptionsEarned;
 
       const unreadNotifsRes = await pool.query("SELECT COUNT(*) FROM admin_notifications WHERE read = FALSE");
       const unreadNotificationsCount = parseInt(unreadNotifsRes.rows[0].count) || 0;
@@ -154,6 +181,14 @@ module.exports = (pool, io) => {
         totalVaccinations: parseInt(totalVaccinationsRes.rows[0].count) || 0,
         totalForumPosts: parseInt(totalForumPostsRes.rows[0].count) || 0,
         pendingSubscriptionsCount,
+        adminEarnings: {
+          totalEarnings: adminTotalEarnings,
+          subscriptionsRevenue: adminSubscriptionsEarned,
+          approvedSubscriptionsCount,
+          pharmacyCommissionEarned: adminCommissionEarned,
+          pharmacyCommissionSettled: adminCommissionPaid,
+          pharmacyCommissionDue: adminCommissionDue
+        },
 
         topDiseases: diseaseDistributionRes.rows,
         topMedicines,

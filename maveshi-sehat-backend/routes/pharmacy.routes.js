@@ -244,6 +244,15 @@ module.exports = (pool) => {
         [pId]
       );
 
+      // Pharmacy account & commission debt lock check
+      const pharmInfoRes = await pool.query(
+        "SELECT id, is_locked, lock_reason, commission_due FROM pharmacies WHERE id = $1",
+        [pId]
+      );
+      const pharmRow = pharmInfoRes.rows[0] || {};
+      const commissionDue = parseFloat(pharmRow.commission_due) || 0.00;
+      const isLocked = pharmRow.is_locked || commissionDue >= 2000.00;
+
       res.status(200).json({
         stats: {
           totalRevenue,
@@ -253,7 +262,12 @@ module.exports = (pool) => {
           medicineListings: medicineListingsCount,
           stockAlerts: stockAlertsCount,
           rxOrdersCount,
-          pipeline
+          pipeline,
+          commissionDue,
+          isLocked,
+          lockReason: pharmRow.lock_reason,
+          creditLimit: 2000.00,
+          minSettlement: 1000.00
         },
         recentOrders: recentOrdersRes.rows,
         stockAlertsList: stockAlertsRes.rows,
@@ -617,9 +631,9 @@ module.exports = (pool) => {
       }
       const targetPharm = pharmCheck.rows[0];
       const currentDue = parseFloat(targetPharm.commission_due) || 0.00;
-      if (targetPharm.is_locked || currentDue >= 1000.00) {
+      if (targetPharm.is_locked || currentDue >= 2000.00) {
         return res.status(403).json({
-          error: `This pharmacy's store is temporarily paused because their accumulated commission due (Rs. ${currentDue.toFixed(2)}) has reached the Rs. 1,000 threshold. Orders cannot be placed until the pharmacy settles their commission with the platform administrator.`,
+          error: `This pharmacy's store and stock are temporarily blocked because their accumulated commission due (Rs. ${currentDue.toFixed(2)}) has reached the Rs. 2,000 limit. Orders cannot be placed until the pharmacy settles at least Rs. 1,000 with the platform administrator.`,
           isLocked: true,
           commissionDue: currentDue
         });
@@ -692,26 +706,26 @@ module.exports = (pool) => {
         ]
       );
 
-      // Increment pharmacy commission debt & check Rs. 1,000 threshold
+      // Increment pharmacy commission debt & check Rs. 2,000 threshold
       const newCommissionTotal = currentDue + adminCommission;
       await pool.query(
         `UPDATE pharmacies 
          SET commission_due = commission_due + $1,
-             is_locked = CASE WHEN (commission_due + $1) >= 1000.00 THEN TRUE ELSE is_locked END,
-             lock_reason = CASE WHEN (commission_due + $1) >= 1000.00 THEN 'Commission due has reached or exceeded Rs. 1,000 limit' ELSE lock_reason END
+             is_locked = CASE WHEN (commission_due + $1) >= 2000.00 THEN TRUE ELSE is_locked END,
+             lock_reason = CASE WHEN (commission_due + $1) >= 2000.00 THEN 'Commission due exceeded Rs. 2,000 limit. Store and medicine stock blocked.' ELSE lock_reason END
          WHERE id = $2`,
         [adminCommission, pId]
       );
 
-      if (newCommissionTotal >= 1000.00) {
+      if (newCommissionTotal >= 2000.00) {
         try {
           await pool.query(
             `INSERT INTO admin_notifications (type, message_en, message_ur)
              VALUES ($1, $2, $3)`,
             [
               'pharmacy_commission_lock',
-              `⚠️ Pharmacy '${targetPharm.name}' has been auto-locked. Outstanding commission reached Rs. ${newCommissionTotal.toFixed(2)} (Limit: Rs. 1,000).`,
-              `فارمیسی '${targetPharm.name}' کی کمیشن بقایا رقم 1,000 روپے سے زائد ہونے کی وجہ سے عارضی طور پر بند کر دی گئی ہے`
+              `⚠️ Pharmacy '${targetPharm.name}' stock has been blocked. Outstanding commission reached Rs. ${newCommissionTotal.toFixed(2)} (Limit: Rs. 2,000).`,
+              `فارمیسی '${targetPharm.name}' کی کمیشن بقایا رقم 2,000 روپے سے زائد ہونے کی وجہ سے سٹاک بلاک کر دیا گیا ہے`
             ]
           );
         } catch (_) {}
@@ -970,7 +984,7 @@ module.exports = (pool) => {
 
       const p = result.rows[0];
       const due = parseFloat(p.commission_due) || 0.00;
-      const locked = p.is_locked || due >= 1000.00;
+      const locked = p.is_locked || due >= 2000.00;
 
       res.status(200).json({
         pharmacyId: p.id,
@@ -1044,7 +1058,8 @@ module.exports = (pool) => {
       const pharm = pharmRes.rows[0];
       const commissionDue = parseFloat(pharm.commission_due) || 0.00;
       const commissionPaid = parseFloat(pharm.commission_paid) || 0.00;
-      const threshold = 1000.00;
+      const threshold = 2000.00;
+      const minSettlement = 1000.00;
       const isLocked = pharm.is_locked || commissionDue >= threshold;
 
       // Fetch sales summary
@@ -1081,6 +1096,7 @@ module.exports = (pool) => {
         commissionDue,
         commissionPaid,
         thresholdLimit: threshold,
+        minSettlementAmount: minSettlement,
         remainingCredit: Math.max(0, threshold - commissionDue),
         isLocked,
         lockReason: pharm.lock_reason,
@@ -1111,6 +1127,13 @@ module.exports = (pool) => {
       if (!pharmacyId || !amount || !senderPhone || !transactionId || !proofBase64) {
         return res.status(400).json({
           error: 'Pharmacy ID, amount, sender phone, transaction ID, and payment proof screenshot are required.'
+        });
+      }
+
+      const settleAmount = parseFloat(amount);
+      if (isNaN(settleAmount) || settleAmount < 1000.00) {
+        return res.status(400).json({
+          error: 'The minimum commission settlement transfer amount to Admin is Rs. 1,000.'
         });
       }
 
@@ -1217,8 +1240,8 @@ module.exports = (pool) => {
         `UPDATE pharmacies 
          SET commission_due = GREATEST(0.00, commission_due - $1),
              commission_paid = commission_paid + $1,
-             is_locked = CASE WHEN (commission_due - $1) < 1000.00 THEN FALSE ELSE is_locked END,
-             lock_reason = CASE WHEN (commission_due - $1) < 1000.00 THEN NULL ELSE lock_reason END
+             is_locked = CASE WHEN (commission_due - $1) < 2000.00 THEN FALSE ELSE is_locked END,
+             lock_reason = CASE WHEN (commission_due - $1) < 2000.00 THEN NULL ELSE lock_reason END
          WHERE id = $2
          RETURNING id, name, commission_due, commission_paid, is_locked`,
         [settleAmount, pId]

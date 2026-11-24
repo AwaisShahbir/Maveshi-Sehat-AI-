@@ -315,7 +315,7 @@ export default function Settings({ pharmacy, initialSubTab = 'profile' }) {
         const data = await res.json();
         setCommissionData(data);
         if (data.commissionDue !== undefined) {
-          setSettlementAmount(String(data.commissionDue));
+          setSettlementAmount(String(Math.max(1000, Math.round(data.commissionDue || 1000))));
         }
       }
     } catch (err) {
@@ -371,6 +371,11 @@ export default function Settings({ pharmacy, initialSubTab = 'profile' }) {
 
   const handleSubmitSettlement = async (e) => {
     e.preventDefault();
+    const amt = parseFloat(settlementAmount);
+    if (isNaN(amt) || amt < 1000) {
+      alert('The minimum amount you can transfer to Admin is Rs. 1,000.');
+      return;
+    }
     if (!settlementSenderPhone || !settlementTid || !settlementProofBase64) {
       alert('Please enter your sender phone number, TID, and attach payment screenshot proof.');
       return;
@@ -391,7 +396,9 @@ export default function Settings({ pharmacy, initialSubTab = 'profile' }) {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to submit settlement proof');
-      alert(data.message || 'Settlement submitted! Admin will verify and unlock your store.');
+      alert(data.message || (commissionData?.isLocked 
+        ? 'Settlement submitted! Admin will verify and unlock your store.' 
+        : 'Deposit proof submitted! Admin will verify and credit your commission ledger.'));
       setIsSettlementModalOpen(false);
       setSettlementTid('');
       setSettlementProofBase64(null);
@@ -954,13 +961,13 @@ export default function Settings({ pharmacy, initialSubTab = 'profile' }) {
                           <CheckCircle2 size={20} color="#059669" />
                         )}
                         <h4 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: commissionData.isLocked ? '#991B1B' : '#065F46' }}>
-                          {commissionData.isLocked ? 'Store Paused: Commission Limit Reached' : 'Store Active: Commission in Good Standing'}
+                          {commissionData.isLocked ? 'Store & Stock Blocked: Commission Limit Exceeded' : 'Store Active: Commission in Good Standing'}
                         </h4>
                       </div>
                       <p style={{ margin: 0, fontSize: 13, color: commissionData.isLocked ? '#B91C1C' : '#047857' }}>
                         {commissionData.isLocked
-                          ? `Your unpaid commission is Rs. ${commissionData.commissionDue.toFixed(2)}, which exceeds the Rs. 1,000 credit threshold. Farmers cannot place orders until you settle this balance.`
-                          : `Platform charges 10% commission on sales. Your outstanding commission due is Rs. ${commissionData.commissionDue.toFixed(2)} (Limit: Rs. 1,000). Remaining allowance: Rs. ${commissionData.remainingCredit.toFixed(2)}.`}
+                          ? `Your unpaid commission is Rs. ${commissionData.commissionDue.toFixed(2)}, which exceeds the Rs. 2,000 credit limit. Your stock is temporarily blocked. Transfer at least Rs. 1,000 to the Admin to unblock your store.`
+                          : `Your stock is fully active and taking customer orders normally. Your outstanding commission due is Rs. ${commissionData.commissionDue.toFixed(2)} (within the Rs. 2,000 limit). Remaining credit: Rs. ${commissionData.remainingCredit.toFixed(2)}. You can deposit commission anytime (min. Rs. 1,000) to keep your balance low.`}
                       </p>
                     </div>
 
@@ -980,21 +987,21 @@ export default function Settings({ pharmacy, initialSubTab = 'profile' }) {
                         boxShadow: '0 2px 4px rgba(5, 150, 105, 0.2)'
                       }}
                     >
-                      Settle Commission
+                      {commissionData.isLocked ? 'Settle & Unblock Stock' : 'Deposit Commission'}
                     </button>
                   </div>
 
-                  {/* Progress bar towards Rs. 1000 */}
+                  {/* Progress bar towards Rs. 2000 */}
                   <div style={{ marginTop: 14 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, fontWeight: 700, color: '#64748B', marginBottom: 4 }}>
                       <span>Due: Rs. {commissionData.commissionDue.toFixed(2)}</span>
-                      <span>Max Allowance: Rs. 1,000.00</span>
+                      <span>Stock Block Limit: Rs. 2,000.00 (Min Transfer: Rs. 1,000)</span>
                     </div>
                     <div style={{ width: '100%', height: 8, backgroundColor: '#E2E8F0', borderRadius: 4, overflow: 'hidden' }}>
                       <div style={{
-                        width: `${Math.min(100, (commissionData.commissionDue / 1000) * 100)}%`,
+                        width: `${Math.min(100, (commissionData.commissionDue / 2000) * 100)}%`,
                         height: '100%',
-                        backgroundColor: commissionData.isLocked ? '#DC2626' : (commissionData.commissionDue > 700 ? '#F59E0B' : '#059669'),
+                        backgroundColor: commissionData.isLocked ? '#DC2626' : (commissionData.commissionDue > 1500 ? '#F59E0B' : '#059669'),
                         borderRadius: 4,
                         transition: 'width 0.3s ease'
                       }} />
@@ -1169,10 +1176,13 @@ export default function Settings({ pharmacy, initialSubTab = 'profile' }) {
                     boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)'
                   }}>
                     <h3 style={{ fontSize: 18, fontWeight: 800, color: '#1E293B', margin: '0 0 8px 0' }}>
-                      Settle Platform Commission
+                      {commissionData?.isLocked ? 'Settle Debt to Unblock Stock' : 'Deposit Platform Commission'}
                     </h3>
                     <p style={{ fontSize: 13, color: '#64748B', margin: '0 0 16px 0' }}>
-                      Transfer your owed commission to the platform Admin JazzCash account below. Once approved, your store is instantly unlocked.
+                      {commissionData?.isLocked
+                        ? <>Your store is currently paused because unpaid commission reached Rs. 2,000. Transfer at least <strong>Rs. 1,000</strong> to the platform Admin JazzCash account below to restore your store and stock.</>
+                        : <>Transfer platform commission to the Admin JazzCash account below. Minimum deposit is <strong>Rs. 1,000</strong>. Your stock remains active and orders continue uninterrupted as long as your debt is under <strong>Rs. 2,000</strong>.</>
+                      }
                     </p>
 
                     <div style={{ backgroundColor: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 10, padding: 12, marginBottom: 16 }}>
@@ -1188,18 +1198,29 @@ export default function Settings({ pharmacy, initialSubTab = 'profile' }) {
 
                     <form onSubmit={handleSubmitSettlement}>
                       <div style={{ marginBottom: 12 }}>
-                        <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#475569', marginBottom: 4 }}>
-                          Amount to Settle (PKR)
-                        </label>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                          <label style={{ fontSize: 12, fontWeight: 700, color: '#475569' }}>
+                            Amount to Settle (PKR)
+                          </label>
+                          <span style={{ fontSize: 11, fontWeight: 700, color: '#DC2626' }}>
+                            Min: Rs. 1,000
+                          </span>
+                        </div>
                         <input
                           type="number"
                           className="form-control"
                           value={settlementAmount}
                           onChange={(e) => setSettlementAmount(e.target.value)}
                           required
-                          min="1"
+                          min="1000"
+                          placeholder="Min. Rs. 1,000"
                           style={{ width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid #CBD5E1' }}
                         />
+                        <span style={{ fontSize: '11px', color: '#64748B', marginTop: 4, display: 'block' }}>
+                          {commissionData?.isLocked
+                            ? 'Minimum transfer of Rs. 1,000 is required to unblock your store.'
+                            : 'Minimum deposit is Rs. 1,000. Stock stays active as long as debt is under Rs. 2,000.'}
+                        </span>
                       </div>
 
                       <div style={{ marginBottom: 12 }}>
@@ -1259,7 +1280,9 @@ export default function Settings({ pharmacy, initialSubTab = 'profile' }) {
                           disabled={settlementSubmitting}
                           style={{ padding: '8px 18px', borderRadius: 8, border: 'none', backgroundColor: '#059669', color: '#FFF', fontWeight: 700, cursor: 'pointer', fontSize: 13 }}
                         >
-                          {settlementSubmitting ? 'Submitting Proof...' : 'Submit Settlement Proof'}
+                          {settlementSubmitting 
+                            ? 'Submitting Proof...' 
+                            : (commissionData?.isLocked ? 'Submit & Unblock Store' : 'Submit Deposit Proof')}
                         </button>
                       </div>
                     </form>
