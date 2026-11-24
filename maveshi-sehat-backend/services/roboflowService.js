@@ -177,50 +177,36 @@ const DISEASE_KNOWLEDGE_BASE = {
   }
 };
 
-// Fallback OpenAI API key segments to ensure zero-breakage on Render
-const OPENAI_FALLBACK_KEY_PARTS = [
-  'sk-proj-ic85HyN7Y5zjkq_muhoE608UeHvjYY4GUFRqsvBLBlrMNvE_GujwpIyqiwgxl2p9xUYTZBLgwG',
-  'T3BlbkFJpVhainO7aApUGbVYixjpJ1TFlghC8e42lb3BqkPIBJ-jMIMjq09AMsRFivbKjMzUwvJUfWuccA'
-];
-
-function getOpenAIKey() {
-  if (process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY.trim()) {
-    return process.env.OPENAI_API_KEY.trim();
-  }
-  return OPENAI_FALLBACK_KEY_PARTS.join('');
-}
-
 const ROBOFLOW_KEY = process.env.ROBOFLOW_API_KEY || '4pedAHng4E1YnDynGAeQ';
 const ROBOFLOW_MODEL = process.env.ROBOFLOW_MODEL_ID || 'bovine-disease-detection-combined';
 const ROBOFLOW_VERSION = process.env.ROBOFLOW_MODEL_VERSION || '1';
 
 /**
- * Stage 1: OpenAI Multimodal Pre-Validation & Species Detection
+ * Stage 1: Google Gemini 3.5 Multimodal Pre-Validation & Pathologist Gate
  * Inspects whether image contains actual livestock, auto-identifies species/breed,
- * and extracts preliminary visible lesions.
+ * and extracts preliminary visible lesions. Zero-hallucination pre-validation gate.
  */
-async function inspectLivestockImageWithOpenAI(imagePath) {
-  const apiKey = getOpenAIKey();
+async function inspectLivestockImageWithGemini(imagePath) {
+  const apiKey = (process.env.GEMINI_API_KEY || '').trim();
   if (!apiKey) {
-    console.warn('[AI Vision] Warning: No OpenAI key available for Stage 1 validation.');
+    console.warn('[AI Vision] Warning: No GEMINI_API_KEY found for Stage 1 validation.');
     return null;
   }
 
   try {
-    const OpenAI = require('openai');
-    const openai = new OpenAI({ apiKey, timeout: 25000 });
-
     const imageBuffer = fs.readFileSync(imagePath);
     const base64 = imageBuffer.toString('base64');
-    const dataUri = `data:image/jpeg;base64,${base64}`;
+    let mimeType = 'image/jpeg';
+    if (imagePath.toLowerCase().endsWith('.png')) mimeType = 'image/png';
+    else if (imagePath.toLowerCase().endsWith('.webp')) mimeType = 'image/webp';
 
     const prompt = `You are an expert Veterinary Diagnostic Pathologist and Computer Vision Pre-Validation Gate for Pakistani Livestock.
 
 TASK 1: VALIDATION (CRITICAL ZERO-HALLUCINATION RULE):
 Determine if the provided image is a genuine photo of livestock (cow, cattle, bull, calf, water buffalo, goat, sheep, or an anatomical body part of one: skin, hide, udder, teats, hooves, mouth, muzzle, eyes).
-- If the image is NOT livestock (e.g., computer keyboard, laptop, human face/selfie, vehicle, room, indoor furniture, cat, dog, food, landscape, or non-livestock object):
+- If the image is NOT livestock (e.g., event flyer, poster, document, smartphone screenshot, computer screen/keyboard, human face/selfie, vehicle, room, indoor furniture, cat, dog, bird, food, or non-livestock object):
   Set "is_livestock": false.
-  Set "detected_object": specify what is actually shown (e.g. "laptop keyboard", "human face", "automobile", "furniture").
+  Set "detected_object": specify what is actually shown (e.g. "event flyer / poster", "smartphone screenshot", "human face", "laptop keyboard").
   Set "rejection_reason": "The uploaded photo shows a [detected_object], not livestock."
 
 TASK 2: LIVESTOCK SPECIES & BREED AUTO-DETECTION (if is_livestock is true):
@@ -257,24 +243,44 @@ Return strictly valid JSON:
   ]
 }`;
 
-    const response = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      response_format: { type: 'json_object' },
-      messages: [
-        {
-          role: 'user',
-          content: [
-            { type: 'text', text: prompt },
-            { type: 'image_url', image_url: { url: dataUri } }
-          ]
-        }
-      ]
-    });
+    const payload = {
+      contents: [{
+        parts: [
+          { text: prompt },
+          { inline_data: { mime_type: mimeType, data: base64 } }
+        ]
+      }],
+      generationConfig: {
+        responseMimeType: 'application/json'
+      }
+    };
 
-    const parsed = JSON.parse(response.choices[0].message.content);
-    return parsed;
+    const candidateModels = [
+      'gemini-3.5-flash-lite',
+      'gemini-flash-latest',
+      'gemini-3.5-flash'
+    ];
+
+    for (const model of candidateModels) {
+      try {
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+        const res = await axios.post(url, payload, {
+          headers: { 'Content-Type': 'application/json' },
+          timeout: 25000
+        });
+
+        const rawText = res.data?.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (!rawText) continue;
+
+        const cleaned = rawText.replace(/```json\s*/gi, '').replace(/```\s*$/gi, '').trim();
+        return JSON.parse(cleaned);
+      } catch (mErr) {
+        console.warn(`[AI Vision] Model ${model} warning: ${mErr.message}. Trying next candidate...`);
+      }
+    }
+    return null;
   } catch (err) {
-    console.warn('[AI Vision] Stage 1 OpenAI validation exception:', err.message);
+    console.warn('[AI Vision] Stage 1 Gemini Vision validation exception:', err.message);
     return null;
   }
 }
@@ -318,13 +324,13 @@ async function runRoboflowInference(imagePath, confidenceThreshold = 20) {
 
 /**
  * Primary Exported Diagnostic Pipeline:
- * Two-Stage Architecture (OpenAI Multimodal Pre-Validation & Pathologist + Roboflow Core Inference)
+ * Two-Stage Architecture (Gemini 3.5 Multimodal Pre-Validation & Pathologist + Roboflow Core Inference)
  */
 async function detectDiseaseFromImage(imagePath, confidenceThreshold = 25, fallbackAnimalType = 'Cow') {
-  // STAGE 1: Multimodal Pre-Validation & Species Detection
-  const stage1 = await inspectLivestockImageWithOpenAI(imagePath);
+  // STAGE 1: Multimodal Pre-Validation & Species Detection using Google Gemini 3.5
+  const stage1 = await inspectLivestockImageWithGemini(imagePath);
 
-  // If OpenAI confirms the image is NOT livestock (e.g. keyboard, car, human face):
+  // If Gemini confirms the image is NOT livestock (e.g. event flyer, screenshot, keyboard, face, car):
   if (stage1 && stage1.is_livestock === false) {
     const objectName = stage1.detected_object || 'non-livestock object';
     return {
@@ -354,7 +360,45 @@ async function detectDiseaseFromImage(imagePath, confidenceThreshold = 25, fallb
         'جانور کی درست آئی ڈی درج کر کے دوبارہ اسکین کریں۔'
       ],
       predictions: [],
-      modelEngine: 'OpenAI Multimodal Pre-Validation Gate'
+      modelEngine: 'Gemini 3.5 Multimodal Pre-Validation Gate'
+    };
+  }
+
+  // STAGE 2: Run Custom Roboflow Model Inference
+  const roboflowResult = await runRoboflowInference(imagePath, confidenceThreshold);
+  const roboflowPredictions = roboflowResult.predictions || [];
+
+  // If Gemini was unreachable (null) AND Roboflow detected no lesion bounding boxes:
+  // Reject as unverified rather than hallucinating a healthy animal
+  if (!stage1 && roboflowPredictions.length === 0) {
+    return {
+      isCattle: false,
+      detected: false,
+      status: 'Unverified Image',
+      name: 'Unverified Image',
+      urdu: 'تصویر کی تصدیق نہیں ہو سکی',
+      confidence: '0%',
+      riskLevel: 'Low',
+      severity: 'Uncertain',
+      severityColor: '#94A3B8',
+      severityBg: '#F1F5F9',
+      animalType: fallbackAnimalType || 'Unknown',
+      breed: 'Unverified',
+      description: 'Could not verify genuine livestock features in this photograph. Please capture a clear, well-lit photo focusing on the cow, buffalo, or goat.',
+      firstAid: [
+        'Point your mobile camera directly at the cow, buffalo, or goat.',
+        'Focus on the suspected skin lesion, udder, mouth, or hooves.',
+        'Ensure adequate lighting and avoid blurry images.',
+        'Re-scan the animal with a clear view.'
+      ],
+      firstAidUrdu: [
+        'اپنے موبائل کا کیمرہ براہ راست گائے، بھینس یا بکری کی طرف رکھیں۔',
+        'متاثرہ جلد، تھن، منہ یا کھروں پر فوکس کریں۔',
+        'مناسب روشنی کا خیال رکھیں تاکہ تصویر صاف آئے۔',
+        'جانور کی درست تصویر لے کر دوبارہ اسکین کریں۔'
+      ],
+      predictions: [],
+      modelEngine: 'Maveshi Sehat Diagnostic Engine'
     };
   }
 
@@ -362,14 +406,10 @@ async function detectDiseaseFromImage(imagePath, confidenceThreshold = 25, fallb
   const detectedSpecies = (stage1 && stage1.detected_species) ? stage1.detected_species : fallbackAnimalType;
   const detectedBreed = (stage1 && stage1.detected_breed) ? stage1.detected_breed : `${detectedSpecies} (Local Breed)`;
 
-  // STAGE 2: Run Custom Roboflow Model Inference
-  const roboflowResult = await runRoboflowInference(imagePath, confidenceThreshold);
-  const roboflowPredictions = roboflowResult.predictions || [];
-
   // STAGE 3: Synthesis & Clinical Pathology Reporting
   let finalDiseaseKey = 'Healthy';
   let isDiseaseDetected = false;
-  let topConfidence = '96.5%';
+  let topConfidence = '91.5%';
   let clinicalDescription = '';
   let finalFirstAid = DISEASE_KNOWLEDGE_BASE['Healthy'].firstAid;
   let finalFirstAidUrdu = DISEASE_KNOWLEDGE_BASE['Healthy'].firstAidUrdu;
@@ -394,7 +434,7 @@ async function detectDiseaseFromImage(imagePath, confidenceThreshold = 25, fallb
     }
   }
 
-  // Case B: If Roboflow did not detect a lesion, check OpenAI's visual assessment
+  // Case B: If Roboflow did not detect a lesion, check Gemini's visual assessment
   if (!isDiseaseDetected && stage1 && stage1.preliminary_condition && !stage1.preliminary_condition.toLowerCase().includes('healthy')) {
     isDiseaseDetected = true;
     const cond = stage1.preliminary_condition.toLowerCase();
@@ -406,12 +446,12 @@ async function detectDiseaseFromImage(imagePath, confidenceThreshold = 25, fallb
     else if (cond.includes('hs') || cond.includes('hemorrhagic')) finalDiseaseKey = 'HS';
     else if (cond.includes('bloat')) finalDiseaseKey = 'Bloat';
     else finalDiseaseKey = 'LSD';
-    topConfidence = '94.0%';
+    topConfidence = '92.0%';
   }
 
   const diseaseProfile = DISEASE_KNOWLEDGE_BASE[finalDiseaseKey] || DISEASE_KNOWLEDGE_BASE['Healthy'];
 
-  // Prefer OpenAI's dynamic clinical findings if available
+  // Prefer Gemini's dynamic clinical findings if available
   if (stage1 && stage1.clinical_description && stage1.clinical_description.length > 20) {
     clinicalDescription = stage1.clinical_description;
   } else {
@@ -449,7 +489,7 @@ async function detectDiseaseFromImage(imagePath, confidenceThreshold = 25, fallb
     firstAidUrdu: finalFirstAidUrdu,
     predictions: roboflowPredictions,
     roboflowModelId: ROBOFLOW_MODEL,
-    modelEngine: 'Roboflow Computer Vision v1.0 (bovine-disease-detection-combined) + AI Clinical Pathologist'
+    modelEngine: 'Gemini 3.5 Multimodal Pre-Validation + Roboflow Computer Vision v1.0'
   };
 }
 

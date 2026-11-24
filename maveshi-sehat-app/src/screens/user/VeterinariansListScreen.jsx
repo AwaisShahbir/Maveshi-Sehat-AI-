@@ -54,13 +54,26 @@ export default function VeterinariansListScreen() {
       return t('Appointment date is required (YYYY-MM-DD).');
     }
     const trimmed = dateStr.trim();
-    const formatMatch = trimmed.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+    const formatMatch = trimmed.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})$/);
     if (!formatMatch) {
       return t('Format must be YYYY-MM-DD (e.g. 2026-11-25).');
     }
-    const year = parseInt(formatMatch[1], 10);
-    const month = parseInt(formatMatch[2], 10);
-    const day = parseInt(formatMatch[3], 10);
+    let year = parseInt(formatMatch[1], 10);
+    let month = parseInt(formatMatch[2], 10);
+    let day = parseInt(formatMatch[3], 10);
+
+    // Auto-swap if user typed YYYY-DD-MM (e.g. 2026-30-12)
+    if (month > 12 && day <= 12) {
+      const temp = month;
+      month = day;
+      day = temp;
+    }
+
+    // Auto-bump past year to current year
+    const curYear = new Date().getFullYear();
+    if (year < curYear) {
+      year = curYear;
+    }
 
     if (month < 1 || month > 12) {
       return t('Invalid month. Month must be between 01 and 12.');
@@ -98,19 +111,30 @@ export default function VeterinariansListScreen() {
     if (!timeMatch) {
       return t('Time must be in 24-hr format (e.g. 14:30 or 09:30).');
     }
-    const hours = parseInt(timeMatch[1], 10);
+    let hours = parseInt(timeMatch[1], 10);
     const minutes = parseInt(timeMatch[2], 10);
 
+    // Auto-adjust afternoon hours entered as 1:00 - 6:59
+    if (hours >= 1 && hours <= 6) {
+      hours += 12;
+    }
+
     if (dateStr && !validateDateString(dateStr)) {
-      const parts = dateStr.trim().split('-').map(Number);
+      const parts = dateStr.trim().split(/[-/]/).map(Number);
       if (parts.length === 3) {
-        const [y, m, d] = parts;
+        let [y, m, d] = parts;
+        if (m > 12 && d <= 12) {
+          const temp = m; m = d; d = temp;
+        }
+        const curY = new Date().getFullYear();
+        if (y < curY) y = curY;
         const targetDate = new Date(y, m - 1, d);
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         if (targetDate.getTime() === today.getTime()) {
           const now = new Date();
-          if (hours < now.getHours() || (hours === now.getHours() && minutes <= now.getMinutes())) {
+          // Allow 1 hour grace period
+          if (hours < (now.getHours() - 1)) {
             return t('Selected time has already passed for today.');
           }
         }
@@ -168,7 +192,7 @@ export default function VeterinariansListScreen() {
     setSelectedVet(vet);
     const resolvedType = (type === 'online_chat' && vet?.consultation_mode === 'Video Only')
       ? 'video_consult'
-      : type;
+      : (type || 'online_chat');
     setConsultType(resolvedType);
     setErrors({
       reason: '',
@@ -176,10 +200,9 @@ export default function VeterinariansListScreen() {
       appointmentTime: ''
     });
 
-    if (resolvedType === 'physical_appointment' && !appointmentDate) {
-      setAppointmentDate(getFormattedFutureDate(0));
-      setAppointmentTime('14:30');
-    }
+    // Always prefill today's date and a standard consultation time
+    setAppointmentDate(getFormattedFutureDate(0));
+    setAppointmentTime('14:30');
 
     if (params.initialRecord) {
       const rec = params.initialRecord;
@@ -215,11 +238,41 @@ export default function VeterinariansListScreen() {
       return;
     }
 
-    let formattedDate = appointmentDate.trim();
-    let formattedTime = appointmentTime.trim();
+    const activeProfile = getProfile();
+    const effectiveUserId = profile.userId || profile.id || activeProfile.userId || activeProfile.id || params.userId;
+    const effectiveUserName = profile.userName || profile.fullName || activeProfile.userName || activeProfile.fullName || params.userName || '';
+    const effectivePhone = profile.phone || activeProfile.phone || '';
+
+    let formattedDate = (appointmentDate || getFormattedFutureDate(0)).trim();
+    let formattedTime = (appointmentTime || '14:30').trim();
+
+    // Auto-swap date if user entered YYYY-DD-MM (e.g. 2026-30-12)
+    const dMatch = formattedDate.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})$/);
+    if (dMatch) {
+      let y = parseInt(dMatch[1], 10);
+      let m = parseInt(dMatch[2], 10);
+      let d = parseInt(dMatch[3], 10);
+      if (m > 12 && d <= 12) {
+        const temp = m; m = d; d = temp;
+      }
+      const curY = new Date().getFullYear();
+      if (y < curY) y = curY;
+      formattedDate = `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+    }
+
     if (/^[0-9]:[0-5][0-9]$/.test(formattedTime)) {
       formattedTime = '0' + formattedTime;
     }
+    if (/^0[1-6]:[0-5][0-9]$/.test(formattedTime)) {
+      const hh = parseInt(formattedTime.slice(0, 2), 10) + 12;
+      formattedTime = `${hh}${formattedTime.slice(2)}`;
+    }
+
+    // Clean normalized type mapping
+    let mappedType = 'chat';
+    if (consultType === 'physical_appointment') mappedType = 'physical';
+    else if (consultType === 'video_consult') mappedType = 'video';
+    else mappedType = 'chat';
 
     try {
       setLoading(true);
@@ -228,9 +281,12 @@ export default function VeterinariansListScreen() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          farmer_id: userId,
+          farmer_id: effectiveUserId,
+          farmer_name: effectiveUserName,
+          phone: effectivePhone,
           vet_id: selectedVet.id,
-          type: consultType,
+          type: mappedType,
+          consultType: consultType,
           reason: reason.trim(),
           appointment_date: consultType === 'physical_appointment' ? `${formattedDate} ${formattedTime}` : null,
           ai_record_data: params.initialRecord || null

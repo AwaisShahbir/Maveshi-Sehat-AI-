@@ -200,8 +200,8 @@ module.exports = (pool) => {
         }
       }
 
-      // 4. Log to database
-      if (pool) {
+      // 4. Log to database (Only for authenticated/scoped users; never store into shared generic buckets)
+      if (pool && userId && userId !== 'farmer' && userId !== 'guest' && userId !== 'anonymous') {
         try {
           await pool.query(
             'INSERT INTO chat_logs (user_id, role, message, provider) VALUES ($1, $2, $3, $4)',
@@ -297,8 +297,8 @@ module.exports = (pool) => {
         console.warn('Voice reply TTS synthesis warning:', ttsErr.message);
       }
 
-      // 5. Log to database
-      if (pool) {
+      // 5. Log to database (Only for authenticated/scoped users; never store into shared generic buckets)
+      if (pool && userId && userId !== 'farmer' && userId !== 'guest' && userId !== 'anonymous') {
         try {
           await pool.query(
             'INSERT INTO chat_logs (user_id, role, message, audio_url) VALUES ($1, $2, $3, $4)',
@@ -372,7 +372,13 @@ module.exports = (pool) => {
    */
   router.get('/history', async (req, res) => {
     try {
-      const userId = req.query.userId || req.query.user_id || 'guest';
+      const rawUserId = (req.query.userId || req.query.user_id || '').trim();
+
+      // Industry Standard Privacy Guard: Never return pooled global history for generic/anonymous fallbacks
+      if (!rawUserId || rawUserId === 'farmer' || rawUserId === 'guest' || rawUserId === 'anonymous') {
+        return res.json({ success: true, messages: [] });
+      }
+
       if (!pool) {
         return res.json({ success: true, messages: [] });
       }
@@ -384,7 +390,7 @@ module.exports = (pool) => {
          WHERE user_id = $1
          ORDER BY created_at ASC
          LIMIT 60`,
-        [userId]
+        [rawUserId]
       );
 
       const formatted = result.rows.map(row => ({

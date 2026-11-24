@@ -99,6 +99,19 @@ export default function ChatbotScreen() {
   // Pulse animation for recording
   const pulseAnim = useRef(new Animated.Value(1)).current;
 
+  // Scoped User ID Helper to prevent cross-user data leakage
+  const getScopedUserId = (prof) => {
+    if (!prof) return null;
+    if (prof.userId) return `uid_${prof.userId}`;
+    if (prof.id) return `uid_${prof.id}`;
+    if (prof.phone) return `phone_${prof.phone.replace(/\D/g, '')}`;
+    if (prof.phoneNumber) return `phone_${prof.phoneNumber.replace(/\D/g, '')}`;
+    if (prof.userName && prof.userName !== 'farmer' && prof.userName !== 'guest') {
+      return `user_${prof.userName.trim().toLowerCase().replace(/\s+/g, '_')}`;
+    }
+    return null;
+  };
+
   // Check admin service status on mount
   useEffect(() => {
     const checkServiceStatus = async () => {
@@ -213,11 +226,12 @@ export default function ChatbotScreen() {
 
     setMessages([welcomeMsg]);
 
-    // Load persisted previous chat history for this user
+    // Load persisted previous chat history for strictly scoped user (never load shared 'farmer' pool)
     const loadChatHistory = async () => {
       try {
-        const userId = currentProfile.userName || currentProfile.phone || 'farmer';
-        const res = await tryFetch(`/api/chat/history?userId=${encodeURIComponent(userId)}`);
+        const scopedId = getScopedUserId(currentProfile);
+        if (!scopedId) return; // Anonymous/guest: stay in clean session mode
+        const res = await tryFetch(`/api/chat/history?userId=${encodeURIComponent(scopedId)}`);
         if (res.ok) {
           const data = await res.json();
           if (data.success && Array.isArray(data.messages) && data.messages.length > 0) {
@@ -384,7 +398,7 @@ export default function ChatbotScreen() {
         body: JSON.stringify({
           message: textToSend,
           history: historyPayload,
-          userId: profile.userName || 'farmer',
+          userId: getScopedUserId(profile),
           role: isVet ? 'vet' : 'farmer',
           userName: profile.fullName || profile.userName || '',
           isUrdu,
@@ -505,7 +519,10 @@ export default function ChatbotScreen() {
             type: 'audio/m4a',
             name: `voice_${Date.now()}.m4a`,
           });
-          formData.append('userId', profile.userName || 'farmer');
+          const scopedUserId = getScopedUserId(profile);
+          if (scopedUserId) {
+            formData.append('userId', scopedUserId);
+          }
           formData.append('role', isVet ? 'vet' : 'farmer');
           formData.append('userName', profile.fullName || profile.userName || '');
           formData.append('isUrdu', isUrdu ? 'true' : 'false');
@@ -609,10 +626,12 @@ export default function ChatbotScreen() {
             ]);
 
             try {
-              const userId = profile.userName || profile.phone || 'farmer';
-              await tryFetch(`/api/chat/history?userId=${encodeURIComponent(userId)}`, {
-                method: 'DELETE',
-              });
+              const scopedUserId = getScopedUserId(profile);
+              if (scopedUserId) {
+                await tryFetch(`/api/chat/history?userId=${encodeURIComponent(scopedUserId)}`, {
+                  method: 'DELETE',
+                });
+              }
             } catch (clearErr) {
               console.warn('Failed to delete history on server:', clearErr);
             }
@@ -911,11 +930,19 @@ export default function ChatbotScreen() {
 
         <View style={styles.headerActions}>
           <TouchableOpacity
+            style={[styles.headerActionBtn, { marginRight: 8, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, width: 'auto' }]}
+            onPress={handleClearChat}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <Feather name="plus-circle" size={15} color="#FFF" style={{ marginRight: 4 }} />
+            <Text style={{ color: '#FFF', fontSize: 12, fontWeight: '700' }}>{t('New Chat')}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
             style={styles.headerActionBtn}
             onPress={handleClearChat}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
-            <Feather name="trash-2" size={18} color="#FFF" />
+            <Feather name="trash-2" size={17} color="#FFF" />
           </TouchableOpacity>
         </View>
       </View>

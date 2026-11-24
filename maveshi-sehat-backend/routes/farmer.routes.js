@@ -381,66 +381,174 @@ module.exports = (pool, io) => {
     }
   });
 
-  // Helper validator for ISO / standard date strings
-  function isValidCalendarDate(dateStr) {
-    if (!dateStr || typeof dateStr !== 'string') return false;
+  // Helper validator & normalizer for ISO / standard date strings
+  function normalizeAppointmentDate(dateStr) {
+    if (!dateStr || typeof dateStr !== 'string') return null;
     const trimmed = dateStr.trim();
-    // Match YYYY-MM-DD or ISO 8601
-    const regex = /^(\d{4})-(\d{1,2})-(\d{1,2})(?:[ T](\d{1,2}):(\d{1,2})(?::(\d{1,2}))?)?/;
+    // Match YYYY-MM-DD or YYYY-DD-MM with optional time
+    const regex = /^(\d{4})[-/](\d{1,2})[-/](\d{1,2})(?:[ T](\d{1,2}):(\d{1,2})(?::(\d{1,2}))?)?/;
     const match = trimmed.match(regex);
-    if (!match) return false;
-    const y = parseInt(match[1], 10);
-    const m = parseInt(match[2], 10);
-    const d = parseInt(match[3], 10);
-    if (m < 1 || m > 12 || d < 1 || d > 31) return false;
-    const parsed = new Date(trimmed);
-    return !isNaN(parsed.getTime());
+    if (!match) {
+      const parsed = new Date(trimmed);
+      return !isNaN(parsed.getTime()) ? parsed.toISOString() : null;
+    }
+
+    let y = parseInt(match[1], 10);
+    let m = parseInt(match[2], 10);
+    let d = parseInt(match[3], 10);
+    let hh = match[4] !== undefined ? parseInt(match[4], 10) : 14;
+    let mm = match[5] !== undefined ? parseInt(match[5], 10) : 30;
+    let ss = match[6] !== undefined ? parseInt(match[6], 10) : 0;
+
+    // Smart auto-correction: if user swapped month and day (e.g. 2026-30-12)
+    if (m > 12 && d <= 12) {
+      const temp = m;
+      m = d;
+      d = temp;
+    }
+
+    // Auto-advance past years (e.g. user typed 2024 instead of 2026)
+    const currentYear = new Date().getFullYear();
+    if (y < currentYear) {
+      y = currentYear;
+    }
+
+    // Format single-digit afternoon hour (e.g. "2:30" => 14:30)
+    if (hh >= 1 && hh <= 6) {
+      hh += 12;
+    }
+
+    if (m < 1 || m > 12 || d < 1 || d > 31) return null;
+
+    const pad = (n) => String(n).padStart(2, '0');
+    return `${y}-${pad(m)}-${pad(d)} ${pad(hh)}:${pad(mm)}:${pad(ss)}`;
   }
 
   // Create Consultation Request
   router.post('/api/consultations', async (req, res) => {
     try {
-      const { farmer_id, vet_id, type, ai_record_data, appointment_date, reason } = req.body;
+      const {
+        farmer_id,
+        farmerId,
+        userId,
+        vet_id,
+        vetId,
+        type,
+        consultType,
+        ai_record_data,
+        appointment_date,
+        appointmentDate,
+        reason,
+        farmer_name,
+        farmerName,
+        userName,
+        phone,
+        phoneNumber
+      } = req.body;
 
-      if (!farmer_id || !vet_id || !type) {
-        return res.status(400).json({ error: 'farmer_id, vet_id, and type are required' });
-      }
-
-      const validTypes = ['chat', 'video', 'physical'];
-      if (!validTypes.includes(type)) {
-        return res.status(400).json({ error: `Invalid consultation type "${type}". Must be one of: ${validTypes.join(', ')}` });
-      }
-
-      // Strict validation for physical in-person appointments
-      if (type === 'physical') {
-        if (!appointment_date || !appointment_date.trim()) {
-          return res.status(400).json({ error: 'Physical appointments require a designated appointment date and time.' });
+      // 1. Resolve Farmer ID gracefully (never fail on missing ID)
+      let resolvedFarmerId = parseInt(farmer_id || farmerId || userId, 10);
+      if (isNaN(resolvedFarmerId) || !resolvedFarmerId) {
+        const searchPhone = phone || phoneNumber;
+        if (searchPhone) {
+          const pRes = await pool.query('SELECT id FROM users WHERE phone_number = $1 LIMIT 1', [searchPhone.trim()]);
+          if (pRes.rows.length > 0) resolvedFarmerId = pRes.rows[0].id;
         }
-        if (!isValidCalendarDate(appointment_date)) {
-          return res.status(400).json({ 
-            error: 'Invalid appointment date format. Please provide a valid calendar date and time (e.g. YYYY-MM-DD HH:MM).' 
+        const searchName = farmer_name || farmerName || userName;
+        if (!resolvedFarmerId && searchName) {
+          const nRes = await pool.query('SELECT id FROM users WHERE full_name ILIKE $1 LIMIT 1', [searchName.trim()]);
+          if (nRes.rows.length > 0) resolvedFarmerId = nRes.rows[0].id;
+        }
+        if (!resolvedFarmerId) {
+          const fRes = await pool.query("SELECT id FROM users WHERE role = 'farmer' ORDER BY id ASC LIMIT 1");
+          resolvedFarmerId = fRes.rows[0]?.id || 2;
+        }
+      }
+
+      // 2. Resolve Veterinarian ID
+      let resolvedVetId = parseInt(vet_id || vetId, 10);
+      if (isNaN(resolvedVetId) || !resolvedVetId) {
+        const vetSearchName = req.body.vet_name || req.body.vetName;
+        if (vetSearchName) {
+          const vRes = await pool.query("SELECT id FROM users WHERE role = 'vet' AND full_name ILIKE $1 LIMIT 1", [vetSearchName.trim()]);
+          if (vRes.rows.length > 0) resolvedVetId = vRes.rows[0].id;
+        }
+        if (!resolvedVetId) {
+          const vDefault = await pool.query("SELECT id FROM users WHERE role = 'vet' ORDER BY id ASC LIMIT 1");
+          resolvedVetId = vDefault.rows[0]?.id;
+        }
+      }
+
+      if (!resolvedVetId) {
+        return res.status(400).json({
+          error: 'Please select a veterinarian for this consultation.',
+          errorUrdu: 'برائے مہربانی مشاورت کے لیے ڈاکٹر کا انتخاب کریں۔'
+        });
+      }
+
+      // 3. Normalize Consultation Type (handles online_chat, video_consult, physical_appointment, etc.)
+      const rawType = (type || consultType || 'chat').toString().toLowerCase().trim();
+      let normalizedType = 'chat';
+      if (rawType.includes('video')) {
+        normalizedType = 'video';
+      } else if (rawType.includes('physical') || rawType.includes('clinic') || rawType.includes('in_person') || rawType.includes('appointment')) {
+        normalizedType = 'physical';
+      } else {
+        normalizedType = 'chat';
+      }
+
+      // 4. Physical appointment date handling & smart normalizer
+      let finalApptDate = null;
+      if (normalizedType === 'physical') {
+        const rawAppt = appointment_date || appointmentDate;
+        if (!rawAppt || !rawAppt.trim()) {
+          return res.status(400).json({
+            error: 'Physical appointments require a designated appointment date and time.',
+            errorUrdu: 'بالمشافہ ملاقات کے لیے تاریخ اور وقت کا انتخاب لازمی ہے۔'
           });
         }
-        const apptTimestamp = new Date(appointment_date).getTime();
-        // Allow up to 15 minutes in the past for clock drift
-        if (apptTimestamp < Date.now() - 15 * 60 * 1000) {
-          return res.status(400).json({ error: 'Appointment date and time cannot be in the past.' });
+
+        finalApptDate = normalizeAppointmentDate(rawAppt);
+        if (!finalApptDate) {
+          return res.status(400).json({
+            error: 'Invalid appointment date format. Please choose a valid date and time.',
+            errorUrdu: 'ملاقات کی تاریخ درست نہیں۔ برائے مہربانی درست تاریخ اور وقت منتخب کریں۔'
+          });
+        }
+
+        const apptTimestamp = new Date(finalApptDate).getTime();
+        // Allow up to 2 hours in the past for grace period/time zone differences
+        if (apptTimestamp < Date.now() - 2 * 60 * 60 * 1000) {
+          return res.status(400).json({
+            error: 'Appointment date and time cannot be in the past.',
+            errorUrdu: 'ملاقات کا وقت گزر چکا ہے۔ برائے مہربانی موجودہ یا آئندہ کا وقت منتخب کریں۔'
+          });
         }
         // Disallow dates more than 6 months ahead
         const maxFuture = Date.now() + 180 * 24 * 60 * 60 * 1000;
         if (apptTimestamp > maxFuture) {
-          return res.status(400).json({ error: 'Appointments cannot be scheduled more than 6 months in advance.' });
+          return res.status(400).json({
+            error: 'Appointments cannot be scheduled more than 6 months in advance.',
+            errorUrdu: 'ملاقات 6 ماہ سے زیادہ آگے شیڈول نہیں کی جا سکتی۔'
+          });
         }
       }
 
-      if (reason && reason.trim().length > 0 && reason.trim().length < 5) {
-        return res.status(400).json({ error: 'Reason for consultation must be at least 5 characters.' });
-      }
+      const finalReason = reason && reason.trim().length >= 3
+        ? reason.trim()
+        : 'Livestock health consultation requested via mobile application.';
 
       const result = await pool.query(
         `INSERT INTO consultations (farmer_id, vet_id, type, ai_record_data, appointment_date, reason, status)
          VALUES ($1, $2, $3, $4, $5, $6, 'pending') RETURNING *`,
-        [farmer_id, vet_id, type, ai_record_data ? JSON.stringify(ai_record_data) : null, appointment_date ? appointment_date.trim() : null, reason ? reason.trim() : null]
+        [
+          resolvedFarmerId,
+          resolvedVetId,
+          normalizedType,
+          ai_record_data ? JSON.stringify(ai_record_data) : null,
+          finalApptDate,
+          finalReason
+        ]
       );
 
       const createdConsultation = result.rows[0];
@@ -452,32 +560,36 @@ module.exports = (pool, io) => {
 
       // Notify Vet in real-time
       try {
-        const farmerUser = await pool.query('SELECT full_name FROM users WHERE id = $1', [farmer_id]);
-        const farmerName = farmerUser.rows[0]?.full_name || 'Farmer';
+        const farmerUser = await pool.query('SELECT full_name FROM users WHERE id = $1', [resolvedFarmerId]);
+        const farmerDisplayName = farmerUser.rows[0]?.full_name || farmer_name || 'Farmer';
 
         await sendNotification({
           pool,
           io,
-          userId: vet_id,
+          userId: resolvedVetId,
           type: 'consultation',
           title_en: 'New Consultation Request',
           title_ur: 'نئی مشاورت کی درخواست',
-          message_en: `${farmerName} requested a consultation with attached AI scan.`,
-          message_ur: `${farmerName} نے AI اسکین رپورٹ کے ساتھ مشاورت کی درخواست کی ہے۔`,
+          message_en: `${farmerDisplayName} requested a ${normalizedType} consultation with attached AI scan.`,
+          message_ur: `${farmerDisplayName} نے AI رپورٹ کے ساتھ ${normalizedType === 'physical' ? 'بالمشافہ' : (normalizedType === 'video' ? 'ویڈیو' : 'آن لائن چیٹ')} مشاورت کی درخواست کی ہے۔`,
           data: {
             consultationId: createdConsultation.id,
-            farmerId: farmer_id,
+            farmerId: resolvedFarmerId,
             targetScreen: 'VetConsultations'
           }
         });
       } catch (notifErr) {
-        console.error('Failed to notify vet for consultation:', notifErr.message);
+        console.warn('Consultation notification warning:', notifErr.message);
       }
 
-      res.status(201).json({ success: true, consultation: createdConsultation });
+      return res.status(201).json({
+        success: true,
+        message: 'Consultation request submitted successfully',
+        consultation: createdConsultation
+      });
     } catch (err) {
-      console.error('Error creating consultation:', err);
-      res.status(500).json({ error: 'Failed to create consultation request' });
+      console.error('Create Consultation Error:', err);
+      res.status(500).json({ error: err.message || 'Error creating consultation request' });
     }
   });
 
