@@ -335,72 +335,61 @@ export default function FarmerConsultationsScreen() {
             </Text>
           </View>
 
-          <View style={[styles.statusBadge, { backgroundColor: statusBadgeBg, paddingVertical: 4, paddingHorizontal: 9 }]}>
-            <Text style={[styles.statusText, { color: statusBadgeColor, fontWeight: '800', fontSize: 11 }]}>
-              {statusTextDisplay}
-            </Text>
-          </View>
-        </View>
-
-        {/* Financial & Payment Row */}
-        <View style={{
-          backgroundColor: isDark ? 'rgba(16, 185, 129, 0.08)' : '#ECFDF5',
-          borderRadius: 10,
-          padding: 10,
-          marginBottom: 8,
-          borderWidth: 1,
-          borderColor: isDark ? 'rgba(16, 185, 129, 0.2)' : '#A7F3D0',
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          flexWrap: 'wrap',
-          gap: 6
-        }}>
-          <View>
-            <Text style={{ fontSize: 13, fontWeight: '800', color: '#047857' }}>
-              Fee: Rs. {Number(item.fee || 300).toFixed(0)} <Text style={{ fontSize: 11, fontWeight: '600', color: colors.textSecondary }}>(Vet: Rs. 270 · Admin 10%: Rs. 30)</Text>
-            </Text>
-            {item.transaction_id ? (
-              <Text style={{ fontSize: 11, color: colors.textSecondary, marginTop: 2 }}>
-                TID: <Text style={{ fontWeight: '700', color: colors.textPrimary }}>{item.transaction_id}</Text>
-                {item.sender_phone ? ` · Sender: ${item.sender_phone}` : ''}
-              </Text>
-            ) : null}
-          </View>
-
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
             {isPaid ? (
-              <View style={{ backgroundColor: '#DCFCE7', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 }}>
-                <Text style={{ fontSize: 11, fontWeight: '800', color: '#166534' }}>✓ PAID</Text>
+              <View style={{ backgroundColor: isDark ? 'rgba(16,185,129,0.15)' : '#DCFCE7', paddingHorizontal: 7, paddingVertical: 2, borderRadius: 6 }}>
+                <Text style={{ fontSize: 10, fontWeight: '800', color: '#047857' }}>✓ PAID</Text>
               </View>
             ) : isPaymentUnderReview ? (
-              <View style={{ backgroundColor: '#FEF3C7', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 }}>
-                <Text style={{ fontSize: 11, fontWeight: '800', color: '#B45309' }}>REVIEW PROOF</Text>
+              <View style={{ backgroundColor: isDark ? 'rgba(245,158,11,0.15)' : '#FEF3C7', paddingHorizontal: 7, paddingVertical: 2, borderRadius: 6 }}>
+                <Text style={{ fontSize: 10, fontWeight: '800', color: '#B45309' }}>REVIEW PROOF</Text>
               </View>
             ) : (
-              <View style={{ backgroundColor: '#FEE2E2', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 }}>
-                <Text style={{ fontSize: 11, fontWeight: '800', color: '#DC2626' }}>UNPAID</Text>
+              <View style={{ backgroundColor: isDark ? 'rgba(239,68,68,0.15)' : '#FEE2E2', paddingHorizontal: 7, paddingVertical: 2, borderRadius: 6 }}>
+                <Text style={{ fontSize: 10, fontWeight: '800', color: '#DC2626' }}>UNPAID</Text>
               </View>
             )}
 
+            <View style={[styles.statusBadge, { backgroundColor: statusBadgeBg, paddingVertical: 3, paddingHorizontal: 8 }]}>
+              <Text style={[styles.statusText, { color: statusBadgeColor, fontWeight: '800', fontSize: 10 }]}>
+                {statusTextDisplay}
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Payment reference info (if available) */}
+        {(item.transaction_id || item.payment_proof_url) ? (
+          <View style={{
+            backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : '#F8FAFC',
+            borderRadius: 8,
+            paddingHorizontal: 10,
+            paddingVertical: 5,
+            marginBottom: 8,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            borderWidth: 1,
+            borderColor: colors.border
+          }}>
+            {item.transaction_id ? (
+              <Text style={{ fontSize: 11, color: colors.textSecondary }}>
+                TID: <Text style={{ fontWeight: '700', color: colors.textPrimary }}>{item.transaction_id}</Text>
+                {item.sender_phone ? ` · ${item.sender_phone}` : ''}
+              </Text>
+            ) : <View />}
+
             {item.payment_proof_url ? (
               <TouchableOpacity
-                style={{
-                  backgroundColor: '#0284C7',
-                  paddingHorizontal: 8,
-                  paddingVertical: 4,
-                  borderRadius: 6,
-                  flexDirection: 'row',
-                  alignItems: 'center'
-                }}
+                style={{ flexDirection: 'row', alignItems: 'center' }}
                 onPress={() => setSelectedReceiptUrl(item.payment_proof_url)}
               >
-                <Feather name="image" size={12} color="#FFF" style={{ marginRight: 3 }} />
-                <Text style={{ fontSize: 11, fontWeight: '700', color: '#FFF' }}>{t('View Receipt')}</Text>
+                <Feather name="image" size={12} color="#0284C7" style={{ marginRight: 3 }} />
+                <Text style={{ fontSize: 11, fontWeight: '700', color: '#0284C7' }}>{t('View Receipt')}</Text>
               </TouchableOpacity>
             ) : null}
           </View>
-        </View>
+        ) : null}
 
         {/* AI Pathology Scan Card */}
         {aiData && (
@@ -677,9 +666,43 @@ export default function FarmerConsultationsScreen() {
           contentContainerStyle={{ padding: 16, paddingBottom: 40 }}
           showsVerticalScrollIndicator={false}
           ListHeaderComponent={
-            <Text style={{ fontSize: 13, fontWeight: '800', color: colors.textSecondary, marginBottom: 12, textTransform: 'uppercase', letterSpacing: 0.5 }}>
-              {t('Consultation Cases')} ({consultations.length})
-            </Text>
+            <View style={{ marginBottom: 14 }}>
+              {/* Single Professional Fee & Split Banner at the Top */}
+              <View style={{
+                backgroundColor: isDark ? 'rgba(16, 185, 129, 0.08)' : '#ECFDF5',
+                borderRadius: 14,
+                padding: 14,
+                marginBottom: 14,
+                borderWidth: 1,
+                borderColor: isDark ? 'rgba(16, 185, 129, 0.2)' : '#A7F3D0'
+              }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                    <MaterialCommunityIcons name="cash-multiple" size={20} color="#059669" />
+                    <Text style={{ fontSize: 14, fontWeight: '800', color: '#047857' }}>
+                      {t('Consultation Fee: Rs. 300 / Case')}
+                    </Text>
+                  </View>
+                  <View style={{ backgroundColor: '#DCFCE7', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6 }}>
+                    <Text style={{ fontSize: 11, fontWeight: '800', color: '#166534' }}>
+                      {t('Fixed Rate')}
+                    </Text>
+                  </View>
+                </View>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 8, paddingTop: 8, borderTopWidth: 1, borderTopColor: isDark ? 'rgba(255,255,255,0.08)' : '#D1FAE5' }}>
+                  <Text style={{ fontSize: 12, color: colors.textSecondary }}>
+                    {t('Doctor Net (90%)')}: <Text style={{ fontWeight: '800', color: colors.textPrimary }}>Rs. 270</Text>
+                  </Text>
+                  <Text style={{ fontSize: 12, color: colors.textSecondary }}>
+                    {t('Admin Commission (10%)')}: <Text style={{ fontWeight: '800', color: '#059669' }}>Rs. 30</Text>
+                  </Text>
+                </View>
+              </View>
+
+              <Text style={{ fontSize: 13, fontWeight: '800', color: colors.textSecondary, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                {t('Consultation Cases')} ({consultations.length})
+              </Text>
+            </View>
           }
         />
       )}

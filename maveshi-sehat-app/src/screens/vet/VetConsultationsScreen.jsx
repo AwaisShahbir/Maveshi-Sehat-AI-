@@ -302,6 +302,33 @@ export default function VetConsultationsScreen() {
         </View>
       </View>
 
+      {/* Single Clean Top Fee Summary Banner */}
+      <View style={{
+        marginHorizontal: 16,
+        marginBottom: 10,
+        backgroundColor: isDark ? 'rgba(16, 185, 129, 0.08)' : '#ECFDF5',
+        borderRadius: 12,
+        paddingHorizontal: 14,
+        paddingVertical: 10,
+        borderWidth: 1,
+        borderColor: isDark ? 'rgba(16, 185, 129, 0.2)' : '#A7F3D0',
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between'
+      }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+          <MaterialCommunityIcons name="cash-multiple" size={18} color="#059669" />
+          <Text style={{ fontSize: 12, fontWeight: '700', color: '#047857' }}>
+            {t('Consultation Fee')}: Rs. 300 <Text style={{ fontSize: 11, fontWeight: '600', color: colors.textSecondary }}>(Vet: Rs. 270 · Admin 10%: Rs. 30)</Text>
+          </Text>
+        </View>
+        <View style={{ backgroundColor: '#DCFCE7', paddingHorizontal: 7, paddingVertical: 2, borderRadius: 6 }}>
+          <Text style={{ fontSize: 10, fontWeight: '800', color: '#166534' }}>
+            {t('Fixed Rate')}
+          </Text>
+        </View>
+      </View>
+
       {loading && !refreshing ? (
         <View style={{ flex: 1, backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center' }}>
           <ActivityIndicator size="large" color={colors.primary} />

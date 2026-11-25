@@ -343,47 +343,30 @@ export default function DoctorConsultationsScreen() {
             </Text>
           </View>
 
-          <View style={[styles.statusBadge, { backgroundColor: statusBadgeBg, paddingVertical: 4, paddingHorizontal: 9 }]}>
-            <Text style={[styles.statusText, { color: statusBadgeColor, fontWeight: '800', fontSize: 11 }]}>
-              {statusTextDisplay}
-            </Text>
-          </View>
-        </View>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+            {isPaymentPaid ? (
+              <View style={{ backgroundColor: isDark ? 'rgba(16,185,129,0.15)' : '#DCFCE7', paddingHorizontal: 7, paddingVertical: 2, borderRadius: 6 }}>
+                <Text style={{ fontSize: 10, fontWeight: '800', color: '#047857' }}>✓ PAID</Text>
+              </View>
+            ) : isPaymentPending ? (
+              <View style={{ backgroundColor: isDark ? 'rgba(245,158,11,0.15)' : '#FEF3C7', paddingHorizontal: 7, paddingVertical: 2, borderRadius: 6 }}>
+                <Text style={{ fontSize: 10, fontWeight: '800', color: '#B45309' }}>UNDER REVIEW</Text>
+              </View>
+            ) : (
+              <TouchableOpacity 
+                style={{ backgroundColor: isDark ? 'rgba(239,68,68,0.15)' : '#FEE2E2', paddingHorizontal: 7, paddingVertical: 2, borderRadius: 6 }}
+                onPress={() => handleOpenPayModal(item)}
+              >
+                <Text style={{ fontSize: 10, fontWeight: '800', color: '#DC2626' }}>PAY RS. 300</Text>
+              </TouchableOpacity>
+            )}
 
-        {/* Payment Fee & Status Badge */}
-        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 4, marginBottom: 8 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <MaterialCommunityIcons name="cash" size={16} color="#059669" style={{ marginRight: 4 }} />
-            <Text style={{ fontSize: 13, fontWeight: '800', color: colors.textPrimary }}>
-              Rs. {item.fee ? Number(item.fee).toFixed(0) : '300'}
-            </Text>
-          </View>
-
-          {isPaymentPaid ? (
-            <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: isDark ? 'rgba(16,185,129,0.15)' : '#DCFCE7', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 }}>
-              <MaterialCommunityIcons name="check-circle" size={13} color="#059669" style={{ marginRight: 4 }} />
-              <Text style={{ fontSize: 11, fontWeight: '700', color: '#047857' }}>
-                {t('Verified & Paid')}
+            <View style={[styles.statusBadge, { backgroundColor: statusBadgeBg, paddingVertical: 3, paddingHorizontal: 8 }]}>
+              <Text style={[styles.statusText, { color: statusBadgeColor, fontWeight: '800', fontSize: 10 }]}>
+                {statusTextDisplay}
               </Text>
             </View>
-          ) : isPaymentPending ? (
-            <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: isDark ? 'rgba(245,158,11,0.15)' : '#FEF3C7', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 }}>
-              <Feather name="clock" size={12} color="#D97706" style={{ marginRight: 4 }} />
-              <Text style={{ fontSize: 11, fontWeight: '700', color: '#B45309' }}>
-                {t('Payment Under Review')}
-              </Text>
-            </View>
-          ) : (
-            <TouchableOpacity 
-              style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: isDark ? 'rgba(239,68,68,0.15)' : '#FEE2E2', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6 }}
-              onPress={() => handleOpenPayModal(item)}
-            >
-              <MaterialCommunityIcons name="wallet-plus" size={13} color="#DC2626" style={{ marginRight: 4 }} />
-              <Text style={{ fontSize: 11, fontWeight: '700', color: '#DC2626' }}>
-                {t('Pay Rs. 300 & Confirm')}
-              </Text>
-            </TouchableOpacity>
-          )}
+          </View>
         </View>
 
         {/* Attached AI Report Snippet */}
@@ -655,9 +638,52 @@ export default function DoctorConsultationsScreen() {
           contentContainerStyle={{ padding: 16, paddingBottom: 40 }} 
           showsVerticalScrollIndicator={false}
           ListHeaderComponent={
-            <Text style={{ fontSize: 13, fontWeight: '800', color: colors.textSecondary, marginBottom: 12, textTransform: 'uppercase', letterSpacing: 0.5 }}>
-              {t('Consultation Cases')} ({consultations.length})
-            </Text>
+            <View>
+              {/* Single Professional Fee & Payment Top Banner */}
+              <View style={{
+                backgroundColor: isDark ? 'rgba(245, 158, 11, 0.08)' : '#FFFBEB',
+                borderRadius: 14,
+                padding: 12,
+                marginBottom: 12,
+                borderWidth: 1,
+                borderColor: isDark ? 'rgba(245, 158, 11, 0.25)' : '#FDE68A',
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between'
+              }}>
+                <View style={{ flex: 1, paddingRight: 8 }}>
+                  <Text style={{ fontSize: 13, fontWeight: '800', color: isDark ? '#FBBF24' : '#B45309' }}>
+                    {t('Consultation Fee')}: Rs. 300
+                  </Text>
+                  <Text style={{ fontSize: 11, color: isDark ? '#CBD5E1' : '#78350F', marginTop: 2 }}>
+                    JazzCash: <Text style={{ fontWeight: '700' }}>{vetData?.vetAccountNumber || '03054758667'}</Text>
+                  </Text>
+                </View>
+
+                {consultations.some(c => c.payment_status !== 'paid') && (
+                  <TouchableOpacity
+                    style={{
+                      backgroundColor: '#D97706',
+                      paddingHorizontal: 12,
+                      paddingVertical: 7,
+                      borderRadius: 10,
+                      flexDirection: 'row',
+                      alignItems: 'center'
+                    }}
+                    onPress={() => handleOpenPayModal(consultations.find(c => c.payment_status !== 'paid') || consultations[0])}
+                  >
+                    <Feather name="upload" size={13} color="#FFF" style={{ marginRight: 4 }} />
+                    <Text style={{ fontSize: 11, fontWeight: '800', color: '#FFF' }}>
+                      {t('Pay Rs. 300 & Confirm')}
+                    </Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+
+              <Text style={{ fontSize: 13, fontWeight: '800', color: colors.textSecondary, marginBottom: 12, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                {t('Consultation Cases')} ({consultations.length})
+              </Text>
+            </View>
           }
         />
       )}
