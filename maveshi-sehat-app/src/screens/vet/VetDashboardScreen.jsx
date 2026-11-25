@@ -73,11 +73,10 @@ export default function VetDashboardScreen() {
       const res = await fetch(`${baseUrl}/api/vet/${userId}/commission-status`);
       if (res.ok) {
         const json = await res.json();
-        if (json.success && json.data) {
-          setCommissionStatus(json.data);
-          if (json.data.commissionDue > 0) {
-            setSettleAmount(String(json.data.commissionDue));
-          }
+        const merged = { ...(json.stats || {}), ...(json.vet || {}) };
+        setCommissionStatus(merged);
+        if (merged.commissionDue > 0) {
+          setSettleAmount(String(merged.commissionDue));
         }
       }
     } catch (e) {
