@@ -111,43 +111,6 @@ export default function DoctorConsultationsScreen() {
     );
   };
 
-  const handleResolveConsultation = (item) => {
-    Alert.alert(
-      t('Mark as Resolved?'),
-      t('Are you sure you want to resolve this consultation case?'),
-      [
-        { text: t('Cancel'), style: 'cancel' },
-        {
-          text: t('Mark as Resolved'),
-          onPress: async () => {
-            try {
-              const baseUrl = 'https://maveshi-sehat-api.onrender.com';
-              const response = await fetch(`${baseUrl}/api/chat/conversation/resolve`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  conversationId: item.conversation_id,
-                  consultationId: item.id,
-                  outcome: 'fully_recovered',
-                  dischargeNotes: 'Consultation marked as resolved by farmer.'
-                })
-              });
-              if (response.ok) {
-                Alert.alert(t('Success'), t('Consultation marked as resolved.'));
-                fetchConsultations();
-              } else {
-                throw new Error('Failed to resolve consultation');
-              }
-            } catch (err) {
-              console.error(err);
-              Alert.alert(t('Error'), 'Could not resolve consultation.');
-            }
-          }
-        }
-      ]
-    );
-  };
-
   const handleStartChat = async (consult) => {
     try {
       const baseUrl = 'https://maveshi-sehat-api.onrender.com';
@@ -418,43 +381,22 @@ export default function DoctorConsultationsScreen() {
         {/* Action Buttons Row */}
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 6 }}>
           {isApproved ? (
-            <>
-              <TouchableOpacity
-                style={{
-                  flex: 1,
-                  height: 42,
-                  backgroundColor: colors.primary,
-                  borderRadius: 12,
-                  flexDirection: 'row',
-                  justifyContent: 'center',
-                  alignItems: 'center'
-                }}
-                onPress={() => handleStartChat(item)}
-                activeOpacity={0.8}
-              >
-                <Feather name="message-square" size={16} color="#FFF" style={{ marginRight: 6 }} />
-                <Text style={{ color: '#FFF', fontWeight: '800', fontSize: 14 }}>{t('Open Chat')}</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={{
-                  paddingHorizontal: 12,
-                  height: 42,
-                  backgroundColor: isDark ? 'rgba(16, 185, 129, 0.15)' : '#DCFCE7',
-                  borderRadius: 12,
-                  borderWidth: 1,
-                  borderColor: isDark ? 'rgba(16, 185, 129, 0.3)' : '#86EFAC',
-                  flexDirection: 'row',
-                  justifyContent: 'center',
-                  alignItems: 'center'
-                }}
-                onPress={() => handleResolveConsultation(item)}
-                activeOpacity={0.7}
-              >
-                <Feather name="check" size={15} color="#059669" style={{ marginRight: 4 }} />
-                <Text style={{ color: '#047857', fontWeight: '700', fontSize: 12 }}>{t('Mark as Resolved')}</Text>
-              </TouchableOpacity>
-            </>
+            <TouchableOpacity
+              style={{
+                flex: 1,
+                height: 42,
+                backgroundColor: colors.primary,
+                borderRadius: 12,
+                flexDirection: 'row',
+                justifyContent: 'center',
+                alignItems: 'center'
+              }}
+              onPress={() => handleStartChat(item)}
+              activeOpacity={0.8}
+            >
+              <Feather name="message-square" size={16} color="#FFF" style={{ marginRight: 6 }} />
+              <Text style={{ color: '#FFF', fontWeight: '800', fontSize: 14 }}>{t('Open Chat')}</Text>
+            </TouchableOpacity>
           ) : isResolved ? (
             <>
               <TouchableOpacity
@@ -586,25 +528,6 @@ export default function DoctorConsultationsScreen() {
               </Text>
             </View>
           </View>
-
-          <TouchableOpacity
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              backgroundColor: isDark ? 'rgba(5, 150, 105, 0.15)' : '#ECFDF5',
-              paddingHorizontal: 10,
-              paddingVertical: 7,
-              borderRadius: 10,
-              borderWidth: 1,
-              borderColor: isDark ? 'rgba(5, 150, 105, 0.3)' : '#A7F3D0'
-            }}
-            onPress={() => navigation.navigate('Veterinarians')}
-          >
-            <Feather name="plus" size={14} color="#059669" style={{ marginRight: 4 }} />
-            <Text style={{ fontSize: 12, fontWeight: '700', color: '#059669' }}>
-              {t('New Consultation')}
-            </Text>
-          </TouchableOpacity>
         </View>
       )}
 
@@ -660,7 +583,7 @@ export default function DoctorConsultationsScreen() {
                   </Text>
                 </View>
 
-                {consultations.some(c => c.payment_status !== 'paid') && (
+                {consultations.some(c => c.payment_status !== 'paid') ? (
                   <TouchableOpacity
                     style={{
                       backgroundColor: '#D97706',
@@ -670,13 +593,30 @@ export default function DoctorConsultationsScreen() {
                       flexDirection: 'row',
                       alignItems: 'center'
                     }}
-                    onPress={() => handleOpenPayModal(consultations.find(c => c.payment_status !== 'paid') || consultations[0])}
+                    onPress={() => {
+                      const firstUnpaid = consultations.find(c => c.payment_status !== 'paid');
+                      handleOpenPayModal(firstUnpaid || consultations[0]);
+                    }}
                   >
                     <Feather name="upload" size={13} color="#FFF" style={{ marginRight: 4 }} />
                     <Text style={{ fontSize: 11, fontWeight: '800', color: '#FFF' }}>
                       {t('Pay Rs. 300 & Confirm')}
                     </Text>
                   </TouchableOpacity>
+                ) : (
+                  <View style={{
+                    backgroundColor: isDark ? 'rgba(16, 185, 129, 0.15)' : '#DCFCE7',
+                    paddingHorizontal: 10,
+                    paddingVertical: 6,
+                    borderRadius: 8,
+                    flexDirection: 'row',
+                    alignItems: 'center'
+                  }}>
+                    <Feather name="check-circle" size={13} color="#059669" style={{ marginRight: 4 }} />
+                    <Text style={{ fontSize: 11, fontWeight: '800', color: '#047857' }}>
+                      {t('All Consultations Paid')}
+                    </Text>
+                  </View>
                 )}
               </View>
 
@@ -701,7 +641,7 @@ export default function DoctorConsultationsScreen() {
             padding: 20,
             maxHeight: '90%'
           }}>
-            <ScrollView showsVerticalScrollIndicator={false}>
+            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 32 }}>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
                 <Text style={{ fontSize: 17, fontWeight: '800', color: colors.textPrimary }}>
                   {t('Pay Rs. 300 via JazzCash')}
@@ -710,6 +650,46 @@ export default function DoctorConsultationsScreen() {
                   <Feather name="x" size={22} color={colors.textSecondary} />
                 </TouchableOpacity>
               </View>
+
+              {/* Consultation Case Selector (if multiple cases exist) */}
+              {consultations.length > 1 && (
+                <View style={{ marginBottom: 14 }}>
+                  <Text style={{ fontSize: 12, fontWeight: '700', color: colors.textSecondary, marginBottom: 6 }}>
+                    {t('Select Consultation Case')} *
+                  </Text>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
+                    {consultations.map(c => {
+                      const isSelected = selectedConsultForPay?.id === c.id;
+                      const isPaid = c.payment_status === 'paid';
+                      const isReview = c.payment_status === 'pending_verification';
+                      return (
+                        <TouchableOpacity
+                          key={c.id}
+                          style={{
+                            paddingHorizontal: 12,
+                            paddingVertical: 7,
+                            borderRadius: 10,
+                            backgroundColor: isSelected ? colors.primary : (isDark ? '#334155' : '#F1F5F9'),
+                            borderWidth: 1,
+                            borderColor: isSelected ? colors.primary : colors.border,
+                            flexDirection: 'row',
+                            alignItems: 'center'
+                          }}
+                          onPress={() => {
+                            setSelectedConsultForPay(c);
+                            setPayPhone(c.sender_phone || profile?.phone || '');
+                            setPayTid(c.transaction_id || '');
+                          }}
+                        >
+                          <Text style={{ fontSize: 12, fontWeight: '800', color: isSelected ? '#FFF' : colors.textPrimary }}>
+                            #Case-{c.id} {isPaid ? '✓' : isReview ? '⏳' : ''}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </ScrollView>
+                </View>
+              )}
 
               {/* Instructions Box */}
               <View style={{

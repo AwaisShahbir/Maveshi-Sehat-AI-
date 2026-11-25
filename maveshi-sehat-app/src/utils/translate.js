@@ -997,7 +997,9 @@ export const STATIC_URDU_DICTIONARY = {
   "Sender Phone": "ارسال کنندہ کا فون",
   "Transaction ID (TID)": "ٹرانزیکشن آئی ڈی (TID)",
   "Amount to Settle (Rs.)": "سیٹلمنٹ کی رقم (روپے)",
-  "Submitting...": "جمع کر رہے ہیں..."
+  "Submitting...": "جمع کر رہے ہیں...",
+  "Select Consultation Case": "مشاورتی کیس منتخب کریں",
+  "All Consultations Paid": "تمام مشاورتیں ادا شدہ ہیں"
 };
 
 // In-memory translation cache seeded with official UVAS static dictionary

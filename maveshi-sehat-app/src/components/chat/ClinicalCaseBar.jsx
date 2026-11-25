@@ -12,6 +12,7 @@ export default function ClinicalCaseBar({
   isUrdu,
   isDark,
   colors,
+  userRole = 'farmer',
   onOpenPicker,
   onOpenResolution
 }) {
@@ -71,7 +72,8 @@ export default function ClinicalCaseBar({
           </TouchableOpacity>
         )}
 
-        {conversationStatus === 'active' && (
+        {/* Only Veterinarians can resolve and discharge a case */}
+        {conversationStatus === 'active' && userRole === 'vet' && (
           <TouchableOpacity
             style={{
               backgroundColor: isDark ? 'rgba(16, 185, 129, 0.18)' : '#D1FAE5',

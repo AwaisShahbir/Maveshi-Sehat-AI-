@@ -595,8 +595,11 @@ export default function ChatScreen() {
     setVaccinationModalVisible(false);
   };
 
-  // Case Resolution & Rating Handlers
+  // Case Resolution & Rating Handlers (Veterinarian ONLY)
   const handleOpenResolutionModal = () => {
+    if (userRole !== 'vet') {
+      return; // Farmers cannot discharge/resolve cases; only the attending vet can.
+    }
     setResolutionModalVisible(true);
   };
 
@@ -815,6 +818,7 @@ export default function ChatScreen() {
         isUrdu={isUrdu}
         isDark={isDark}
         colors={colors}
+        userRole={userRole}
         onOpenPicker={() => setPickerModalOpen(true)}
         onOpenResolution={handleOpenResolutionModal}
       />
