@@ -73,7 +73,12 @@ export default function ChatScreen() {
   // Chat Data States
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState('');
-  const [conversationStatus, setConversationStatus] = useState('active'); 
+  const [conversationStatus, setConversationStatus] = useState(() => {
+    if (params.consultation?.status === 'resolved' || params.consultation?.status === 'completed') {
+      return 'resolved';
+    }
+    return 'active';
+  }); 
   const [loading, setLoading] = useState(true);
   const [ourUserId, setOurUserId] = useState(null);
   const [partnerUserId, setPartnerUserId] = useState(null);
@@ -148,7 +153,11 @@ export default function ChatScreen() {
   const flatListRef = useRef(null);
   const baseUrl = 'https://maveshi-sehat-api.onrender.com';
 
-  const handleSendMessage = useCallback((textToSend = null, imageUrl = null, isPrescription = false, prescriptionData = null, isVaccination = false, vaccinationData = null) => {
+  const handleSendMessage = useCallback((textToSend = null, imageUrl = null, isPrescription = false, prescriptionData = null, isVaccination = false, vaccinationData = null, isSystemDischarge = false) => {
+    if (conversationStatus === 'resolved' && !isSystemDischarge) {
+      Alert.alert(t('Consultation Closed'), t('This consultation has been marked as resolved and closed. Chat is read-only.'));
+      return;
+    }
     const finalMsg = textToSend !== null ? textToSend : inputText.trim();
     if (!finalMsg && !imageUrl && !isPrescription && !selectedAttachmentUri && !isVaccination) return;
 
@@ -175,7 +184,7 @@ export default function ChatScreen() {
       setInputText('');
       setSelectedAttachmentUri(null);
     }
-  }, [conversationId, inputText, ourUserId, params.consultationId, selectedAttachmentUri, selectedConsultationId, userRole, vetId]);
+  }, [conversationId, conversationStatus, inputText, ourUserId, params.consultationId, selectedAttachmentUri, selectedConsultationId, userRole, vetId]);
 
   // Agora Live HD RTC Engine Hook
   const {
@@ -230,7 +239,14 @@ export default function ChatScreen() {
 
         const convData = await convResponse.json();
         if (convResponse.ok && convData) {
-          setConversationStatus(convData.status || 'active');
+          const isItemResolved = convData.status === 'resolved' || 
+            convData.status === 'completed' || 
+            convData.latest_consultation?.status === 'resolved' || 
+            convData.latest_consultation?.status === 'completed' || 
+            params.consultation?.status === 'resolved' || 
+            params.consultation?.status === 'completed';
+
+          setConversationStatus(isItemResolved ? 'resolved' : (convData.status || 'active'));
           if (convData.latest_consultation) {
             if (convData.latest_consultation.status === 'pending' && userRole === 'farmer') {
               setIsPendingApproval(true);
@@ -375,6 +391,22 @@ export default function ChatScreen() {
   }, [params?.autoAcceptCall, conversationId, ourUserId, resetCallSession, userName]);
 
   useEffect(() => {
+    if (selectedConsultationId && consultationHistory.length > 0) {
+      const matched = consultationHistory.find(c => String(c.id) === String(selectedConsultationId));
+      if (matched) {
+        if (matched.status === 'resolved' || matched.status === 'completed') {
+          setConversationStatus('resolved');
+        } else if (matched.status === 'approved') {
+          setConversationStatus('active');
+          setIsPendingApproval(false);
+        } else if (matched.status === 'pending' && userRole === 'farmer') {
+          setIsPendingApproval(true);
+        }
+      }
+    }
+  }, [selectedConsultationId, consultationHistory, userRole]);
+
+  useEffect(() => {
     if (messages.length > 0) {
       setTimeout(() => {
         flatListRef.current?.scrollToEnd({ animated: false });
@@ -383,6 +415,11 @@ export default function ChatScreen() {
   }, [loading, messages.length]);
 
   const handlePhoneCall = () => {
+    if (conversationStatus === 'resolved') {
+      Alert.alert(t('Consultation Closed'), t('This consultation has been marked as resolved and closed.'));
+      return;
+    }
+
     const activeConsult = params.consultation || (consultationHistory.find(c => String(c.id) === String(selectedConsultationId)));
     if (userRole === 'farmer' && activeConsult) {
       const isPaid = activeConsult.payment_status === 'paid' || activeConsult.status === 'approved';
@@ -418,6 +455,11 @@ export default function ChatScreen() {
   };
 
   const handleVideoCall = () => {
+    if (conversationStatus === 'resolved') {
+      Alert.alert(t('Consultation Closed'), t('This consultation has been marked as resolved and closed.'));
+      return;
+    }
+
     const activeConsult = params.consultation || (consultationHistory.find(c => String(c.id) === String(selectedConsultationId)));
     if (userRole === 'farmer' && activeConsult) {
       const isPaid = activeConsult.payment_status === 'paid' || activeConsult.status === 'approved';
@@ -485,10 +527,14 @@ export default function ChatScreen() {
   };
 
   const handleSendText = () => {
+    if (conversationStatus === 'resolved') {
+      Alert.alert(t('Consultation Closed'), t('This consultation has been marked as resolved and closed. Chat is read-only.'));
+      return;
+    }
     if (isPendingApproval) {
       Alert.alert(
-        'Request Pending Approval',
-        'You can send messages once Dr. ' + partnerName + ' accepts this consultation request.'
+        t('Pending Doctor Approval'),
+        t('Awaiting doctor approval. Chat will unlock once approved.')
       );
       return;
     }
@@ -496,6 +542,10 @@ export default function ChatScreen() {
   };
 
   const handleAttachmentSelect = async () => {
+    if (conversationStatus === 'resolved') {
+      Alert.alert(t('Consultation Closed'), t('This consultation has been marked as resolved and closed. Chat is read-only.'));
+      return;
+    }
     try {
       const results = await pick({
         type: [types.images],
@@ -652,7 +702,7 @@ export default function ChatScreen() {
           (dischargeNotes.trim() ? `• **${t('Discharge Notes')}**: ${dischargeNotes.trim()}\n` : '') +
           `• **${t('Follow-up Check')}**: ${followUpLabel}`;
 
-        handleSendMessage(summaryMessage);
+        handleSendMessage(summaryMessage, null, false, null, false, null, true);
 
         if (userRole === 'farmer') {
           setTimeout(() => {
@@ -777,17 +827,19 @@ export default function ChatScreen() {
             <Text style={styles.headerRole}>{partnerRole === 'vet' ? 'Large Animal Specialist' : t('Farmer')}</Text>
           </View>
         </View>
-        <View style={styles.headerActions}>
-          <TouchableOpacity style={styles.headerActionBtn} onPress={handlePhoneCall}>
-            <Feather name="phone" size={20} color="#FFF" />
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={[styles.headerActionBtn, userRole === 'farmer' && partnerConsultationMode === 'Chat Only' && { opacity: 0.55 }]} 
-            onPress={handleVideoCall}
-          >
-            <Feather name="video" size={20} color="#FFF" />
-          </TouchableOpacity>
-        </View>
+        {conversationStatus !== 'resolved' && (
+          <View style={styles.headerActions}>
+            <TouchableOpacity style={styles.headerActionBtn} onPress={handlePhoneCall}>
+              <Feather name="phone" size={20} color="#FFF" />
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={[styles.headerActionBtn, userRole === 'farmer' && partnerConsultationMode === 'Chat Only' && { opacity: 0.55 }]} 
+              onPress={handleVideoCall}
+            >
+              <Feather name="video" size={20} color="#FFF" />
+            </TouchableOpacity>
+          </View>
+        )}
       </View>
 
       {/* Case Picker Modal */}

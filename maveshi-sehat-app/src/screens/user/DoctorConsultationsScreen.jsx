@@ -441,14 +441,14 @@ export default function DoctorConsultationsScreen() {
             }}>
               <Feather name="clock" size={14} color="#D97706" style={{ marginRight: 6 }} />
               <Text style={{ fontSize: 12, color: '#B45309', fontWeight: '600', flex: 1 }}>
-                Awaiting doctor approval. Chat will unlock once approved.
+                {t('Awaiting doctor approval. Chat will unlock once approved.')}
               </Text>
             </View>
           ) : (
             <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}>
               <Feather name="x-circle" size={15} color="#EF4444" style={{ marginRight: 6 }} />
               <Text style={{ fontSize: 12, color: '#EF4444', fontWeight: '600' }}>
-                Consultation declined by doctor
+                {t('Consultation declined by doctor')}
               </Text>
             </View>
           )}

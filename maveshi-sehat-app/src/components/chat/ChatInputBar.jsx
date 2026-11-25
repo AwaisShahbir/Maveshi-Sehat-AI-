@@ -34,11 +34,11 @@ export default function ChatInputBar({
         <View style={styles.resolvedBannerTextRow}>
           <Feather name="clock" size={17} color="#D97706" style={{ marginRight: 6 }} />
           <Text style={[styles.resolvedBannerText, { color: '#B45309', fontWeight: '700' }]}>
-            Pending Doctor Approval
+            {t('Pending Doctor Approval')}
           </Text>
         </View>
         <Text style={{ fontSize: 12, color: '#92400E', textAlign: 'center', marginTop: 4, paddingHorizontal: 16 }}>
-          Dr. {partnerName} has not accepted this request yet. Chat will unlock automatically once approved.
+          {t('Awaiting doctor approval. Chat will unlock once approved.')}
         </Text>
       </View>
     );
@@ -46,19 +46,20 @@ export default function ChatInputBar({
 
   if (conversationStatus === 'resolved') {
     return (
-      <View style={[styles.resolvedBanner, { paddingBottom: Math.max(insets?.bottom || 0, 10) }]}>
+      <View style={[styles.resolvedBanner, { 
+        paddingBottom: Math.max(insets?.bottom || 0, 12),
+        backgroundColor: isDark ? 'rgba(100, 116, 139, 0.15)' : '#F8FAFC',
+        borderColor: isDark ? 'rgba(100, 116, 139, 0.3)' : '#E2E8F0'
+      }]}>
         <View style={styles.resolvedBannerTextRow}>
-          <MaterialCommunityIcons name="lock" size={17} color="#64748B" style={{ marginRight: 6 }} />
-          <Text style={styles.resolvedBannerText}>This consultation is resolved.</Text>
+          <MaterialCommunityIcons name="lock" size={18} color="#64748B" style={{ marginRight: 6 }} />
+          <Text style={[styles.resolvedBannerText, { fontWeight: '700', color: colors ? colors.textPrimary : '#1E293B' }]}>
+            {t('Consultation Closed')}
+          </Text>
         </View>
-        <TouchableOpacity
-          style={styles.reopenButton}
-          onPress={onReopenConversation}
-          activeOpacity={0.8}
-        >
-          <Feather name="plus-circle" size={15} color="#FFF" style={{ marginRight: 6 }} />
-          <Text style={styles.reopenButtonText}>Start New Consultation</Text>
-        </TouchableOpacity>
+        <Text style={{ fontSize: 12, color: colors ? colors.textSecondary : '#64748B', textAlign: 'center', marginTop: 4, paddingHorizontal: 16 }}>
+          {t('This consultation has been marked as resolved and closed. Chat is read-only.')}
+        </Text>
       </View>
     );
   }
