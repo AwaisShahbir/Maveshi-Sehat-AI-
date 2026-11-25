@@ -953,13 +953,32 @@ export default function VetProfileScreen() {
                 <Text style={{ fontSize: 12, color: colors.textSecondary, marginBottom: 8 }}>
                   {t('Fee: Rs. 300 (Vet: Rs. 225, Admin: Rs. 75)')}
                 </Text>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', borderTopWidth: 1, borderTopColor: isDark ? 'rgba(255,255,255,0.08)' : '#D1FAE5', paddingTop: 8 }}>
-                  <Text style={{ fontSize: 12, color: colors.textSecondary }}>
-                    {t('Doctor Net (75%)')}: <Text style={{ fontWeight: '800', color: colors.textPrimary }}>Rs. 225</Text>
-                  </Text>
-                  <Text style={{ fontSize: 12, color: colors.textSecondary }}>
-                    {t('Admin Commission (25%)')}: <Text style={{ fontWeight: '800', color: '#059669' }}>Rs. 75</Text>
-                  </Text>
+                <View style={{ 
+                  flexDirection: 'row', 
+                  justifyContent: 'space-between', 
+                  alignItems: 'center',
+                  flexWrap: 'wrap', 
+                  gap: 8, 
+                  borderTopWidth: 1, 
+                  borderTopColor: isDark ? 'rgba(255,255,255,0.08)' : '#D1FAE5', 
+                  paddingTop: 8 
+                }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <Text style={{ fontSize: 12, color: colors.textSecondary }}>
+                      {t('Doctor Net (75%)')}:{' '}
+                    </Text>
+                    <Text style={{ fontSize: 12, fontWeight: '800', color: colors.textPrimary }}>
+                      Rs. 225
+                    </Text>
+                  </View>
+                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <Text style={{ fontSize: 12, color: colors.textSecondary }}>
+                      {t('Admin Commission (25%)')}:{' '}
+                    </Text>
+                    <Text style={{ fontSize: 12, fontWeight: '800', color: '#059669' }}>
+                      Rs. 75
+                    </Text>
+                  </View>
                 </View>
               </View>
 

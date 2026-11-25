@@ -631,10 +631,11 @@ module.exports = (pool, io) => {
         });
       }
 
-      // Consultation Financials: Rs. 300 consultation fee, 25% platform commission (Rs. 75), 75% Vet Earnings (Rs. 225)
-      const fee = 300.00;
-      const adminCommission = 75.00;
-      const vetEarnings = 225.00;
+      // Consultation Financials: Rs. 300 consultation fee for online, custom for physical
+      const isPhysical = normalizedType === 'physical';
+      const fee = isPhysical ? (Number(req.body.fee) || 0.00) : 300.00;
+      const adminCommission = isPhysical ? Math.round(fee * 0.25 * 100) / 100 : 75.00;
+      const vetEarnings = isPhysical ? Math.round(fee * 0.75 * 100) / 100 : 225.00;
       const paymentMethod = req.body.payment_method || req.body.paymentMethod || 'JazzCash';
       const senderPhone = (req.body.sender_phone || req.body.senderPhone || phone || phoneNumber || '').trim() || null;
       const transactionId = (req.body.transaction_id || req.body.transactionId || req.body.tid || '').trim() || null;
@@ -664,7 +665,11 @@ module.exports = (pool, io) => {
 
       let paymentStatus = req.body.payment_status || req.body.paymentStatus;
       if (!paymentStatus) {
-        paymentStatus = (transactionId || finalProofUrl || senderPhone) ? 'pending_verification' : 'unpaid';
+        if (isPhysical) {
+          paymentStatus = (transactionId || finalProofUrl) ? 'pending_verification' : 'fee_upon_visit';
+        } else {
+          paymentStatus = (transactionId || finalProofUrl || senderPhone) ? 'pending_verification' : 'unpaid';
+        }
       }
 
       const result = await pool.query(

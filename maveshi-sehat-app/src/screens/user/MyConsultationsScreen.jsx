@@ -213,12 +213,7 @@ export default function MyConsultationsScreen() {
           <Feather name="arrow-left" size={24} color="#FFF" />
         </TouchableOpacity>
         <Text style={styles.title}>{t('My Consultations')}</Text>
-        <TouchableOpacity 
-          style={{ width: 44, height: 44, justifyContent: 'center', alignItems: 'center' }}
-          onPress={() => navigation.navigate('Veterinarians')}
-        >
-          <Feather name="plus-circle" size={24} color="#FFF" />
-        </TouchableOpacity>
+        <View style={{ width: 44 }} />
       </View>
 
       {loading ? (
@@ -257,19 +252,10 @@ export default function MyConsultationsScreen() {
           contentContainerStyle={{ padding: 16, paddingBottom: 40 }} 
           showsVerticalScrollIndicator={false}
           ListHeaderComponent={
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+            <View style={{ marginBottom: 14 }}>
               <Text style={{ fontSize: 14, fontWeight: '800', color: colors.textSecondary, textTransform: 'uppercase', letterSpacing: 0.5 }}>
                 {t('Consulted Doctors')} ({groupedByVet.length})
               </Text>
-              <TouchableOpacity 
-                style={{ flexDirection: 'row', alignItems: 'center' }}
-                onPress={() => navigation.navigate('Veterinarians')}
-              >
-                <Feather name="plus" size={14} color={colors.primary} style={{ marginRight: 3 }} />
-                <Text style={{ fontSize: 12, fontWeight: '700', color: colors.primary }}>
-                  {t('New Consultation')}
-                </Text>
-              </TouchableOpacity>
             </View>
           }
         />

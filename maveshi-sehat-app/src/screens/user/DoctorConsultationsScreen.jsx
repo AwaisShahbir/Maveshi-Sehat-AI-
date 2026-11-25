@@ -315,6 +315,10 @@ export default function DoctorConsultationsScreen() {
               <View style={{ backgroundColor: isDark ? 'rgba(245,158,11,0.15)' : '#FEF3C7', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 5 }}>
                 <Text style={{ fontSize: 10, fontWeight: '800', color: '#B45309' }}>UNDER REVIEW</Text>
               </View>
+            ) : (item.type === 'physical_appointment' || item.type === 'physical') ? (
+              <View style={{ backgroundColor: isDark ? 'rgba(2,132,199,0.15)' : '#E0F2FE', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 5 }}>
+                <Text style={{ fontSize: 10, fontWeight: '800', color: '#0284C7' }}>FEE UPON VISIT</Text>
+              </View>
             ) : (
               <TouchableOpacity 
                 style={{ backgroundColor: isDark ? 'rgba(239,68,68,0.15)' : '#FEE2E2', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 5 }}
@@ -561,66 +565,8 @@ export default function DoctorConsultationsScreen() {
           contentContainerStyle={{ padding: 16, paddingBottom: 40 }} 
           showsVerticalScrollIndicator={false}
           ListHeaderComponent={
-            <View>
-              {/* Single Professional Fee & Payment Top Banner */}
-              <View style={{
-                backgroundColor: isDark ? 'rgba(245, 158, 11, 0.08)' : '#FFFBEB',
-                borderRadius: 14,
-                padding: 12,
-                marginBottom: 12,
-                borderWidth: 1,
-                borderColor: isDark ? 'rgba(245, 158, 11, 0.25)' : '#FDE68A',
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'space-between'
-              }}>
-                <View style={{ flex: 1, paddingRight: 8 }}>
-                  <Text style={{ fontSize: 13, fontWeight: '800', color: isDark ? '#FBBF24' : '#B45309' }}>
-                    {t('Consultation Fee')}: Rs. 300
-                  </Text>
-                  <Text style={{ fontSize: 11, color: isDark ? '#CBD5E1' : '#78350F', marginTop: 2 }}>
-                    JazzCash: <Text style={{ fontWeight: '700' }}>{vetData?.vetAccountNumber || '03054758667'}</Text>
-                  </Text>
-                </View>
-
-                {consultations.some(c => c.payment_status !== 'paid') ? (
-                  <TouchableOpacity
-                    style={{
-                      backgroundColor: '#D97706',
-                      paddingHorizontal: 12,
-                      paddingVertical: 7,
-                      borderRadius: 10,
-                      flexDirection: 'row',
-                      alignItems: 'center'
-                    }}
-                    onPress={() => {
-                      const firstUnpaid = consultations.find(c => c.payment_status !== 'paid');
-                      handleOpenPayModal(firstUnpaid || consultations[0]);
-                    }}
-                  >
-                    <Feather name="upload" size={13} color="#FFF" style={{ marginRight: 4 }} />
-                    <Text style={{ fontSize: 11, fontWeight: '800', color: '#FFF' }}>
-                      {t('Pay Rs. 300 & Confirm')}
-                    </Text>
-                  </TouchableOpacity>
-                ) : (
-                  <View style={{
-                    backgroundColor: isDark ? 'rgba(16, 185, 129, 0.15)' : '#DCFCE7',
-                    paddingHorizontal: 10,
-                    paddingVertical: 6,
-                    borderRadius: 8,
-                    flexDirection: 'row',
-                    alignItems: 'center'
-                  }}>
-                    <Feather name="check-circle" size={13} color="#059669" style={{ marginRight: 4 }} />
-                    <Text style={{ fontSize: 11, fontWeight: '800', color: '#047857' }}>
-                      {t('All Consultations Paid')}
-                    </Text>
-                  </View>
-                )}
-              </View>
-
-              <Text style={{ fontSize: 13, fontWeight: '800', color: colors.textSecondary, marginBottom: 12, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+            <View style={{ marginBottom: 12 }}>
+              <Text style={{ fontSize: 13, fontWeight: '800', color: colors.textSecondary, textTransform: 'uppercase', letterSpacing: 0.5 }}>
                 {t('Consultation Cases')} ({consultations.length})
               </Text>
             </View>

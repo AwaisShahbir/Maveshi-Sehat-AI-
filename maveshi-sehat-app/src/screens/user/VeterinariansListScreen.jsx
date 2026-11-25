@@ -328,7 +328,7 @@ export default function VeterinariansListScreen() {
           reason: reason.trim(),
           appointment_date: consultType === 'physical_appointment' ? `${formattedDate} ${formattedTime}` : null,
           ai_record_data: params.initialRecord || null,
-          fee: 300.00,
+          fee: consultType === 'physical_appointment' ? 0.00 : 300.00,
           payment_method: 'JazzCash',
           sender_phone: (senderPhone || effectivePhone || '').trim(),
           transaction_id: (transactionId || '').trim() || null,
@@ -350,9 +350,12 @@ export default function VeterinariansListScreen() {
       setProofImage(null);
       setErrors({ reason: '', appointmentDate: '', appointmentTime: '' });
 
+      const isPhysical = consultType === 'physical_appointment';
       Alert.alert(
         t('Request Sent'),
-        `Your consultation request (Rs. 300) has been sent to ${selectedVet?.full_name || 'the vet'}. Once verified, your chat and video consultation will activate.`,
+        isPhysical
+          ? `Your physical appointment request has been sent to ${selectedVet?.full_name || 'the vet'}. The veterinarian will contact you to confirm timing and visit charges.`
+          : `Your consultation request (Rs. 300) has been sent to ${selectedVet?.full_name || 'the vet'}. Once verified, your chat and video consultation will activate.`,
         [
           {
             text: 'View Consultations',
@@ -812,16 +815,20 @@ export default function VeterinariansListScreen() {
                   <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                     <MaterialCommunityIcons name="wallet-outline" size={18} color="#D97706" style={{ marginRight: 6 }} />
                     <Text style={{ fontSize: 13, fontWeight: '700', color: isDark ? '#FBBF24' : '#B45309' }}>
-                      {t('Consultation Fee (Rs. 300)')}
+                      {consultType === 'physical_appointment' ? t('Physical Appointment Fee') : t('Consultation Fee (Rs. 300)')}
                     </Text>
                   </View>
-                  <View style={{ backgroundColor: '#D97706', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 8 }}>
-                    <Text style={{ fontSize: 11, fontWeight: '800', color: '#FFF' }}>Rs. 300</Text>
+                  <View style={{ backgroundColor: consultType === 'physical_appointment' ? '#0284C7' : '#D97706', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 8 }}>
+                    <Text style={{ fontSize: 11, fontWeight: '800', color: '#FFF' }}>
+                      {consultType === 'physical_appointment' ? t('Custom / Mutually Agreed') : 'Rs. 300'}
+                    </Text>
                   </View>
                 </View>
 
                 <Text style={{ fontSize: 11, color: isDark ? '#CBD5E1' : '#92400E', marginBottom: 8, lineHeight: 16 }}>
-                  {t('Transfer Rs. 300 to JazzCash (03054758667) and enter TID with receipt screenshot below.')}
+                  {consultType === 'physical_appointment'
+                    ? t('Physical appointment charges are set by the veterinarian based on distance and clinical treatment. Enter payment proof if agreed in advance, or pay during visit.')
+                    : t('Transfer Rs. 300 to JazzCash (03054758667) and enter TID with receipt screenshot below.')}
                 </Text>
 
                 <View style={{ marginBottom: 8 }}>

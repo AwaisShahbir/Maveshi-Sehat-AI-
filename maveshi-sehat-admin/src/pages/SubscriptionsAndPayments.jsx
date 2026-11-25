@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { API_BASE_URL } from '../config';
-import { 
-  CreditCard, 
-  CheckCircle2, 
-  XCircle, 
-  Clock, 
-  Eye, 
-  ExternalLink, 
-  ShoppingBag, 
+import {
+  CreditCard,
+  CheckCircle2,
+  XCircle,
+  Clock,
+  Eye,
+  ExternalLink,
+  ShoppingBag,
   RefreshCw,
   Search,
   Check,
@@ -850,7 +850,7 @@ export default function SubscriptionsAndPayments() {
       {/* Tab 3: Pharmacy Commissions & Settlements */}
       {activeTab === 'commissions' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-          
+
           {/* Financials KPI Header */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
             <div style={{ backgroundColor: '#FFF', padding: '18px', borderRadius: '14px', border: '1px solid #E2E8F0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
@@ -1150,7 +1150,7 @@ export default function SubscriptionsAndPayments() {
       {/* Tab 4: Veterinarian Commissions & Settlements */}
       {activeTab === 'vet-commissions' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-          
+
           {/* Financials KPI Header */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: '16px' }}>
             <div style={{ backgroundColor: '#FFF', padding: '18px', borderRadius: '14px', border: '1px solid #E2E8F0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
