@@ -612,10 +612,29 @@ module.exports = (pool, io) => {
         ? reason.trim()
         : 'Livestock health consultation requested via mobile application.';
 
-      // Consultation Financials: Rs. 300 consultation fee, 10% platform commission (Rs. 30), 90% Vet Earnings (Rs. 270)
+      // Prevent duplicate double-booking from rapid clicks within 15 seconds
+      const duplicateCheck = await pool.query(
+        `SELECT c.*, conv.id as conversation_id
+         FROM consultations c
+         LEFT JOIN conversations conv ON conv.consultation_id = c.id
+         WHERE c.farmer_id = $1 AND c.vet_id = $2 AND c.type = $3
+           AND c.created_at > NOW() - INTERVAL '15 seconds'
+         ORDER BY c.id DESC LIMIT 1`,
+        [resolvedFarmerId, resolvedVetId, normalizedType]
+      );
+      if (duplicateCheck.rows.length > 0) {
+        return res.status(200).json({
+          success: true,
+          message: 'Consultation request already placed.',
+          consultation: duplicateCheck.rows[0],
+          conversation: { id: duplicateCheck.rows[0].conversation_id }
+        });
+      }
+
+      // Consultation Financials: Rs. 300 consultation fee, 25% platform commission (Rs. 75), 75% Vet Earnings (Rs. 225)
       const fee = 300.00;
-      const adminCommission = 30.00;
-      const vetEarnings = 270.00;
+      const adminCommission = 75.00;
+      const vetEarnings = 225.00;
       const paymentMethod = req.body.payment_method || req.body.paymentMethod || 'JazzCash';
       const senderPhone = (req.body.sender_phone || req.body.senderPhone || phone || phoneNumber || '').trim() || null;
       const transactionId = (req.body.transaction_id || req.body.transactionId || req.body.tid || '').trim() || null;

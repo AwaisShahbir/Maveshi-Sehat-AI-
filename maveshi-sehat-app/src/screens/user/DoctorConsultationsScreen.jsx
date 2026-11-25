@@ -290,41 +290,41 @@ export default function DoctorConsultationsScreen() {
         }}
       >
         {/* Case ID and Status Header */}
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 6 }}>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, gap: 6 }}>
+          <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 6 }}>
             <View style={{ backgroundColor: isDark ? '#334155' : '#E2E8F0', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 }}>
               <Text style={{ fontSize: 12, fontWeight: '800', color: colors.textPrimary }}>
                 #Case-{item.id}
               </Text>
             </View>
-            <Text style={{ fontSize: 12, fontWeight: '600', color: colors.textSecondary }}>
+            <Text style={{ fontSize: 12, fontWeight: '600', color: colors.textSecondary }} numberOfLines={1}>
               {item.type === 'video_consult' || item.type === 'video'
-                ? '📹 Video Consult'
+                ? '📹 Video'
                 : item.type === 'online_chat' || item.type === 'chat'
-                ? '💬 Online Chat'
-                : '🏥 Physical Appointment'}
+                ? '💬 Chat'
+                : '🏥 Physical'}
             </Text>
           </View>
 
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, flexShrink: 0 }}>
             {isPaymentPaid ? (
-              <View style={{ backgroundColor: isDark ? 'rgba(16,185,129,0.15)' : '#DCFCE7', paddingHorizontal: 7, paddingVertical: 2, borderRadius: 6 }}>
+              <View style={{ backgroundColor: isDark ? 'rgba(16,185,129,0.15)' : '#DCFCE7', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 5 }}>
                 <Text style={{ fontSize: 10, fontWeight: '800', color: '#047857' }}>✓ PAID</Text>
               </View>
             ) : isPaymentPending ? (
-              <View style={{ backgroundColor: isDark ? 'rgba(245,158,11,0.15)' : '#FEF3C7', paddingHorizontal: 7, paddingVertical: 2, borderRadius: 6 }}>
+              <View style={{ backgroundColor: isDark ? 'rgba(245,158,11,0.15)' : '#FEF3C7', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 5 }}>
                 <Text style={{ fontSize: 10, fontWeight: '800', color: '#B45309' }}>UNDER REVIEW</Text>
               </View>
             ) : (
               <TouchableOpacity 
-                style={{ backgroundColor: isDark ? 'rgba(239,68,68,0.15)' : '#FEE2E2', paddingHorizontal: 7, paddingVertical: 2, borderRadius: 6 }}
+                style={{ backgroundColor: isDark ? 'rgba(239,68,68,0.15)' : '#FEE2E2', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 5 }}
                 onPress={() => handleOpenPayModal(item)}
               >
                 <Text style={{ fontSize: 10, fontWeight: '800', color: '#DC2626' }}>PAY RS. 300</Text>
               </TouchableOpacity>
             )}
 
-            <View style={[styles.statusBadge, { backgroundColor: statusBadgeBg, paddingVertical: 3, paddingHorizontal: 8 }]}>
+            <View style={[styles.statusBadge, { backgroundColor: statusBadgeBg, paddingVertical: 2, paddingHorizontal: 6, borderRadius: 5 }]}>
               <Text style={[styles.statusText, { color: statusBadgeColor, fontWeight: '800', fontSize: 10 }]}>
                 {statusTextDisplay}
               </Text>

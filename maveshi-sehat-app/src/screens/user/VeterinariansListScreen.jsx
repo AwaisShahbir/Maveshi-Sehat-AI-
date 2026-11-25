@@ -29,6 +29,8 @@ export default function VeterinariansListScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [submittingRequest, setSubmittingRequest] = useState(false);
+  const isSubmittingRef = React.useRef(false);
   const [consultModalVisible, setConsultModalVisible] = useState(false);
   const [selectedVet, setSelectedVet] = useState(null);
   const [consultType, setConsultType] = useState('online_chat'); // 'online_chat' or 'physical_appointment'
@@ -309,7 +311,9 @@ export default function VeterinariansListScreen() {
     else mappedType = 'chat';
 
     try {
-      setLoading(true);
+      if (submittingRequest || isSubmittingRef.current) return;
+      isSubmittingRef.current = true;
+      setSubmittingRequest(true);
       const baseUrl = 'https://maveshi-sehat-api.onrender.com';
       const response = await fetch(`${baseUrl}/api/consultations`, {
         method: 'POST',
@@ -361,7 +365,8 @@ export default function VeterinariansListScreen() {
       console.error('Error submitting consultation:', error);
       Alert.alert('Error', error.message || 'Could not send request. Please try again later.');
     } finally {
-      setLoading(false);
+      isSubmittingRef.current = false;
+      setSubmittingRequest(false);
     }
   };
 
@@ -913,11 +918,28 @@ export default function VeterinariansListScreen() {
               )}
 
               <View style={styles.modalButtons}>
-                <TouchableOpacity style={styles.cancelBtn} onPress={() => setConsultModalVisible(false)}>
-                  <Text style={styles.cancelBtnText}>Cancel</Text>
+                <TouchableOpacity 
+                  style={[styles.cancelBtn, submittingRequest && { opacity: 0.5 }]} 
+                  onPress={() => setConsultModalVisible(false)}
+                  disabled={submittingRequest}
+                >
+                  <Text style={styles.cancelBtnText}>{t('Cancel')}</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.submitBtn} onPress={submitConsultationRequest}>
-                  <Text style={styles.submitBtnText}>Submit Request</Text>
+
+                <TouchableOpacity 
+                  style={[styles.submitBtn, submittingRequest && { opacity: 0.7 }]} 
+                  onPress={submitConsultationRequest}
+                  disabled={submittingRequest}
+                  activeOpacity={0.8}
+                >
+                  {submittingRequest ? (
+                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+                      <ActivityIndicator size="small" color="#FFF" style={{ marginRight: 8 }} />
+                      <Text style={styles.submitBtnText}>{t('Submitting Request...')}</Text>
+                    </View>
+                  ) : (
+                    <Text style={styles.submitBtnText}>{t('Submit Request')}</Text>
+                  )}
                 </TouchableOpacity>
               </View>
             </ScrollView>

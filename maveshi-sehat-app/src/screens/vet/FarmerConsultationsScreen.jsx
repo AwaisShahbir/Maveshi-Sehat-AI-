@@ -319,23 +319,23 @@ export default function FarmerConsultationsScreen() {
         }}
       >
         {/* Header: Case # and Type */}
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 6 }}>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, gap: 6 }}>
+          <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 6 }}>
             <View style={{ backgroundColor: isDark ? '#334155' : '#E2E8F0', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 }}>
               <Text style={{ fontSize: 12, fontWeight: '800', color: colors.textPrimary }}>
                 #Case-{item.id}
               </Text>
             </View>
-            <Text style={{ fontSize: 12, fontWeight: '600', color: colors.textSecondary }}>
+            <Text style={{ fontSize: 12, fontWeight: '600', color: colors.textSecondary }} numberOfLines={1}>
               {item.type === 'video_consult' || item.type === 'video'
                 ? '📹 Video'
                 : item.type === 'online_chat' || item.type === 'chat'
-                ? '💬 Online Chat'
+                ? '💬 Chat'
                 : '🏥 Physical'}
             </Text>
           </View>
 
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexShrink: 0 }}>
             {isPaid ? (
               <View style={{ backgroundColor: isDark ? 'rgba(16,185,129,0.15)' : '#DCFCE7', paddingHorizontal: 7, paddingVertical: 2, borderRadius: 6 }}>
                 <Text style={{ fontSize: 10, fontWeight: '800', color: '#047857' }}>✓ PAID</Text>
@@ -484,7 +484,8 @@ export default function FarmerConsultationsScreen() {
               <TouchableOpacity
                 style={{
                   flex: 1,
-                  height: 42,
+                  minHeight: 42,
+                  paddingHorizontal: 8,
                   borderRadius: 12,
                   backgroundColor: '#059669',
                   flexDirection: 'row',
@@ -494,9 +495,9 @@ export default function FarmerConsultationsScreen() {
                 onPress={() => handleApproveAndChat(item)}
                 activeOpacity={0.8}
               >
-                <Feather name="check-circle" size={16} color="#FFF" style={{ marginRight: 6 }} />
-                <Text style={{ color: '#FFF', fontWeight: '800', fontSize: 13 }}>
-                  {item.payment_status === 'pending_verification' ? t('Verify Payment & Approve') : t('Accept & Consult')}
+                <Feather name="check-circle" size={15} color="#FFF" style={{ marginRight: 5 }} />
+                <Text style={{ color: '#FFF', fontWeight: '800', fontSize: 12 }} numberOfLines={1} adjustsFontSizeToFit>
+                  {item.payment_status === 'pending_verification' ? t('Verify & Approve') : t('Accept & Consult')}
                 </Text>
               </TouchableOpacity>
             </>
@@ -666,39 +667,7 @@ export default function FarmerConsultationsScreen() {
           contentContainerStyle={{ padding: 16, paddingBottom: 40 }}
           showsVerticalScrollIndicator={false}
           ListHeaderComponent={
-            <View style={{ marginBottom: 14 }}>
-              {/* Single Professional Fee & Split Banner at the Top */}
-              <View style={{
-                backgroundColor: isDark ? 'rgba(16, 185, 129, 0.08)' : '#ECFDF5',
-                borderRadius: 14,
-                padding: 14,
-                marginBottom: 14,
-                borderWidth: 1,
-                borderColor: isDark ? 'rgba(16, 185, 129, 0.2)' : '#A7F3D0'
-              }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                    <MaterialCommunityIcons name="cash-multiple" size={20} color="#059669" />
-                    <Text style={{ fontSize: 14, fontWeight: '800', color: '#047857' }}>
-                      {t('Consultation Fee: Rs. 300 / Case')}
-                    </Text>
-                  </View>
-                  <View style={{ backgroundColor: '#DCFCE7', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6 }}>
-                    <Text style={{ fontSize: 11, fontWeight: '800', color: '#166534' }}>
-                      {t('Fixed Rate')}
-                    </Text>
-                  </View>
-                </View>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 8, paddingTop: 8, borderTopWidth: 1, borderTopColor: isDark ? 'rgba(255,255,255,0.08)' : '#D1FAE5' }}>
-                  <Text style={{ fontSize: 12, color: colors.textSecondary }}>
-                    {t('Doctor Net (90%)')}: <Text style={{ fontWeight: '800', color: colors.textPrimary }}>Rs. 270</Text>
-                  </Text>
-                  <Text style={{ fontSize: 12, color: colors.textSecondary }}>
-                    {t('Admin Commission (10%)')}: <Text style={{ fontWeight: '800', color: '#059669' }}>Rs. 30</Text>
-                  </Text>
-                </View>
-              </View>
-
+            <View style={{ marginBottom: 12 }}>
               <Text style={{ fontSize: 13, fontWeight: '800', color: colors.textSecondary, textTransform: 'uppercase', letterSpacing: 0.5 }}>
                 {t('Consultation Cases')} ({consultations.length})
               </Text>

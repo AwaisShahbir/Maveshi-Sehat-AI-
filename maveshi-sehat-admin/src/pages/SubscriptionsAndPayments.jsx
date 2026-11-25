@@ -1340,7 +1340,7 @@ export default function SubscriptionsAndPayments() {
                   Veterinarians Commission Ledger & Case Overview
                 </h3>
                 <p style={{ fontSize: '13px', color: '#64748B', margin: '4px 0 0 0' }}>
-                  Every consultation is charged at <strong>Rs. 300</strong> with a standard <strong>10% platform commission (Rs. 30 / case)</strong>.
+                  Every consultation is charged at <strong>Rs. 300</strong> with a standard <strong>25% platform commission (Rs. 75 / case)</strong>.
                 </p>
               </div>
             </div>
@@ -1353,8 +1353,8 @@ export default function SubscriptionsAndPayments() {
                     <th style={{ padding: '12px 16px', color: '#475569', fontWeight: '700' }}>Contact / District</th>
                     <th style={{ padding: '12px 16px', color: '#475569', fontWeight: '700' }}>Consultations</th>
                     <th style={{ padding: '12px 16px', color: '#475569', fontWeight: '700' }}>Gross Fees (@ Rs. 300)</th>
-                    <th style={{ padding: '12px 16px', color: '#475569', fontWeight: '700' }}>10% Platform Comm.</th>
-                    <th style={{ padding: '12px 16px', color: '#475569', fontWeight: '700' }}>90% Vet Share</th>
+                    <th style={{ padding: '12px 16px', color: '#475569', fontWeight: '700' }}>25% Platform Comm.</th>
+                    <th style={{ padding: '12px 16px', color: '#475569', fontWeight: '700' }}>75% Vet Share</th>
                     <th style={{ padding: '12px 16px', color: '#475569', fontWeight: '700' }}>Comm. Due (Debt)</th>
                     <th style={{ padding: '12px 16px', color: '#475569', fontWeight: '700' }}>Comm. Paid</th>
                   </tr>

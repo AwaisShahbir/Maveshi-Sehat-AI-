@@ -797,7 +797,7 @@ module.exports = (pool, io) => {
         SELECT u.id, u.full_name, u.phone_number, u.email, u.district, u.specialization,
                u.status, u.consultation_mode,
                COALESCE(u.consultation_fee, 300.00)::float as consultation_fee,
-               COALESCE(u.commission_rate, 10.00)::float as commission_rate,
+               COALESCE(u.commission_rate, 25.00)::float as commission_rate,
                COALESCE(u.commission_due, 0.00)::float as commission_due,
                COALESCE(u.commission_paid, 0.00)::float as commission_paid,
                u.payment_wallet_type, u.payment_account_title, u.payment_account_number,

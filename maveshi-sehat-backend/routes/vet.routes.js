@@ -182,7 +182,7 @@ module.exports = (pool, io) => {
       }
 
       const consultation = consultRes.rows[0];
-      const adminCommission = parseFloat(consultation.admin_commission) || 30.00;
+      const adminCommission = parseFloat(consultation.admin_commission) || 75.00;
 
       // 1. Mark consultation as paid and approved
       const updatedRes = await pool.query(
@@ -196,7 +196,7 @@ module.exports = (pool, io) => {
       );
       const updatedConsultation = updatedRes.rows[0];
 
-      // 2. Increment vet's commission debt to admin (10% platform commission = Rs. 30)
+      // 2. Increment vet's commission debt to admin (25% platform commission = Rs. 75)
       if (consultation.vet_id) {
         await pool.query(
           `UPDATE users
@@ -359,7 +359,7 @@ module.exports = (pool, io) => {
           fullName: vet.full_name,
           phone: vet.phone_number,
           consultationFee: parseFloat(vet.consultation_fee) || 300.00,
-          commissionRate: parseFloat(vet.commission_rate) || 10.00,
+          commissionRate: parseFloat(vet.commission_rate) || 25.00,
           commissionDue: parseFloat(vet.commission_due) || 0.00,
           commissionPaid: parseFloat(vet.commission_paid) || 0.00,
           paymentWalletType: vet.payment_wallet_type || 'JazzCash',

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, SafeAreaView, TouchableOpacity, ScrollView, StatusBar, Switch, Modal, TextInput, KeyboardAvoidingView, Platform, Alert, Linking } from 'react-native';
+import { View, Text, SafeAreaView, TouchableOpacity, ScrollView, StatusBar, Switch, Modal, TextInput, KeyboardAvoidingView, Platform, Alert, Linking, ActivityIndicator } from 'react-native';
+import { launchImageLibrary } from 'react-native-image-picker';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -63,6 +64,101 @@ export default function VetProfileScreen() {
   const baseUrl = 'https://maveshi-sehat-api.onrender.com';
   const vetId = profile.userId || params.userId;
 
+  // Financial & Commission States
+  const [commissionStatus, setCommissionStatus] = useState(null);
+  const [earningsModalVisible, setEarningsModalVisible] = useState(false);
+  const [settleModalVisible, setSettleModalVisible] = useState(false);
+  const [settleAmount, setSettleAmount] = useState('');
+  const [settleSenderPhone, setSettleSenderPhone] = useState(profile.phoneNumber || profile.phone || '');
+  const [settleTid, setSettleTid] = useState('');
+  const [settleReceipt, setSettleReceipt] = useState(null);
+  const [submittingSettlement, setSubmittingSettlement] = useState(false);
+
+  const fetchCommissionStatus = async () => {
+    try {
+      if (!vetId) return;
+      const res = await fetch(`${baseUrl}/api/vet/${vetId}/commission-status`);
+      if (res.ok) {
+        const json = await res.json();
+        const merged = { ...(json.stats || {}), ...(json.vet || {}) };
+        setCommissionStatus(merged);
+        if (merged.commissionDue > 0) {
+          setSettleAmount(String(merged.commissionDue));
+        }
+      }
+    } catch (e) {
+      console.error('Error fetching vet commission status:', e);
+    }
+  };
+
+  const handlePickSettleReceipt = () => {
+    const options = {
+      mediaType: 'photo',
+      includeBase64: true,
+      maxHeight: 1200,
+      maxWidth: 1200,
+      quality: 0.8,
+    };
+    launchImageLibrary(options, (response) => {
+      if (response.didCancel) return;
+      if (response.errorCode) {
+        Alert.alert(t('Error'), response.errorMessage || 'Failed to select image');
+        return;
+      }
+      if (response.assets && response.assets.length > 0) {
+        setSettleReceipt(response.assets[0]);
+      }
+    });
+  };
+
+  const handleSubmitSettlement = async () => {
+    const numAmount = parseFloat(settleAmount);
+    if (!numAmount || numAmount <= 0) {
+      Alert.alert(t('Error'), t('Please enter a valid amount.'));
+      return;
+    }
+    if (!settleSenderPhone || !settleSenderPhone.trim()) {
+      Alert.alert(t('Error'), t('Please enter sender phone number.'));
+      return;
+    }
+    if (!settleTid || !settleTid.trim()) {
+      Alert.alert(t('Error'), t('Please enter transaction ID (TID).'));
+      return;
+    }
+
+    try {
+      setSubmittingSettlement(true);
+      const response = await fetch(`${baseUrl}/api/vet/settlement-proof`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          vetId,
+          vetName: formName || profile.userName || profile.fullName || 'Veterinarian',
+          amount: numAmount,
+          paymentMethod: 'JazzCash',
+          accountNumber: '03054758667',
+          senderPhone: settleSenderPhone.trim(),
+          transactionId: settleTid.trim(),
+          proofBase64: settleReceipt ? settleReceipt.base64 : null
+        })
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Failed to submit settlement proof');
+
+      Alert.alert(t('Success'), t('Settlement proof submitted successfully. Admin will review and update your balance.'));
+      setSettleModalVisible(false);
+      setSettleReceipt(null);
+      setSettleTid('');
+      fetchCommissionStatus();
+    } catch (err) {
+      console.error(err);
+      Alert.alert(t('Error'), err.message || 'Could not submit settlement proof.');
+    } finally {
+      setSubmittingSettlement(false);
+    }
+  };
+
   useEffect(() => {
     const fetchVetProfile = async () => {
       if (!vetId) return;
@@ -101,6 +197,7 @@ export default function VetProfileScreen() {
       }
     };
     fetchVetProfile();
+    fetchCommissionStatus();
   }, [vetId]);
 
   const handleSave = async () => {
@@ -338,6 +435,18 @@ export default function VetProfileScreen() {
             {renderMenuItem('award', 'Specialization', null, null, () => setActiveModal('specialization'))}
             <View style={styles.menuDivider} />
             {renderMenuItem('calendar', 'Availability Schedule', null, null, () => setActiveModal('availability'))}
+          </View>
+
+          <Text style={styles.sectionHeading}>{t('Finances & Earnings')}</Text>
+          <View style={styles.menuCard}>
+            {renderMenuItem('dollar-sign', 'Earnings & Commission', null, (
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Text style={{ fontSize: 13, fontWeight: '800', color: '#059669', marginRight: 4 }}>
+                  Rs. {Number(commissionStatus?.netVetEarnings || 0).toLocaleString()}
+                </Text>
+                <Feather name="chevron-right" size={20} color={colors.textSecondary} />
+              </View>
+            ), () => setEarningsModalVisible(true))}
           </View>
 
           <Text style={styles.sectionHeading}>{t('Preferences')}</Text>
@@ -795,6 +904,330 @@ export default function VetProfileScreen() {
                 <Text style={styles.infoModalNoticeText}>
                   {t('For privacy or regulatory inquiries, contact our Data Governance Officer at support@maveshisehat.ai.')}
                 </Text>
+              </View>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Earnings & Commission Modal */}
+      <Modal visible={earningsModalVisible} transparent={true} animationType="slide">
+        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.65)', justifyContent: 'flex-end' }}>
+          <View style={{
+            backgroundColor: colors.card,
+            borderTopLeftRadius: 24,
+            borderTopRightRadius: 24,
+            padding: 20,
+            maxHeight: '85%'
+          }}>
+            <ScrollView showsVerticalScrollIndicator={false}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                  <MaterialCommunityIcons name="cash-multiple" size={24} color="#059669" />
+                  <Text style={{ fontSize: 18, fontWeight: '800', color: colors.textPrimary }}>
+                    {t('Consultation Earnings & Commission')}
+                  </Text>
+                </View>
+                <TouchableOpacity onPress={() => setEarningsModalVisible(false)}>
+                  <Feather name="x" size={24} color={colors.textSecondary} />
+                </TouchableOpacity>
+              </View>
+
+              {/* Consultation Rates & Split Info Box */}
+              <View style={{
+                backgroundColor: isDark ? 'rgba(16, 185, 129, 0.08)' : '#ECFDF5',
+                borderRadius: 14,
+                padding: 14,
+                borderWidth: 1,
+                borderColor: isDark ? 'rgba(16, 185, 129, 0.25)' : '#A7F3D0',
+                marginBottom: 16
+              }}>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                  <Text style={{ fontSize: 13, fontWeight: '800', color: '#047857' }}>
+                    {t('Consultation Fee: Rs. 300 / Case')}
+                  </Text>
+                  <View style={{ backgroundColor: '#DCFCE7', paddingHorizontal: 7, paddingVertical: 2, borderRadius: 5 }}>
+                    <Text style={{ fontSize: 10, fontWeight: '800', color: '#166534' }}>{t('Fixed Rate')}</Text>
+                  </View>
+                </View>
+                <Text style={{ fontSize: 12, color: colors.textSecondary, marginBottom: 8 }}>
+                  {t('Fee: Rs. 300 (Vet: Rs. 225, Admin: Rs. 75)')}
+                </Text>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', borderTopWidth: 1, borderTopColor: isDark ? 'rgba(255,255,255,0.08)' : '#D1FAE5', paddingTop: 8 }}>
+                  <Text style={{ fontSize: 12, color: colors.textSecondary }}>
+                    {t('Doctor Net (75%)')}: <Text style={{ fontWeight: '800', color: colors.textPrimary }}>Rs. 225</Text>
+                  </Text>
+                  <Text style={{ fontSize: 12, color: colors.textSecondary }}>
+                    {t('Admin Commission (25%)')}: <Text style={{ fontWeight: '800', color: '#059669' }}>Rs. 75</Text>
+                  </Text>
+                </View>
+              </View>
+
+              {/* Metrics Grid */}
+              <View style={{
+                backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : '#F8FAFC',
+                borderRadius: 14,
+                padding: 14,
+                borderWidth: 1,
+                borderColor: colors.border,
+                marginBottom: 16
+              }}>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 }}>
+                  <View>
+                    <Text style={{ fontSize: 11, color: colors.textSecondary }}>{t('Total Consultations')}</Text>
+                    <Text style={{ fontSize: 16, fontWeight: '800', color: colors.textPrimary, marginTop: 2 }}>
+                      {commissionStatus?.totalConsultations || 0}
+                    </Text>
+                  </View>
+                  <View style={{ alignItems: 'flex-end' }}>
+                    <Text style={{ fontSize: 11, color: colors.textSecondary }}>{t('Paid Cases')}</Text>
+                    <Text style={{ fontSize: 16, fontWeight: '800', color: '#059669', marginTop: 2 }}>
+                      {commissionStatus?.paidConsultations || 0}
+                    </Text>
+                  </View>
+                </View>
+
+                <View style={{ height: 1, backgroundColor: colors.border, marginVertical: 8 }} />
+
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 }}>
+                  <Text style={{ fontSize: 13, color: colors.textSecondary }}>{t('Gross Earned')}</Text>
+                  <Text style={{ fontSize: 14, fontWeight: '700', color: colors.textPrimary }}>
+                    Rs. {Number(commissionStatus?.grossEarnings || 0).toLocaleString()}
+                  </Text>
+                </View>
+
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 }}>
+                  <Text style={{ fontSize: 13, fontWeight: '700', color: '#059669' }}>{t('Net Earnings (75%)')}</Text>
+                  <Text style={{ fontSize: 15, fontWeight: '900', color: '#059669' }}>
+                    Rs. {Number(commissionStatus?.netVetEarnings || 0).toLocaleString()}
+                  </Text>
+                </View>
+
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 }}>
+                  <Text style={{ fontSize: 13, color: '#D97706' }}>{t('Commission Due (25%)')}</Text>
+                  <Text style={{ fontSize: 15, fontWeight: '900', color: (commissionStatus?.commissionDue > 0) ? '#D97706' : colors.textPrimary }}>
+                    Rs. {Number(commissionStatus?.commissionDue || 0).toLocaleString()}
+                  </Text>
+                </View>
+
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                  <Text style={{ fontSize: 13, color: colors.textSecondary }}>{t('Commission Paid')}</Text>
+                  <Text style={{ fontSize: 14, fontWeight: '700', color: colors.textSecondary }}>
+                    Rs. {Number(commissionStatus?.commissionPaid || 0).toLocaleString()}
+                  </Text>
+                </View>
+              </View>
+
+              {/* Settle Commission Button */}
+              <TouchableOpacity
+                style={{
+                  height: 46,
+                  backgroundColor: colors.primary,
+                  borderRadius: 12,
+                  flexDirection: 'row',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  marginBottom: 10
+                }}
+                onPress={() => {
+                  if (commissionStatus?.commissionDue > 0) {
+                    setSettleAmount(String(commissionStatus.commissionDue));
+                  }
+                  setSettleModalVisible(true);
+                }}
+                activeOpacity={0.8}
+              >
+                <Feather name="send" size={16} color="#FFF" style={{ marginRight: 8 }} />
+                <Text style={{ fontSize: 14, fontWeight: '800', color: '#FFF' }}>
+                  {t('Settle 25% Commission with Admin')}
+                </Text>
+              </TouchableOpacity>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Commission Settlement Proof Modal */}
+      <Modal visible={settleModalVisible} transparent={true} animationType="slide">
+        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.65)', justifyContent: 'flex-end' }}>
+          <View style={{
+            backgroundColor: colors.card,
+            borderTopLeftRadius: 24,
+            borderTopRightRadius: 24,
+            padding: 20,
+            maxHeight: '90%'
+          }}>
+            <ScrollView showsVerticalScrollIndicator={false}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                <Text style={{ fontSize: 18, fontWeight: '800', color: colors.textPrimary }}>
+                  {t('Commission Settlement')}
+                </Text>
+                <TouchableOpacity onPress={() => setSettleModalVisible(false)}>
+                  <Feather name="x" size={24} color={colors.textSecondary} />
+                </TouchableOpacity>
+              </View>
+
+              <Text style={{ fontSize: 13, color: colors.textSecondary, marginBottom: 14, lineHeight: 18 }}>
+                {t('Transfer the 25% admin commission (Rs. 75 per case) to Admin JazzCash (03054758667) and submit transaction proof below.')}
+              </Text>
+
+              {/* Admin JazzCash Details Card */}
+              <View style={{
+                backgroundColor: isDark ? 'rgba(239, 68, 68, 0.1)' : '#FEF2F2',
+                borderRadius: 14,
+                padding: 14,
+                borderWidth: 1,
+                borderColor: isDark ? 'rgba(239, 68, 68, 0.3)' : '#FECACA',
+                marginBottom: 16
+              }}>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                  <Text style={{ fontSize: 12, fontWeight: '700', color: '#DC2626', textTransform: 'uppercase' }}>
+                    JazzCash (Admin)
+                  </Text>
+                  <View style={{ backgroundColor: '#DC2626', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 }}>
+                    <Text style={{ fontSize: 10, fontWeight: '800', color: '#FFF' }}>25% Platform Fee</Text>
+                  </View>
+                </View>
+                <Text style={{ fontSize: 18, fontWeight: '900', color: colors.textPrimary, letterSpacing: 0.5 }}>
+                  03054758667
+                </Text>
+                <Text style={{ fontSize: 12, color: colors.textSecondary, marginTop: 2 }}>
+                  Title: <Text style={{ fontWeight: '700', color: colors.textPrimary }}>Maveshi Sehat Admin</Text>
+                </Text>
+              </View>
+
+              {/* Amount Input */}
+              <Text style={{ fontSize: 13, fontWeight: '700', color: colors.textPrimary, marginBottom: 6 }}>
+                {t('Amount to Settle (Rs.)')} *
+              </Text>
+              <TextInput
+                style={{
+                  backgroundColor: isDark ? colors.cardElevated : '#F8FAFC',
+                  borderWidth: 1,
+                  borderColor: colors.border,
+                  borderRadius: 12,
+                  paddingHorizontal: 14,
+                  paddingVertical: 10,
+                  fontSize: 15,
+                  fontWeight: '700',
+                  color: colors.textPrimary,
+                  marginBottom: 12
+                }}
+                keyboardType="numeric"
+                value={settleAmount}
+                onChangeText={setSettleAmount}
+                placeholder="e.g. 150"
+                placeholderTextColor={colors.textSecondary}
+              />
+
+              {/* Sender Phone */}
+              <Text style={{ fontSize: 13, fontWeight: '700', color: colors.textPrimary, marginBottom: 6 }}>
+                {t('Sender Phone')} *
+              </Text>
+              <TextInput
+                style={{
+                  backgroundColor: isDark ? colors.cardElevated : '#F8FAFC',
+                  borderWidth: 1,
+                  borderColor: colors.border,
+                  borderRadius: 12,
+                  paddingHorizontal: 14,
+                  paddingVertical: 10,
+                  fontSize: 15,
+                  color: colors.textPrimary,
+                  marginBottom: 12
+                }}
+                keyboardType="phone-pad"
+                value={settleSenderPhone}
+                onChangeText={setSettleSenderPhone}
+                placeholder="03XXXXXXXXX"
+                placeholderTextColor={colors.textSecondary}
+              />
+
+              {/* TID */}
+              <Text style={{ fontSize: 13, fontWeight: '700', color: colors.textPrimary, marginBottom: 6 }}>
+                {t('Transaction ID (TID)')} *
+              </Text>
+              <TextInput
+                style={{
+                  backgroundColor: isDark ? colors.cardElevated : '#F8FAFC',
+                  borderWidth: 1,
+                  borderColor: colors.border,
+                  borderRadius: 12,
+                  paddingHorizontal: 14,
+                  paddingVertical: 10,
+                  fontSize: 15,
+                  color: colors.textPrimary,
+                  marginBottom: 14
+                }}
+                value={settleTid}
+                onChangeText={setSettleTid}
+                placeholder="e.g. 1294829104"
+                placeholderTextColor={colors.textSecondary}
+              />
+
+              {/* Receipt Picker */}
+              <TouchableOpacity
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : '#F1F5F9',
+                  borderRadius: 12,
+                  paddingVertical: 12,
+                  borderWidth: 1,
+                  borderStyle: 'dashed',
+                  borderColor: colors.border,
+                  marginBottom: 16
+                }}
+                onPress={handlePickSettleReceipt}
+              >
+                <Feather name="camera" size={18} color={settleReceipt ? '#059669' : colors.textSecondary} style={{ marginRight: 8 }} />
+                <Text style={{ fontSize: 13, fontWeight: '700', color: settleReceipt ? '#059669' : colors.textPrimary }}>
+                  {settleReceipt ? t('Receipt Selected') : t('Attach Receipt Screenshot')}
+                </Text>
+              </TouchableOpacity>
+
+              {/* Actions */}
+              <View style={{ flexDirection: 'row', gap: 10, marginBottom: 16 }}>
+                <TouchableOpacity
+                  style={{
+                    flex: 1,
+                    height: 46,
+                    borderRadius: 12,
+                    borderWidth: 1,
+                    borderColor: colors.border,
+                    justifyContent: 'center',
+                    alignItems: 'center'
+                  }}
+                  onPress={() => setSettleModalVisible(false)}
+                >
+                  <Text style={{ fontSize: 14, fontWeight: '700', color: colors.textSecondary }}>{t('Cancel')}</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={{
+                    flex: 2,
+                    height: 46,
+                    backgroundColor: colors.primary,
+                    borderRadius: 12,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    flexDirection: 'row'
+                  }}
+                  onPress={handleSubmitSettlement}
+                  disabled={submittingSettlement}
+                >
+                  {submittingSettlement ? (
+                    <ActivityIndicator size="small" color="#FFF" />
+                  ) : (
+                    <>
+                      <Feather name="check" size={16} color="#FFF" style={{ marginRight: 6 }} />
+                      <Text style={{ color: '#FFF', fontWeight: '800', fontSize: 14 }}>
+                        {t('Submit Settlement Proof')}
+                      </Text>
+                    </>
+                  )}
+                </TouchableOpacity>
               </View>
             </ScrollView>
           </View>

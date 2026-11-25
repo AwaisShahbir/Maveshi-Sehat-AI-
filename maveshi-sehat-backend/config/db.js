@@ -222,23 +222,29 @@ pool.connect((err, client, release) => {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
 
-      -- Vet Consultation Fee, Direct Payment & Platform Commission
+      -- Vet Consultation Fee, Direct Payment & Platform Commission (25% Admin / 75% Vet)
       ALTER TABLE users ADD COLUMN IF NOT EXISTS consultation_fee DECIMAL(10, 2) DEFAULT 300.00;
       ALTER TABLE users ADD COLUMN IF NOT EXISTS payment_wallet_type VARCHAR(50) DEFAULT 'JazzCash';
       ALTER TABLE users ADD COLUMN IF NOT EXISTS payment_account_title VARCHAR(150);
       ALTER TABLE users ADD COLUMN IF NOT EXISTS payment_account_number VARCHAR(50);
-      ALTER TABLE users ADD COLUMN IF NOT EXISTS commission_rate DECIMAL(5, 2) DEFAULT 10.00;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS commission_rate DECIMAL(5, 2) DEFAULT 25.00;
       ALTER TABLE users ADD COLUMN IF NOT EXISTS commission_due DECIMAL(10, 2) DEFAULT 0.00;
       ALTER TABLE users ADD COLUMN IF NOT EXISTS commission_paid DECIMAL(10, 2) DEFAULT 0.00;
 
       ALTER TABLE consultations ADD COLUMN IF NOT EXISTS fee DECIMAL(10, 2) DEFAULT 300.00;
-      ALTER TABLE consultations ADD COLUMN IF NOT EXISTS admin_commission DECIMAL(10, 2) DEFAULT 30.00;
-      ALTER TABLE consultations ADD COLUMN IF NOT EXISTS vet_earnings DECIMAL(10, 2) DEFAULT 270.00;
+      ALTER TABLE consultations ADD COLUMN IF NOT EXISTS admin_commission DECIMAL(10, 2) DEFAULT 75.00;
+      ALTER TABLE consultations ADD COLUMN IF NOT EXISTS vet_earnings DECIMAL(10, 2) DEFAULT 225.00;
       ALTER TABLE consultations ADD COLUMN IF NOT EXISTS payment_method VARCHAR(50) DEFAULT 'JazzCash';
       ALTER TABLE consultations ADD COLUMN IF NOT EXISTS payment_status VARCHAR(50) DEFAULT 'unpaid';
       ALTER TABLE consultations ADD COLUMN IF NOT EXISTS sender_phone VARCHAR(50);
       ALTER TABLE consultations ADD COLUMN IF NOT EXISTS transaction_id VARCHAR(100);
       ALTER TABLE consultations ADD COLUMN IF NOT EXISTS payment_proof_url TEXT;
+
+      -- Ensure existing schema defaults reflect 25% commission rate
+      ALTER TABLE users ALTER COLUMN commission_rate SET DEFAULT 25.00;
+      ALTER TABLE consultations ALTER COLUMN admin_commission SET DEFAULT 75.00;
+      ALTER TABLE consultations ALTER COLUMN vet_earnings SET DEFAULT 225.00;
+      UPDATE users SET commission_rate = 25.00 WHERE role = 'vet' AND (commission_rate = 10.00 OR commission_rate IS NULL);
 
       ALTER TABLE conversations ADD COLUMN IF NOT EXISTS consultation_id INT REFERENCES consultations(id) ON DELETE CASCADE;
 
