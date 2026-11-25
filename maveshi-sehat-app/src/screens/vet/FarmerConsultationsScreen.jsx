@@ -339,15 +339,21 @@ export default function FarmerConsultationsScreen() {
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexShrink: 0 }}>
             {isPaid ? (
               <View style={{ backgroundColor: isDark ? 'rgba(16,185,129,0.15)' : '#DCFCE7', paddingHorizontal: 7, paddingVertical: 2, borderRadius: 6 }}>
-                <Text style={{ fontSize: 10, fontWeight: '800', color: '#047857' }}>✓ PAID</Text>
+                <Text style={{ fontSize: 10, fontWeight: '800', color: '#047857' }}>
+                  {(item.type === 'physical' || item.type === 'physical_appointment') ? t('✓ ADVANCE PAID') : t('✓ PAID')}
+                </Text>
               </View>
             ) : isPaymentUnderReview ? (
               <View style={{ backgroundColor: isDark ? 'rgba(245,158,11,0.15)' : '#FEF3C7', paddingHorizontal: 7, paddingVertical: 2, borderRadius: 6 }}>
-                <Text style={{ fontSize: 10, fontWeight: '800', color: '#B45309' }}>REVIEW PROOF</Text>
+                <Text style={{ fontSize: 10, fontWeight: '800', color: '#B45309' }}>
+                  {(item.type === 'physical' || item.type === 'physical_appointment') ? t('ADVANCE REVIEW') : t('REVIEW PROOF')}
+                </Text>
               </View>
             ) : (
               <View style={{ backgroundColor: isDark ? 'rgba(239,68,68,0.15)' : '#FEE2E2', paddingHorizontal: 7, paddingVertical: 2, borderRadius: 6 }}>
-                <Text style={{ fontSize: 10, fontWeight: '800', color: '#DC2626' }}>UNPAID</Text>
+                <Text style={{ fontSize: 10, fontWeight: '800', color: '#DC2626' }}>
+                  {(item.type === 'physical' || item.type === 'physical_appointment') ? t('ADVANCE UNPAID') : t('UNPAID')}
+                </Text>
               </View>
             )}
 

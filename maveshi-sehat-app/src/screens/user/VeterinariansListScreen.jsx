@@ -328,7 +328,7 @@ export default function VeterinariansListScreen() {
           reason: reason.trim(),
           appointment_date: consultType === 'physical_appointment' ? `${formattedDate} ${formattedTime}` : null,
           ai_record_data: params.initialRecord || null,
-          fee: consultType === 'physical_appointment' ? 0.00 : 300.00,
+          fee: 300.00,
           payment_method: 'JazzCash',
           sender_phone: (senderPhone || effectivePhone || '').trim(),
           transaction_id: (transactionId || '').trim() || null,
@@ -354,7 +354,7 @@ export default function VeterinariansListScreen() {
       Alert.alert(
         t('Request Sent'),
         isPhysical
-          ? `Your physical appointment request has been sent to ${selectedVet?.full_name || 'the vet'}. The veterinarian will contact you to confirm timing and visit charges.`
+          ? `Your physical appointment request with Rs. 300 advance deposit has been sent to ${selectedVet?.full_name || 'the vet'}. Once verified, the doctor will visit at your scheduled time. Remaining charges can be settled during the visit.`
           : `Your consultation request (Rs. 300) has been sent to ${selectedVet?.full_name || 'the vet'}. Once verified, your chat and video consultation will activate.`,
         [
           {
@@ -482,9 +482,9 @@ export default function VeterinariansListScreen() {
           )}
         </View>
 
-        <TouchableOpacity style={styles.bookBtn} onPress={() => openConsultModal(item, 'physical_appointment')}>
-          <Feather name="calendar" size={16} color="#D98A22" style={{ marginRight: 8 }} />
-          <Text style={styles.bookBtnText}>Book Physical Appointment</Text>
+        <TouchableOpacity style={styles.bookBtn} onPress={() => openConsultModal(item, 'physical_appointment')} activeOpacity={0.85}>
+          <Feather name="calendar" size={15} color="#B45309" style={{ marginRight: 8 }} />
+          <Text style={styles.bookBtnText}>{t('Book Physical Appointment (Rs. 300 Advance)')}</Text>
         </TouchableOpacity>
       </View>
     );
@@ -574,14 +574,34 @@ export default function VeterinariansListScreen() {
         >
           <View style={[styles.modalContent, { maxHeight: '92%' }]}>
             <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-              <Text style={styles.modalTitle}>
-                {consultType === 'video_consult'
-                  ? t('Request Video Consultation')
-                  : consultType === 'online_chat'
-                    ? t('Request Online Consultation')
-                    : t('Book Physical Appointment')}
-              </Text>
-              <Text style={styles.modalSubtitle}>with Dr. {selectedVet?.full_name?.replace('Dr. ', '')}</Text>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
+                <View style={{ flex: 1, paddingRight: 10 }}>
+                  <Text style={styles.modalTitle}>
+                    {consultType === 'video_consult'
+                      ? t('Request Video Consultation')
+                      : consultType === 'online_chat'
+                        ? t('Request Online Consultation')
+                        : t('Book Physical Appointment')}
+                  </Text>
+                  <Text style={[styles.modalSubtitle, { marginBottom: 0 }]}>
+                    with Dr. {selectedVet?.full_name?.replace('Dr. ', '')}
+                  </Text>
+                </View>
+                <TouchableOpacity
+                  onPress={() => setConsultModalVisible(false)}
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: 18,
+                    backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : '#F1F5F9',
+                    justifyContent: 'center',
+                    alignItems: 'center'
+                  }}
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                >
+                  <Feather name="x" size={20} color={colors.textSecondary} />
+                </TouchableOpacity>
+              </View>
 
               {/* Mode Selector if Dr supports both */}
               {(selectedVet?.consultation_mode === 'Chat + Video' || !selectedVet?.consultation_mode) && consultType !== 'physical_appointment' && (
@@ -811,24 +831,24 @@ export default function VeterinariansListScreen() {
                 padding: 12,
                 marginBottom: 16
               }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', flexShrink: 1 }}>
                     <MaterialCommunityIcons name="wallet-outline" size={18} color="#D97706" style={{ marginRight: 6 }} />
                     <Text style={{ fontSize: 13, fontWeight: '700', color: isDark ? '#FBBF24' : '#B45309' }}>
-                      {consultType === 'physical_appointment' ? t('Physical Appointment Fee') : t('Consultation Fee (Rs. 300)')}
+                      {consultType === 'physical_appointment' ? t('Physical Visit Advance') : t('Online Consultation Fee')}
                     </Text>
                   </View>
-                  <View style={{ backgroundColor: consultType === 'physical_appointment' ? '#0284C7' : '#D97706', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 8 }}>
+                  <View style={{ backgroundColor: consultType === 'physical_appointment' ? '#059669' : '#D97706', paddingHorizontal: 9, paddingVertical: 3, borderRadius: 8 }}>
                     <Text style={{ fontSize: 11, fontWeight: '800', color: '#FFF' }}>
-                      {consultType === 'physical_appointment' ? t('Custom / Mutually Agreed') : 'Rs. 300'}
+                      {consultType === 'physical_appointment' ? t('Rs. 300 Advance') : 'Rs. 300'}
                     </Text>
                   </View>
                 </View>
 
-                <Text style={{ fontSize: 11, color: isDark ? '#CBD5E1' : '#92400E', marginBottom: 8, lineHeight: 16 }}>
+                <Text style={{ fontSize: 11, color: isDark ? '#CBD5E1' : '#92400E', marginBottom: 10, lineHeight: 17 }}>
                   {consultType === 'physical_appointment'
-                    ? t('Physical appointment charges are set by the veterinarian based on distance and clinical treatment. Enter payment proof if agreed in advance, or pay during visit.')
-                    : t('Transfer Rs. 300 to JazzCash (03054758667) and enter TID with receipt screenshot below.')}
+                    ? t('Transfer Rs. 300 advance deposit via JazzCash (03054758667) to secure your visit slot. Remaining visit and treatment charges will be paid directly to the veterinarian.')
+                    : t('Transfer Rs. 300 via JazzCash (03054758667) and enter TID with receipt screenshot below to unlock consultation.')}
                 </Text>
 
                 <View style={{ marginBottom: 8 }}>
@@ -875,7 +895,7 @@ export default function VeterinariansListScreen() {
                   >
                     <Feather name={proofImage ? "check-circle" : "camera"} size={14} color={proofImage ? "#059669" : colors.textPrimary} style={{ marginRight: 6 }} />
                     <Text style={{ fontSize: 12, fontWeight: '700', color: proofImage ? "#059669" : colors.textPrimary }}>
-                      {proofImage ? t('Receipt Attached') : t('Attach Receipt')}
+                      {proofImage ? t('Receipt Attached') : t('Attach Receipt Screenshot')}
                     </Text>
                   </TouchableOpacity>
 

@@ -309,22 +309,24 @@ export default function DoctorConsultationsScreen() {
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, flexShrink: 0 }}>
             {isPaymentPaid ? (
               <View style={{ backgroundColor: isDark ? 'rgba(16,185,129,0.15)' : '#DCFCE7', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 5 }}>
-                <Text style={{ fontSize: 10, fontWeight: '800', color: '#047857' }}>✓ PAID</Text>
+                <Text style={{ fontSize: 10, fontWeight: '800', color: '#047857' }}>
+                  {(item.type === 'physical_appointment' || item.type === 'physical') ? t('✓ ADVANCE PAID') : t('✓ PAID')}
+                </Text>
               </View>
             ) : isPaymentPending ? (
               <View style={{ backgroundColor: isDark ? 'rgba(245,158,11,0.15)' : '#FEF3C7', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 5 }}>
-                <Text style={{ fontSize: 10, fontWeight: '800', color: '#B45309' }}>UNDER REVIEW</Text>
-              </View>
-            ) : (item.type === 'physical_appointment' || item.type === 'physical') ? (
-              <View style={{ backgroundColor: isDark ? 'rgba(2,132,199,0.15)' : '#E0F2FE', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 5 }}>
-                <Text style={{ fontSize: 10, fontWeight: '800', color: '#0284C7' }}>FEE UPON VISIT</Text>
+                <Text style={{ fontSize: 10, fontWeight: '800', color: '#B45309' }}>
+                  {(item.type === 'physical_appointment' || item.type === 'physical') ? t('ADVANCE REVIEW') : t('UNDER REVIEW')}
+                </Text>
               </View>
             ) : (
               <TouchableOpacity 
                 style={{ backgroundColor: isDark ? 'rgba(239,68,68,0.15)' : '#FEE2E2', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 5 }}
                 onPress={() => handleOpenPayModal(item)}
               >
-                <Text style={{ fontSize: 10, fontWeight: '800', color: '#DC2626' }}>PAY RS. 300</Text>
+                <Text style={{ fontSize: 10, fontWeight: '800', color: '#DC2626' }}>
+                  {(item.type === 'physical_appointment' || item.type === 'physical') ? t('PAY ADVANCE RS. 300') : t('PAY RS. 300')}
+                </Text>
               </TouchableOpacity>
             )}
 
@@ -335,6 +337,15 @@ export default function DoctorConsultationsScreen() {
             </View>
           </View>
         </View>
+
+        {(item.type === 'physical_appointment' || item.type === 'physical') && (
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8, paddingHorizontal: 2 }}>
+            <Feather name="info" size={12} color={colors.textSecondary} style={{ marginRight: 4 }} />
+            <Text style={{ fontSize: 11, color: colors.textSecondary }}>
+              {t('Advance: Rs. 300 · Remaining fee upon visit')}
+            </Text>
+          </View>
+        )}
 
         {/* Attached AI Report Snippet */}
         {aiData && (

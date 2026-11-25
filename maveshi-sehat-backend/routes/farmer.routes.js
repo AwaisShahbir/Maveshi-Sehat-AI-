@@ -633,9 +633,9 @@ module.exports = (pool, io) => {
 
       // Consultation Financials: Rs. 300 consultation fee for online, custom for physical
       const isPhysical = normalizedType === 'physical';
-      const fee = isPhysical ? (Number(req.body.fee) || 0.00) : 300.00;
-      const adminCommission = isPhysical ? Math.round(fee * 0.25 * 100) / 100 : 75.00;
-      const vetEarnings = isPhysical ? Math.round(fee * 0.75 * 100) / 100 : 225.00;
+      const fee = isPhysical ? (Number(req.body.fee) > 0 ? Number(req.body.fee) : 300.00) : 300.00;
+      const adminCommission = Math.round(fee * 0.25 * 100) / 100;
+      const vetEarnings = Math.round(fee * 0.75 * 100) / 100;
       const paymentMethod = req.body.payment_method || req.body.paymentMethod || 'JazzCash';
       const senderPhone = (req.body.sender_phone || req.body.senderPhone || phone || phoneNumber || '').trim() || null;
       const transactionId = (req.body.transaction_id || req.body.transactionId || req.body.tid || '').trim() || null;
