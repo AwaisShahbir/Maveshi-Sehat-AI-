@@ -183,7 +183,7 @@ export default function Dashboard() {
             </h2>
             <p className="kpi-card-label" style={{ color: '#166534', fontWeight: '700' }}>Admin Total Earnings</p>
             <span className="kpi-card-trend" style={{ color: '#15803D', fontSize: '11px', fontWeight: '600' }}>
-              Rs. {(stats?.adminEarnings?.subscriptionsRevenue ?? 0).toLocaleString()} Subs • Rs. {(stats?.adminEarnings?.pharmacyCommissionEarned ?? 0).toLocaleString()} Comm.
+              Rs. {(stats?.adminEarnings?.subscriptionsRevenue ?? 0).toLocaleString()} Subs • Rs. {(stats?.adminEarnings?.pharmacyCommissionEarned ?? 0).toLocaleString()} Pharm. • Rs. {(stats?.adminEarnings?.vetCommissionEarned ?? 0).toLocaleString()} Vet
             </span>
           </div>
         </div>
@@ -208,7 +208,7 @@ export default function Dashboard() {
                 Admin Platform Revenue & Earnings
               </h3>
               <p style={{ margin: '2px 0 0 0', fontSize: '12px', color: '#c5dbd0' }}>
-                Consolidated net income from AI Disease Subscriptions (Rs. 300) & 10% Pharmacy Commissions
+                Consolidated net income from Subscriptions, 10% Pharmacy Commissions, & 10% Vet Consultations (Rs. 30 / case)
               </p>
             </div>
           </div>
@@ -235,7 +235,7 @@ export default function Dashboard() {
           </button>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px' }}>
           <div style={{ backgroundColor: 'rgba(255,255,255,0.1)', padding: '14px 16px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)' }}>
             <span style={{ fontSize: '11px', color: '#c5dbd0', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Total Admin Earnings</span>
             <h2 style={{ fontSize: '24px', fontWeight: '900', color: '#ffffff', margin: '6px 0 0 0' }}>
@@ -252,27 +252,37 @@ export default function Dashboard() {
               Rs. {(stats?.adminEarnings?.subscriptionsRevenue ?? 0).toLocaleString()}
             </h2>
             <span style={{ fontSize: '10px', color: '#c5dbd0', display: 'block', marginTop: '2px' }}>
-              {stats?.adminEarnings?.approvedSubscriptionsCount ?? 0} Approved Subscriptions
+              {stats?.adminEarnings?.approvedSubscriptionsCount ?? 0} Subscriptions
             </span>
           </div>
 
           <div style={{ backgroundColor: 'rgba(255,255,255,0.1)', padding: '14px 16px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)' }}>
-            <span style={{ fontSize: '11px', color: '#c5dbd0', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px' }}>10% Pharmacy Commission</span>
+            <span style={{ fontSize: '11px', color: '#c5dbd0', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px' }}>10% Pharmacy Comm.</span>
             <h2 style={{ fontSize: '24px', fontWeight: '900', color: '#FDE68A', margin: '6px 0 0 0' }}>
               Rs. {(stats?.adminEarnings?.pharmacyCommissionEarned ?? 0).toLocaleString()}
             </h2>
             <span style={{ fontSize: '10px', color: '#c5dbd0', display: 'block', marginTop: '2px' }}>
-              From Rs. {(stats?.totalRevenue ?? 0).toLocaleString()} Marketplace Sales
+              Due: Rs. {(stats?.adminEarnings?.pharmacyCommissionDue ?? 0).toLocaleString()}
             </span>
           </div>
 
           <div style={{ backgroundColor: 'rgba(255,255,255,0.1)', padding: '14px 16px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)' }}>
-            <span style={{ fontSize: '11px', color: '#c5dbd0', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Commission Settled Cash</span>
-            <h2 style={{ fontSize: '24px', fontWeight: '900', color: '#93C5FD', margin: '6px 0 0 0' }}>
-              Rs. {(stats?.adminEarnings?.pharmacyCommissionSettled ?? 0).toLocaleString()}
+            <span style={{ fontSize: '11px', color: '#c5dbd0', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px' }}>10% Vet Commission</span>
+            <h2 style={{ fontSize: '24px', fontWeight: '900', color: '#BAE6FD', margin: '6px 0 0 0' }}>
+              Rs. {(stats?.adminEarnings?.vetCommissionEarned ?? 0).toLocaleString()}
             </h2>
             <span style={{ fontSize: '10px', color: '#c5dbd0', display: 'block', marginTop: '2px' }}>
-              Due Debt: Rs. {(stats?.adminEarnings?.pharmacyCommissionDue ?? 0).toLocaleString()}
+              {stats?.adminEarnings?.paidConsultationsCount ?? 0} Consultations @ Rs. 30
+            </span>
+          </div>
+
+          <div style={{ backgroundColor: 'rgba(255,255,255,0.1)', padding: '14px 16px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)' }}>
+            <span style={{ fontSize: '11px', color: '#c5dbd0', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Vet Commission Due</span>
+            <h2 style={{ fontSize: '24px', fontWeight: '900', color: '#FECDD3', margin: '6px 0 0 0' }}>
+              Rs. {(stats?.adminEarnings?.vetCommissionDue ?? 0).toLocaleString()}
+            </h2>
+            <span style={{ fontSize: '10px', color: '#c5dbd0', display: 'block', marginTop: '2px' }}>
+              Settled: Rs. {(stats?.adminEarnings?.vetCommissionSettled ?? 0).toLocaleString()}
             </span>
           </div>
         </div>

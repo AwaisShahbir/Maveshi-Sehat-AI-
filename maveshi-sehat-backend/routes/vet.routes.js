@@ -1,6 +1,9 @@
 const express = require('express');
 const router = express.Router();
+const path = require('path');
+const fs = require('fs');
 const { sendNotification } = require('../services/notificationService');
+const { persistUploadedFile } = require('../utils/fileStore');
 
 module.exports = (pool, io) => {
   // Vet Directory
@@ -154,9 +157,11 @@ module.exports = (pool, io) => {
                 c.status as status,
                 u.full_name as farmer_name,
                 u.phone_number as farmer_phone,
-                u.district as farmer_district
+                u.district as farmer_district,
+                conv.id as conversation_id
          FROM consultations c 
          JOIN users u ON c.farmer_id = u.id 
+         LEFT JOIN conversations conv ON conv.consultation_id = c.id
          WHERE c.vet_id = $1 ORDER BY c.created_at DESC`,
         [req.params.id]
       );
@@ -164,6 +169,308 @@ module.exports = (pool, io) => {
     } catch (err) {
       console.error('Error fetching vet consultations:', err);
       res.status(500).json({ error: 'Failed to fetch consultations' });
+    }
+  });
+
+  // Verify Farmer Payment for Consultation (Sets paid + approved, records Rs. 30 admin commission)
+  router.put('/api/consultations/:id/verify-payment', async (req, res) => {
+    try {
+      const consultId = req.params.id;
+      const consultRes = await pool.query('SELECT * FROM consultations WHERE id = $1', [consultId]);
+      if (consultRes.rows.length === 0) {
+        return res.status(404).json({ error: 'Consultation not found' });
+      }
+
+      const consultation = consultRes.rows[0];
+      const adminCommission = parseFloat(consultation.admin_commission) || 30.00;
+
+      // 1. Mark consultation as paid and approved
+      const updatedRes = await pool.query(
+        `UPDATE consultations
+         SET payment_status = 'paid',
+             status = 'approved',
+             updated_at = CURRENT_TIMESTAMP
+         WHERE id = $1
+         RETURNING *`,
+        [consultId]
+      );
+      const updatedConsultation = updatedRes.rows[0];
+
+      // 2. Increment vet's commission debt to admin (10% platform commission = Rs. 30)
+      if (consultation.vet_id) {
+        await pool.query(
+          `UPDATE users
+           SET commission_due = COALESCE(commission_due, 0) + $1
+           WHERE id = $2`,
+          [adminCommission, consultation.vet_id]
+        );
+      }
+
+      // 3. Ensure conversation for this consultation is active
+      const convCheck = await pool.query(
+        'SELECT id FROM conversations WHERE consultation_id = $1',
+        [consultId]
+      );
+      if (convCheck.rows.length === 0) {
+        await pool.query(
+          "INSERT INTO conversations (farmer_id, vet_id, consultation_id, status) VALUES ($1, $2, $3, 'active')",
+          [consultation.farmer_id, consultation.vet_id, consultId]
+        );
+      } else {
+        await pool.query(
+          "UPDATE conversations SET status = 'active', updated_at = CURRENT_TIMESTAMP WHERE consultation_id = $1",
+          [consultId]
+        );
+      }
+
+      if (io) {
+        io.emit('consultation_updated', updatedConsultation);
+      }
+
+      // Notify Farmer that consultation is approved & payment verified
+      try {
+        const vetRes = await pool.query('SELECT full_name FROM users WHERE id = $1', [consultation.vet_id]);
+        const vetName = vetRes.rows[0]?.full_name || 'Veterinarian';
+
+        await sendNotification({
+          pool,
+          io,
+          userId: consultation.farmer_id,
+          type: 'consultation',
+          title_en: 'Payment Verified & Consultation Approved',
+          title_ur: 'فیس تصدیق شدہ اور مشاورت منظور',
+          message_en: `Dr. ${vetName} has confirmed your Rs. 300 payment! Video call, audio call, and chat are now unlocked.`,
+          message_ur: `ڈاکٹر ${vetName} نے آپ کی 300 روپے کی فیس کی تصدیق کر لی ہے۔ اب آپ ویڈیو کال، آڈیو کال اور چیٹ کر سکتے ہیں۔`,
+          data: {
+            consultationId: consultation.id,
+            status: 'approved',
+            targetScreen: 'MyConsultations'
+          }
+        });
+      } catch (notifErr) {
+        console.error('Failed to notify farmer of payment verification:', notifErr.message);
+      }
+
+      res.status(200).json({
+        success: true,
+        message: 'Payment verified and consultation approved successfully.',
+        consultation: updatedConsultation
+      });
+    } catch (err) {
+      console.error('Error verifying consultation payment:', err);
+      res.status(500).json({ error: 'Failed to verify consultation payment' });
+    }
+  });
+
+  // Reject Farmer Payment for Consultation
+  router.put('/api/consultations/:id/reject-payment', async (req, res) => {
+    try {
+      const consultId = req.params.id;
+      const { rejectionReason } = req.body;
+
+      const updatedRes = await pool.query(
+        `UPDATE consultations
+         SET payment_status = 'rejected',
+             status = 'rejected',
+             updated_at = CURRENT_TIMESTAMP
+         WHERE id = $1
+         RETURNING *`,
+        [consultId]
+      );
+
+      if (updatedRes.rows.length === 0) {
+        return res.status(404).json({ error: 'Consultation not found' });
+      }
+
+      const updatedConsultation = updatedRes.rows[0];
+
+      if (io) {
+        io.emit('consultation_updated', updatedConsultation);
+      }
+
+      // Notify Farmer about rejected payment proof
+      try {
+        const vetRes = await pool.query('SELECT full_name FROM users WHERE id = $1', [updatedConsultation.vet_id]);
+        const vetName = vetRes.rows[0]?.full_name || 'Veterinarian';
+
+        await sendNotification({
+          pool,
+          io,
+          userId: updatedConsultation.farmer_id,
+          type: 'consultation',
+          title_en: 'Payment Proof Rejected',
+          title_ur: 'فیس کا ثبوت مسترد ہو گیا',
+          message_en: `Dr. ${vetName} could not verify your payment proof. Please verify your TID or re-upload the receipt.`,
+          message_ur: `ڈاکٹر ${vetName} نے آپ کا فیس ثبوت مسترد کر دیا ہے۔ برائے مہربانی درست رسید یا ٹرانزیکشن آئی ڈی دوبارہ بھیجیں۔`,
+          data: {
+            consultationId: updatedConsultation.id,
+            status: 'rejected',
+            targetScreen: 'MyConsultations'
+          }
+        });
+      } catch (notifErr) {
+        console.error('Failed to notify farmer of payment rejection:', notifErr.message);
+      }
+
+      res.status(200).json({
+        success: true,
+        message: 'Payment rejected',
+        consultation: updatedConsultation
+      });
+    } catch (err) {
+      console.error('Error rejecting consultation payment:', err);
+      res.status(500).json({ error: 'Failed to reject payment' });
+    }
+  });
+
+  // Get Vet Commission Status & Summary
+  router.get('/api/vet/:id/commission-status', async (req, res) => {
+    try {
+      const vetId = parseInt(req.params.id);
+      const userRes = await pool.query(
+        `SELECT id, full_name, phone_number, email, consultation_fee,
+                payment_wallet_type, payment_account_title, payment_account_number,
+                commission_rate, commission_due, commission_paid
+         FROM users WHERE id = $1 AND role = 'vet'`,
+        [vetId]
+      );
+
+      if (userRes.rows.length === 0) {
+        return res.status(404).json({ error: 'Veterinarian not found' });
+      }
+
+      const vet = userRes.rows[0];
+
+      const countsRes = await pool.query(
+        `SELECT COUNT(*) as total_consultations,
+                COUNT(CASE WHEN payment_status = 'paid' OR status IN ('approved', 'completed') THEN 1 END) as paid_consultations,
+                COALESCE(SUM(CASE WHEN payment_status = 'paid' OR status IN ('approved', 'completed') THEN fee ELSE 0 END), 0) as gross_earnings,
+                COALESCE(SUM(CASE WHEN payment_status = 'paid' OR status IN ('approved', 'completed') THEN admin_commission ELSE 0 END), 0) as total_admin_commission,
+                COALESCE(SUM(CASE WHEN payment_status = 'paid' OR status IN ('approved', 'completed') THEN vet_earnings ELSE 0 END), 0) as net_vet_earnings
+         FROM consultations WHERE vet_id = $1`,
+        [vetId]
+      );
+
+      const stats = countsRes.rows[0];
+
+      res.status(200).json({
+        vet: {
+          id: vet.id,
+          fullName: vet.full_name,
+          phone: vet.phone_number,
+          consultationFee: parseFloat(vet.consultation_fee) || 300.00,
+          commissionRate: parseFloat(vet.commission_rate) || 10.00,
+          commissionDue: parseFloat(vet.commission_due) || 0.00,
+          commissionPaid: parseFloat(vet.commission_paid) || 0.00,
+          paymentWalletType: vet.payment_wallet_type || 'JazzCash',
+          paymentAccountTitle: vet.payment_account_title || '',
+          paymentAccountNumber: vet.payment_account_number || '',
+          adminJazzCashNumber: '03054758667'
+        },
+        stats: {
+          totalConsultations: parseInt(stats.total_consultations) || 0,
+          paidConsultations: parseInt(stats.paid_consultations) || 0,
+          grossEarnings: parseFloat(stats.gross_earnings) || 0.00,
+          totalAdminCommission: parseFloat(stats.total_admin_commission) || 0.00,
+          netVetEarnings: parseFloat(stats.net_vet_earnings) || 0.00
+        }
+      });
+    } catch (err) {
+      console.error('Error fetching vet commission status:', err);
+      res.status(500).json({ error: 'Server error fetching commission status' });
+    }
+  });
+
+  // Submit Vet Commission Settlement Proof to Admin
+  router.post('/api/vet/settlement-proof', async (req, res) => {
+    try {
+      const {
+        vetId,
+        vet_id,
+        amount,
+        senderPhone,
+        sender_phone,
+        transactionId,
+        transaction_id,
+        tid,
+        paymentMethod,
+        payment_method,
+        proofImageBase64,
+        proof_image_base64,
+        proofImageUrl,
+        proof_image_url
+      } = req.body;
+
+      const effectiveVetId = parseInt(vetId || vet_id);
+      if (!effectiveVetId) {
+        return res.status(400).json({ error: 'vetId is required' });
+      }
+
+      const effectiveAmount = parseFloat(amount);
+      if (!effectiveAmount || effectiveAmount <= 0) {
+        return res.status(400).json({ error: 'A valid settlement amount is required' });
+      }
+
+      const effectivePhone = (senderPhone || sender_phone || '').trim();
+      const effectiveTid = (transactionId || transaction_id || tid || '').trim();
+      if (!effectivePhone || !effectiveTid) {
+        return res.status(400).json({ error: 'Sender phone and transaction ID (TID) are required' });
+      }
+
+      let finalProofUrl = proofImageUrl || proof_image_url || null;
+      const b64 = proofImageBase64 || proof_image_base64;
+      if (b64) {
+        try {
+          const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+          const fileName = `vet-settlement-${effectiveVetId}-${uniqueSuffix}.jpg`;
+          const uploadDir = path.join(__dirname, '..', 'uploads');
+          if (!fs.existsSync(uploadDir)) {
+            fs.mkdirSync(uploadDir, { recursive: true });
+          }
+          const filePath = path.join(uploadDir, fileName);
+          const cleanBase64 = b64.replace(/^data:image\/\w+;base64,/, '');
+          fs.writeFileSync(filePath, Buffer.from(cleanBase64, 'base64'));
+          const host = req.get('host');
+          const protocol = req.protocol === 'https' || req.headers['x-forwarded-proto'] === 'https' ? 'https' : 'http';
+          finalProofUrl = `${protocol}://${host}/uploads/${fileName}`;
+          await persistUploadedFile(pool, fileName, filePath, 'image/jpeg');
+        } catch (proofErr) {
+          console.warn('Vet settlement proof image save error:', proofErr.message);
+        }
+      }
+
+      if (!finalProofUrl) {
+        return res.status(400).json({ error: 'Receipt proof image is required' });
+      }
+
+      const vetRes = await pool.query('SELECT full_name FROM users WHERE id = $1', [effectiveVetId]);
+      const vetName = vetRes.rows[0]?.full_name || 'Veterinarian';
+
+      const insertRes = await pool.query(
+        `INSERT INTO vet_commission_settlements (
+           vet_id, vet_name, amount, payment_method, account_number, sender_phone,
+           transaction_id, proof_image_url, status
+         ) VALUES ($1, $2, $3, $4, '03054758667', $5, $6, $7, 'pending')
+         RETURNING *`,
+        [
+          effectiveVetId,
+          vetName,
+          effectiveAmount,
+          paymentMethod || payment_method || 'JazzCash',
+          effectivePhone,
+          effectiveTid,
+          finalProofUrl
+        ]
+      );
+
+      res.status(201).json({
+        success: true,
+        message: 'Commission settlement proof submitted to Admin for verification.',
+        settlement: insertRes.rows[0]
+      });
+    } catch (err) {
+      console.error('Error submitting vet settlement proof:', err);
+      res.status(500).json({ error: 'Server error submitting settlement proof' });
     }
   });
 
@@ -189,31 +496,23 @@ module.exports = (pool, io) => {
         await pool.query(
           `UPDATE conversations
            SET status = 'resolved', updated_at = CURRENT_TIMESTAMP
-           WHERE farmer_id = $1
-             AND vet_id = $2
-             AND NOT EXISTS (
-               SELECT 1
-               FROM consultations
-               WHERE farmer_id = $1
-                 AND vet_id = $2
-                 AND status IN ('pending', 'approved')
-             )`,
-          [consultation.farmer_id, consultation.vet_id]
+           WHERE consultation_id = $1`,
+          [consultation.id]
         );
       } else if (status === 'approved') {
         const convCheck = await pool.query(
-          'SELECT id FROM conversations WHERE farmer_id = $1 AND vet_id = $2 ORDER BY id DESC LIMIT 1',
-          [consultation.farmer_id, consultation.vet_id]
+          'SELECT id FROM conversations WHERE consultation_id = $1',
+          [consultation.id]
         );
         if (convCheck.rows.length === 0) {
           await pool.query(
-            "INSERT INTO conversations (farmer_id, vet_id, status) VALUES ($1, $2, 'active')",
-            [consultation.farmer_id, consultation.vet_id]
+            "INSERT INTO conversations (farmer_id, vet_id, consultation_id, status) VALUES ($1, $2, $3, 'active')",
+            [consultation.farmer_id, consultation.vet_id, consultation.id]
           );
         } else {
           await pool.query(
-            "UPDATE conversations SET status = 'active', updated_at = CURRENT_TIMESTAMP WHERE id = $1",
-            [convCheck.rows[0].id]
+            "UPDATE conversations SET status = 'active', updated_at = CURRENT_TIMESTAMP WHERE consultation_id = $1",
+            [consultation.id]
           );
         }
       }

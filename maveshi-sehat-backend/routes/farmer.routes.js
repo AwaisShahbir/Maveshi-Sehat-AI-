@@ -612,20 +612,84 @@ module.exports = (pool, io) => {
         ? reason.trim()
         : 'Livestock health consultation requested via mobile application.';
 
+      // Consultation Financials: Rs. 300 consultation fee, 10% platform commission (Rs. 30), 90% Vet Earnings (Rs. 270)
+      const fee = 300.00;
+      const adminCommission = 30.00;
+      const vetEarnings = 270.00;
+      const paymentMethod = req.body.payment_method || req.body.paymentMethod || 'JazzCash';
+      const senderPhone = (req.body.sender_phone || req.body.senderPhone || phone || phoneNumber || '').trim() || null;
+      const transactionId = (req.body.transaction_id || req.body.transactionId || req.body.tid || '').trim() || null;
+      let finalProofUrl = req.body.payment_proof_url || req.body.paymentProofUrl || null;
+
+      // Handle base64 payment receipt proof upload if provided
+      const paymentProofBase64 = req.body.paymentProofBase64 || req.body.payment_proof_base64;
+      if (paymentProofBase64) {
+        try {
+          const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+          const fileName = `consult-proof-${uniqueSuffix}.jpg`;
+          const uploadDir = path.join(__dirname, '..', 'uploads');
+          if (!fs.existsSync(uploadDir)) {
+            fs.mkdirSync(uploadDir, { recursive: true });
+          }
+          const filePath = path.join(uploadDir, fileName);
+          const cleanBase64 = paymentProofBase64.replace(/^data:image\/\w+;base64,/, '');
+          fs.writeFileSync(filePath, Buffer.from(cleanBase64, 'base64'));
+          const host = req.get('host');
+          const protocol = req.protocol === 'https' || req.headers['x-forwarded-proto'] === 'https' ? 'https' : 'http';
+          finalProofUrl = `${protocol}://${host}/uploads/${fileName}`;
+          await persistUploadedFile(pool, fileName, filePath, 'image/jpeg');
+        } catch (proofErr) {
+          console.warn('Consultation payment proof save error:', proofErr.message);
+        }
+      }
+
+      let paymentStatus = req.body.payment_status || req.body.paymentStatus;
+      if (!paymentStatus) {
+        paymentStatus = (transactionId || finalProofUrl || senderPhone) ? 'pending_verification' : 'unpaid';
+      }
+
       const result = await pool.query(
-        `INSERT INTO consultations (farmer_id, vet_id, type, ai_record_data, appointment_date, reason, status)
-         VALUES ($1, $2, $3, $4, $5, $6, 'pending') RETURNING *`,
+        `INSERT INTO consultations (
+          farmer_id, vet_id, type, ai_record_data, appointment_date, reason, status,
+          fee, admin_commission, vet_earnings, payment_method, payment_status,
+          sender_phone, transaction_id, payment_proof_url
+        )
+         VALUES ($1, $2, $3, $4, $5, $6, 'pending', $7, $8, $9, $10, $11, $12, $13, $14)
+         RETURNING *`,
         [
           resolvedFarmerId,
           resolvedVetId,
           normalizedType,
           ai_record_data ? JSON.stringify(ai_record_data) : null,
           finalApptDate,
-          finalReason
+          finalReason,
+          fee,
+          adminCommission,
+          vetEarnings,
+          paymentMethod,
+          paymentStatus,
+          senderPhone,
+          transactionId,
+          finalProofUrl
         ]
       );
 
       const createdConsultation = result.rows[0];
+
+      // Auto-create an isolated conversation record for this specific consultation
+      let createdConversation = null;
+      try {
+        const convRes = await pool.query(
+          `INSERT INTO conversations (farmer_id, vet_id, consultation_id, status)
+           VALUES ($1, $2, $3, 'active')
+           RETURNING *`,
+          [resolvedFarmerId, resolvedVetId, createdConsultation.id]
+        );
+        createdConversation = convRes.rows[0];
+        createdConsultation.conversation_id = createdConversation.id;
+      } catch (convErr) {
+        console.warn('Auto conversation create warning:', convErr.message);
+      }
 
       // Realtime websocket emit
       if (io) {
@@ -642,10 +706,10 @@ module.exports = (pool, io) => {
           io,
           userId: resolvedVetId,
           type: 'consultation',
-          title_en: 'New Consultation Request',
-          title_ur: 'نئی مشاورت کی درخواست',
-          message_en: `${farmerDisplayName} requested a ${normalizedType} consultation with attached AI scan.`,
-          message_ur: `${farmerDisplayName} نے AI رپورٹ کے ساتھ ${normalizedType === 'physical' ? 'بالمشافہ' : (normalizedType === 'video' ? 'ویڈیو' : 'آن لائن چیٹ')} مشاورت کی درخواست کی ہے۔`,
+          title_en: 'New Consultation & Payment Request',
+          title_ur: 'نئی مشاورت اور فیس تصدیق',
+          message_en: `${farmerDisplayName} requested a Rs. 300 ${normalizedType} consultation (TID: ${transactionId || 'Pending'}).`,
+          message_ur: `${farmerDisplayName} نے 300 روپے فیس کے ساتھ ${normalizedType === 'physical' ? 'بالمشافہ' : (normalizedType === 'video' ? 'ویڈیو' : 'آن لائن چیٹ')} مشاورت کی درخواست کی ہے۔`,
           data: {
             consultationId: createdConsultation.id,
             farmerId: resolvedFarmerId,
@@ -659,11 +723,110 @@ module.exports = (pool, io) => {
       return res.status(201).json({
         success: true,
         message: 'Consultation request submitted successfully',
-        consultation: createdConsultation
+        consultation: createdConsultation,
+        conversationId: createdConversation?.id || null
       });
     } catch (err) {
       console.error('Create Consultation Error:', err);
       res.status(500).json({ error: err.message || 'Error creating consultation request' });
+    }
+  });
+
+  // Submit or Update Payment Proof for a Consultation
+  router.put('/api/consultations/:id/payment', async (req, res) => {
+    try {
+      const { id } = req.params;
+      const {
+        sender_phone,
+        senderPhone,
+        transaction_id,
+        transactionId,
+        tid,
+        payment_method,
+        paymentMethod,
+        paymentProofBase64,
+        payment_proof_base64,
+        payment_proof_url,
+        paymentProofUrl
+      } = req.body;
+
+      let finalProofUrl = payment_proof_url || paymentProofUrl || null;
+      const base64Data = paymentProofBase64 || payment_proof_base64;
+      if (base64Data) {
+        try {
+          const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+          const fileName = `consult-proof-${id}-${uniqueSuffix}.jpg`;
+          const uploadDir = path.join(__dirname, '..', 'uploads');
+          if (!fs.existsSync(uploadDir)) {
+            fs.mkdirSync(uploadDir, { recursive: true });
+          }
+          const filePath = path.join(uploadDir, fileName);
+          const cleanBase64 = base64Data.replace(/^data:image\/\w+;base64,/, '');
+          fs.writeFileSync(filePath, Buffer.from(cleanBase64, 'base64'));
+          const host = req.get('host');
+          const protocol = req.protocol === 'https' || req.headers['x-forwarded-proto'] === 'https' ? 'https' : 'http';
+          finalProofUrl = `${protocol}://${host}/uploads/${fileName}`;
+          await persistUploadedFile(pool, fileName, filePath, 'image/jpeg');
+        } catch (proofErr) {
+          console.warn('Consultation payment proof save error:', proofErr.message);
+        }
+      }
+
+      const effectivePhone = sender_phone || senderPhone || null;
+      const effectiveTid = transaction_id || transactionId || tid || null;
+      const effectiveMethod = payment_method || paymentMethod || 'JazzCash';
+
+      const updateRes = await pool.query(
+        `UPDATE consultations
+         SET sender_phone = COALESCE($1, sender_phone),
+             transaction_id = COALESCE($2, transaction_id),
+             payment_proof_url = COALESCE($3, payment_proof_url),
+             payment_method = COALESCE($4, payment_method),
+             payment_status = 'pending_verification',
+             updated_at = CURRENT_TIMESTAMP
+         WHERE id = $5
+         RETURNING *`,
+        [effectivePhone, effectiveTid, finalProofUrl, effectiveMethod, id]
+      );
+
+      if (updateRes.rows.length === 0) {
+        return res.status(404).json({ error: 'Consultation not found' });
+      }
+
+      const updatedConsultation = updateRes.rows[0];
+      if (io) {
+        io.emit('consultation_updated', updatedConsultation);
+      }
+
+      // Notify Vet about new payment submission
+      try {
+        const farmerUser = await pool.query('SELECT full_name FROM users WHERE id = $1', [updatedConsultation.farmer_id]);
+        const farmerDisplayName = farmerUser.rows[0]?.full_name || 'Farmer';
+        await sendNotification({
+          pool,
+          io,
+          userId: updatedConsultation.vet_id,
+          type: 'consultation',
+          title_en: 'Consultation Payment Submitted',
+          title_ur: 'مشاورت فیس ثبوت موصول ہوا',
+          message_en: `${farmerDisplayName} submitted payment proof of Rs. 300 (TID: ${effectiveTid || 'Submitted'}). Please verify.`,
+          message_ur: `${farmerDisplayName} نے 300 روپے کی فیس کا ثبوت جمع کرا دیا ہے۔ برائے مہربانی تصدیق کریں۔`,
+          data: {
+            consultationId: updatedConsultation.id,
+            farmerId: updatedConsultation.farmer_id,
+            targetScreen: 'VetConsultations'
+          }
+        });
+      } catch (e) {}
+
+      res.status(200).json({
+        success: true,
+        message: 'Payment proof submitted successfully. Awaiting vet verification.',
+        consultation: updatedConsultation
+      });
+    } catch (err) {
+      console.error('Error submitting consultation payment:', err);
+      res.status(500).json({ error: 'Server error submitting payment proof' });
     }
   });
 
@@ -677,9 +840,14 @@ module.exports = (pool, io) => {
                 u.specialization as vet_specialization,
                 u.district as vet_district,
                 u.phone_number as vet_phone,
-                u.consultation_mode as vet_consultation_mode
+                u.consultation_mode as vet_consultation_mode,
+                u.payment_wallet_type as vet_wallet_type,
+                u.payment_account_title as vet_account_title,
+                u.payment_account_number as vet_account_number,
+                conv.id as conversation_id
          FROM consultations c 
          JOIN users u ON c.vet_id = u.id 
+         LEFT JOIN conversations conv ON conv.consultation_id = c.id
          WHERE c.farmer_id = $1 ORDER BY c.created_at DESC`,
         [req.params.id]
       );

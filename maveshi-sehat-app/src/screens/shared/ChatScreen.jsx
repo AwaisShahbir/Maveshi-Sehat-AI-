@@ -216,11 +216,13 @@ export default function ChatScreen() {
     const initChat = async () => {
       try {
         const storedProfile = getProfile();
+        const activeConsultId = params.consultationId || params.consultation?.id || selectedConsultationId;
         const convResponse = await fetch(`${baseUrl}/api/chat/conversation`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             conversationId: conversationId,
+            consultationId: activeConsultId,
             farmerName: userRole === 'farmer' ? userName : partnerName,
             vetId: vetId || (userRole === 'vet' ? (storedProfile?.userId || 1) : 1)
           })
@@ -269,7 +271,10 @@ export default function ChatScreen() {
           socketRef.current?.emit('join_user', fallbackUid);
         }
 
-        const msgResponse = await fetch(`${baseUrl}/api/chat/messages?conversationId=${conversationId}`);
+        const msgUrl = activeConsultId 
+          ? `${baseUrl}/api/chat/messages?consultationId=${activeConsultId}`
+          : `${baseUrl}/api/chat/messages?conversationId=${conversationId}`;
+        const msgResponse = await fetch(msgUrl);
         const msgData = await msgResponse.json();
         if (msgResponse.ok && Array.isArray(msgData)) {
           setMessages(msgData);
@@ -378,6 +383,18 @@ export default function ChatScreen() {
   }, [loading, messages.length]);
 
   const handlePhoneCall = () => {
+    const activeConsult = params.consultation || (consultationHistory.find(c => String(c.id) === String(selectedConsultationId)));
+    if (userRole === 'farmer' && activeConsult) {
+      const isPaid = activeConsult.payment_status === 'paid' || activeConsult.status === 'approved';
+      if (!isPaid) {
+        Alert.alert(
+          t('Consultation Call Locked'),
+          t('Consultation fee of Rs. 300 must be verified to unlock audio and video calling.')
+        );
+        return;
+      }
+    }
+
     const targetPhone = partnerPhone;
     if (!targetPhone) {
       Alert.alert(t('Phone Unavailable'), t('No contact number is available for this user.'));
@@ -401,6 +418,18 @@ export default function ChatScreen() {
   };
 
   const handleVideoCall = () => {
+    const activeConsult = params.consultation || (consultationHistory.find(c => String(c.id) === String(selectedConsultationId)));
+    if (userRole === 'farmer' && activeConsult) {
+      const isPaid = activeConsult.payment_status === 'paid' || activeConsult.status === 'approved';
+      if (!isPaid) {
+        Alert.alert(
+          t('Consultation Call Locked'),
+          t('Consultation fee of Rs. 300 must be verified to unlock audio and video calling.')
+        );
+        return;
+      }
+    }
+
     if (userRole === 'farmer' && partnerConsultationMode === 'Chat Only') {
       Alert.alert(
         t('Video Call Unavailable'),

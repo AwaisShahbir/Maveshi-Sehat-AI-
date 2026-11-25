@@ -5,9 +5,47 @@ module.exports = (pool, io) => {
   // Create or Get Conversation
   router.post('/api/chat/conversation', async (req, res) => {
     try {
-      const { conversationId, farmerId, farmerName, vetId } = req.body;
+      const { conversationId, farmerId, farmerName, vetId, consultationId } = req.body;
 
-      // If direct conversationId is passed, look it up immediately
+      // 1. If consultationId is passed, find or create the exact 1-to-1 conversation for this consultation (CHAT ISOLATION)
+      if (consultationId) {
+        let convRes = await pool.query('SELECT * FROM conversations WHERE consultation_id = $1 ORDER BY id DESC LIMIT 1', [consultationId]);
+        if (convRes.rows.length === 0) {
+          const cRow = await pool.query('SELECT farmer_id, vet_id FROM consultations WHERE id = $1', [consultationId]);
+          if (cRow.rows.length > 0) {
+            convRes = await pool.query(
+              "INSERT INTO conversations (farmer_id, vet_id, consultation_id, status) VALUES ($1, $2, $3, 'active') RETURNING *",
+              [cRow.rows[0].farmer_id, cRow.rows[0].vet_id, consultationId]
+            );
+          }
+        }
+
+        if (convRes.rows.length > 0) {
+          const conv = { ...convRes.rows[0] };
+          try {
+            if (conv.vet_id) {
+              const vetRes = await pool.query('SELECT full_name, phone_number, consultation_mode FROM users WHERE id = $1', [conv.vet_id]);
+              if (vetRes.rows.length > 0) {
+                conv.vet_consultation_mode = vetRes.rows[0].consultation_mode || 'Chat + Video';
+                conv.vet_phone = vetRes.rows[0].phone_number;
+              }
+            }
+            if (conv.farmer_id) {
+              const farmerRes = await pool.query('SELECT full_name, phone_number FROM users WHERE id = $1', [conv.farmer_id]);
+              if (farmerRes.rows.length > 0) {
+                conv.farmer_phone = farmerRes.rows[0].phone_number;
+              }
+            }
+            const consultRes = await pool.query('SELECT * FROM consultations WHERE id = $1', [consultationId]);
+            conv.latest_consultation = consultRes.rows[0] || null;
+          } catch (cErr) {
+            console.warn('Could not query extra conversation details:', cErr.message);
+          }
+          return res.status(200).json(conv);
+        }
+      }
+
+      // 2. If direct conversationId is passed, look it up immediately
       if (conversationId) {
         const convRes = await pool.query('SELECT * FROM conversations WHERE id = $1', [conversationId]);
         if (convRes.rows.length > 0) {
@@ -26,11 +64,16 @@ module.exports = (pool, io) => {
                 conv.farmer_phone = farmerRes.rows[0].phone_number;
               }
             }
-            const consultRes = await pool.query(
-              'SELECT id, type, status, ai_record_data, reason, created_at FROM consultations WHERE farmer_id = $1 AND vet_id = $2 ORDER BY id DESC LIMIT 1',
-              [conv.farmer_id, conv.vet_id]
-            );
-            conv.latest_consultation = consultRes.rows[0] || null;
+            if (conv.consultation_id) {
+              const consultRes = await pool.query('SELECT * FROM consultations WHERE id = $1', [conv.consultation_id]);
+              conv.latest_consultation = consultRes.rows[0] || null;
+            } else {
+              const consultRes = await pool.query(
+                'SELECT id, type, status, ai_record_data, reason, created_at FROM consultations WHERE farmer_id = $1 AND vet_id = $2 ORDER BY id DESC LIMIT 1',
+                [conv.farmer_id, conv.vet_id]
+              );
+              conv.latest_consultation = consultRes.rows[0] || null;
+            }
           } catch (cErr) {
             console.warn('Could not query extra conversation details:', cErr.message);
           }
@@ -193,16 +236,26 @@ module.exports = (pool, io) => {
     }
   });
 
-  // Get Messages for a Conversation
+  // Get Messages for a Conversation or Consultation
   router.get('/api/chat/messages', async (req, res) => {
     try {
-      const { conversationId } = req.query;
-      if (!conversationId) {
-        return res.status(400).json({ error: 'conversationId is required' });
+      const { conversationId, consultationId } = req.query;
+      let targetConvId = conversationId;
+
+      if (!targetConvId && consultationId) {
+        const convLookup = await pool.query('SELECT id FROM conversations WHERE consultation_id = $1 ORDER BY id DESC LIMIT 1', [consultationId]);
+        if (convLookup.rows.length > 0) {
+          targetConvId = convLookup.rows[0].id;
+        }
       }
+
+      if (!targetConvId) {
+        return res.status(400).json({ error: 'conversationId or consultationId is required' });
+      }
+
       const messagesRes = await pool.query(
         'SELECT * FROM messages WHERE conversation_id = $1 ORDER BY created_at ASC',
-        [conversationId]
+        [targetConvId]
       );
       res.status(200).json(messagesRes.rows);
     } catch (err) {
@@ -252,8 +305,8 @@ module.exports = (pool, io) => {
   router.put('/api/chat/conversation/resolve', async (req, res) => {
     try {
       const { conversationId, consultationId, outcome, dischargeNotes, followUpDays } = req.body;
-      if (!conversationId) {
-        return res.status(400).json({ error: 'conversationId is required' });
+      if (!conversationId && !consultationId) {
+        return res.status(400).json({ error: 'conversationId or consultationId is required' });
       }
 
       const validOutcomes = ['fully_recovered', 'improving', 'referred'];
@@ -268,10 +321,29 @@ module.exports = (pool, io) => {
       }
 
       // Calculate optional follow-up timestamp
-      const followUpTimestamp = followUpDays ? new Date(Date.now() + Number(followUpDays) * 24 * 60 * 60 * 1000) : null;
+      const followUpTimestamp = followUpDays && followUpDays !== 'none'
+        ? new Date(Date.now() + Number(followUpDays) * 24 * 60 * 60 * 1000)
+        : null;
 
-      // 1. If a specific consultationId is passed, mark ONLY that specific consultation completed
-      if (consultationId) {
+      let targetConsultationId = consultationId;
+      let targetConversationId = conversationId;
+
+      if (!targetConsultationId && targetConversationId) {
+        const cLookup = await pool.query('SELECT consultation_id FROM conversations WHERE id = $1', [targetConversationId]);
+        if (cLookup.rows.length > 0 && cLookup.rows[0].consultation_id) {
+          targetConsultationId = cLookup.rows[0].consultation_id;
+        }
+      }
+
+      if (!targetConversationId && targetConsultationId) {
+        const convLookup = await pool.query('SELECT id FROM conversations WHERE consultation_id = $1 ORDER BY id DESC LIMIT 1', [targetConsultationId]);
+        if (convLookup.rows.length > 0) {
+          targetConversationId = convLookup.rows[0].id;
+        }
+      }
+
+      // 1. Mark the specific consultation completed
+      if (targetConsultationId) {
         await pool.query(
           `UPDATE consultations
            SET status = 'completed',
@@ -280,65 +352,53 @@ module.exports = (pool, io) => {
                follow_up_date = COALESCE($4, follow_up_date),
                updated_at = CURRENT_TIMESTAMP
            WHERE id = $1`,
-          [consultationId, outcome || null, dischargeNotes || null, followUpTimestamp]
+          [targetConsultationId, outcome || null, dischargeNotes || null, followUpTimestamp]
         );
-      } else {
-        // Fallback: resolve only the single most recent active consultation between these two users
-        await pool.query(
-          `UPDATE consultations
-           SET status = 'completed',
-               outcome = COALESCE($2, outcome, 'fully_recovered'),
-               discharge_notes = COALESCE($3, discharge_notes),
-               follow_up_date = COALESCE($4, follow_up_date),
-               updated_at = CURRENT_TIMESTAMP
-           WHERE id = (
-             SELECT id FROM consultations
-             WHERE farmer_id = (SELECT farmer_id FROM conversations WHERE id = $1)
-               AND vet_id = (SELECT vet_id FROM conversations WHERE id = $1)
-               AND status IN ('pending', 'approved')
-             ORDER BY created_at DESC
-             LIMIT 1
-           )`,
-          [conversationId, outcome || null, dischargeNotes || null, followUpTimestamp]
-        );
-      }
 
-      // 2. Check if there are any remaining pending or approved consultations between this farmer and vet
-      const activeRemaining = await pool.query(
-        `SELECT COUNT(*) as count FROM consultations
-         WHERE farmer_id = (SELECT farmer_id FROM conversations WHERE id = $1)
-           AND vet_id = (SELECT vet_id FROM conversations WHERE id = $1)
-           AND status IN ('pending', 'approved')`,
-        [conversationId]
-      );
-
-      const allResolved = parseInt(activeRemaining.rows[0]?.count || '0', 10) === 0;
-
-      // 3. Only mark the whole conversation thread as resolved if NO other active consultations remain
-      if (allResolved) {
         await pool.query(
           `UPDATE conversations
-           SET status = 'resolved'
-           WHERE id = $1`,
-          [conversationId]
+           SET status = 'resolved', updated_at = CURRENT_TIMESTAMP
+           WHERE consultation_id = $1`,
+          [targetConsultationId]
         );
       }
 
-      // 4. Real-time signaling
+      // 2. Mark target conversation resolved
+      if (targetConversationId) {
+        await pool.query(
+          `UPDATE conversations
+           SET status = 'resolved', updated_at = CURRENT_TIMESTAMP
+           WHERE id = $1`,
+          [targetConversationId]
+        );
+      }
+
+      // 3. Real-time signaling
       if (io) {
-        io.to(conversationId.toString()).emit('consultation_resolved', {
-          conversationId: Number(conversationId),
-          consultationId: consultationId ? Number(consultationId) : null,
-          outcome: outcome || 'fully_recovered',
-          allResolved
-        });
+        if (targetConversationId) {
+          io.to(targetConversationId.toString()).emit('consultation_resolved', {
+            conversationId: Number(targetConversationId),
+            consultationId: targetConsultationId ? Number(targetConsultationId) : null,
+            outcome: outcome || 'fully_recovered',
+            allResolved: true
+          });
+        }
+        if (targetConsultationId) {
+          io.emit('consultation_updated', {
+            id: Number(targetConsultationId),
+            status: 'completed',
+            outcome: outcome || 'fully_recovered'
+          });
+        }
       }
 
       res.status(200).json({
+        success: true,
         message: 'Consultation marked as resolved',
-        consultationId,
+        consultationId: targetConsultationId,
+        conversationId: targetConversationId,
         outcome: outcome || 'fully_recovered',
-        allResolved
+        allResolved: true
       });
     } catch (err) {
       console.error('Error resolving conversation:', err.message);

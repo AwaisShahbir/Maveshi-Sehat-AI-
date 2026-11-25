@@ -7,6 +7,7 @@ import {
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { launchImageLibrary } from 'react-native-image-picker';
 import { getProfile, subscribeProfile } from '../../utils/profileStore';
 import { t } from '../../utils/translate';
 import { useTheme } from '../../utils/themeContext';
@@ -34,6 +35,9 @@ export default function VeterinariansListScreen() {
   const [appointmentDate, setAppointmentDate] = useState('');
   const [appointmentTime, setAppointmentTime] = useState('');
   const [reason, setReason] = useState('');
+  const [senderPhone, setSenderPhone] = useState(profile?.phone || '');
+  const [transactionId, setTransactionId] = useState('');
+  const [proofImage, setProofImage] = useState(null);
   const [errors, setErrors] = useState({
     reason: '',
     appointmentDate: '',
@@ -188,6 +192,32 @@ export default function VeterinariansListScreen() {
     fetchVets();
   };
 
+  const handlePickReceipt = () => {
+    const options = {
+      mediaType: 'photo',
+      maxWidth: 1024,
+      maxHeight: 1024,
+      quality: 0.8,
+      includeBase64: true
+    };
+    launchImageLibrary(options, (response) => {
+      if (response.didCancel) return;
+      if (response.errorMessage) {
+        Alert.alert(t('Image Error'), response.errorMessage);
+        return;
+      }
+      if (response.assets && response.assets[0]) {
+        const asset = response.assets[0];
+        setProofImage({
+          uri: asset.uri,
+          base64: asset.base64,
+          type: asset.type || 'image/jpeg',
+          fileName: asset.fileName || `consult-proof-${Date.now()}.jpg`
+        });
+      }
+    });
+  };
+
   const openConsultModal = (vet, type) => {
     setSelectedVet(vet);
     const resolvedType = (type === 'online_chat' && vet?.consultation_mode === 'Video Only')
@@ -199,6 +229,10 @@ export default function VeterinariansListScreen() {
       appointmentDate: '',
       appointmentTime: ''
     });
+
+    setSenderPhone(profile?.phone || '');
+    setTransactionId('');
+    setProofImage(null);
 
     // Always prefill today's date and a standard consultation time
     setAppointmentDate(getFormattedFutureDate(0));
@@ -289,7 +323,12 @@ export default function VeterinariansListScreen() {
           consultType: consultType,
           reason: reason.trim(),
           appointment_date: consultType === 'physical_appointment' ? `${formattedDate} ${formattedTime}` : null,
-          ai_record_data: params.initialRecord || null
+          ai_record_data: params.initialRecord || null,
+          fee: 300.00,
+          payment_method: 'JazzCash',
+          sender_phone: (senderPhone || effectivePhone || '').trim(),
+          transaction_id: (transactionId || '').trim() || null,
+          paymentProofBase64: proofImage ? proofImage.base64 : null
         })
       });
 
@@ -302,11 +341,14 @@ export default function VeterinariansListScreen() {
       setReason('');
       setAppointmentDate('');
       setAppointmentTime('');
+      setSenderPhone('');
+      setTransactionId('');
+      setProofImage(null);
       setErrors({ reason: '', appointmentDate: '', appointmentTime: '' });
 
       Alert.alert(
         t('Request Sent'),
-        `Your consultation request with attached AI report has been sent to ${selectedVet?.full_name || 'the vet'}. Status is currently Pending until the doctor approves.`,
+        `Your consultation request (Rs. 300) has been sent to ${selectedVet?.full_name || 'the vet'}. Once verified, your chat and video consultation will activate.`,
         [
           {
             text: 'View Consultations',
@@ -384,8 +426,8 @@ export default function VeterinariansListScreen() {
           </View>
         </View>
 
-        {/* Consultation Mode Badge */}
-        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8, marginBottom: 4 }}>
+        {/* Consultation Mode and Fee Badges */}
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 8, marginBottom: 4, flexWrap: 'wrap', gap: 6 }}>
           {item.consultation_mode === 'Video Only' ? (
             <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: isDark ? 'rgba(2, 132, 199, 0.2)' : '#E0F2FE', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 }}>
               <Feather name="video" size={13} color="#0284C7" style={{ marginRight: 5 }} />
@@ -403,6 +445,11 @@ export default function VeterinariansListScreen() {
               <Text style={{ fontSize: 11, fontWeight: '700', color: '#059669' }}>{t('Chat & Video Available')}</Text>
             </View>
           )}
+
+          <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: isDark ? 'rgba(16, 185, 129, 0.15)' : '#DCFCE7', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, borderWidth: 1, borderColor: isDark ? 'rgba(16, 185, 129, 0.3)' : '#86EFAC' }}>
+            <MaterialCommunityIcons name="cash-check" size={14} color="#059669" style={{ marginRight: 4 }} />
+            <Text style={{ fontSize: 11, fontWeight: '800', color: '#047857' }}>{t('Rs. 300 / Consultation')}</Text>
+          </View>
         </View>
 
         <View style={styles.actionButtonsRow}>
@@ -746,6 +793,90 @@ export default function VeterinariansListScreen() {
                   </View>
                 </>
               )}
+
+              {/* Consultation Fee (Rs. 300) & Payment Section */}
+              <View style={{
+                backgroundColor: isDark ? 'rgba(245, 158, 11, 0.08)' : '#FFFBEB',
+                borderRadius: 14,
+                borderWidth: 1,
+                borderColor: isDark ? 'rgba(245, 158, 11, 0.25)' : '#FDE68A',
+                padding: 12,
+                marginBottom: 16
+              }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <MaterialCommunityIcons name="wallet-outline" size={18} color="#D97706" style={{ marginRight: 6 }} />
+                    <Text style={{ fontSize: 13, fontWeight: '700', color: isDark ? '#FBBF24' : '#B45309' }}>
+                      {t('Consultation Fee (Rs. 300)')}
+                    </Text>
+                  </View>
+                  <View style={{ backgroundColor: '#D97706', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 8 }}>
+                    <Text style={{ fontSize: 11, fontWeight: '800', color: '#FFF' }}>Rs. 300</Text>
+                  </View>
+                </View>
+
+                <Text style={{ fontSize: 11, color: isDark ? '#CBD5E1' : '#92400E', marginBottom: 8, lineHeight: 16 }}>
+                  {t('Transfer Rs. 300 to JazzCash (03054758667) and enter TID with receipt screenshot below.')}
+                </Text>
+
+                <View style={{ marginBottom: 8 }}>
+                  <Text style={{ fontSize: 11, fontWeight: '600', color: colors.textSecondary, marginBottom: 4 }}>
+                    {t('Sender Phone Number')}
+                  </Text>
+                  <TextInput
+                    style={[styles.textInput, { height: 42, paddingVertical: 8 }]}
+                    placeholder="03XXXXXXXXX"
+                    placeholderTextColor={colors.placeholderText || '#94A3B8'}
+                    value={senderPhone}
+                    onChangeText={setSenderPhone}
+                    keyboardType="phone-pad"
+                  />
+                </View>
+
+                <View style={{ marginBottom: 8 }}>
+                  <Text style={{ fontSize: 11, fontWeight: '600', color: colors.textSecondary, marginBottom: 4 }}>
+                    {t('TID / Transaction ID')}
+                  </Text>
+                  <TextInput
+                    style={[styles.textInput, { height: 42, paddingVertical: 8 }]}
+                    placeholder="e.g. 11223344556"
+                    placeholderTextColor={colors.placeholderText || '#94A3B8'}
+                    value={transactionId}
+                    onChangeText={setTransactionId}
+                  />
+                </View>
+
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 4 }}>
+                  <TouchableOpacity
+                    style={{
+                      flex: 1,
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      backgroundColor: proofImage ? (isDark ? 'rgba(16, 185, 129, 0.2)' : '#DCFCE7') : (isDark ? '#334155' : '#E2E8F0'),
+                      paddingVertical: 10,
+                      borderRadius: 10,
+                      borderWidth: 1,
+                      borderColor: proofImage ? '#10B981' : colors.border
+                    }}
+                    onPress={handlePickReceipt}
+                  >
+                    <Feather name={proofImage ? "check-circle" : "camera"} size={14} color={proofImage ? "#059669" : colors.textPrimary} style={{ marginRight: 6 }} />
+                    <Text style={{ fontSize: 12, fontWeight: '700', color: proofImage ? "#059669" : colors.textPrimary }}>
+                      {proofImage ? t('Receipt Attached') : t('Attach Receipt')}
+                    </Text>
+                  </TouchableOpacity>
+
+                  {proofImage && (
+                    <TouchableOpacity
+                      onPress={() => setProofImage(null)}
+                      style={{ padding: 8 }}
+                    >
+                      <Feather name="trash-2" size={16} color="#EF4444" />
+                    </TouchableOpacity>
+                  )}
+                </View>
+              </View>
 
               {params.initialRecord && (
                 <View style={{
