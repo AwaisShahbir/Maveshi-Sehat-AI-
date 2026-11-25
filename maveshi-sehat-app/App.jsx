@@ -23,6 +23,8 @@ import FarmerNotificationCenterScreen from './src/screens/user/FarmerNotificatio
 import HeatAlertScreen from './src/screens/user/HeatAlertScreen';
 import VeterinariansListScreen from './src/screens/user/VeterinariansListScreen';
 import MyConsultationsScreen from './src/screens/user/MyConsultationsScreen';
+import DoctorConsultationsScreen from './src/screens/user/DoctorConsultationsScreen';
+import FarmerConsultationsScreen from './src/screens/vet/FarmerConsultationsScreen';
 import ChatScreen from './src/screens/shared/ChatScreen';
 import CommunityForumScreen from './src/screens/user/CommunityForumScreen';
 import ForumPostDetailScreen from './src/screens/user/ForumPostDetailScreen';
@@ -92,6 +94,8 @@ export default function App() {
             <Stack.Screen name="Notifications" component={FarmerNotificationCenterScreen} />
             <Stack.Screen name="FarmerNotificationCenter" component={FarmerNotificationCenterScreen} />
             <Stack.Screen name="MyConsultations" component={MyConsultationsScreen} />
+            <Stack.Screen name="DoctorConsultations" component={DoctorConsultationsScreen} />
+            <Stack.Screen name="FarmerConsultations" component={FarmerConsultationsScreen} />
             <Stack.Screen name="Chat" component={ChatScreen} />
             <Stack.Screen name="CommunityForum" component={CommunityForumScreen} />
             <Stack.Screen name="ForumPostDetail" component={ForumPostDetailScreen} />
