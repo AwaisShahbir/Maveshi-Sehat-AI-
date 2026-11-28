@@ -85,32 +85,7 @@ module.exports = (pool, io) => {
         adminCommissionDue = parseFloat(dueRes.rows[0]?.coalesce) || 0.00;
       } catch (_) {}
 
-      // Admin 10% Vet Consultation Commissions & Settlements
-      let adminVetCommissionEarned = 0.00;
-      let totalVetConsultationGross = 0.00;
-      let paidConsultationsCount = 0;
-      try {
-        const vetCommRes = await pool.query(
-          "SELECT COALESCE(SUM(admin_commission), 0) as total_admin_comm, COALESCE(SUM(fee), 0) as total_gross, COUNT(*) as count FROM consultations WHERE payment_status = 'paid' OR status IN ('approved', 'completed')"
-        );
-        adminVetCommissionEarned = parseFloat(vetCommRes.rows[0]?.total_admin_comm) || 0.00;
-        totalVetConsultationGross = parseFloat(vetCommRes.rows[0]?.total_gross) || 0.00;
-        paidConsultationsCount = parseInt(vetCommRes.rows[0]?.count) || 0;
-      } catch (_) {}
-
-      let adminVetCommissionPaid = 0.00;
-      try {
-        const vetPaidRes = await pool.query("SELECT COALESCE(SUM(amount), 0) FROM vet_commission_settlements WHERE status = 'approved'");
-        adminVetCommissionPaid = parseFloat(vetPaidRes.rows[0]?.coalesce) || 0.00;
-      } catch (_) {}
-
-      let vetCommissionDue = 0.00;
-      try {
-        const vetDueRes = await pool.query("SELECT COALESCE(SUM(commission_due), 0) FROM users WHERE role = 'vet'");
-        vetCommissionDue = parseFloat(vetDueRes.rows[0]?.coalesce) || 0.00;
-      } catch (_) {}
-
-      const adminTotalEarnings = adminCommissionEarned + adminSubscriptionsEarned + adminVetCommissionEarned;
+      const adminTotalEarnings = adminCommissionEarned + adminSubscriptionsEarned;
 
       const unreadNotifsRes = await pool.query("SELECT COUNT(*) FROM admin_notifications WHERE read = FALSE");
       const unreadNotificationsCount = parseInt(unreadNotifsRes.rows[0].count) || 0;
@@ -212,12 +187,7 @@ module.exports = (pool, io) => {
           approvedSubscriptionsCount,
           pharmacyCommissionEarned: adminCommissionEarned,
           pharmacyCommissionSettled: adminCommissionPaid,
-          pharmacyCommissionDue: adminCommissionDue,
-          vetCommissionEarned: adminVetCommissionEarned,
-          totalVetConsultationGross,
-          paidConsultationsCount,
-          vetCommissionSettled: adminVetCommissionPaid,
-          vetCommissionDue
+          pharmacyCommissionDue: adminCommissionDue
         },
 
         topDiseases: diseaseDistributionRes.rows,
@@ -783,129 +753,6 @@ module.exports = (pool, io) => {
       res.status(200).json({ language: 'Both', enforceAdminLanguage: true, timezone: 'utc-5', threshold: 85 });
     } catch (err) {
       res.status(200).json({ language: 'Both', enforceAdminLanguage: true, timezone: 'utc-5', threshold: 85 });
-    }
-  });
-
-  // ==========================================
-  // Veterinarian Commissions & Settlements Ledger
-  // ==========================================
-
-  // 1. List All Veterinarians with Commissions & Payment Stats
-  router.get('/api/admin/vet-commissions', async (req, res) => {
-    try {
-      const result = await pool.query(`
-        SELECT u.id, u.full_name, u.phone_number, u.email, u.district, u.specialization,
-               u.status, u.consultation_mode,
-               COALESCE(u.consultation_fee, 300.00)::float as consultation_fee,
-               COALESCE(u.commission_rate, 25.00)::float as commission_rate,
-               COALESCE(u.commission_due, 0.00)::float as commission_due,
-               COALESCE(u.commission_paid, 0.00)::float as commission_paid,
-               u.payment_wallet_type, u.payment_account_title, u.payment_account_number,
-               COUNT(c.id)::int as total_consultations,
-               COUNT(CASE WHEN c.payment_status = 'paid' OR c.status IN ('approved', 'completed') THEN 1 END)::int as paid_consultations,
-               COALESCE(SUM(CASE WHEN c.payment_status = 'paid' OR c.status IN ('approved', 'completed') THEN c.fee ELSE 0 END), 0)::float as total_gross_fees,
-               COALESCE(SUM(CASE WHEN c.payment_status = 'paid' OR c.status IN ('approved', 'completed') THEN c.admin_commission ELSE 0 END), 0)::float as total_admin_commission_earned,
-               COALESCE(SUM(CASE WHEN c.payment_status = 'paid' OR c.status IN ('approved', 'completed') THEN c.vet_earnings ELSE 0 END), 0)::float as total_vet_earnings
-        FROM users u
-        LEFT JOIN consultations c ON u.id = c.vet_id
-        WHERE u.role = 'vet'
-        GROUP BY u.id
-        ORDER BY u.commission_due DESC, u.id ASC
-      `);
-      res.status(200).json(result.rows);
-    } catch (err) {
-      console.error('Error fetching vet commissions overview:', err.message);
-      res.status(500).json({ error: 'Failed to fetch vet commissions ledger.' });
-    }
-  });
-
-  // 2. List All Vet Commission Settlements
-  router.get('/api/admin/vet-settlements', async (req, res) => {
-    try {
-      const result = await pool.query(`
-        SELECT s.*, u.commission_due as current_vet_due, u.phone_number as vet_phone, u.full_name as vet_name
-        FROM vet_commission_settlements s
-        LEFT JOIN users u ON s.vet_id = u.id
-        ORDER BY s.created_at DESC
-      `);
-      res.status(200).json(result.rows);
-    } catch (err) {
-      console.error('Error fetching vet settlements:', err.message);
-      res.status(500).json({ error: 'Failed to fetch vet settlements.' });
-    }
-  });
-
-  // 3. Approve Vet Commission Settlement
-  router.put('/api/admin/vet-settlements/:id/approve', async (req, res) => {
-    try {
-      const { id } = req.params;
-      const settleRes = await pool.query(
-        "SELECT * FROM vet_commission_settlements WHERE id = $1",
-        [parseInt(id)]
-      );
-
-      if (settleRes.rows.length === 0) {
-        return res.status(404).json({ error: 'Settlement record not found.' });
-      }
-
-      const settlement = settleRes.rows[0];
-      if (settlement.status === 'approved') {
-        return res.status(400).json({ error: 'Settlement has already been approved.' });
-      }
-
-      const vId = settlement.vet_id;
-      const settleAmount = parseFloat(settlement.amount);
-
-      // Update settlement status
-      await pool.query(
-        "UPDATE vet_commission_settlements SET status = 'approved', reviewed_at = CURRENT_TIMESTAMP WHERE id = $1",
-        [parseInt(id)]
-      );
-
-      // Deduct from vet commission_due and add to commission_paid
-      const updateVetRes = await pool.query(
-        `UPDATE users
-         SET commission_due = GREATEST(0.00, commission_due - $1),
-             commission_paid = commission_paid + $1
-         WHERE id = $2
-         RETURNING id, full_name, commission_due, commission_paid`,
-        [settleAmount, vId]
-      );
-
-      res.status(200).json({
-        success: true,
-        message: `Settlement of Rs. ${settleAmount} approved! Vet commission balance updated.`,
-        vet: updateVetRes.rows[0]
-      });
-    } catch (err) {
-      console.error('Error approving vet settlement:', err.message);
-      res.status(500).json({ error: 'Failed to approve settlement.' });
-    }
-  });
-
-  // 4. Reject Vet Commission Settlement
-  router.put('/api/admin/vet-settlements/:id/reject', async (req, res) => {
-    try {
-      const { id } = req.params;
-      const { reason } = req.body;
-
-      const result = await pool.query(
-        "UPDATE vet_commission_settlements SET status = 'rejected', admin_notes = $1, reviewed_at = CURRENT_TIMESTAMP WHERE id = $2 RETURNING *",
-        [reason || 'Payment could not be verified in JazzCash account', parseInt(id)]
-      );
-
-      if (result.rows.length === 0) {
-        return res.status(404).json({ error: 'Settlement record not found.' });
-      }
-
-      res.status(200).json({
-        success: true,
-        message: 'Settlement rejected.',
-        settlement: result.rows[0]
-      });
-    } catch (err) {
-      console.error('Error rejecting vet settlement:', err.message);
-      res.status(500).json({ error: 'Failed to reject settlement.' });
     }
   });
 

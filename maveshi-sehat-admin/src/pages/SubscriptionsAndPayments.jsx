@@ -16,19 +16,16 @@ import {
   AlertTriangle,
   Lock,
   Unlock,
-  DollarSign,
-  Stethoscope
+  DollarSign
 } from 'lucide-react';
 import '../styles/App.css';
 
 export default function SubscriptionsAndPayments() {
-  const [activeTab, setActiveTab] = useState('subscriptions'); // 'subscriptions', 'orders', 'commissions', or 'vet-commissions'
+  const [activeTab, setActiveTab] = useState('subscriptions'); // 'subscriptions', 'orders', or 'commissions'
   const [subscriptions, setSubscriptions] = useState([]);
   const [orderProofs, setOrderProofs] = useState([]);
   const [pharmacyCommissions, setPharmacyCommissions] = useState([]);
   const [pharmacySettlements, setPharmacySettlements] = useState([]);
-  const [vetCommissions, setVetCommissions] = useState([]);
-  const [vetSettlements, setVetSettlements] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedProofImg, setSelectedProofImg] = useState(null);
@@ -82,39 +79,13 @@ export default function SubscriptionsAndPayments() {
     }
   };
 
-  const fetchVetCommissions = async () => {
-    try {
-      const res = await fetch(`${API_BASE_URL}/api/admin/vet-commissions`);
-      if (res.ok) {
-        const data = await res.json();
-        setVetCommissions(data);
-      }
-    } catch (err) {
-      console.error('Error fetching vet commissions:', err);
-    }
-  };
-
-  const fetchVetSettlements = async () => {
-    try {
-      const res = await fetch(`${API_BASE_URL}/api/admin/vet-settlements`);
-      if (res.ok) {
-        const data = await res.json();
-        setVetSettlements(data);
-      }
-    } catch (err) {
-      console.error('Error fetching vet settlements:', err);
-    }
-  };
-
   const loadAll = async () => {
     setLoading(true);
     await Promise.all([
       fetchSubscriptions(),
       fetchOrderProofs(),
       fetchPharmacyCommissions(),
-      fetchPharmacySettlements(),
-      fetchVetCommissions(),
-      fetchVetSettlements()
+      fetchPharmacySettlements()
     ]);
     setLoading(false);
   };
@@ -291,78 +262,9 @@ export default function SubscriptionsAndPayments() {
     }
   };
 
-  const handleApproveVetSettlement = async (id, amount) => {
-    if (!window.confirm(`Are you sure you want to approve this Rs. ${amount} vet commission settlement and deduct it from their debt?`)) {
-      return;
-    }
-    try {
-      setActionLoading(true);
-      const res = await fetch(`${API_BASE_URL}/api/admin/vet-settlements/${id}/approve`, {
-        method: 'PUT'
-      });
-      const data = await res.json();
-      if (res.ok) {
-        alert(data.message || 'Vet settlement approved successfully!');
-        fetchVetSettlements();
-        fetchVetCommissions();
-      } else {
-        alert(data.error || 'Failed to approve vet settlement');
-      }
-    } catch (e) {
-      alert('Error approving settlement: ' + e.message);
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  const handleRejectVetSettlement = async (id) => {
-    const reason = window.prompt('Please enter the reason for rejecting this vet settlement:');
-    if (reason === null) return;
-    try {
-      setActionLoading(true);
-      const res = await fetch(`${API_BASE_URL}/api/admin/vet-settlements/${id}/reject`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ reason })
-      });
-      const data = await res.json();
-      if (res.ok) {
-        alert('Vet settlement rejected.');
-        fetchVetSettlements();
-      } else {
-        alert(data.error || 'Failed to reject settlement');
-      }
-    } catch (e) {
-      alert('Error: ' + e.message);
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
   const pendingSubsCount = subscriptions.filter(s => s.status === 'pending').length;
   const pendingOrdersCount = orderProofs.filter(o => o.payment_status === 'pending_verification').length;
   const pendingSettlementsCount = pharmacySettlements.filter(s => s.status === 'pending').length;
-  const pendingVetSettlementsCount = vetSettlements.filter(s => s.status === 'pending').length;
-
-  const filteredVetCommissions = vetCommissions.filter(v => {
-    const q = searchTerm.toLowerCase();
-    return (
-      (v.full_name && v.full_name.toLowerCase().includes(q)) ||
-      (v.specialization && v.specialization.toLowerCase().includes(q)) ||
-      (v.phone_number && v.phone_number.includes(q)) ||
-      (v.district && v.district.toLowerCase().includes(q))
-    );
-  });
-
-  const filteredVetSettlements = vetSettlements.filter(s => {
-    const q = searchTerm.toLowerCase();
-    return (
-      (s.vet_name && s.vet_name.toLowerCase().includes(q)) ||
-      (s.sender_phone && s.sender_phone.includes(q)) ||
-      (s.transaction_id && s.transaction_id.toLowerCase().includes(q)) ||
-      (s.status && s.status.toLowerCase().includes(q))
-    );
-  });
 
   const filteredCommissions = pharmacyCommissions.filter(p => {
     const q = searchTerm.toLowerCase();
@@ -519,38 +421,6 @@ export default function SubscriptionsAndPayments() {
               fontWeight: '800'
             }}>
               {pendingSettlementsCount}
-            </span>
-          )}
-        </button>
-
-        <button
-          onClick={() => setActiveTab('vet-commissions')}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            padding: '12px 20px',
-            fontSize: '14px',
-            fontWeight: '700',
-            border: 'none',
-            borderBottom: activeTab === 'vet-commissions' ? '3px solid #059669' : '3px solid transparent',
-            color: activeTab === 'vet-commissions' ? '#059669' : '#64748B',
-            backgroundColor: 'transparent',
-            cursor: 'pointer'
-          }}
-        >
-          <Stethoscope size={18} />
-          Veterinarian Commissions (Rs. 300 / Case)
-          {pendingVetSettlementsCount > 0 && (
-            <span style={{
-              backgroundColor: '#EF4444',
-              color: '#FFF',
-              borderRadius: '12px',
-              padding: '2px 8px',
-              fontSize: '11px',
-              fontWeight: '800'
-            }}>
-              {pendingVetSettlementsCount}
             </span>
           )}
         </button>
@@ -1140,279 +1010,6 @@ export default function SubscriptionsAndPayments() {
                       </tr>
                     );
                   })}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Tab 4: Veterinarian Commissions & Settlements */}
-      {activeTab === 'vet-commissions' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-
-          {/* Financials KPI Header */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: '16px' }}>
-            <div style={{ backgroundColor: '#FFF', padding: '18px', borderRadius: '14px', border: '1px solid #E2E8F0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
-              <span style={{ fontSize: '12px', fontWeight: '700', color: '#64748B' }}>TOTAL VET CASES</span>
-              <h2 style={{ fontSize: '24px', fontWeight: '900', color: '#0F172A', margin: '8px 0 0 0' }}>
-                {vetCommissions.reduce((acc, v) => acc + (parseInt(v.total_consultations) || 0), 0)} Cases
-              </h2>
-            </div>
-
-            <div style={{ backgroundColor: '#F8FAFC', padding: '18px', borderRadius: '14px', border: '1px solid #E2E8F0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
-              <span style={{ fontSize: '12px', fontWeight: '700', color: '#475569' }}>GROSS FEES (Rs. 300 / Case)</span>
-              <h2 style={{ fontSize: '24px', fontWeight: '900', color: '#0F172A', margin: '8px 0 0 0' }}>
-                Rs. {vetCommissions.reduce((acc, v) => acc + (parseFloat(v.total_gross_fees) || 0), 0).toLocaleString()}
-              </h2>
-            </div>
-
-            <div style={{ backgroundColor: '#F0FDF4', padding: '18px', borderRadius: '14px', border: '1px solid #BBF7D0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
-              <span style={{ fontSize: '12px', fontWeight: '700', color: '#166534' }}>10% ADMIN COMMISSION EARNED</span>
-              <h2 style={{ fontSize: '24px', fontWeight: '900', color: '#15803D', margin: '8px 0 0 0' }}>
-                Rs. {vetCommissions.reduce((acc, v) => acc + (parseFloat(v.total_admin_commission_earned) || 0), 0).toLocaleString()}
-              </h2>
-            </div>
-
-            <div style={{ backgroundColor: '#EFF6FF', padding: '18px', borderRadius: '14px', border: '1px solid #BFDBFE', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
-              <span style={{ fontSize: '12px', fontWeight: '700', color: '#1E40AF' }}>90% VET NET EARNINGS</span>
-              <h2 style={{ fontSize: '24px', fontWeight: '900', color: '#2563EB', margin: '8px 0 0 0' }}>
-                Rs. {vetCommissions.reduce((acc, v) => acc + (parseFloat(v.total_vet_earnings) || 0), 0).toLocaleString()}
-              </h2>
-            </div>
-
-            <div style={{ backgroundColor: '#FEF2F2', padding: '18px', borderRadius: '14px', border: '1px solid #FECACA', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
-              <span style={{ fontSize: '12px', fontWeight: '700', color: '#991B1B' }}>VET COMMISSION DUE (DEBT)</span>
-              <h2 style={{ fontSize: '24px', fontWeight: '900', color: '#DC2626', margin: '8px 0 0 0' }}>
-                Rs. {vetCommissions.reduce((acc, v) => acc + (parseFloat(v.commission_due) || 0), 0).toLocaleString()}
-              </h2>
-            </div>
-          </div>
-
-          {/* Section 1: Pending Vet Settlement Proofs */}
-          <div style={{ backgroundColor: '#FFF', borderRadius: '14px', border: '1px solid #E2E8F0', padding: '20px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <div>
-                <h3 style={{ fontSize: '16px', fontWeight: '800', color: '#1E293B', margin: 0 }}>
-                  Veterinarian Commission Settlement Proofs
-                </h3>
-                <p style={{ fontSize: '13px', color: '#64748B', margin: '4px 0 0 0' }}>
-                  Veterinarians transferring their 10% platform commission to Admin JazzCash (<strong>03054758667</strong>) to clear consultation debt.
-                </p>
-              </div>
-            </div>
-
-            {filteredVetSettlements.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '32px', color: '#94A3B8', fontSize: '14px' }}>
-                No vet commission settlement proofs submitted yet.
-              </div>
-            ) : (
-              <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
-                  <thead>
-                    <tr style={{ backgroundColor: '#F8FAFC', borderBottom: '2px solid #E2E8F0' }}>
-                      <th style={{ padding: '12px 16px', color: '#475569', fontWeight: '700' }}>Date</th>
-                      <th style={{ padding: '12px 16px', color: '#475569', fontWeight: '700' }}>Veterinarian</th>
-                      <th style={{ padding: '12px 16px', color: '#475569', fontWeight: '700' }}>Amount Settled</th>
-                      <th style={{ padding: '12px 16px', color: '#475569', fontWeight: '700' }}>Sender Phone</th>
-                      <th style={{ padding: '12px 16px', color: '#475569', fontWeight: '700' }}>TID</th>
-                      <th style={{ padding: '12px 16px', color: '#475569', fontWeight: '700' }}>Receipt Proof</th>
-                      <th style={{ padding: '12px 16px', color: '#475569', fontWeight: '700' }}>Status</th>
-                      <th style={{ padding: '12px 16px', color: '#475569', fontWeight: '700', textAlign: 'center' }}>Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredVetSettlements.map((s) => (
-                      <tr key={s.id} style={{ borderBottom: '1px solid #F1F5F9' }}>
-                        <td style={{ padding: '14px 16px', color: '#64748B' }}>
-                          {new Date(s.created_at).toLocaleDateString()}
-                        </td>
-                        <td style={{ padding: '14px 16px' }}>
-                          <span style={{ fontWeight: '800', color: '#0F172A', display: 'block' }}>Dr. {s.vet_name}</span>
-                          <span style={{ fontSize: '11px', color: '#64748B' }}>{s.vet_phone || 'No phone'}</span>
-                        </td>
-                        <td style={{ padding: '14px 16px' }}>
-                          <span style={{ fontWeight: '900', color: '#059669', fontSize: '14px' }}>
-                            Rs. {parseFloat(s.amount).toFixed(2)}
-                          </span>
-                        </td>
-                        <td style={{ padding: '14px 16px', fontFamily: 'monospace' }}>
-                          {s.sender_phone}
-                        </td>
-                        <td style={{ padding: '14px 16px', fontFamily: 'monospace', fontWeight: '700', color: '#2563EB' }}>
-                          {s.transaction_id}
-                        </td>
-                        <td style={{ padding: '14px 16px' }}>
-                          {s.proof_image_url ? (
-                            <button
-                              onClick={() => setSelectedProofImg(s.proof_image_url)}
-                              style={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '6px',
-                                padding: '6px 12px',
-                                backgroundColor: '#EFF6FF',
-                                color: '#2563EB',
-                                border: '1px solid #BFDBFE',
-                                borderRadius: '8px',
-                                fontSize: '12px',
-                                fontWeight: '700',
-                                cursor: 'pointer'
-                              }}
-                            >
-                              <Eye size={14} /> View Receipt
-                            </button>
-                          ) : (
-                            <span style={{ color: '#94A3B8' }}>No image</span>
-                          )}
-                        </td>
-                        <td style={{ padding: '14px 16px' }}>
-                          <span style={{
-                            padding: '4px 10px',
-                            borderRadius: '20px',
-                            fontSize: '11px',
-                            fontWeight: '800',
-                            backgroundColor: s.status === 'approved' ? '#DCFCE7' : (s.status === 'rejected' ? '#FEE2E2' : '#FEF3C7'),
-                            color: s.status === 'approved' ? '#16A34A' : (s.status === 'rejected' ? '#DC2626' : '#D97706')
-                          }}>
-                            {s.status ? s.status.toUpperCase() : 'PENDING'}
-                          </span>
-                        </td>
-                        <td style={{ padding: '14px 16px', textAlign: 'center' }}>
-                          {s.status === 'pending' ? (
-                            <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
-                              <button
-                                onClick={() => handleApproveVetSettlement(s.id, s.amount)}
-                                disabled={actionLoading}
-                                style={{
-                                  display: 'inline-flex',
-                                  alignItems: 'center',
-                                  gap: '4px',
-                                  padding: '6px 12px',
-                                  backgroundColor: '#059669',
-                                  color: '#FFF',
-                                  border: 'none',
-                                  borderRadius: '8px',
-                                  fontSize: '12px',
-                                  fontWeight: '700',
-                                  cursor: 'pointer'
-                                }}
-                              >
-                                <Check size={14} /> Approve & Clear Debt
-                              </button>
-                              <button
-                                onClick={() => handleRejectVetSettlement(s.id)}
-                                disabled={actionLoading}
-                                style={{
-                                  display: 'inline-flex',
-                                  alignItems: 'center',
-                                  gap: '4px',
-                                  padding: '6px 12px',
-                                  backgroundColor: '#EF4444',
-                                  color: '#FFF',
-                                  border: 'none',
-                                  borderRadius: '8px',
-                                  fontSize: '12px',
-                                  fontWeight: '700',
-                                  cursor: 'pointer'
-                                }}
-                              >
-                                <X size={14} /> Reject
-                              </button>
-                            </div>
-                          ) : (
-                            <span style={{ color: '#94A3B8', fontSize: '12px' }}>Processed</span>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-
-          {/* Section 2: Registered Veterinarians Commission Ledger */}
-          <div style={{ backgroundColor: '#FFF', borderRadius: '14px', border: '1px solid #E2E8F0', padding: '20px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <div>
-                <h3 style={{ fontSize: '16px', fontWeight: '800', color: '#1E293B', margin: 0 }}>
-                  Veterinarians Commission Ledger & Case Overview
-                </h3>
-                <p style={{ fontSize: '13px', color: '#64748B', margin: '4px 0 0 0' }}>
-                  Every consultation is charged at <strong>Rs. 300</strong> with a standard <strong>25% platform commission (Rs. 75 / case)</strong>.
-                </p>
-              </div>
-            </div>
-
-            <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
-                <thead>
-                  <tr style={{ backgroundColor: '#F8FAFC', borderBottom: '2px solid #E2E8F0' }}>
-                    <th style={{ padding: '12px 16px', color: '#475569', fontWeight: '700' }}>Veterinarian</th>
-                    <th style={{ padding: '12px 16px', color: '#475569', fontWeight: '700' }}>Contact / District</th>
-                    <th style={{ padding: '12px 16px', color: '#475569', fontWeight: '700' }}>Consultations</th>
-                    <th style={{ padding: '12px 16px', color: '#475569', fontWeight: '700' }}>Gross Fees (@ Rs. 300)</th>
-                    <th style={{ padding: '12px 16px', color: '#475569', fontWeight: '700' }}>25% Platform Comm.</th>
-                    <th style={{ padding: '12px 16px', color: '#475569', fontWeight: '700' }}>75% Vet Share</th>
-                    <th style={{ padding: '12px 16px', color: '#475569', fontWeight: '700' }}>Comm. Due (Debt)</th>
-                    <th style={{ padding: '12px 16px', color: '#475569', fontWeight: '700' }}>Comm. Paid</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredVetCommissions.length === 0 ? (
-                    <tr>
-                      <td colSpan="8" style={{ textAlign: 'center', padding: '32px', color: '#94A3B8' }}>
-                        No veterinarians found matching search criteria.
-                      </td>
-                    </tr>
-                  ) : (
-                    filteredVetCommissions.map((v) => {
-                      const due = parseFloat(v.commission_due) || 0;
-                      return (
-                        <tr key={v.id} style={{ borderBottom: '1px solid #F1F5F9' }}>
-                          <td style={{ padding: '14px 16px' }}>
-                            <span style={{ fontWeight: '800', color: '#0F172A', display: 'block' }}>Dr. {v.full_name}</span>
-                            <span style={{ fontSize: '11px', color: '#64748B' }}>{v.specialization || 'General Vet'}</span>
-                          </td>
-                          <td style={{ padding: '14px 16px' }}>
-                            <span style={{ display: 'block', fontWeight: '600', color: '#334155' }}>{v.phone_number || 'N/A'}</span>
-                            <span style={{ fontSize: '11px', color: '#94A3B8' }}>{v.district || 'Pakistan'}</span>
-                          </td>
-                          <td style={{ padding: '14px 16px' }}>
-                            <span style={{ fontWeight: '700', color: '#0F172A' }}>{v.total_consultations || 0} cases</span>
-                            <span style={{ display: 'block', fontSize: '11px', color: '#059669' }}>
-                              {v.paid_consultations || 0} paid
-                            </span>
-                          </td>
-                          <td style={{ padding: '14px 16px', fontWeight: '700', color: '#334155' }}>
-                            Rs. {(parseFloat(v.total_gross_fees) || 0).toLocaleString()}
-                          </td>
-                          <td style={{ padding: '14px 16px', fontWeight: '800', color: '#15803D' }}>
-                            Rs. {(parseFloat(v.total_admin_commission_earned) || 0).toLocaleString()}
-                          </td>
-                          <td style={{ padding: '14px 16px', fontWeight: '800', color: '#2563EB' }}>
-                            Rs. {(parseFloat(v.total_vet_earnings) || 0).toLocaleString()}
-                          </td>
-                          <td style={{ padding: '14px 16px' }}>
-                            <span style={{
-                              fontWeight: '900',
-                              color: due > 0 ? '#DC2626' : '#16A34A',
-                              backgroundColor: due > 0 ? '#FEE2E2' : '#DCFCE7',
-                              padding: '3px 8px',
-                              borderRadius: '6px',
-                              display: 'inline-block'
-                            }}>
-                              Rs. {due.toFixed(2)}
-                            </span>
-                          </td>
-                          <td style={{ padding: '14px 16px', fontWeight: '700', color: '#64748B' }}>
-                            Rs. {(parseFloat(v.commission_paid) || 0).toFixed(2)}
-                          </td>
-                        </tr>
-                      );
-                    })
-                  )}
                 </tbody>
               </table>
             </div>
