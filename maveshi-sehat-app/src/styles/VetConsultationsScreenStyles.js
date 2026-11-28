@@ -125,7 +125,21 @@ export const getStyles = (colors = LIGHT_THEME, isDark = false) => {
     resolvedAction: { flexDirection: 'row', alignItems: 'center', minHeight: 36, paddingHorizontal: 8 },
     resolvedActionText: { color: '#64748B', fontWeight: '800', fontSize: 14, marginLeft: 5 },
     emptyContainer: { alignItems: 'center', marginTop: 60 },
-    emptyText: { marginTop: 16, fontSize: 16, color: colors.textSecondary, fontWeight: '600' }
+    emptyText: { marginTop: 16, fontSize: 16, color: colors.textSecondary, fontWeight: '600' },
+    bottomNav: { 
+      flexDirection: 'row', 
+      backgroundColor: colors.card, 
+      paddingVertical: 14, 
+      paddingHorizontal: 20, 
+      justifyContent: 'space-between', 
+      borderTopWidth: 1, 
+      borderTopColor: colors.border, 
+      elevation: 10 
+    },
+    navItem: { alignItems: 'center' },
+    navText: { fontSize: 10, color: colors.textSecondary, marginTop: 4, fontWeight: '600' },
+    navProfile: { width: 24, height: 24, borderRadius: 12, backgroundColor: isDark ? colors.surfaceAlt : '#E0E0E0', justifyContent: 'center', alignItems: 'center' },
+    navProfileText: { fontSize: 10, fontWeight: 'bold', color: colors.textSecondary }
   });
 };
 

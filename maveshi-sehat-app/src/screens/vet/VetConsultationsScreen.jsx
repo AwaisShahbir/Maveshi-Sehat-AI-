@@ -331,6 +331,31 @@ export default function VetConsultationsScreen() {
           }
         />
       )}
+
+      <View style={styles.bottomNav}>
+        <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('VetDashboard', { userName, userId })}>
+          <MaterialCommunityIcons name="home-variant-outline" size={26} color={colors.textSecondary} />
+          <Text style={[styles.navText, { color: colors.textSecondary }]}>{t('Home')}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('VetCases', { userName, userId })}>
+          <MaterialCommunityIcons name="clipboard-text-outline" size={26} color={colors.textSecondary} />
+          <Text style={[styles.navText, { color: colors.textSecondary }]}>{t('Cases')}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.navItem} onPress={() => {}}>
+          <MaterialCommunityIcons name="message-text" size={26} color={colors.primary} />
+          <Text style={[styles.navText, { color: colors.primary, fontWeight: '700' }]}>{t('Consult')}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('CommunityForum', { userName, userId })}>
+          <MaterialCommunityIcons name="forum-outline" size={26} color={colors.textSecondary} />
+          <Text style={[styles.navText, { color: colors.textSecondary }]}>{t('Forum')}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('VetProfile')}>
+          <View style={styles.navProfile}>
+            <Text style={styles.navProfileText}>DR</Text>
+          </View>
+          <Text style={[styles.navText, { color: colors.textSecondary }]}>{t('Profile')}</Text>
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
   );
 }
