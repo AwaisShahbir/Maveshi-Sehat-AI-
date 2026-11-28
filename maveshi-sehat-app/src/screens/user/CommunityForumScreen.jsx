@@ -600,49 +600,49 @@ export default function CommunityForumScreen() {
       </View>
 
       {/* Bottom Navigation */}
-      <View style={[styles.bottomNav, { paddingBottom: Math.max(insets.bottom, 12) + 6 }]}>
-        {userRole === 'vet' ? (
-          <>
-            <TouchableOpacity
-              style={styles.navItem}
-              onPress={() => navigation.navigate('VetDashboard')}
-            >
-              <Feather name="home" size={22} color={colors.navInactive} />
-              <Text style={styles.navText}>{t('Home')}</Text>
-            </TouchableOpacity>
+      {userRole === 'vet' ? (
+        <View style={styles.vetBottomNav}>
+          <TouchableOpacity
+            style={styles.vetNavItem}
+            onPress={() => navigation.navigate('VetDashboard', { userName, userId })}
+          >
+            <MaterialCommunityIcons name="home-variant-outline" size={26} color={colors.textSecondary} />
+            <Text style={[styles.vetNavText, { color: colors.textSecondary }]}>{t('Home')}</Text>
+          </TouchableOpacity>
 
-            <TouchableOpacity
-              style={styles.navItem}
-              onPress={() => navigation.navigate('VetCases')}
-            >
-              <MaterialCommunityIcons name="clipboard-pulse-outline" size={22} color={colors.navInactive} />
-              <Text style={styles.navText}>{t('Cases')}</Text>
-            </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.vetNavItem}
+            onPress={() => navigation.navigate('VetCases', { userName, userId })}
+          >
+            <MaterialCommunityIcons name="clipboard-text-outline" size={26} color={colors.textSecondary} />
+            <Text style={[styles.vetNavText, { color: colors.textSecondary }]}>{t('Cases')}</Text>
+          </TouchableOpacity>
 
-            <TouchableOpacity
-              style={styles.navItem}
-              onPress={() => navigation.navigate('VetConsultations', { userName, userId })}
-            >
-              <Feather name="message-circle" size={22} color={colors.navInactive} />
-              <Text style={styles.navText}>{t('Consults')}</Text>
-            </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.vetNavItem}
+            onPress={() => navigation.navigate('VetConsultations', { userName, userId })}
+          >
+            <MaterialCommunityIcons name="message-text-outline" size={26} color={colors.textSecondary} />
+            <Text style={[styles.vetNavText, { color: colors.textSecondary }]}>{t('Consult')}</Text>
+          </TouchableOpacity>
 
-            <TouchableOpacity style={styles.navItem}>
-              <MaterialCommunityIcons name="forum" size={22} color={colors.primary} />
-              <Text style={[styles.navText, styles.navTextActive]}>
-                {t('Forum')}
-              </Text>
-            </TouchableOpacity>
+          <TouchableOpacity style={styles.vetNavItem} onPress={() => {}}>
+            <MaterialCommunityIcons name="forum" size={26} color={colors.primary} />
+            <Text style={[styles.vetNavText, { color: colors.primary, fontWeight: '700' }]}>{t('Forum')}</Text>
+          </TouchableOpacity>
 
-            <TouchableOpacity
-              style={styles.navItem}
-              onPress={() => navigation.navigate('VetProfile')}
-            >
-              <Feather name="user" size={22} color={colors.navInactive} />
-              <Text style={styles.navText}>{t('Profile')}</Text>
-            </TouchableOpacity>
-          </>
-        ) : (
+          <TouchableOpacity
+            style={styles.vetNavItem}
+            onPress={() => navigation.navigate('VetProfile')}
+          >
+            <View style={styles.vetNavProfile}>
+              <Text style={styles.vetNavProfileText}>DR</Text>
+            </View>
+            <Text style={[styles.vetNavText, { color: colors.textSecondary }]}>{t('Profile')}</Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <View style={[styles.bottomNav, { paddingBottom: Math.max(insets.bottom, 12) + 6 }]}>
           <>
             <TouchableOpacity
               style={styles.navItem}
@@ -683,8 +683,8 @@ export default function CommunityForumScreen() {
               <Text style={styles.navText}>{t('Profile')}</Text>
             </TouchableOpacity>
           </>
-        )}
-      </View>
+        </View>
+      )}
 
       {/* Create Discussion Modal ("Form") */}
       <Modal

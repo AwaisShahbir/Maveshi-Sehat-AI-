@@ -430,6 +430,20 @@ export const getStyles = (colors = LIGHT_THEME, isDark = false) => {
       color: colors.primary,
       fontWeight: '800',
     },
+    vetBottomNav: { 
+      flexDirection: 'row', 
+      backgroundColor: colors.card, 
+      paddingVertical: 14, 
+      paddingHorizontal: 20, 
+      justifyContent: 'space-between', 
+      borderTopWidth: 1, 
+      borderTopColor: colors.border, 
+      elevation: 10 
+    },
+    vetNavItem: { alignItems: 'center' },
+    vetNavText: { fontSize: 10, color: colors.textSecondary, marginTop: 4, fontWeight: '600' },
+    vetNavProfile: { width: 24, height: 24, borderRadius: 12, backgroundColor: isDark ? colors.surfaceAlt : '#E0E0E0', justifyContent: 'center', alignItems: 'center' },
+    vetNavProfileText: { fontSize: 10, fontWeight: 'bold', color: colors.textSecondary },
     modalOverlay: {
       flex: 1,
       backgroundColor: 'rgba(0,0,0,0.65)',
