@@ -21,6 +21,7 @@ import { useNavigation } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { getProfile } from '../../utils/profileStore';
+import { getSessionAiMessages, setSessionAiMessages, clearSessionAiMessages } from '../../utils/aiChatSessionStore';
 import { t, useTranslation } from '../../utils/translate';
 import { useTheme } from '../../utils/themeContext';
 import fonts from '../../styles/fonts';
@@ -207,6 +208,16 @@ export default function ChatbotScreen() {
     const userIsVet = currentProfile.role === 'vet' || currentProfile.role === 'veterinarian';
     const userName = currentProfile.fullName || currentProfile.userName || '';
 
+    // If session history already exists in current session, restore it
+    const existingSession = getSessionAiMessages(currentProfile.role);
+    if (existingSession && Array.isArray(existingSession) && existingSession.length > 0) {
+      setMessages(existingSession);
+      setTimeout(() => {
+        flatListRef.current?.scrollToEnd({ animated: false });
+      }, 150);
+      return;
+    }
+
     let greetingText = '';
     if (userIsVet) {
       greetingText = `Assalam-o-Alaikum ${userName || ''}! I am Sehat Assistant. How can I help your livestock today?`;
@@ -225,28 +236,7 @@ export default function ChatbotScreen() {
     };
 
     setMessages([welcomeMsg]);
-
-    // Load persisted previous chat history for strictly scoped user (never load shared 'farmer' pool)
-    const loadChatHistory = async () => {
-      try {
-        const scopedId = getScopedUserId(currentProfile);
-        if (!scopedId) return; // Anonymous/guest: stay in clean session mode
-        const res = await tryFetch(`/api/chat/history?userId=${encodeURIComponent(scopedId)}`);
-        if (res.ok) {
-          const data = await res.json();
-          if (data.success && Array.isArray(data.messages) && data.messages.length > 0) {
-            setMessages([welcomeMsg, ...data.messages]);
-            setTimeout(() => {
-              flatListRef.current?.scrollToEnd({ animated: false });
-            }, 250);
-          }
-        }
-      } catch (err) {
-        console.warn('Failed to load previous chat history:', err);
-      }
-    };
-
-    loadChatHistory();
+    setSessionAiMessages(currentProfile.role, [welcomeMsg]);
 
     return () => {
       // Stop any ongoing audio on unmount
@@ -376,12 +366,21 @@ export default function ChatbotScreen() {
 
     const updatedHistory = [...messages, newUserMsg];
     setMessages(updatedHistory);
+    setSessionAiMessages(profile.role, updatedHistory);
     setInputText('');
     setLoading(true);
 
     setTimeout(() => {
       flatListRef.current?.scrollToEnd({ animated: true });
     }, 100);
+
+    const appendAssistantMessage = (assistantMsg) => {
+      setMessages((prev) => {
+        const next = [...prev, assistantMsg];
+        setSessionAiMessages(profile.role, next);
+        return next;
+      });
+    };
 
     try {
       // Prepare history payload for AI (exclude initial welcome greeting)
@@ -423,7 +422,7 @@ export default function ChatbotScreen() {
           provider: isVet ? (t('Clinical Co-Pilot')) : (t('Sehat Assistant')),
           time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         };
-        setMessages((prev) => [...prev, pausedMsg]);
+        appendAssistantMessage(pausedMsg);
       } else if (response.ok && data.success) {
         const assistantMsg = {
           id: (Date.now() + 1).toString(),
@@ -435,7 +434,7 @@ export default function ChatbotScreen() {
           audioUrl: data.audioUrl,
           time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         };
-        setMessages((prev) => [...prev, assistantMsg]);
+        appendAssistantMessage(assistantMsg);
       } else {
         const fallbackMsg = {
           id: (Date.now() + 1).toString(),
@@ -443,7 +442,7 @@ export default function ChatbotScreen() {
           content: t('Sorry, could not connect to Sehat Assistant server right now. Please check your connection and try again.'),
           time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         };
-        setMessages((prev) => [...prev, fallbackMsg]);
+        appendAssistantMessage(fallbackMsg);
       }
     } catch (err) {
       console.error('Send message error:', err);
@@ -453,7 +452,7 @@ export default function ChatbotScreen() {
         content: t('Network error. Please check your backend connection.'),
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       };
-      setMessages((prev) => [...prev, errorMsg]);
+      appendAssistantMessage(errorMsg);
     } finally {
       setLoading(false);
       setTimeout(() => {
@@ -573,7 +572,11 @@ export default function ChatbotScreen() {
               audioUrl: data.audioUrl,
               time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
             };
-            setMessages((prev) => [...prev, userMsg, assistantMsg]);
+            setMessages((prev) => {
+              const next = [...prev, userMsg, assistantMsg];
+              setSessionAiMessages(profile.role, next);
+              return next;
+            });
 
             // Automatically play voice response of Sehat Assistant immediately
             if (data.audioUrl) {
@@ -609,21 +612,23 @@ export default function ChatbotScreen() {
       [
         { text: t('Cancel'), style: 'cancel' },
         {
-          text: t('Close'),
+          text: t('Clear'),
           style: 'destructive',
           onPress: async () => {
-            const initialGreeting = t('Assalam-o-Alaikum! I am Sehat Assistant. How can I help with your cows or buffaloes today?');
-            setMessages([
-              {
-                id: 'welcome-reset',
-                role: 'assistant',
-                content: initialGreeting,
-                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                provider: isVet
-                  ? (t('Clinical Co-Pilot'))
-                  : (t('Sehat Assistant')),
-              },
-            ]);
+            const userIsVet = profile.role === 'vet' || profile.role === 'veterinarian';
+            const userName = profile.fullName || profile.userName || '';
+            const greetingText = `Assalam-o-Alaikum ${userName || ''}! I am Sehat Assistant. How can I help your livestock today?`;
+            const resetMsg = {
+              id: 'welcome-reset',
+              role: 'assistant',
+              content: greetingText,
+              time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+              provider: userIsVet
+                ? (t('Clinical Co-Pilot'))
+                : (t('Sehat Assistant')),
+            };
+            setMessages([resetMsg]);
+            setSessionAiMessages(profile.role, [resetMsg]);
 
             try {
               const scopedUserId = getScopedUserId(profile);
@@ -930,19 +935,11 @@ export default function ChatbotScreen() {
 
         <View style={styles.headerActions}>
           <TouchableOpacity
-            style={[styles.headerActionBtn, { marginRight: 8, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, width: 'auto' }]}
-            onPress={handleClearChat}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          >
-            <Feather name="plus-circle" size={15} color="#FFF" style={{ marginRight: 4 }} />
-            <Text style={{ color: '#FFF', fontSize: 12, fontWeight: '700' }}>{t('New Chat')}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
             style={styles.headerActionBtn}
             onPress={handleClearChat}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
-            <Feather name="trash-2" size={17} color="#FFF" />
+            <Feather name="trash-2" size={18} color="#FFF" />
           </TouchableOpacity>
         </View>
       </View>

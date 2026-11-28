@@ -17,6 +17,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { getProfile, updateProfile, subscribeProfile } from '../../utils/profileStore';
+import { clearSessionAiMessages } from '../../utils/aiChatSessionStore';
 import { getRecords, subscribe, loadRecords } from '../../utils/recordsStore';
 import { saveNotificationPreferences } from '../../services/notificationService';
 import { t, useTranslation, subscribeTranslation } from '../../utils/translate';
@@ -129,7 +130,14 @@ export default function ProfileScreen() {
       t('Are you sure you want to log out?'),
       [
         { text: t('Cancel'), style: "cancel" },
-        { text: t('Log Out'), style: "destructive", onPress: () => navigation.replace('Welcome') }
+        { 
+          text: t('Log Out'), 
+          style: "destructive", 
+          onPress: () => {
+            clearSessionAiMessages();
+            navigation.replace('Welcome');
+          }
+        }
       ]
     );
   };

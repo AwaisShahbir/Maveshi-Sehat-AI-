@@ -4,6 +4,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { getProfile, updateProfile, subscribeProfile } from '../../utils/profileStore';
+import { clearSessionAiMessages } from '../../utils/aiChatSessionStore';
 import { t } from '../../utils/translate';
 import { useTheme } from '../../utils/themeContext';
 import { getStyles } from '../../styles/VetProfileScreenStyles';
@@ -395,7 +396,10 @@ export default function VetProfileScreen() {
             {renderMenuItem('shield', 'Privacy Policy', null, null, () => setPrivacyModalVisible(true))}
           </View>
 
-          <TouchableOpacity style={styles.logoutBtn} onPress={() => navigation.reset({ index: 0, routes: [{ name: 'Welcome' }] })}>
+          <TouchableOpacity style={styles.logoutBtn} onPress={() => {
+            clearSessionAiMessages();
+            navigation.reset({ index: 0, routes: [{ name: 'Welcome' }] });
+          }}>
             <Feather name="log-out" size={20} color="#FF3B30" style={{ marginRight: 8 }} />
             <Text style={styles.logoutText}>{t('Logout')}</Text>
           </TouchableOpacity>

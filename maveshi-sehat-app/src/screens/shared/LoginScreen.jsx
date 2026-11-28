@@ -3,6 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, SafeAreaView, StatusBar, Keybo
 import { useNavigation } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
 import { updateProfile } from '../../utils/profileStore';
+import { clearSessionAiMessages } from '../../utils/aiChatSessionStore';
 import { t, useTranslation, subscribeTranslation } from '../../utils/translate';
 import { useTheme } from '../../utils/themeContext';
 import fonts from '../../styles/fonts';
@@ -117,6 +118,7 @@ export default function LoginScreen() {
         profileData.vetStatus = data.user.status || 'verified';
       }
 
+      clearSessionAiMessages();
       updateProfile(profileData);
 
       if (mappedRole === 'farmer') {
