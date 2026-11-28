@@ -2,22 +2,21 @@ import { StyleSheet, Platform, StatusBar } from 'react-native';
 import { LIGHT_THEME } from '../utils/theme';
 
 export const getStyles = (colors = LIGHT_THEME, isDark = false) => {
-  const brandGreen = '#059669'; // Rich emerald
-  const darkGreenHeader = '#065F46'; // Deep premium emerald for header
-  const lightBg = '#F8FAFC'; // Clean, crisp off-white/slate
-  const darkBg = '#0F172A'; // Sleek dark slate
-  const cardLight = '#FFFFFF';
-  const cardDark = '#1E293B';
-  const borderLight = '#E2E8F0';
-  const borderDark = '#334155';
+  const brandGreen = colors.primary || '#059669';
+  const headerBg = isDark ? colors.headerBackground : colors.primary;
+  const cardBg = colors.card || '#FFFFFF';
+  const borderCol = colors.border || '#E2E8F0';
+  const textPri = colors.textPrimary || '#0F172A';
+  const textSec = colors.textSecondary || '#64748B';
+  const bg = colors.background || '#F8FAFC';
 
   return StyleSheet.create({
     safeArea: {
       flex: 1,
-      backgroundColor: isDark ? '#0F172A' : darkGreenHeader,
+      backgroundColor: headerBg,
     },
     header: {
-      backgroundColor: isDark ? '#1E293B' : darkGreenHeader,
+      backgroundColor: headerBg,
       paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 0) + 8 : 12,
       paddingBottom: 16,
       paddingHorizontal: 16,
@@ -71,7 +70,7 @@ export const getStyles = (colors = LIGHT_THEME, isDark = false) => {
       borderRadius: 6.5,
       backgroundColor: '#10B981',
       borderWidth: 2.5,
-      borderColor: isDark ? '#1E293B' : darkGreenHeader,
+      borderColor: headerBg,
     },
     headerInfo: {
       flex: 1,
@@ -103,7 +102,7 @@ export const getStyles = (colors = LIGHT_THEME, isDark = false) => {
     },
     chatContainer: {
       flex: 1,
-      backgroundColor: isDark ? darkBg : lightBg,
+      backgroundColor: bg,
     },
     messagesList: {
       paddingHorizontal: 16,
@@ -150,13 +149,13 @@ export const getStyles = (colors = LIGHT_THEME, isDark = false) => {
       flexDirection: 'row',
     },
     suggestionChip: {
-      backgroundColor: isDark ? cardDark : cardLight,
-      borderWidth: 1.2,
-      borderColor: isDark ? borderDark : borderLight,
+      backgroundColor: cardBg,
+      borderWidth: 1,
+      borderColor: borderCol,
       borderRadius: 22,
       paddingHorizontal: 15,
       paddingVertical: 9,
-      elevation: 2,
+      elevation: 1,
       shadowColor: '#000',
       shadowOffset: { width: 0, height: 1 },
       shadowOpacity: 0.06,
@@ -164,7 +163,7 @@ export const getStyles = (colors = LIGHT_THEME, isDark = false) => {
     },
     suggestionChipText: {
       fontSize: 12.5,
-      color: isDark ? '#F1F5F9' : '#1E293B',
+      color: textPri,
       fontWeight: '600',
     },
     messageRow: {
@@ -182,20 +181,20 @@ export const getStyles = (colors = LIGHT_THEME, isDark = false) => {
       width: 32,
       height: 32,
       borderRadius: 16,
-      backgroundColor: isDark ? cardDark : '#E0F2FE',
+      backgroundColor: isDark ? cardBg : '#ECFDF5',
       justifyContent: 'center',
       alignItems: 'center',
       marginRight: 8,
       marginBottom: 4,
       borderWidth: 1,
-      borderColor: isDark ? borderDark : '#BAE6FD',
+      borderColor: isDark ? borderCol : '#A7F3D0',
     },
     messageBubble: {
       maxWidth: '85%',
       borderRadius: 20,
       paddingHorizontal: 16,
       paddingVertical: 12,
-      elevation: 2,
+      elevation: 1,
       shadowColor: '#000',
       shadowOffset: { width: 0, height: 1 },
       shadowOpacity: 0.06,
@@ -206,10 +205,10 @@ export const getStyles = (colors = LIGHT_THEME, isDark = false) => {
       borderBottomRightRadius: 4,
     },
     assistantBubble: {
-      backgroundColor: isDark ? cardDark : cardLight,
+      backgroundColor: cardBg,
       borderBottomLeftRadius: 4,
       borderWidth: 1,
-      borderColor: isDark ? borderDark : borderLight,
+      borderColor: borderCol,
     },
     messageText: {
       fontSize: 14,
@@ -220,7 +219,7 @@ export const getStyles = (colors = LIGHT_THEME, isDark = false) => {
       fontWeight: '500',
     },
     assistantMessageText: {
-      color: isDark ? '#F1F5F9' : '#0F172A',
+      color: textPri,
     },
     bubbleFooter: {
       flexDirection: 'row',
@@ -239,7 +238,7 @@ export const getStyles = (colors = LIGHT_THEME, isDark = false) => {
       color: 'rgba(255, 255, 255, 0.8)',
     },
     assistantMessageTime: {
-      color: isDark ? '#94A3B8' : '#64748B',
+      color: textSec,
     },
     modelBadge: {
       backgroundColor: isDark ? 'rgba(255, 255, 255, 0.08)' : '#F1F5F9',
@@ -257,9 +256,9 @@ export const getStyles = (colors = LIGHT_THEME, isDark = false) => {
     audioPlayBtn: {
       flexDirection: 'row',
       alignItems: 'center',
-      backgroundColor: isDark ? 'rgba(16, 185, 129, 0.15)' : '#ECFDF5',
+      backgroundColor: isDark ? 'rgba(5, 150, 105, 0.15)' : '#ECFDF5',
       borderWidth: 1,
-      borderColor: isDark ? 'rgba(16, 185, 129, 0.3)' : '#A7F3D0',
+      borderColor: isDark ? 'rgba(5, 150, 105, 0.3)' : '#A7F3D0',
       paddingHorizontal: 10,
       paddingVertical: 4.5,
       borderRadius: 14,
@@ -276,12 +275,12 @@ export const getStyles = (colors = LIGHT_THEME, isDark = false) => {
       marginVertical: 8,
     },
     typingBubble: {
-      backgroundColor: isDark ? cardDark : cardLight,
+      backgroundColor: cardBg,
       borderRadius: 18,
       paddingHorizontal: 14,
       paddingVertical: 10,
       borderWidth: 1,
-      borderColor: isDark ? borderDark : borderLight,
+      borderColor: borderCol,
       flexDirection: 'row',
       alignItems: 'center',
       gap: 6,
@@ -295,38 +294,38 @@ export const getStyles = (colors = LIGHT_THEME, isDark = false) => {
     },
     typingText: {
       fontSize: 12,
-      color: isDark ? '#94A3B8' : '#64748B',
+      color: textSec,
       marginLeft: 4,
       fontStyle: 'italic',
     },
     inputBarContainer: {
-      backgroundColor: isDark ? cardDark : cardLight,
+      backgroundColor: cardBg,
       borderTopWidth: 1,
-      borderColor: isDark ? borderDark : borderLight,
-      paddingHorizontal: 14,
-      paddingVertical: 10,
-      elevation: 10,
+      borderTopColor: borderCol,
+      paddingHorizontal: 16,
+      paddingTop: 10,
+      elevation: 8,
       shadowColor: '#000',
       shadowOffset: { width: 0, height: -2 },
-      shadowOpacity: isDark ? 0.3 : 0.06,
+      shadowOpacity: isDark ? 0.25 : 0.06,
       shadowRadius: 6,
     },
     inputRow: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 8,
     },
     textInput: {
       flex: 1,
-      backgroundColor: isDark ? darkBg : '#F8FAFC',
+      backgroundColor: isDark ? (colors.surfaceAlt || '#1E293B') : '#F1F5F9',
       borderRadius: 24,
-      paddingHorizontal: 16,
-      paddingVertical: Platform.OS === 'ios' ? 10 : 8,
-      fontSize: 14,
-      color: isDark ? '#F8FAFC' : '#0F172A',
+      paddingHorizontal: 18,
+      paddingVertical: Platform.OS === 'ios' ? 12 : 10,
+      fontSize: 14.5,
+      color: textPri,
       maxHeight: 100,
-      borderWidth: 1.2,
-      borderColor: isDark ? borderDark : borderLight,
+      borderWidth: 1,
+      borderColor: borderCol,
+      marginRight: 8,
     },
     iconBtn: {
       width: 44,
@@ -338,7 +337,8 @@ export const getStyles = (colors = LIGHT_THEME, isDark = false) => {
     micBtn: {
       backgroundColor: isDark ? 'rgba(255, 255, 255, 0.08)' : '#F1F5F9',
       borderWidth: 1,
-      borderColor: isDark ? borderDark : borderLight,
+      borderColor: borderCol,
+      marginRight: 8,
     },
     micBtnRecording: {
       backgroundColor: '#FEE2E2',
@@ -396,7 +396,7 @@ export const getStyles = (colors = LIGHT_THEME, isDark = false) => {
     markdownHeader: {
       fontSize: 15,
       fontWeight: '800',
-      color: isDark ? '#F1F5F9' : '#0F172A',
+      color: textPri,
       marginTop: 8,
       marginBottom: 4,
       lineHeight: 22,
@@ -431,7 +431,7 @@ export const getStyles = (colors = LIGHT_THEME, isDark = false) => {
     bulletText: {
       fontSize: 13.5,
       lineHeight: 20,
-      color: isDark ? '#F1F5F9' : '#0F172A',
+      color: textPri,
     },
     paragraphBlock: {
       marginVertical: 3,
@@ -443,7 +443,7 @@ export const getStyles = (colors = LIGHT_THEME, isDark = false) => {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      backgroundColor: isDark ? 'rgba(16, 185, 129, 0.12)' : '#ECFDF5',
+      backgroundColor: isDark ? 'rgba(5, 150, 105, 0.12)' : '#ECFDF5',
       borderWidth: 1.5,
       borderColor: brandGreen,
       borderRadius: 14,
@@ -465,7 +465,7 @@ export const getStyles = (colors = LIGHT_THEME, isDark = false) => {
     actionCardText: {
       fontSize: 13.5,
       fontWeight: '700',
-      color: isDark ? '#34D399' : '#065F46',
+      color: brandGreen,
       flex: 1,
     },
     inlineActionBtn: {

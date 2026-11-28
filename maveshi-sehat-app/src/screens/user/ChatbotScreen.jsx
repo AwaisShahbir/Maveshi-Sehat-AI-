@@ -18,6 +18,7 @@ import {
   PermissionsAndroid,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Feather from 'react-native-vector-icons/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { getProfile } from '../../utils/profileStore';
@@ -80,6 +81,7 @@ const VET_SUGGESTIONS = {
 
 export default function ChatbotScreen() {
   const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
   const { isUrdu } = useTranslation();
   const { colors, isDark } = useTheme();
   const styles = React.useMemo(() => getStyles(colors, isDark), [colors, isDark]);
@@ -680,7 +682,7 @@ export default function ChatbotScreen() {
           <Text
             key={`span-b-${lineKey}-${spanIdx}`}
             style={[
-              { fontWeight: '700', color: '#0F172A' },
+              { fontWeight: '700', color: colors.textPrimary },
               isUrdu && { fontFamily: fonts.urduBold },
             ]}
           >
@@ -737,12 +739,12 @@ export default function ChatbotScreen() {
                 activeOpacity={0.8}
               >
                 <View style={styles.actionCardLeft}>
-                  <Feather name="external-link" size={15} color="#166534" />
+                  <Feather name="external-link" size={15} color={colors.primary} />
                   <Text style={[styles.actionCardText, isUrdu && { fontFamily: fonts.urduBold }]}>
                     {label}
                   </Text>
                 </View>
-                <Feather name="chevron-right" size={18} color="#166534" />
+                <Feather name="chevron-right" size={18} color={colors.primary} />
               </TouchableOpacity>
             );
           }
@@ -824,7 +826,7 @@ export default function ChatbotScreen() {
       >
         {!isUser && (
           <View style={styles.assistantMiniAvatar}>
-            <MaterialCommunityIcons name="cow" size={16} color="#4CB85C" />
+            <MaterialCommunityIcons name={isVet ? "doctor" : "cow"} size={16} color={colors.primary} />
           </View>
         )}
 
@@ -856,7 +858,7 @@ export default function ChatbotScreen() {
               <TouchableOpacity
                 style={[
                   styles.audioPlayBtn,
-                  playingMsgId === item.id && { backgroundColor: '#C8E6C9', borderColor: '#2E7D32' },
+                  playingMsgId === item.id && { backgroundColor: isDark ? 'rgba(5, 150, 105, 0.25)' : '#D1FAE5', borderColor: colors.primary },
                   loadingAudioId === item.id && { opacity: 0.7 }
                 ]}
                 onPress={() => handlePlayAudio(item)}
@@ -864,12 +866,12 @@ export default function ChatbotScreen() {
                 disabled={loadingAudioId === item.id}
               >
                 {loadingAudioId === item.id ? (
-                  <ActivityIndicator size="small" color="#2E7D32" style={{ transform: [{ scale: 0.7 }] }} />
+                  <ActivityIndicator size="small" color={colors.primary} style={{ transform: [{ scale: 0.7 }] }} />
                 ) : (
                   <Feather
                     name={playingMsgId === item.id ? "square" : "volume-2"}
                     size={12}
-                    color="#2E7D32"
+                    color={colors.primary}
                   />
                 )}
                 <Text style={styles.audioPlayText}>
@@ -893,7 +895,7 @@ export default function ChatbotScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor={isDark ? '#1E293B' : '#065F46'} />
+      <StatusBar barStyle="light-content" backgroundColor={isDark ? colors.headerBackground : colors.primary} />
 
       {/* Header */}
       <View style={styles.header}>
@@ -911,7 +913,7 @@ export default function ChatbotScreen() {
               <MaterialCommunityIcons
                 name={isVet ? "doctor" : "stethoscope"}
                 size={24}
-                color="#059669"
+                color={colors.primary}
               />
             </View>
             <View style={[styles.onlineBadge, !serviceStatus.enabled && { backgroundColor: '#EF4444' }]} />
@@ -1031,7 +1033,7 @@ export default function ChatbotScreen() {
             loading ? (
               <View style={styles.typingIndicatorRow}>
                 <View style={styles.assistantMiniAvatar}>
-                  <MaterialCommunityIcons name={isVet ? "doctor" : "cow"} size={16} color="#4CB85C" />
+                  <MaterialCommunityIcons name={isVet ? "doctor" : "cow"} size={16} color={colors.primary} />
                 </View>
                 <View style={styles.typingBubble}>
                   <View style={styles.typingDot} />
@@ -1047,7 +1049,11 @@ export default function ChatbotScreen() {
         />
 
         {/* Input Bar */}
-        <View style={[styles.inputBarContainer, !serviceStatus.enabled && { opacity: 0.7 }]}>
+        <View style={[
+          styles.inputBarContainer,
+          { paddingBottom: Math.max(insets.bottom, 12) + (Platform.OS === 'android' ? 8 : 4) },
+          !serviceStatus.enabled && { opacity: 0.7 }
+        ]}>
           {isRecording && (
             <View style={styles.recordingOverlay}>
               <View style={styles.recordingIndicator}>
@@ -1070,7 +1076,7 @@ export default function ChatbotScreen() {
               style={[
                 styles.textInput,
                 isUrdu && { fontFamily: fonts.urduRegular, textAlign: 'right' },
-                !serviceStatus.enabled && { backgroundColor: '#F1F5F9' },
+                !serviceStatus.enabled && { backgroundColor: isDark ? (colors.surfaceAlt || '#1E293B') : '#F1F5F9' },
               ]}
               placeholder={
                 !serviceStatus.enabled
