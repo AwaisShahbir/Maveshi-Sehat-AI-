@@ -36,14 +36,6 @@ export default function DoctorConsultationsScreen() {
   const [consultations, setConsultations] = useState(() => params.vetGroup?.consultations || []);
   const [loading, setLoading] = useState(false);
 
-  // Payment Submission Modal States
-  const [payModalVisible, setPayModalVisible] = useState(false);
-  const [selectedConsultForPay, setSelectedConsultForPay] = useState(null);
-  const [payPhone, setPayPhone] = useState(profile?.phone || '');
-  const [payTid, setPayTid] = useState('');
-  const [payReceipt, setPayReceipt] = useState(null);
-  const [submittingPayment, setSubmittingPayment] = useState(false);
-
   const fetchConsultations = async () => {
     try {
       setLoading(true);
@@ -160,69 +152,6 @@ export default function DoctorConsultationsScreen() {
     }
   };
 
-  const handleOpenPayModal = (consult) => {
-    setSelectedConsultForPay(consult);
-    setPayPhone(consult.sender_phone || profile?.phone || '');
-    setPayTid(consult.transaction_id || '');
-    setPayReceipt(null);
-    setPayModalVisible(true);
-  };
-
-  const handlePickReceipt = () => {
-    const options = {
-      mediaType: 'photo',
-      maxWidth: 1024,
-      maxHeight: 1024,
-      quality: 0.8,
-      includeBase64: true
-    };
-    launchImageLibrary(options, (response) => {
-      if (response.didCancel) return;
-      if (response.errorMessage) {
-        Alert.alert(t('Error'), response.errorMessage);
-        return;
-      }
-      if (response.assets && response.assets[0]) {
-        const asset = response.assets[0];
-        setPayReceipt({
-          uri: asset.uri,
-          base64: asset.base64
-        });
-      }
-    });
-  };
-
-  const handleSubmitPayment = async () => {
-    if (!selectedConsultForPay) return;
-    if (!payPhone.trim() && !payTid.trim() && !payReceipt) {
-      Alert.alert(t('Required'), 'Please provide sender phone number or transaction ID.');
-      return;
-    }
-    try {
-      setSubmittingPayment(true);
-      const baseUrl = 'https://maveshi-sehat-api.onrender.com';
-      const response = await fetch(`${baseUrl}/api/consultations/${selectedConsultForPay.id}/payment`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          sender_phone: payPhone.trim(),
-          transaction_id: payTid.trim(),
-          payment_method: 'JazzCash',
-          paymentProofBase64: payReceipt ? payReceipt.base64 : null
-        })
-      });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || 'Failed to submit payment');
-      Alert.alert(t('Success'), 'Payment proof submitted. Doctor will verify and unlock consultation.');
-      setPayModalVisible(false);
-      fetchConsultations();
-    } catch (err) {
-      Alert.alert(t('Error'), err.message || 'Could not submit payment');
-    } finally {
-      setSubmittingPayment(false);
-    }
-  };
-
   const renderConsultationCard = ({ item }) => {
     let aiData = null;
     if (item.ai_record_data) {
@@ -266,9 +195,6 @@ export default function DoctorConsultationsScreen() {
       ? 'DECLINED'
       : 'RESOLVED';
 
-    const isPaymentPaid = item.payment_status === 'paid';
-    const isPaymentPending = item.payment_status === 'pending_verification';
-
     const formattedDate = item.created_at
       ? new Date(item.created_at).toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
       : '';
@@ -307,45 +233,13 @@ export default function DoctorConsultationsScreen() {
           </View>
 
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, flexShrink: 0 }}>
-            {isPaymentPaid ? (
-              <View style={{ backgroundColor: isDark ? 'rgba(16,185,129,0.15)' : '#DCFCE7', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 5 }}>
-                <Text style={{ fontSize: 10, fontWeight: '800', color: '#047857' }}>
-                  {(item.type === 'physical_appointment' || item.type === 'physical') ? t('✓ ADVANCE PAID') : t('✓ PAID')}
-                </Text>
-              </View>
-            ) : isPaymentPending ? (
-              <View style={{ backgroundColor: isDark ? 'rgba(245,158,11,0.15)' : '#FEF3C7', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 5 }}>
-                <Text style={{ fontSize: 10, fontWeight: '800', color: '#B45309' }}>
-                  {(item.type === 'physical_appointment' || item.type === 'physical') ? t('ADVANCE REVIEW') : t('UNDER REVIEW')}
-                </Text>
-              </View>
-            ) : (
-              <TouchableOpacity 
-                style={{ backgroundColor: isDark ? 'rgba(239,68,68,0.15)' : '#FEE2E2', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 5 }}
-                onPress={() => handleOpenPayModal(item)}
-              >
-                <Text style={{ fontSize: 10, fontWeight: '800', color: '#DC2626' }}>
-                  {(item.type === 'physical_appointment' || item.type === 'physical') ? t('PAY ADVANCE RS. 300') : t('PAY RS. 300')}
-                </Text>
-              </TouchableOpacity>
-            )}
-
-            <View style={[styles.statusBadge, { backgroundColor: statusBadgeBg, paddingVertical: 2, paddingHorizontal: 6, borderRadius: 5 }]}>
-              <Text style={[styles.statusText, { color: statusBadgeColor, fontWeight: '800', fontSize: 10 }]}>
+            <View style={[styles.statusBadge, { backgroundColor: statusBadgeBg, paddingVertical: 3, paddingHorizontal: 8, borderRadius: 6 }]}>
+              <Text style={[styles.statusText, { color: statusBadgeColor, fontWeight: '800', fontSize: 11 }]}>
                 {statusTextDisplay}
               </Text>
             </View>
           </View>
         </View>
-
-        {(item.type === 'physical_appointment' || item.type === 'physical') && (
-          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8, paddingHorizontal: 2 }}>
-            <Feather name="info" size={12} color={colors.textSecondary} style={{ marginRight: 4 }} />
-            <Text style={{ fontSize: 11, color: colors.textSecondary }}>
-              {t('Advance: Rs. 300 · Remaining fee upon visit')}
-            </Text>
-          </View>
-        )}
 
         {/* Attached AI Report Snippet */}
         {aiData && (
@@ -584,193 +478,6 @@ export default function DoctorConsultationsScreen() {
           }
         />
       )}
-
-      {/* Pay Rs. 300 JazzCash Modal */}
-      <Modal visible={payModalVisible} transparent={true} animationType="slide">
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' }}
-        >
-          <View style={{
-            backgroundColor: colors.card,
-            borderTopLeftRadius: 24,
-            borderTopRightRadius: 24,
-            padding: 20,
-            maxHeight: '90%'
-          }}>
-            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 32 }}>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-                <Text style={{ fontSize: 17, fontWeight: '800', color: colors.textPrimary }}>
-                  {t('Pay Rs. 300 via JazzCash')}
-                </Text>
-                <TouchableOpacity onPress={() => setPayModalVisible(false)}>
-                  <Feather name="x" size={22} color={colors.textSecondary} />
-                </TouchableOpacity>
-              </View>
-
-              {/* Consultation Case Selector (if multiple cases exist) */}
-              {consultations.length > 1 && (
-                <View style={{ marginBottom: 14 }}>
-                  <Text style={{ fontSize: 12, fontWeight: '700', color: colors.textSecondary, marginBottom: 6 }}>
-                    {t('Select Consultation Case')} *
-                  </Text>
-                  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
-                    {consultations.map(c => {
-                      const isSelected = selectedConsultForPay?.id === c.id;
-                      const isPaid = c.payment_status === 'paid';
-                      const isReview = c.payment_status === 'pending_verification';
-                      return (
-                        <TouchableOpacity
-                          key={c.id}
-                          style={{
-                            paddingHorizontal: 12,
-                            paddingVertical: 7,
-                            borderRadius: 10,
-                            backgroundColor: isSelected ? colors.primary : (isDark ? '#334155' : '#F1F5F9'),
-                            borderWidth: 1,
-                            borderColor: isSelected ? colors.primary : colors.border,
-                            flexDirection: 'row',
-                            alignItems: 'center'
-                          }}
-                          onPress={() => {
-                            setSelectedConsultForPay(c);
-                            setPayPhone(c.sender_phone || profile?.phone || '');
-                            setPayTid(c.transaction_id || '');
-                          }}
-                        >
-                          <Text style={{ fontSize: 12, fontWeight: '800', color: isSelected ? '#FFF' : colors.textPrimary }}>
-                            #Case-{c.id} {isPaid ? '✓' : isReview ? '⏳' : ''}
-                          </Text>
-                        </TouchableOpacity>
-                      );
-                    })}
-                  </ScrollView>
-                </View>
-              )}
-
-              {/* Instructions Box */}
-              <View style={{
-                backgroundColor: isDark ? 'rgba(245, 158, 11, 0.1)' : '#FEF3C7',
-                padding: 12,
-                borderRadius: 12,
-                marginBottom: 14,
-                borderWidth: 1,
-                borderColor: isDark ? 'rgba(245, 158, 11, 0.25)' : '#FDE68A'
-              }}>
-                <Text style={{ fontSize: 12, color: isDark ? '#FBBF24' : '#92400E', fontWeight: '700', marginBottom: 4 }}>
-                  Case #{selectedConsultForPay?.id} · Dr. {selectedConsultForPay?.vet_name || vetData?.vetName}
-                </Text>
-                <Text style={{ fontSize: 12, color: isDark ? '#CBD5E1' : '#78350F', lineHeight: 18 }}>
-                  Transfer Rs. 300 to: {'\n'}
-                  <Text style={{ fontWeight: '800' }}>
-                    {selectedConsultForPay?.vet_account_number || vetData?.vetAccountNumber
-                      ? `${selectedConsultForPay?.vet_wallet_type || vetData?.vetWalletType || 'JazzCash'} (${selectedConsultForPay?.vet_account_title || vetData?.vetAccountTitle || selectedConsultForPay?.vet_name || vetData?.vetName}): ${selectedConsultForPay?.vet_account_number || vetData?.vetAccountNumber}`
-                      : 'JazzCash (Maveshi Sehat Admin): 03054758667'}
-                  </Text>
-                </Text>
-              </View>
-
-              {/* Sender Phone */}
-              <View style={{ marginBottom: 12 }}>
-                <Text style={{ fontSize: 12, fontWeight: '700', color: colors.textSecondary, marginBottom: 4 }}>
-                  {t('Sender Phone Number')} *
-                </Text>
-                <TextInput
-                  style={[styles.textInput, {
-                    height: 44,
-                    borderWidth: 1,
-                    borderColor: colors.border,
-                    borderRadius: 10,
-                    paddingHorizontal: 12,
-                    color: colors.textPrimary,
-                    backgroundColor: colors.background
-                  }]}
-                  placeholder="03XXXXXXXXX"
-                  placeholderTextColor={colors.placeholderText || '#94A3B8'}
-                  value={payPhone}
-                  onChangeText={setPayPhone}
-                  keyboardType="phone-pad"
-                />
-              </View>
-
-              {/* Transaction ID */}
-              <View style={{ marginBottom: 14 }}>
-                <Text style={{ fontSize: 12, fontWeight: '700', color: colors.textSecondary, marginBottom: 4 }}>
-                  {t('TID / Transaction ID')}
-                </Text>
-                <TextInput
-                  style={[styles.textInput, {
-                    height: 44,
-                    borderWidth: 1,
-                    borderColor: colors.border,
-                    borderRadius: 10,
-                    paddingHorizontal: 12,
-                    color: colors.textPrimary,
-                    backgroundColor: colors.background
-                  }]}
-                  placeholder="e.g. 11223344556"
-                  placeholderTextColor={colors.placeholderText || '#94A3B8'}
-                  value={payTid}
-                  onChangeText={setPayTid}
-                />
-              </View>
-
-              {/* Receipt Image Attachment */}
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 18 }}>
-                <TouchableOpacity
-                  style={{
-                    flex: 1,
-                    height: 44,
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    backgroundColor: payReceipt ? (isDark ? 'rgba(16, 185, 129, 0.2)' : '#DCFCE7') : (isDark ? '#334155' : '#E2E8F0'),
-                    borderRadius: 10,
-                    borderWidth: 1,
-                    borderColor: payReceipt ? '#10B981' : colors.border
-                  }}
-                  onPress={handlePickReceipt}
-                >
-                  <Feather name={payReceipt ? "check-circle" : "camera"} size={16} color={payReceipt ? "#059669" : colors.textPrimary} style={{ marginRight: 6 }} />
-                  <Text style={{ fontSize: 12, fontWeight: '700', color: payReceipt ? "#059669" : colors.textPrimary }}>
-                    {payReceipt ? t('Receipt Attached') : t('Attach Receipt Screenshot')}
-                  </Text>
-                </TouchableOpacity>
-
-                {payReceipt && (
-                  <TouchableOpacity
-                    onPress={() => setPayReceipt(null)}
-                    style={{ padding: 10 }}
-                  >
-                    <Feather name="trash-2" size={18} color="#EF4444" />
-                  </TouchableOpacity>
-                )}
-              </View>
-
-              {/* Submit Button */}
-              <TouchableOpacity
-                style={{
-                  height: 48,
-                  backgroundColor: colors.primary,
-                  borderRadius: 12,
-                  justifyContent: 'center',
-                  alignItems: 'center'
-                }}
-                onPress={handleSubmitPayment}
-                disabled={submittingPayment}
-              >
-                {submittingPayment ? (
-                  <ActivityIndicator color="#FFF" />
-                ) : (
-                  <Text style={{ color: '#FFF', fontWeight: '800', fontSize: 15 }}>
-                    {t('Submit Payment Proof')}
-                  </Text>
-                )}
-              </TouchableOpacity>
-            </ScrollView>
-          </View>
-        </KeyboardAvoidingView>
-      </Modal>
     </SafeAreaView>
   );
 }

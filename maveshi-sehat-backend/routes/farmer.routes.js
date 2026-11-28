@@ -631,46 +631,15 @@ module.exports = (pool, io) => {
         });
       }
 
-      // Consultation Financials: Rs. 300 consultation fee for online, custom for physical
-      const isPhysical = normalizedType === 'physical';
-      const fee = isPhysical ? (Number(req.body.fee) > 0 ? Number(req.body.fee) : 300.00) : 300.00;
-      const adminCommission = Math.round(fee * 0.25 * 100) / 100;
-      const vetEarnings = Math.round(fee * 0.75 * 100) / 100;
-      const paymentMethod = req.body.payment_method || req.body.paymentMethod || 'JazzCash';
-      const senderPhone = (req.body.sender_phone || req.body.senderPhone || phone || phoneNumber || '').trim() || null;
-      const transactionId = (req.body.transaction_id || req.body.transactionId || req.body.tid || '').trim() || null;
-      let finalProofUrl = req.body.payment_proof_url || req.body.paymentProofUrl || null;
-
-      // Handle base64 payment receipt proof upload if provided
-      const paymentProofBase64 = req.body.paymentProofBase64 || req.body.payment_proof_base64;
-      if (paymentProofBase64) {
-        try {
-          const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-          const fileName = `consult-proof-${uniqueSuffix}.jpg`;
-          const uploadDir = path.join(__dirname, '..', 'uploads');
-          if (!fs.existsSync(uploadDir)) {
-            fs.mkdirSync(uploadDir, { recursive: true });
-          }
-          const filePath = path.join(uploadDir, fileName);
-          const cleanBase64 = paymentProofBase64.replace(/^data:image\/\w+;base64,/, '');
-          fs.writeFileSync(filePath, Buffer.from(cleanBase64, 'base64'));
-          const host = req.get('host');
-          const protocol = req.protocol === 'https' || req.headers['x-forwarded-proto'] === 'https' ? 'https' : 'http';
-          finalProofUrl = `${protocol}://${host}/uploads/${fileName}`;
-          await persistUploadedFile(pool, fileName, filePath, 'image/jpeg');
-        } catch (proofErr) {
-          console.warn('Consultation payment proof save error:', proofErr.message);
-        }
-      }
-
-      let paymentStatus = req.body.payment_status || req.body.paymentStatus;
-      if (!paymentStatus) {
-        if (isPhysical) {
-          paymentStatus = (transactionId || finalProofUrl) ? 'pending_verification' : 'fee_upon_visit';
-        } else {
-          paymentStatus = (transactionId || finalProofUrl || senderPhone) ? 'pending_verification' : 'unpaid';
-        }
-      }
+      // Consultation Financials: Payment bypassed/free for now
+      const fee = 0.00;
+      const adminCommission = 0.00;
+      const vetEarnings = 0.00;
+      const paymentMethod = null;
+      const senderPhone = null;
+      const transactionId = null;
+      const finalProofUrl = null;
+      const paymentStatus = 'none';
 
       const result = await pool.query(
         `INSERT INTO consultations (
@@ -730,10 +699,10 @@ module.exports = (pool, io) => {
           io,
           userId: resolvedVetId,
           type: 'consultation',
-          title_en: 'New Consultation & Payment Request',
-          title_ur: 'نئی مشاورت اور فیس تصدیق',
-          message_en: `${farmerDisplayName} requested a Rs. 300 ${normalizedType} consultation (TID: ${transactionId || 'Pending'}).`,
-          message_ur: `${farmerDisplayName} نے 300 روپے فیس کے ساتھ ${normalizedType === 'physical' ? 'بالمشافہ' : (normalizedType === 'video' ? 'ویڈیو' : 'آن لائن چیٹ')} مشاورت کی درخواست کی ہے۔`,
+          title_en: 'New Consultation Request',
+          title_ur: 'نئی مشاورت کی درخواست',
+          message_en: `${farmerDisplayName} requested a ${normalizedType} consultation.`,
+          message_ur: `${farmerDisplayName} نے ${normalizedType === 'physical' ? 'فزیکل وزٹ' : (normalizedType === 'video' ? 'ویڈیو' : 'آن لائن چیٹ')} مشاورت کی درخواست کی ہے۔`,
           data: {
             consultationId: createdConsultation.id,
             farmerId: resolvedFarmerId,

@@ -34,7 +34,6 @@ export default function FarmerConsultationsScreen() {
 
   const [consultations, setConsultations] = useState(farmerGroup.consultations || []);
   const [loading, setLoading] = useState(false);
-  const [selectedProofData, setSelectedProofData] = useState(null);
 
   const normalizeConsultationStatus = (status) => String(status || '').trim().toLowerCase();
 
@@ -190,35 +189,9 @@ export default function FarmerConsultationsScreen() {
     }
   };
 
-  const handleVerifyPaymentAndApprove = async (item) => {
-    try {
-      setLoading(true);
-      const baseUrl = 'https://maveshi-sehat-api.onrender.com';
-      const response = await fetch(`${baseUrl}/api/consultations/${item.id}/verify-payment`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' }
-      });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || 'Failed to verify payment');
-      
-      Alert.alert(t('Success'), t('Payment verified and consultation approved.'));
-      fetchConsultations();
-      openChat({ ...item, status: 'approved', payment_status: 'paid' });
-    } catch (err) {
-      console.error(err);
-      Alert.alert(t('Error'), err.message || 'Could not verify payment');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleApproveAndChat = async (item) => {
-    if (item.payment_status === 'pending_verification') {
-      await handleVerifyPaymentAndApprove(item);
-    } else {
-      await handleStatusUpdate(item.id, 'approved');
-      openChat({ ...item, status: 'approved' });
-    }
+    await handleStatusUpdate(item.id, 'approved');
+    openChat({ ...item, status: 'approved' });
   };
 
   const handleDecline = (item) => {
@@ -231,21 +204,7 @@ export default function FarmerConsultationsScreen() {
           text: t('Decline'),
           style: 'destructive',
           onPress: async () => {
-            if (item.payment_status === 'pending_verification') {
-              try {
-                const baseUrl = 'https://maveshi-sehat-api.onrender.com';
-                await fetch(`${baseUrl}/api/consultations/${item.id}/reject-payment`, {
-                  method: 'PUT',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ rejectionReason: 'Consultation declined by doctor.' })
-                });
-                fetchConsultations();
-              } catch (e) {
-                console.error(e);
-              }
-            } else {
-              await handleStatusUpdate(item.id, 'rejected');
-            }
+            await handleStatusUpdate(item.id, 'rejected');
           }
         }
       ]
@@ -286,9 +245,6 @@ export default function FarmerConsultationsScreen() {
       : isRejected
       ? 'DECLINED'
       : 'RESOLVED';
-
-    const isPaid = item.payment_status === 'paid';
-    const isPaymentUnderReview = item.payment_status === 'pending_verification';
 
     let aiData = null;
     if (item.ai_record_data) {
@@ -337,26 +293,6 @@ export default function FarmerConsultationsScreen() {
           </View>
 
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexShrink: 0 }}>
-            {isPaid ? (
-              <View style={{ backgroundColor: isDark ? 'rgba(16,185,129,0.15)' : '#DCFCE7', paddingHorizontal: 7, paddingVertical: 2, borderRadius: 6 }}>
-                <Text style={{ fontSize: 10, fontWeight: '800', color: '#047857' }}>
-                  {(item.type === 'physical' || item.type === 'physical_appointment') ? t('✓ ADVANCE PAID') : t('✓ PAID')}
-                </Text>
-              </View>
-            ) : isPaymentUnderReview ? (
-              <View style={{ backgroundColor: isDark ? 'rgba(245,158,11,0.15)' : '#FEF3C7', paddingHorizontal: 7, paddingVertical: 2, borderRadius: 6 }}>
-                <Text style={{ fontSize: 10, fontWeight: '800', color: '#B45309' }}>
-                  {(item.type === 'physical' || item.type === 'physical_appointment') ? t('ADVANCE REVIEW') : t('REVIEW PROOF')}
-                </Text>
-              </View>
-            ) : (
-              <View style={{ backgroundColor: isDark ? 'rgba(239,68,68,0.15)' : '#FEE2E2', paddingHorizontal: 7, paddingVertical: 2, borderRadius: 6 }}>
-                <Text style={{ fontSize: 10, fontWeight: '800', color: '#DC2626' }}>
-                  {(item.type === 'physical' || item.type === 'physical_appointment') ? t('ADVANCE UNPAID') : t('UNPAID')}
-                </Text>
-              </View>
-            )}
-
             <View style={[styles.statusBadge, { backgroundColor: statusBadgeBg, paddingVertical: 3, paddingHorizontal: 8 }]}>
               <Text style={[styles.statusText, { color: statusBadgeColor, fontWeight: '800', fontSize: 10 }]}>
                 {statusTextDisplay}
@@ -364,31 +300,6 @@ export default function FarmerConsultationsScreen() {
             </View>
           </View>
         </View>
-
-        {/* Payment Proof Button (all TID & phone details inside modal) */}
-        {(item.transaction_id || item.payment_proof_url || item.sender_phone) ? (
-          <TouchableOpacity
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'center',
-              backgroundColor: isDark ? 'rgba(2, 132, 199, 0.12)' : '#F0F9FF',
-              paddingVertical: 7,
-              paddingHorizontal: 12,
-              borderRadius: 8,
-              borderWidth: 1,
-              borderColor: isDark ? 'rgba(2, 132, 199, 0.3)' : '#BAE6FD',
-              marginBottom: 8
-            }}
-            onPress={() => setSelectedProofData(item)}
-            activeOpacity={0.8}
-          >
-            <Feather name="file-text" size={13} color="#0284C7" style={{ marginRight: 6 }} />
-            <Text style={{ fontSize: 12, fontWeight: '700', color: '#0284C7' }}>
-              {t('View Payment Proof')}
-            </Text>
-          </TouchableOpacity>
-        ) : null}
 
         {/* AI Pathology Scan Card */}
         {aiData && (
@@ -496,7 +407,7 @@ export default function FarmerConsultationsScreen() {
               >
                 <Feather name="check-circle" size={15} color="#FFF" style={{ marginRight: 5 }} />
                 <Text style={{ color: '#FFF', fontWeight: '800', fontSize: 12 }} numberOfLines={1} adjustsFontSizeToFit>
-                  {item.payment_status === 'pending_verification' ? t('Verify & Approve') : t('Accept & Consult')}
+                  {t('Accept & Consult')}
                 </Text>
               </TouchableOpacity>
             </>
@@ -653,116 +564,6 @@ export default function FarmerConsultationsScreen() {
           }
         />
       )}
-
-      {/* Payment Proof Details Modal */}
-      <Modal visible={!!selectedProofData} transparent={true} animationType="fade">
-        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.85)', justifyContent: 'center', alignItems: 'center', padding: 20 }}>
-          <View style={{ backgroundColor: colors.card, borderRadius: 18, padding: 18, width: '100%', maxWidth: 420, maxHeight: '90%' }}>
-            <ScrollView showsVerticalScrollIndicator={false}>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                  <Feather name="file-text" size={18} color="#0284C7" />
-                  <Text style={{ fontSize: 16, fontWeight: '800', color: colors.textPrimary }}>
-                    {t('Payment Proof Details')}
-                  </Text>
-                </View>
-                <TouchableOpacity onPress={() => setSelectedProofData(null)}>
-                  <Feather name="x" size={24} color={colors.textSecondary} />
-                </TouchableOpacity>
-              </View>
-
-              {/* Receipt Screenshot Image */}
-              {selectedProofData?.payment_proof_url ? (
-                <Image
-                  source={{ uri: selectedProofData.payment_proof_url }}
-                  style={{ width: '100%', height: 260, borderRadius: 12, backgroundColor: '#000', marginBottom: 14 }}
-                  resizeMode="contain"
-                />
-              ) : (
-                <View style={{
-                  backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : '#F8FAFC',
-                  borderRadius: 12,
-                  padding: 24,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  borderWidth: 1,
-                  borderColor: colors.border,
-                  borderStyle: 'dashed',
-                  marginBottom: 14
-                }}>
-                  <Feather name="image" size={32} color={colors.textSecondary} />
-                  <Text style={{ fontSize: 13, color: colors.textSecondary, marginTop: 6 }}>
-                    {t('No receipt screenshot attached')}
-                  </Text>
-                </View>
-              )}
-
-              {/* Transaction Breakdown */}
-              <View style={{
-                backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : '#F8FAFC',
-                borderRadius: 12,
-                padding: 12,
-                borderWidth: 1,
-                borderColor: colors.border,
-                gap: 8,
-                marginBottom: 14
-              }}>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Text style={{ fontSize: 12, color: colors.textSecondary }}>{t('Transaction ID (TID)')}</Text>
-                  <Text style={{ fontSize: 13, fontWeight: '800', color: colors.textPrimary }}>
-                    {selectedProofData?.transaction_id || t('Not Provided')}
-                  </Text>
-                </View>
-
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Text style={{ fontSize: 12, color: colors.textSecondary }}>{t('Sender Phone')}</Text>
-                  <Text style={{ fontSize: 13, fontWeight: '700', color: colors.textPrimary }}>
-                    {selectedProofData?.sender_phone || selectedProofData?.farmer_phone || t('Not Provided')}
-                  </Text>
-                </View>
-
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Text style={{ fontSize: 12, color: colors.textSecondary }}>{t('Payment Method')}</Text>
-                  <Text style={{ fontSize: 13, fontWeight: '700', color: '#0284C7' }}>
-                    {selectedProofData?.payment_method || 'JazzCash'}
-                  </Text>
-                </View>
-
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Text style={{ fontSize: 12, color: colors.textSecondary }}>{t('Consultation Fee')}</Text>
-                  <Text style={{ fontSize: 13, fontWeight: '800', color: '#059669' }}>
-                    Rs. {parseFloat(selectedProofData?.fee || 300).toFixed(0)}
-                  </Text>
-                </View>
-
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Text style={{ fontSize: 12, color: colors.textSecondary }}>{t('Payment Status')}</Text>
-                  <Text style={{
-                    fontSize: 12,
-                    fontWeight: '800',
-                    color: selectedProofData?.payment_status === 'paid' ? '#059669' : '#D97706'
-                  }}>
-                    {selectedProofData?.payment_status === 'paid' ? 'PAID' : 'PENDING VERIFICATION'}
-                  </Text>
-                </View>
-              </View>
-
-              <TouchableOpacity
-                style={{
-                  height: 44,
-                  backgroundColor: colors.primary,
-                  borderRadius: 10,
-                  justifyContent: 'center',
-                  alignItems: 'center'
-                }}
-                onPress={() => setSelectedProofData(null)}
-              >
-                <Text style={{ color: '#FFF', fontWeight: '800', fontSize: 14 }}>{t('Close')}</Text>
-              </TouchableOpacity>
-            </ScrollView>
-          </View>
-        </View>
-      </Modal>
     </SafeAreaView>
   );
 }

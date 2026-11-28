@@ -420,18 +420,6 @@ export default function ChatScreen() {
       return;
     }
 
-    const activeConsult = params.consultation || (consultationHistory.find(c => String(c.id) === String(selectedConsultationId)));
-    if (userRole === 'farmer' && activeConsult) {
-      const isPaid = activeConsult.payment_status === 'paid' || activeConsult.status === 'approved';
-      if (!isPaid) {
-        Alert.alert(
-          t('Consultation Call Locked'),
-          t('Consultation fee of Rs. 300 must be verified to unlock audio and video calling.')
-        );
-        return;
-      }
-    }
-
     const targetPhone = partnerPhone;
     if (!targetPhone) {
       Alert.alert(t('Phone Unavailable'), t('No contact number is available for this user.'));
@@ -458,18 +446,6 @@ export default function ChatScreen() {
     if (conversationStatus === 'resolved') {
       Alert.alert(t('Consultation Closed'), t('This consultation has been marked as resolved and closed.'));
       return;
-    }
-
-    const activeConsult = params.consultation || (consultationHistory.find(c => String(c.id) === String(selectedConsultationId)));
-    if (userRole === 'farmer' && activeConsult) {
-      const isPaid = activeConsult.payment_status === 'paid' || activeConsult.status === 'approved';
-      if (!isPaid) {
-        Alert.alert(
-          t('Consultation Call Locked'),
-          t('Consultation fee of Rs. 300 must be verified to unlock audio and video calling.')
-        );
-        return;
-      }
     }
 
     if (userRole === 'farmer' && partnerConsultationMode === 'Chat Only') {
